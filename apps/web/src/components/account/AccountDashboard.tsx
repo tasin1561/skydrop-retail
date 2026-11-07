@@ -111,6 +111,7 @@ export function AccountDashboard() {
           badge={addresses.length}
         />
         <Row href="/wishlist" icon="heart" label="Wishlist" sub="Saved for later" badge={wishlist.length} />
+        <Row href="/account/points" icon="spark" label="Skydrop Points" sub="Earn on every order, save at checkout" />
         <Row icon="card" label="Payment methods" sub="bKash, Nagad and cards at checkout" soon />
         <Row icon="info" label="Notifications" sub="SMS delivery updates are on" soon />
         <Row href="/how-it-works" icon="help" label="Help" sub="How it works, shipping, returns" />

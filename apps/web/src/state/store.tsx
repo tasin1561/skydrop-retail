@@ -1,10 +1,12 @@
 "use client";
 
-// Client-side store for the demo. Cart, wishlist, account, addresses, orders and the
-// marketplace toggles live in localStorage until the Laravel API is connected.
+// Client-side store. Cart, theme and store mode always live in localStorage. When
+// NEXT_PUBLIC_API_URL is set, account, addresses, wishlist and orders sync with the Laravel API;
+// without it the storefront runs fully in demo mode.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { Address, CartItem, MarketId, Order, StoreMode, User } from "@/lib/types";
-import { DEFAULT_ENABLED } from "@/lib/markets";
+import { DEFAULT_ENABLED, MARKET_IDS } from "@/lib/markets";
+import { api, apiEnabled, API_URL, setApiToken } from "@/lib/apiClient";
 
 type State = {
   cart: CartItem[];
@@ -15,6 +17,7 @@ type State = {
   enabled: Record<MarketId, boolean>;
   mode: StoreMode;
   theme: "light" | "dark" | "system";
+  token: string | null;
 };
 
 const INITIAL: State = {
@@ -26,6 +29,7 @@ const INITIAL: State = {
   enabled: DEFAULT_ENABLED,
   mode: "all",
   theme: "system",
+  token: null,
 };
 
 const KEY = "skydrop-retail:v1";
@@ -37,7 +41,7 @@ type Ctx = State & {
   removeFromCart: (productId: string, variant?: string) => void;
   clearCart: () => void;
   toggleWish: (id: string) => void;
-  login: (u: User) => void;
+  login: (u: User, token?: string) => void;
   logout: () => void;
   saveAddress: (a: Address) => void;
   removeAddress: (id: string) => void;
@@ -86,7 +90,51 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const update = useCallback((fn: (s: State) => State) => setState((s) => fn(s)), []);
 
-  const api = useMemo<Ctx>(
+  // API mode: load the shopper's account data and the live marketplace switches once ready.
+  useEffect(() => {
+    if (!ready || !apiEnabled) return;
+    let cancelled = false;
+    fetch(`${API_URL}/marketplaces`, { headers: { Accept: "application/json" } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { items?: { id: MarketId; enabled: boolean }[] } | null) => {
+        if (cancelled || !d?.items) return;
+        const enabled = { ...DEFAULT_ENABLED };
+        for (const m of d.items) if (MARKET_IDS.includes(m.id)) enabled[m.id] = m.enabled;
+        setState((s) => ({ ...s, enabled }));
+      })
+      .catch(() => {});
+    if (!state.token) return;
+    setApiToken(state.token);
+    Promise.allSettled([api.me(), api.addresses(), api.orders(), api.wishlist()]).then(([me, addr, ord, wish]) => {
+      if (cancelled) return;
+      if (me.status === "rejected") {
+        // token expired or revoked: sign out locally
+        setApiToken(null);
+        setState((s) => ({ ...s, token: null, user: null }));
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        user: me.value.user,
+        addresses: addr.status === "fulfilled" ? addr.value.items.map((a) => ({ ...a, id: String(a.id) })) : s.addresses,
+        orders: ord.status === "fulfilled" ? ord.value.items : s.orders,
+        wishlist: wish.status === "fulfilled" ? wish.value.items.map((w) => w.id) : s.wishlist,
+      }));
+    });
+    return () => {
+      cancelled = true;
+    };
+     
+  }, [ready, state.token]);
+
+  const remote = (p: Promise<unknown>) => {
+    p.catch(() => {
+      /* keep the optimistic local change; the next sync corrects it */
+    });
+  };
+  const synced = apiEnabled && !!state.token;
+
+  const value = useMemo<Ctx>(
     () => ({
       ...state,
       ready,
@@ -111,33 +159,56 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       removeFromCart: (id, variant) =>
         update((s) => ({ ...s, cart: s.cart.filter((c) => !(c.productId === id && c.variant === variant)) })),
       clearCart: () => update((s) => ({ ...s, cart: [] })),
-      toggleWish: (id) =>
+      toggleWish: (id) => {
+        if (synced) remote(state.wishlist.includes(id) ? api.wishlistRemove(id) : api.wishlistAdd(id));
         update((s) => ({
           ...s,
           wishlist: s.wishlist.includes(id) ? s.wishlist.filter((w) => w !== id) : [...s.wishlist, id],
-        })),
-      login: (u) => update((s) => ({ ...s, user: u })),
-      logout: () => update((s) => ({ ...s, user: null })),
-      saveAddress: (a) =>
+        }));
+      },
+      login: (u, token) => {
+        if (token) setApiToken(token);
+        update((s) => ({ ...s, user: u, token: token ?? s.token }));
+      },
+      logout: () => {
+        if (synced) remote(api.logout());
+        setApiToken(null);
+        update((s) => ({ ...s, user: null, token: null, ...(apiEnabled ? { orders: [], addresses: [], wishlist: [] } : {}) }));
+      },
+      saveAddress: (a) => {
+        if (synced)
+          api
+            .saveAddress(a)
+            .then(({ address }) =>
+              update((s) => ({ ...s, addresses: s.addresses.map((x) => (x.id === a.id ? { ...address, id: String(address.id) } : x)) })),
+            )
+            .catch(() => {});
         update((s) => {
           const others = s.addresses.filter((x) => x.id !== a.id).map((x) => (a.isDefault ? { ...x, isDefault: false } : x));
           return { ...s, addresses: [...others, { ...a, isDefault: a.isDefault || others.length === 0 }] };
-        }),
-      removeAddress: (id) => update((s) => ({ ...s, addresses: s.addresses.filter((a) => a.id !== id) })),
+        });
+      },
+      removeAddress: (id) => {
+        if (synced && /^\d+$/.test(id)) remote(api.removeAddress(id));
+        update((s) => ({ ...s, addresses: s.addresses.filter((a) => a.id !== id) }));
+      },
       placeOrder: (o) => update((s) => ({ ...s, orders: [o, ...s.orders], cart: [] })),
-      cancelOrder: (id) =>
+      cancelOrder: (id) => {
+        if (synced) remote(api.cancelOrder(id));
         update((s) => ({
           ...s,
           orders: s.orders.map((o) => (o.id === id ? { ...o, status: "cancelled" } : o)),
-        })),
+        }));
+      },
       setEnabled: (m, on) => update((s) => ({ ...s, enabled: { ...s.enabled, [m]: on } })),
       setMode: (m) => update((s) => ({ ...s, mode: m })),
       setTheme: (t) => update((s) => ({ ...s, theme: t })),
     }),
-    [state, ready, update],
+     
+    [state, ready, update, synced],
   );
 
-  return <StoreCtx.Provider value={api}>{children}</StoreCtx.Provider>;
+  return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
 
 const noopSubscribe = () => () => {};

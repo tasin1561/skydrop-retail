@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { suggestions } from "@/lib/catalog";
+import { suggestions } from "@/lib/data";
 import { isStoreMode } from "@/lib/markets";
 
 export async function GET(req: Request) {
@@ -7,5 +7,5 @@ export async function GET(req: Request) {
   const q = (url.searchParams.get("q") ?? "").slice(0, 80);
   const store = url.searchParams.get("store");
   if (q.trim().length < 2) return NextResponse.json({ items: [] });
-  return NextResponse.json({ items: suggestions(q, isStoreMode(store) ? store : "all") });
+  return NextResponse.json({ items: await suggestions(q, isStoreMode(store) ? store : "all") });
 }

@@ -34,13 +34,23 @@ export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupo
           </dd>
         </div>
       )}
-      {t.discount > 0 && (
+      {t.discount - t.pointsDiscount > 0 && (
         <div className="flex justify-between gap-3 text-good">
           <dt className="inline-flex items-center gap-1.5">
             <Icon name="tag" size={14} stroke={2} /> {coupon?.code ?? "Discount"}
           </dt>
           <dd key={t.discount} className="co-bump font-semibold tabular-nums">
-            −{formatBdt(t.discount)}
+            −{formatBdt(t.discount - t.pointsDiscount)}
+          </dd>
+        </div>
+      )}
+      {t.pointsDiscount > 0 && (
+        <div className="flex justify-between gap-3 text-good">
+          <dt className="inline-flex items-center gap-1.5">
+            <Icon name="spark" size={14} stroke={2} /> {t.pointsRedeemed} Skydrop Points
+          </dt>
+          <dd key={t.pointsDiscount} className="co-bump font-semibold tabular-nums">
+            −{formatBdt(t.pointsDiscount)}
           </dd>
         </div>
       )}
@@ -50,6 +60,11 @@ export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupo
           {formatBdt(t.total)}
         </dd>
       </div>
+          {t.pointsToEarn > 0 && (
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-accent">
+          <Icon name="spark" size={13} stroke={2} /> You&apos;ll earn {t.pointsToEarn} Skydrop Points when this is delivered
+        </p>
+      )}
     </dl>
   );
 }

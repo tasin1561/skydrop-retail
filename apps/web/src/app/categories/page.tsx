@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { byMarket } from "@/lib/catalog";
+import { byMarket } from "@/lib/data";
 import { MARKET_IDS, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
 
 export const metadata: Metadata = { title: "Categories" };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const samples = Object.fromEntries(
+    await Promise.all(
+      MARKET_IDS.flatMap((m) => STORES[m].categories.map(async (c) => [`${m}:${c.slug}`, (await byMarket(m, 1, c.slug))[0]] as const)),
+    ),
+  );
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">
       <h1 className="text-2xl font-extrabold tracking-tight">Shop by category</h1>
@@ -31,7 +36,7 @@ export default function CategoriesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {s.categories.map((c, i) => {
-                  const sample = byMarket(m, 1, c.slug)[0];
+                  const sample = samples[`${m}:${c.slug}`];
                   return (
                     <Link
                       key={c.slug}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProduct } from "@/lib/catalog";
+import { productsByIds } from "@/lib/data";
 import type { Product } from "@/lib/types";
 
 // GET /api/products?ids=a,b,c -> card-sized product data for client lists (wishlist).
@@ -8,9 +8,7 @@ export async function GET(req: Request) {
   const raw = new URL(req.url).searchParams.get("ids") ?? "";
   const ids = Array.from(new Set(raw.split(",").map((s) => s.trim()).filter(Boolean))).slice(0, 100);
   const items: Partial<Product>[] = [];
-  for (const id of ids) {
-    const p = getProduct(id);
-    if (!p) continue;
+  for (const p of await productsByIds(ids)) {
     items.push({
       id: p.id,
       market: p.market,

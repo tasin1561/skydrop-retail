@@ -96,6 +96,11 @@ export type Order = {
   total: number;
   status: OrderStatus;
   trackingCode: string;
+  paymentStatus?: string;
+  pointsRedeemed?: number;
+  pointsDiscount?: number;
+  pointsEarned?: number;
+  timeline?: { status: string; at: string; note?: string }[];
 };
 
 export type User = { name: string; phone: string; email?: string };

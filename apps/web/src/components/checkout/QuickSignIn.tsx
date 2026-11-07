@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useStore } from "@/state/store";
+import { apiEnabled } from "@/lib/apiClient";
 import { formatPhone, phoneValid } from "./cart-math";
 import { PhoneField, TextField } from "./Fields";
 
@@ -16,6 +17,26 @@ export function QuickSignIn() {
 
   const nameOk = name.trim().length >= 2;
   const ok = nameOk && phoneValid(digits);
+
+  if (apiEnabled) {
+    // With the live API, accounts are verified by SMS code on the sign-in page.
+    return (
+      <section className="co-card p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <span className="chip-icon is-active shrink-0">
+            <Icon name="user" size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-extrabold">Sign in to continue</h2>
+            <p className="text-sm text-ink-2">We&apos;ll text you a 6 digit code. Your cart stays as it is.</p>
+            <a href="/login?next=/checkout" className="btn btn-primary mt-3 w-full">
+              Sign in with phone <Icon name="arrow" size={18} className="arrow" />
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="co-card p-4 sm:p-5" aria-labelledby="qs-h">

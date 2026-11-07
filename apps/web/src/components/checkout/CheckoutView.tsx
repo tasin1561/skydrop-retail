@@ -9,6 +9,8 @@ import { STORES } from "@/lib/markets";
 import { formatBdt } from "@/lib/pricing";
 import type { CartItem, Order } from "@/lib/types";
 import { useStore } from "@/state/store";
+import { api, apiEnabled, ApiError } from "@/lib/apiClient";
+import { demoLedger, maxRedeem } from "@/lib/points";
 import { AddressStep, addressText } from "./AddressStep";
 import { computeTotals, useCoupon } from "./cart-math";
 import { EmptyCart } from "./EmptyCart";
@@ -28,6 +30,10 @@ function rand(n: number, chars: string) {
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const itemKey = (i: CartItem) => i.productId + "::" + (i.variant ?? "");
 
+// Timing helpers for the order animation (called from event handlers only).
+const nowMs = () => Date.now();
+const msSince = (t: number) => Date.now() - t;
+
 type Phase = "idle" | "verifying" | "confirm" | "blocked" | "error" | "placing" | "done";
 
 export function CheckoutView() {
@@ -41,6 +47,8 @@ export function CheckoutView() {
   const [addrPick, setAddrPick] = useState<string | null>(null);
   const [payment, setPayment] = useState<PaymentId | null>(null);
   const [terms, setTerms] = useState(false);
+  const [usePoints, setUsePoints] = useState(false);
+  const [apiPoints, setApiPoints] = useState<number | null>(null);
   const [nudge, setNudge] = useState<{ n: number; msg: string } | null>(null);
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -54,6 +62,14 @@ export function CheckoutView() {
   const headRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
+    if (!apiEnabled || !user) return;
+    api
+      .points()
+      .then((p) => setApiPoints(p.balance))
+      .catch(() => setApiPoints(0));
+  }, [user]);
+
+  useEffect(() => {
     alive.current = true;
     return () => {
       alive.current = false;
@@ -64,7 +80,9 @@ export function CheckoutView() {
   const items: CartItem[] = placed
     ? placed.items
     : cart.map((i) => (fresh[itemKey(i)] ? { ...i, unitBdt: fresh[itemKey(i)] } : i));
-  const t = computeTotals(items, coupon);
+  const pointsBalance = apiEnabled ? (apiPoints ?? 0) : demoLedger(store.orders, user ? "" : undefined).balance;
+  const redeemable = maxRedeem(pointsBalance, computeTotals(items, coupon).subtotal);
+  const t = computeTotals(items, coupon, usePoints && !placed ? redeemable.points : (placed?.pointsRedeemed ?? 0));
   const address = addresses.find((a) => a.id === addrPick) ?? addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;
 
   if (!ready) return <CheckoutSkeleton />;
@@ -102,7 +120,42 @@ export function CheckoutView() {
   const finish = async (orderItems: CartItem[], startedAt: number) => {
     if (!address || !payment) return;
     setPhase("placing");
-    const tt = computeTotals(orderItems, coupon);
+    const tt = computeTotals(orderItems, coupon, usePoints ? redeemable.points : 0);
+    if (apiEnabled) {
+      // Live API: the server re-checks prices, computes totals and starts the payment.
+      try {
+        const [res] = await Promise.all([
+          api.createOrder({
+            items: orderItems,
+            address,
+            payment,
+            coupon: coupon?.code,
+            redeemPoints: tt.pointsRedeemed || undefined,
+            returnUrl: `${window.location.origin}/checkout/success`,
+          }),
+          wait(Math.max(0, 700 - (msSince(startedAt)))),
+        ]);
+        if (!alive.current) return;
+        setPlaced(res.order);
+        placeOrder(res.order);
+        setPhase("done");
+        await wait(900);
+        setCoupon("");
+        if (res.payment.redirectUrl) window.location.assign(res.payment.redirectUrl);
+        else if (alive.current) router.push(`/checkout/success?order=${res.order.id}`);
+      } catch (err) {
+        if (!alive.current) return;
+        setError(
+          err instanceof ApiError && err.status === 409
+            ? "Some prices changed while you were checking out. Please review and try again."
+            : err instanceof ApiError
+              ? err.message
+              : "We couldn't place your order. Nothing was charged. Please try again.",
+        );
+        setPhase("error");
+      }
+      return;
+    }
     const order: Order = {
       id: "SR-" + rand(6, ALNUM),
       createdAt: new Date().toISOString(),
@@ -115,8 +168,11 @@ export function CheckoutView() {
       total: tt.total,
       status: "placed",
       trackingCode: "SD" + rand(9, "0123456789"),
+      pointsRedeemed: tt.pointsRedeemed,
+      pointsDiscount: tt.pointsDiscount,
+      pointsEarned: tt.pointsToEarn,
     };
-    const left = 700 - (Date.now() - startedAt);
+    const left = 700 - (msSince(startedAt));
     if (left > 0) await wait(left);
     if (!alive.current) return;
     setPlaced(order);
@@ -129,7 +185,7 @@ export function CheckoutView() {
   };
 
   const placeFlow = async () => {
-    const startedAt = Date.now();
+    const startedAt = nowMs();
     // Customer already confirmed the changed prices: place at those prices.
     if (phase === "confirm") {
       finish(items, startedAt);
@@ -270,6 +326,30 @@ export function CheckoutView() {
             {step === 1 && <DeliveryStep t={t} coupon={coupon} />}
             {step === 2 && <PaymentStep value={payment} onChange={setPayment} total={t.total} />}
             {step === 3 && (
+              <>
+              {pointsBalance >= 100 && (
+                <label className={"co-option mb-3 items-center " + (usePoints ? "is-active" : "")}>
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={usePoints}
+                    disabled={redeemable.points === 0 || phase === "placing" || phase === "done"}
+                    onChange={(e) => setUsePoints(e.target.checked)}
+                  />
+                  <span className="chip-icon shrink-0">
+                    <Icon name="spark" size={18} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold">Use {redeemable.points} Skydrop Points</span>
+                    <span className="block text-xs text-ink-2">
+                      Save {formatBdt(redeemable.valueBdt)} · you have {pointsBalance} points
+                    </span>
+                  </span>
+                  <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (usePoints ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
+                    {usePoints ? "ON" : "OFF"}
+                  </span>
+                </label>
+              )}
               <Review
                 t={t}
                 addressLine={address ? `${address.name}, ${address.phone} · ${addressText(address)}` : "No address"}
@@ -281,6 +361,7 @@ export function CheckoutView() {
                 lock={phase === "verifying" || phase === "placing" || phase === "done"}
                 coupon={coupon}
               />
+              </>
             )}
 
             {step === 3 && phase !== "idle" && (

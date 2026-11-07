@@ -11,6 +11,7 @@ import { BuyBox } from "./BuyBox";
 import { DeliveryCard, isUnavailableStock, StockLine } from "./DeliveryCard";
 import { Gallery } from "./Gallery";
 import { PriceBreakdown } from "./PriceBreakdown";
+import { ProductExtras } from "./ProductExtras";
 import { ReviewList, StarBars } from "./Reviews";
 import { ShareButton } from "./ShareButton";
 import type { BuyInfo, Media } from "./types";
@@ -170,6 +171,7 @@ export function ProductDetail({
 
           <div className="mt-3">
             <PriceBreakdown p={p} source={source} />
+            <ProductExtras id={p.id} priceBdt={priceBdt(p)} inStock={!isUnavailableStock(p.stock)} />
           </div>
 
           <div className="mt-4">

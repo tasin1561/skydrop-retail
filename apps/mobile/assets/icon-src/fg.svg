@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<g transform="translate(512 512) scale(0.66) translate(-512 -512)"><g id="mark">
+  <!-- canopy -->
+  <path d="M232 470 C232 300 368 196 512 196 C656 196 792 300 792 470 C756 446 716 446 680 470 C644 446 604 446 568 470 C532 446 492 446 456 470 C420 446 380 446 344 470 C308 446 268 446 232 470 Z" fill="#ff6a3d"/>
+  <path d="M456 470 C456 330 486 220 512 196 C538 220 568 330 568 470 C532 446 492 446 456 470 Z" fill="#ffffff" fill-opacity="0.28"/>
+  <!-- lines -->
+  <g stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none">
+    <path d="M240 466 L430 640"/><path d="M400 462 L462 640"/><path d="M624 462 L562 640"/><path d="M784 466 L594 640"/>
+  </g>
+  <!-- parcel -->
+  <rect x="404" y="628" width="216" height="196" rx="30" fill="#ffffff"/>
+  <rect x="490" y="628" width="44" height="196" fill="#ffd9cc"/>
+  <path d="M404 690 H620" stroke="#0b6bcb" stroke-opacity="0.18" stroke-width="10"/>
+</g></g>
+</svg>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { searchProducts } from "@/lib/catalog";
+import { searchProducts } from "@/lib/data";
 import { isStoreMode, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
@@ -21,7 +21,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const storeRaw = one(sp.store);
   const store = isStoreMode(storeRaw) ? storeRaw : "all";
   const page = Number(one(sp.page) ?? 1) || 1;
-  const res = searchProducts({
+  const res = await searchProducts({
     q,
     store,
     category: one(sp.category) || undefined,

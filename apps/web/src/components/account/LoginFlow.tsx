@@ -7,6 +7,7 @@ import { Icon, Logo } from "@/components/Icon";
 import { PhoneField, Spinner, useShake } from "./ui";
 import { checkPhone, formatPhone, toE164 } from "./phone";
 import { OtpInput } from "./OtpInput";
+import { api, apiEnabled, ApiError } from "@/lib/apiClient";
 
 type Step = "phone" | "code" | "name";
 
@@ -48,6 +49,10 @@ export function LoginFlow({ next }: { next: string }) {
   const [resendIn, setResendIn] = useState(0);
   const [verified, setVerified] = useState(false);
   const [live, setLive] = useState("");
+  const [demoCode, setDemoCode] = useState<string | null>(null);
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const [apiError, setApiError] = useState("");
+  const [otpKey, setOtpKey] = useState(0);
   const nameRef = useRef<HTMLInputElement>(null);
 
   const phoneOk = checkPhone(digits).valid;
@@ -72,6 +77,24 @@ export function LoginFlow({ next }: { next: string }) {
       return;
     }
     setSending("busy");
+    setApiError("");
+    if (apiEnabled) {
+      api
+        .requestOtp(toE164(digits))
+        .then((res) => {
+          setSending("idle");
+          setDemoCode(res.demoCode ?? null);
+          setStep("code");
+          setResendIn(30);
+          setLive(`Code sent to +880 ${formatPhone(digits)}`);
+        })
+        .catch((err: unknown) => {
+          setSending("idle");
+          phoneShake.shake();
+          setApiError(err instanceof ApiError ? err.message : "Couldn't send the code. Check your connection and try again.");
+        });
+      return;
+    }
     // Demo: no SMS gateway yet, so nothing is actually sent. The short wait stands in for
     // the API call; the page says plainly that any 6 digits work.
     setTimeout(() => {
@@ -85,13 +108,53 @@ export function LoginFlow({ next }: { next: string }) {
   function finish(n: string) {
     const phone = toE164(digits);
     setFinishing(true);
+    if (apiEnabled && pendingCode) {
+      api
+        .verifyOtp(phone, pendingCode, n)
+        .then((r) => {
+          login(r.user, r.token);
+          setLive(`Signed in as ${r.user.name}`);
+          router.replace(next);
+        })
+        .catch((err: unknown) => {
+          setFinishing(false);
+          setApiError(err instanceof ApiError ? err.message : "Couldn't finish signing in. Please try again.");
+        });
+      return;
+    }
     remember(phone, n);
     login({ name: n, phone });
     setLive(`Signed in as ${n}`);
     router.replace(next);
   }
 
-  function onVerified() {
+  function onVerified(code: string) {
+    if (apiEnabled) {
+      setApiError("");
+      api
+        .verifyOtp(toE164(digits), code)
+        .then((r) => {
+          setVerified(true);
+          setLive("Code verified");
+          setTimeout(() => {
+            login(r.user, r.token);
+            router.replace(next);
+          }, 900);
+        })
+        .catch((err: unknown) => {
+          const data = err instanceof ApiError ? (err.data as { errors?: Record<string, string[]> }) : undefined;
+          if (data?.errors?.name) {
+            // new shopper: code accepted, the API needs a name to create the account
+            setVerified(true);
+            setPendingCode(code);
+            setTimeout(() => setStep("name"), 900);
+            return;
+          }
+          setApiError(err instanceof ApiError ? err.message : "That code didn't work. Try again.");
+          setOtpKey((k) => k + 1); // reset the boxes
+        });
+      return;
+    }
     setVerified(true);
     setLive("Code verified");
     const known = readKnown()[toE164(digits)] ?? (user?.phone === toE164(digits) ? user.name : undefined);
@@ -157,6 +220,11 @@ export function LoginFlow({ next }: { next: string }) {
                 </>
               )}
             </button>
+            {apiError && (
+              <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad">
+                {apiError}
+              </p>
+            )}
 
             <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-3">
               <span className="h-px flex-1 bg-line" /> or <span className="h-px flex-1 bg-line" />
@@ -196,9 +264,15 @@ export function LoginFlow({ next }: { next: string }) {
               </button>
             </p>
             <p className="mb-5 inline-flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-xs font-semibold text-ink-2">
-              <Icon name="info" size={15} className="text-accent" /> Demo: no SMS is sent. Use any 6 digits.
+              <Icon name="info" size={15} className="text-accent" />{" "}
+              {!apiEnabled ? "Demo: no SMS is sent. Use any 6 digits." : demoCode ? `Test mode code: ${demoCode}` : "Didn't get it? Wait for the timer, then resend."}
             </p>
-            <OtpInput onComplete={onVerified} disabled={verified} />
+            <OtpInput key={otpKey} onComplete={onVerified} disabled={verified} />
+            {apiError && (
+              <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad">
+                {apiError}
+              </p>
+            )}
             {!verified && (
               <div className="mt-5 flex items-center justify-center text-sm text-ink-2">
                 {resendIn > 0 ? (
@@ -211,7 +285,8 @@ export function LoginFlow({ next }: { next: string }) {
                     className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-semibold text-accent hover:bg-surface-2"
                     onClick={() => {
                       setResendIn(30);
-                      setLive("Demo: a new code would be sent now");
+                      if (apiEnabled) api.requestOtp(toE164(digits)).then((res) => setDemoCode(res.demoCode ?? null)).catch(() => {});
+                      setLive(apiEnabled ? "A new code is on its way" : "Demo: a new code would be sent now");
                     }}
                   >
                     <Icon name="refresh" size={15} /> Resend code
