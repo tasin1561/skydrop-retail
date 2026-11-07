@@ -246,7 +246,7 @@ function Line({ k, v, good }: { k: string; v: string; good?: boolean }) {
 function Timeline({ order, status }: { order: Order; status: OrderStatus }) {
   const cur = stageIndex(status);
   return (
-    <ol className="mt-5 flex flex-col lg:flex-row" aria-label="Tracking timeline">
+    <ol className="mt-5 flex flex-col lg:flex-row" aria-label="Tracking timeline" data-reveal="fade">
       {STAGES.map((st, i) => {
         const state = i < cur || status === "delivered" ? "done" : i === cur ? "now" : "next";
         const last = i === STAGES.length - 1;

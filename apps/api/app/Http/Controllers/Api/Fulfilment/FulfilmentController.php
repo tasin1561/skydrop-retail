@@ -25,7 +25,7 @@ class FulfilmentController extends Controller
 
     public function upload(Request $request): JsonResponse
     {
-        $request->validate(['file' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:5120']]);
+        $request->validate(['file' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:'.(\App\Support\Limits::int('uploads.image_mb') * 1024)]]); // System → Limits
         $file = $request->file('file');
         $path = $file->storeAs('uploads/'.$request->user()->id, Str::uuid().'.'.($file->guessExtension() ?: 'jpg'), 'local');
         $u = Upload::query()->create([
@@ -108,7 +108,7 @@ class FulfilmentController extends Controller
             'items.*.qty' => ['nullable', 'integer', 'min:1', 'max:50'],
             'reason' => ['required', Rule::in(array_keys(ReturnRequest::REASONS))],
             'note' => ['nullable', 'string', 'max:1000'],
-            'photos' => ['nullable', 'array', 'max:6'],
+            'photos' => ['nullable', 'array', 'max:'.\App\Support\Limits::int('uploads.max_files')], // System → Limits
             'photos.*' => ['integer'],
             'resolution' => ['required', Rule::in(array_keys(ReturnRequest::RESOLUTIONS))],
         ]);

@@ -73,7 +73,7 @@
   pointer-events: none;
 }
 .gr-step[data-state="current"] .gr-ring {
-  animation: gr-pulse 1.8s ease-out infinite;
+  animation: gr-pulse 1.8s var(--ease) infinite;
 }
 
 /* Link builder */
@@ -83,7 +83,7 @@
 
 /* Landing */
 .gr-float {
-  animation: gr-float 6s ease-in-out infinite;
+  animation: gr-float 6s var(--ease-in-out) infinite;
 }
 .gr-step-card {
   animation: rise 0.5s var(--ease) both;

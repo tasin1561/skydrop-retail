@@ -55,10 +55,10 @@
 
 /* ---------- fullscreen viewer ---------- */
 .pd-backdrop {
-  animation: pd-fade-only 0.25s ease both;
+  animation: pd-fade-only 0.25s var(--ease) both;
 }
 .pd-viewer[data-closing="true"] .pd-backdrop {
-  animation: pd-fade-out 0.22s ease both;
+  animation: pd-fade-out 0.22s var(--ease) both;
 }
 .pd-viewer[data-closing="true"] .pd-panel {
   animation: pd-sheet-out 0.22s var(--ease) both;

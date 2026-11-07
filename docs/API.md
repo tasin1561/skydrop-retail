@@ -41,7 +41,8 @@ All catalog reads detect crawlers by User-Agent (the storefront may forward the 
 crawler requests never trigger provider fetches. Callers must be the Next.js server or a signed app (see "Client authentication").
 
 `GET /search?q=&store=all|amazon|flipkart|bigbasket&category=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
-→ `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[] }` (24 per page)
+→ `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[], facets }` (24 per page; `category` may be a
+tree path including descendants, see "Categories")
 - Scoring, filters (`min`/`max` are BDT) and sorts match `apps/web/src/lib/catalog.ts`.
 - Cache first per (store, query, store page, sort): 6 h fresh, 7 days stale-while-revalidate. One store page (~48 items)
   is one provider call. On a miss for a live marketplace the API returns local matches immediately with
@@ -90,6 +91,39 @@ categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effe
   `appliesToOurPrice:true` (coupons, deal/lightning/special prices) are passed through to our price;
   `false` (bank/card, cashback, EMI, exchange, partner, combo, subscribe) are shown as "Available on the source store".
   Cards from lists other than `/products/deals` and `/offers` carry `offers: []`; the columns `dealBadge`/`couponInr` are always set.
+
+## Categories (unified tree)
+One Skydrop Retail taxonomy (13 departments, 83 subcategories, 380 level-3 and 50 level-4 nodes, 421 leaves) mapped to
+each store, seeded from `apps/api/database/data/category_tree.json` (`CategoryTreeSeeder`, idempotent by `path`).
+Rows live in `categories` with `market = "all"`; the older per-store rows (`market = amazon|flipkart|bigbasket`, used by
+`retail:seed-bestsellers`) are unchanged. Tree responses are cached and busted on every admin edit.
+
+`GET /categories?store=all|amazon|flipkart|bigbasket&depth=1..4` → `{ store, items: CategoryNode[] }`, filtered to
+nodes the store sells (a node is sold when its `sources` has that store; BigBasket only has grocery, household,
+personal care, baby care and pet).
+- `CategoryNode`: `{ id, slug, path, name, nameBn, icon, image, depth, featured, pricingGroup, stores: MarketId[], count, children: CategoryNode[] }`.
+  `path` is the stable key (`fashion/men/clothing/t-shirts-polos`), `slug` its last segment, `icon` a web `Icon` key,
+  `count` the visible products in the subtree for that store, `pricingGroup` the `products.category` pricing rule.
+
+`GET /categories/{path}?store=` → `{ store, node, breadcrumbs: [{ path, name, nameBn }], children: CategoryNode[], siblings: CategoryNode[],
+brands: [{ name, count }], priceRange: { minBdt, maxBdt } | null, available }` (`node.sources` lists the store keys;
+`children`/`siblings` have no nested children). Unknown path → `404`.
+
+Search: `GET /search?category=<path>` includes every descendant node. The five pricing groups
+(`electronics|fashion|beauty|grocery|home`) keep the old filter on `products.category` (a pricing group wins over a
+node with the same path, e.g. `fashion`). Every search response also has
+`facets: { categories: [{ path, name, nameBn, icon, count }] }`: counts of the whole result under each child of the
+requested node (top-level nodes when no path was given). `GET /products/popular?category=` accepts a path too.
+
+Products carry `category_id` (deepest matching node, normally a leaf) and `category_source` (`auto|hint|manual`). The
+`CategoryMatcher` maps store breadcrumbs (Amazon wayfinding, Flipkart/BigBasket crumbs) and title keywords to a node on
+every upsert (Product / ProductDetail observers) and keeps `products.category` equal to the node's pricing group.
+Manual (admin) assignments are never overwritten.
+
+Commands: `retail:categorize [--all] [--force] [--recount]` (backfill / re-match / counts),
+`retail:seed-category {path} [--store=] [--pages=] [--dry-run]` (queues the catalog search job for each leaf's store
+query, ~200 products per subcategory, stops at 90% of the Oxylabs budget), `retail:import-amazon-nodes [path] [--depth=2]`
+(fills `sources.amazon.node` from `amazon_bestsellers`; needs a live Oxylabs token).
 
 ## Auth (phone OTP)
 

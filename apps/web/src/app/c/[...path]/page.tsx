@@ -216,14 +216,14 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
       <div className="mt-4 flex flex-col gap-3">
         <Suspense>
-          <SortAndFilterBar total={res.total} />
+          <SortAndFilterBar total={res.total} hideCategory />
         </Suspense>
         {res.stale && <StaleNote what="results" />}
       </div>
 
       <div className="mt-4 flex gap-6">
         <Suspense>
-          <FilterSidebar />
+          <FilterSidebar hideCategory />
         </Suspense>
         <div className="min-w-0 flex-1">
           {res.items.length ? (

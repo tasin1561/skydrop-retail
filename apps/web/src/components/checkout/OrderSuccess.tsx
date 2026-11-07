@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { api, ApiError } from "@/lib/apiClient";
+import { useEffect, useState } from "react";
+import type { Order } from "@/lib/types";
+import { api, ApiError, apiEnabled } from "@/lib/apiClient";
 import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow, formatBdt, groupByMarket } from "@/lib/pricing";
@@ -23,11 +24,29 @@ const CONFETTI = [
 ] as const;
 
 export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatus?: "paid" | "failed" | "cancelled" }) {
-  const { orders, ready } = useStore();
+  const { orders, ready, user } = useStore();
   const [retrying, setRetrying] = useState(false);
+  // After a gateway redirect the local order list can be stale (or the order was placed on another device):
+  // fetch it from the server so the shopper always sees their order.
+  const local = orders.find((o) => o.id === orderId);
+  const [remote, setRemote] = useState<Order | null>(null);
+  const [lookup, setLookup] = useState<"idle" | "loading" | "done">("idle");
+  useEffect(() => {
+    if (!ready || local || !orderId || !apiEnabled || !user) return;
+    let alive = true;
+    setLookup("loading");
+    api
+      .order(orderId)
+      .then((r) => alive && setRemote(r.order as Order))
+      .catch(() => {})
+      .finally(() => alive && setLookup("done"));
+    return () => {
+      alive = false;
+    };
+  }, [ready, local, orderId, user]);
   const [retryError, setRetryError] = useState<string | null>(null);
 
-  if (!ready) {
+  if (!ready || lookup === "loading") {
     return (
       <div className="mx-auto max-w-xl px-4 pt-10" aria-busy="true" aria-label="Loading your order">
         <div className="skeleton mx-auto h-44 w-44 rounded-full" />
@@ -37,7 +56,33 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
     );
   }
 
-  const order = orders.find((o) => o.id === orderId);
+  const order = local ?? remote;
+
+  if (!order && payStatus === "paid" && orderId) {
+    // Paid, but this browser isn't signed in to the account that ordered: confirm the payment anyway.
+    return (
+      <section className="fade-in mx-auto max-w-md px-4 py-16 text-center" aria-labelledby="pd-h">
+        <span className="chip-icon mx-auto h-14 w-14 rounded-2xl" style={{ background: "color-mix(in oklab, var(--good) 14%, transparent)", color: "var(--good)" }}>
+          <Icon name="check" size={26} />
+        </span>
+        <h1 id="pd-h" className="mt-4 text-2xl font-extrabold tracking-tight">
+          Payment received
+        </h1>
+        <p className="mt-2 text-sm text-ink-2">
+          Thank you! Order <b className="text-ink">{orderId}</b> is confirmed. We&apos;ve sent the details by SMS. Sign in with the same phone number
+          to track it.
+        </p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <Link href={`/login?next=${encodeURIComponent(`/orders/${orderId}`)}`} className="btn btn-primary">
+            <Icon name="receipt" size={18} /> Sign in to track
+          </Link>
+          <Link href="/" className="btn btn-ghost">
+            Continue shopping
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   if (!order) {
     return (

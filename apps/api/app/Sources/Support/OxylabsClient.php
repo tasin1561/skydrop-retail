@@ -54,8 +54,9 @@ class OxylabsClient
      * @param  array<string, array<string, mixed>>  $payloads
      * @return array<string, array<string, mixed>|Throwable>
      */
-    public function pool(array $payloads, string $type, string $market, int $concurrency = 10): array
+    public function pool(array $payloads, string $type, string $market, ?int $concurrency = null): array
     {
+        $concurrency ??= max(1, \App\Support\Limits::int('catalog.max_concurrent_fetches')); // System → Limits
         if ($payloads === []) {
             return [];
         }

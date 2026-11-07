@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class OtpService
 {
+    /** @deprecated default of the "accounts.otp_per_phone_hour" limit (App\Support\Limits) */
     public const MAX_SENDS = 3;
 
-    public const WINDOW = 600; // seconds
+    public const WINDOW = 3600; // seconds (limits are per hour)
 
     public function __construct(private SmsManager $sms, private PointsService $points) {}
 
@@ -23,14 +24,17 @@ class OtpService
     {
         $phone = Phone::normalize($rawPhone) ?? throw CommerceException::field('phone', 'Enter a valid Bangladeshi mobile number (01XXXXXXXXX).');
 
-        foreach (['otp:phone:'.$phone, 'otp:ip:'.($ip ?? 'none')] as $key) {
-            if (RateLimiter::tooManyAttempts($key, self::MAX_SENDS)) {
+        // System → Limits: OTP codes per phone per hour and per IP per hour.
+        $limits = ['otp:phone:'.$phone => \App\Support\Limits::int('accounts.otp_per_phone_hour'), 'otp:ip:'.($ip ?? 'none') => \App\Support\Limits::int('accounts.otp_per_ip_hour')];
+        foreach ($limits as $key => $max) {
+            if (RateLimiter::tooManyAttempts($key, $max)) {
                 $wait = RateLimiter::availableIn($key);
                 throw new CommerceException("Too many codes requested. Try again in {$wait} seconds.", 429, ['retryAfter' => $wait]);
             }
         }
-        RateLimiter::hit('otp:phone:'.$phone, self::WINDOW);
-        RateLimiter::hit('otp:ip:'.($ip ?? 'none'), self::WINDOW);
+        foreach (array_keys($limits) as $key) {
+            RateLimiter::hit($key, self::WINDOW);
+        }
 
         $code = (string) random_int(100000, 999999);
         $ttl = (int) config('retail.otp.ttl', 300);

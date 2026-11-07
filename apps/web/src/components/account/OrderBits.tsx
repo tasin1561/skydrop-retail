@@ -19,6 +19,7 @@ export function ProgressBar({ status, label }: { status: OrderStatus; label?: st
   const pct = status === "cancelled" ? 0 : Math.round(progressOf(status) * 100);
   return (
     <div
+      data-reveal="fade"
       className="ac-bar"
       data-tone={status === "cancelled" ? "bad" : status === "delivered" ? "good" : undefined}
       role="progressbar"

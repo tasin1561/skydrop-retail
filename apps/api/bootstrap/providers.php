@@ -10,6 +10,7 @@ use App\Providers\MoneyServiceProvider;
 use App\Providers\OpsServiceProvider;
 use App\Providers\RbacServiceProvider;
 use App\Providers\ShoppingServiceProvider;
+use App\Providers\SystemServiceProvider;
 use App\Providers\TrackingServiceProvider;
 
 return [
@@ -23,5 +24,6 @@ return [
     OpsServiceProvider::class,
     CategoryServiceProvider::class,
     ShoppingServiceProvider::class,
+    SystemServiceProvider::class,
     AdminPanelProvider::class,
 ];

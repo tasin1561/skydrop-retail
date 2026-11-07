@@ -6,6 +6,7 @@ import { deliveryWindow, formatBdt } from "@/lib/pricing";
 import type { Coupon, Totals } from "./cart-math";
 import { BundleSavingRow } from "@/components/shopping/BundleSavingRow";
 import { bundleOf } from "@/components/shopping/useBundleTotals";
+import { CountUp } from "@/components/motion/CountUp";
 
 // Order summary lines used by the cart side card, the checkout side card and the review step.
 export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupon | null; perStore?: boolean }) {
@@ -69,8 +70,8 @@ export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupo
       )}
       <div className="flex items-baseline justify-between gap-3 border-t border-dashed border-line pt-3">
         <dt className="font-bold">Total</dt>
-        <dd key={t.total} className="co-bump text-xl font-extrabold tracking-tight tabular-nums">
-          {formatBdt(t.total)}
+        <dd className="text-xl font-extrabold tracking-tight tabular-nums">
+          <CountUp value={t.total} />
         </dd>
       </div>
           {t.pointsToEarn > 0 && (

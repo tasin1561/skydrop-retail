@@ -33,8 +33,13 @@ class SendBroadcast implements ShouldQueue
     public function handle(Messenger $messenger): void
     {
         if ($this->userIds === null) {
-            BroadcastAudience::query($this->segment)->select('id')->chunkById(200, function ($users) {
-                dispatch(new self($this->broadcastId, $this->segment, $this->channels, $this->subject, $this->body, $users->pluck('id')->all(), $this->link));
+            $left = max(1, \App\Support\Limits::int('messaging.broadcast_max_recipients')); // System → Limits
+            BroadcastAudience::query($this->segment)->select('id')->chunkById(200, function ($users) use (&$left) {
+                $ids = array_slice($users->pluck('id')->all(), 0, $left);
+                $left -= count($ids);
+                dispatch(new self($this->broadcastId, $this->segment, $this->channels, $this->subject, $this->body, $ids, $this->link));
+
+                return $left > 0;
             });
 
             return;

@@ -30,9 +30,10 @@ export function QtyStepper({
         <Icon name="minus" size={16} stroke={2.4} />
       </button>
       <span className="co-num" aria-live="polite" aria-atomic="true">
-        <span key={value} data-dir={dir}>
-          {value}
+        <span key={value} data-dir={dir} aria-hidden="true">
+          {String(value).padStart(2, "0")}
         </span>
+        <span className="sr-only">{value}</span>
       </span>
       <button type="button" aria-label="Increase quantity" disabled={value >= max} onClick={() => onChange(value + 1)}>
         <Icon name="plus" size={16} stroke={2.4} />

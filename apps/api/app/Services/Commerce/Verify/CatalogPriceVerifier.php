@@ -32,6 +32,10 @@ class CatalogPriceVerifier implements PriceVerifier
                 'deliverable' => (bool) ($r['deliverable'] ?? true),
                 'reason' => $r['reason'] ?? null,
                 'provider' => $r['provider'] ?? $r['source'] ?? 'catalog',
+                // Pass-throughs the storefront and staff use: expired coupon/deal, unverified pincode, cached-price acceptance.
+                'offerExpired' => (bool) ($r['offerExpired'] ?? false),
+                'pincodeVerified' => $r['pincodeVerified'] ?? null,
+                'unverified' => (bool) ($r['unverified'] ?? false),
             ];
         }, array_values($raw['results'] ?? []));
 

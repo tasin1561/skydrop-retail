@@ -105,6 +105,8 @@ return [
     ],
 
     'checkout' => [
+        // Hours a recently checked price may be used when the store can't be reached at checkout (0 = always block).
+        'verify_grace_hours' => (int) env('CHECKOUT_VERIFY_GRACE_HOURS', 72),
         'price_tolerance' => 0.03, // re-verify: >3% change => 409
         'return_window_days' => 3,
         'advance_ratio' => 0.5,

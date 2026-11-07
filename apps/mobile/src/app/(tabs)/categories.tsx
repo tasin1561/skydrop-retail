@@ -6,14 +6,16 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useStore } from "@/state/store";
 import { STORES } from "@/lib/markets";
 import { ACCENTS, radius, useTheme } from "@/theme";
-import { Card, IconChip, T, Tap } from "@/components/ui";
+import { Card, IconChip, Skeleton, T, Tap } from "@/components/ui";
+import { CategoryRows, useCategoryTree } from "@/components/CategoryRows";
 import { Icon } from "@/components/Icon";
 import type { MarketId } from "@/lib/types";
 
 export default function Categories() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
-  const { enabled } = useStore();
+  const { enabled, mode: homeMode } = useStore();
+  const tree = useCategoryTree(homeMode);
   const markets = enabled.filter((m): m is MarketId => m !== "all");
 
   return (
@@ -21,6 +23,13 @@ export default function Categories() {
       <T v="h1" accessibilityRole="header">
         Categories
       </T>
+
+      <View>
+        <T v="label" tone="ink3" style={{ marginBottom: 8 }}>
+          Browse by department{homeMode !== "all" ? ` · ${STORES[homeMode].name}` : ""}
+        </T>
+        {tree ? <CategoryRows nodes={tree} store={homeMode} /> : <Skeleton h={320} r={20} />}
+      </View>
 
       <View>
         <T v="label" tone="ink3" style={{ marginBottom: 8 }}>

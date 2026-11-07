@@ -27,6 +27,13 @@ class WatchController extends Controller
             'targetBdt' => ['nullable', 'integer', 'min:1'],
         ]);
         $p = Product::query()->findOrFail($data['productId']);
+        $max = \App\Support\Limits::int('accounts.max_price_alerts'); // System → Limits
+        $active = ProductWatch::query()->where('user_id', $request->user()->id)->where('active', true);
+        if (! (clone $active)->where('product_id', $p->id)->where('type', $data['type'])->exists() && $active->count() >= $max) {
+            $msg = "You can have up to {$max} active alerts. Remove one to add this.";
+
+            return response()->json(['message' => $msg, 'code' => 'limit_alerts', 'errors' => ['productId' => [$msg]]], 422);
+        }
         $watch = ProductWatch::query()->updateOrCreate(
             ['user_id' => $request->user()->id, 'product_id' => $p->id, 'type' => $data['type']],
             ['target_bdt' => $data['targetBdt'] ?? null, 'baseline_bdt' => $pricing->productBdt($p),

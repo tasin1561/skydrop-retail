@@ -88,6 +88,9 @@ class ProviderChain
     private function usable(string $market, string $purpose, bool $onlyMetered = false): array
     {
         $out = [];
+        if (! $this->budget->allowsStore($market, $purpose)) {
+            return []; // System → Limits: per-store daily live-fetch cap reached → cached data only
+        }
         foreach ($this->sources($market) as $s) {
             if ($onlyMetered && ! $s->isMetered()) {
                 continue;

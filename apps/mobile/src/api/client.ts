@@ -5,6 +5,7 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as demo from "@/demo/backend";
+import type { CatNode } from "@/lib/categories";
 import { signHeaders } from "./sign";
 import type { Address, Order, Product, StoreMode, User } from "@/lib/types";
 import type {
@@ -202,6 +203,13 @@ export const api = {
           r.items.filter((x) => x.id !== p.id).slice(0, 8),
         ),
       () => demo.related(p),
+    ),
+
+  /** Unified category tree filtered to what the store sells, with counts (GET /categories). */
+  categories: (store: StoreMode) =>
+    either(
+      () => http<{ items: CatNode[] }>("GET", "/categories", { query: { store } }).then((r) => r.items),
+      () => demo.categories(store),
     ),
 
   /** Live deals and offers feed (GET /offers). */

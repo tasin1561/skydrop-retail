@@ -4,6 +4,7 @@ namespace App\Services\Assistant;
 
 use App\Models\Assistant\AssistantMessage;
 use App\Models\User;
+use App\Support\Limits;
 use Throwable;
 
 /** Daily message limits: guests per IP, signed-in shoppers per account, more for Skydrop Plus members. */
@@ -19,11 +20,12 @@ class AssistantLimits
 
     public function limit(AssistantContext $ctx): int
     {
+        // System → Limits (backed by the same "assistant.limits.*" settings as Admin → AI assistant).
         if ($ctx->guest()) {
-            return (int) AssistantSettings::get('limits.guest', 10);
+            return Limits::int('assistant.guest_per_day');
         }
 
-        return $this->isPlus($ctx->user) ? (int) AssistantSettings::get('limits.plus', 120) : (int) AssistantSettings::get('limits.user', 40);
+        return Limits::int($this->isPlus($ctx->user) ? 'assistant.plus_per_day' : 'assistant.user_per_day');
     }
 
     public function used(AssistantContext $ctx): int

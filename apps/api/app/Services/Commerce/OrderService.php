@@ -40,6 +40,7 @@ class OrderService
             throw new CommerceException('This account has been blocked and cannot place orders. Please contact support.', 403, [], 'blocked');
         }
         $items = array_values($data['items']);
+        app(OrderLimits::class)->assertCustomer($user); // System → Limits: orders per day, unpaid orders (422)
         $address = $this->resolveAddress($user, $data);
         $coupon = $this->checkout->coupon($data['coupon'] ?? null);
         [$method, $via] = $this->paymentMethod($data);
@@ -85,6 +86,7 @@ class OrderService
         $quote = $this->checkout->quote($lines, $coupon, $user, (int) ($data['redeemPoints'] ?? 0),
             \App\Services\Money\MoneyRules::opts(['payment' => $method] + $data, true) // money: Plus, wallet, card EMI
             + ['unboxing' => (bool) ($data['unboxing'] ?? false)]); // fulfilment: paid unboxing
+        app(OrderLimits::class)->assertMinimum($quote); // System → Limits: min order value (422)
 
         // 3. Persist.
         $order = DB::transaction(function () use ($user, $lines, $quote, $coupon, $address, $method, $via, $fx, $inr, $data, $check) {

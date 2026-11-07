@@ -7,8 +7,37 @@ import type { StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "./Icon";
 import { useCurrentMode } from "./StoreTheme";
+import { startRouteProgress } from "./motion/RouteProgress";
 
 type Sug = { id: string; title: string; market: string };
+
+// Example searches that cycle in the empty field (stops while focused or typed in).
+const EXAMPLES: Record<StoreMode, string[]> = {
+  all: ["Search iPhone 16…", "Paste an amazon.in link…", "Search basmati rice…", "Search kurta sets…", "Search boAt earbuds…"],
+  amazon: ["Search iPhone 16…", "Paste an amazon.in link…", "Search boAt earbuds…", "Search Prestige cooker…"],
+  flipkart: ["Search kurta sets…", "Paste a flipkart.com link…", "Search sneakers…", "Search saree…"],
+  bigbasket: ["Search basmati rice…", "Search Haldiram's…", "Search masala chai…", "Paste a bigbasket.com link…"],
+};
+
+/** Cycles placeholder examples every 2.8s while the field is idle, visible and the tab is shown. */
+function usePlaceholderCycle(active: boolean, count: number, el: React.RefObject<HTMLElement | null>) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (!active || count < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let visible = true;
+    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
+    if (el.current) io.observe(el.current);
+    const t = setInterval(() => {
+      if (visible && !document.hidden) setI((n) => n + 1);
+    }, 2800);
+    return () => {
+      clearInterval(t);
+      io.disconnect();
+    };
+  }, [active, count, el]);
+  return i;
+}
 
 export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?: () => void }) {
   const router = useRouter();
@@ -22,8 +51,14 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
   const [items, setItems] = useState<Sug[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [focused, setFocused] = useState(false);
   const listId = useId();
   const ref = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const examples = EXAMPLES[store] ?? EXAMPLES.all;
+  const idle = !focused && !q;
+  const tick = usePlaceholderCycle(idle, examples.length, formRef);
+  const example = examples[tick % examples.length];
 
   useEffect(() => {
     if (q.trim().length < 2) return;
@@ -46,18 +81,22 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
     if (!query.trim()) return;
     setOpen(false);
     onDone?.();
-    router.push(`/search?q=${encodeURIComponent(query.trim())}&store=${store}`);
+    const href = `/search?q=${encodeURIComponent(query.trim())}&store=${store}`;
+    startRouteProgress(href);
+    router.push(href);
   }
 
   return (
     <form
+      ref={formRef}
       role="search"
-      className="relative flex w-full items-stretch rounded-2xl bg-surface shadow-[var(--shadow-1)] ring-1 ring-line transition focus-within:shadow-[0_0_0_4px_var(--accent-soft)] focus-within:ring-accent"
+      className="relative flex w-full items-stretch rounded-2xl bg-surface shadow-[var(--shadow-1)] ring-1 ring-line transition-shadow duration-200 focus-within:shadow-[0_0_0_4px_var(--accent-soft),0_8px_24px_-8px_color-mix(in_srgb,var(--accent)_35%,transparent)] focus-within:ring-2 focus-within:ring-accent"
       onSubmit={(e) => {
         e.preventDefault();
         if (active >= 0 && items[active]) {
           setOpen(false);
           onDone?.();
+          startRouteProgress(`/p/${items[active].id}`);
           router.push(`/p/${items[active].id}`);
         } else go(q);
       }}
@@ -77,6 +116,12 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         </select>
         <Icon name="chevron" size={14} className="pointer-events-none absolute right-2 text-ink-3" />
       </label>
+      <span className="relative flex min-w-0 flex-1">
+      {idle && (
+        <span className="sb-ph px-3 text-[15px]" aria-hidden="true">
+          <span key={example}>{example}</span>
+        </span>
+      )}
       <input
         ref={ref}
         autoFocus={autoFocus}
@@ -86,8 +131,14 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
           setOpen(true);
           setActive(-1);
         }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onFocus={() => {
+          setOpen(true);
+          setFocused(true);
+        }}
+        onBlur={() => {
+          setFocused(false);
+          setTimeout(() => setOpen(false), 150);
+        }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -98,13 +149,18 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
           } else if (e.key === "Escape") setOpen(false);
         }}
         placeholder={store === "all" ? "Search Indian stores" : `Search ${STORES[store].name}`}
-        className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-3"
+        aria-label={store === "all" ? "Search Indian stores" : `Search ${STORES[store].name}`}
+        className={
+          "min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-3 " +
+          (idle ? "placeholder:text-transparent" : "")
+        }
         role="combobox"
         aria-expanded={open && q.trim().length >= 2 && items.length > 0}
         aria-controls={listId}
         aria-autocomplete="list"
         enterKeyHint="search"
       />
+      </span>
       <button type="submit" className="btn btn-primary m-1 min-h-0 rounded-xl px-3 sm:px-4" aria-label="Search">
         <Icon name="search" size={18} stroke={2.2} />
       </button>
@@ -113,25 +169,29 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         <ul
           id={listId}
           role="listbox"
-          className="fade-in absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl bg-surface p-1.5 shadow-[var(--shadow-2)] ring-1 ring-line"
+          className="sb-pop absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl bg-surface p-1.5 shadow-[var(--shadow-2)] ring-1 ring-line"
         >
           {items.map((s, i) => (
-            <li key={s.id} role="option" aria-selected={i === active}>
+            <li key={s.id} role="option" aria-selected={i === active} style={{ ["--i" as string]: i }}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setOpen(false);
                   onDone?.();
+                  startRouteProgress(`/p/${s.id}`);
                   router.push(`/p/${s.id}`);
                 }}
                 className={
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition " +
+                  "group/opt flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors " +
                   (i === active ? "bg-[var(--accent-soft)]" : "hover:bg-surface-2")
                 }
               >
-                <Icon name="search" size={16} className="shrink-0 text-ink-3" />
+                <span className={"chip-icon h-7 w-7 shrink-0 rounded-lg " + (i === active ? "is-active" : "")}>
+                  <Icon name="search" size={14} />
+                </span>
                 <span className="line-clamp-1 flex-1">{s.title}</span>
+                <Icon name="right" size={14} className="shrink-0 text-ink-3 transition-transform group-hover/opt:translate-x-0.5" />
                 <span className="shrink-0 text-[11px] font-semibold text-ink-3">
                   {STORES[s.market as keyof typeof STORES]?.source}
                 </span>

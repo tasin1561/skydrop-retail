@@ -38,10 +38,10 @@ export function StoreSwitcher({ className }: { className?: string }) {
     >
       <span
         aria-hidden
-        className="absolute bottom-1 top-1 rounded-full bg-accent shadow-[var(--glow)] transition-[transform,width] duration-500"
+        className="absolute bottom-1 top-1 w-[100px] origin-left rounded-full bg-accent shadow-[var(--glow)] transition-transform duration-[420ms]"
         style={{
-          width: pill.w,
-          transform: `translateX(${pill.x - 4}px)`,
+          // transform only: travel with translateX, size with scaleX against a 100px base
+          transform: `translateX(${pill.x - 4}px) scaleX(${pill.w / 100})`,
           opacity: pill.ok ? 1 : 0,
           transitionTimingFunction: "var(--spring)",
         }}
@@ -135,11 +135,13 @@ export function Header() {
           </Link>
           <Link
             href="/cart"
+            data-cart-target=""
+            aria-label={cartCount > 0 ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}` : "Cart"}
             className="relative hidden h-11 items-center gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-white shadow-[var(--glow)] transition hover:brightness-110 md:inline-flex"
           >
             <Icon name="cart" size={19} /> Cart
             {cartCount > 0 && (
-              <span key={cartCount} className="pop grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-[11px] font-bold text-accent">
+              <span key={cartCount} className="mo-badge pop grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-[11px] font-bold text-accent">
                 {cartCount}
               </span>
             )}

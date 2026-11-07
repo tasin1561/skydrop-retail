@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\Security\ClientIdentity;
+use App\Support\Limits;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -31,7 +32,13 @@ class CatalogThrottle
             $strict = in_array($uri, self::STRICT, true) || str_contains($uri, 'price-history') || str_contains($uri, 'history');
             $buckets = ['ip:'.$ip => $l['catalog_ip']];
             if ($strict) {
-                $buckets['strict:ip:'.$ip] = str_ends_with($uri, 'resolve') ? $l['resolve_ip'] : $l['strict_ip'];
+                // System → Limits: searches / product views / paste-link resolves per IP per minute (defaults: config strict_ip, resolve_ip).
+                $kind = match (true) {
+                    str_ends_with($uri, 'resolve') => 'resolves',
+                    in_array($uri, ['api/v1/search', 'api/v1/suggest'], true) => 'searches',
+                    default => 'product_views',
+                };
+                $buckets["strict:ip:$kind:".$ip] = Limits::int("catalog.{$kind}_per_min");
                 $buckets['strict:dev:'.ClientIdentity::device($request)] = $l['strict_device'];
                 if ($uid = ClientIdentity::userId($request)) {
                     $buckets['strict:user:'.$uid] = $l['strict_user'];

@@ -25,6 +25,7 @@ class CheckoutService
      */
     public function lines(array $items): array
     {
+        app(OrderLimits::class)->assertCart($items); // System → Limits: items per cart, qty per item (422)
         $ids = array_values(array_unique(array_map(fn ($i) => (string) $i['productId'], $items)));
         $products = Product::query()->with('details')->whereIn('id', $ids)->get()->keyBy('id');
         $missing = array_values(array_diff($ids, $products->keys()->all()));
@@ -161,7 +162,10 @@ class CheckoutService
         $quote['total'] = (int) $quote['total'] + $quote['unboxingFee'];
 
         // Money module: Skydrop Plus benefits, wallet (opts.useWallet) and card EMI (opts.payment = card_emi).
-        return app(\App\Services\Money\MoneyQuote::class)->apply($quote, $user, $opts);
+        $quote = app(\App\Services\Money\MoneyQuote::class)->apply($quote, $user, $opts);
+        app(OrderLimits::class)->assertValue($quote, $opts['payment'] ?? null); // System → Limits: max order value, 50% advance cap (422)
+
+        return $quote;
     }
 
     private function marketRank(string $m): int

@@ -1,14 +1,21 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { Product } from "@/lib/types";
 import { priceBdt, weightKg } from "@/lib/pricing";
 import { useStore } from "@/state/store";
 import { Icon } from "./Icon";
 import { restrictionOf } from "@/lib/restrictions";
+import { flyToCart } from "./motion/flyToCart";
 
-// Grocery-style add-to-basket on the card: "Add" becomes a +/- stepper.
+// Grocery-style add-to-basket on the card: "Add" -> the product arcs into the cart -> a +/- stepper.
 export function QuickAdd({ p }: { p: Product }) {
   const { cart, addToCart, setQty, removeFromCart } = useStore();
+  const [busy, setBusy] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
   const line = cart.find((c) => c.productId === p.id && !c.variant);
   const add = () =>
     addToCart({
@@ -34,20 +41,39 @@ export function QuickAdd({ p }: { p: Product }) {
         type="button"
         onClick={(e) => {
           e.preventDefault();
-          add();
+          if (busy) return;
+          setBusy(true);
+          const from = e.currentTarget.closest("article")?.querySelector("img") ?? e.currentTarget;
+          let done = false;
+          const land = () => {
+            if (done) return;
+            done = true;
+            add();
+            setBusy(false);
+          };
+          const ms = flyToCart(from, p.image, land);
+          timer.current = setTimeout(land, Math.max(ms, 0) + 200);
         }}
-        className="btn btn-primary mt-2 min-h-10 w-full rounded-xl text-sm"
+        aria-busy={busy}
+        className="btn btn-primary mt-2 min-h-11 w-full rounded-xl text-sm"
         aria-label={`Add ${p.title} to basket`}
       >
-        <Icon name="plus" size={16} stroke={2.4} /> Add
+        <span className="roll" aria-hidden="true">
+          <span data-on={!busy} data-gone={busy} className="inline-flex items-center gap-1.5">
+            <Icon name="plus" size={16} stroke={2.4} /> Add
+          </span>
+          <span data-on={busy} className="inline-flex items-center gap-1.5">
+            <Icon name="package" size={16} stroke={2.2} /> Adding
+          </span>
+        </span>
       </button>
     );
   return (
-    <div className="pop mt-2 flex min-h-10 items-center justify-between rounded-xl bg-accent text-white shadow-[var(--glow)]" onClick={(e) => e.preventDefault()}>
+    <div className="pop mt-2 flex min-h-11 items-center justify-between rounded-xl bg-accent text-white shadow-[var(--glow)]" onClick={(e) => e.preventDefault()}>
       <button
         type="button"
-        className="grid h-10 w-11 place-items-center"
-        aria-label="One less"
+        className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-90"
+        aria-label={line.qty <= 1 ? `Remove ${p.title} from basket` : "One less"}
         onClick={() => (line.qty <= 1 ? removeFromCart(p.id) : setQty(p.id, undefined, line.qty - 1))}
       >
         <Icon name={line.qty <= 1 ? "trash" : "minus"} size={16} stroke={2.4} />
@@ -55,7 +81,12 @@ export function QuickAdd({ p }: { p: Product }) {
       <span key={line.qty} className="pop text-sm font-extrabold tabular-nums" aria-live="polite">
         {line.qty} in basket
       </span>
-      <button type="button" className="grid h-10 w-11 place-items-center" aria-label="One more" onClick={() => setQty(p.id, undefined, line.qty + 1)}>
+      <button
+        type="button"
+        className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-90"
+        aria-label="One more"
+        onClick={() => setQty(p.id, undefined, line.qty + 1)}
+      >
         <Icon name="plus" size={16} stroke={2.4} />
       </button>
     </div>

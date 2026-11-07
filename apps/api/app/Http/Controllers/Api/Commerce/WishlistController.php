@@ -23,7 +23,15 @@ class WishlistController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate(['productId' => ['required', 'string', 'max:40', 'exists:products,id']]);
-        WishlistItem::query()->firstOrCreate(['user_id' => $request->user()->id, 'product_id' => $data['productId']]);
+        $uid = $request->user()->id;
+        $max = \App\Support\Limits::int('accounts.max_wishlist'); // System → Limits
+        if (! WishlistItem::query()->where('user_id', $uid)->where('product_id', $data['productId'])->exists()
+            && WishlistItem::query()->where('user_id', $uid)->count() >= $max) {
+            $msg = "Your wishlist is full ({$max} items). Remove something to add this.";
+
+            return response()->json(['message' => $msg, 'code' => 'limit_wishlist', 'errors' => ['productId' => [$msg]]], 422);
+        }
+        WishlistItem::query()->firstOrCreate(['user_id' => $uid, 'product_id' => $data['productId']]);
 
         return response()->json(['ok' => true, 'productId' => $data['productId']], 201);
     }

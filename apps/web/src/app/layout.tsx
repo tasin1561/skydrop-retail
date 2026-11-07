@@ -13,6 +13,9 @@ import { RefCapture } from "@/components/growth/RefCapture";
 import { Tracking } from "@/components/tracking/Tracking";
 import { SupportButton } from "@/components/support/SupportButton";
 import { Assistant } from "@/components/assistant/Assistant";
+import { MotionRuntime } from "@/components/motion/MotionRuntime";
+import { RouteProgress } from "@/components/motion/RouteProgress";
+import { PageTransition } from "@/components/motion/PageTransition";
 
 export const metadata: Metadata = {
   title: { default: "Skydrop Retail: shop Indian stores from Bangladesh", template: "%s · Skydrop Retail" },
@@ -49,14 +52,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <StoreTheme />
               <Header />
             </Suspense>
-            <main className="min-h-[60vh]">{children}</main>
+            <main className="min-h-[60vh]">
+              <PageTransition>{children}</PageTransition>
+            </main>
             <RefCapture />
             <Footer />
             <Suspense>
               <MobileNav />
               <SupportButton />
               <Assistant />
+              <RouteProgress />
             </Suspense>
+            <MotionRuntime />
           </ToastProvider>
         </StoreProvider>
         <Tracking />

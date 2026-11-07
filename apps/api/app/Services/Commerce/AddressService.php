@@ -49,9 +49,13 @@ class AddressService
         return $v->validate();
     }
 
-    public function create(User $user, array $data): Address
+    public function create(User $user, array $data, bool $enforceLimit = true): Address
     {
         $data = $this->validate($data);
+        $max = \App\Support\Limits::int('accounts.max_addresses'); // System → Limits
+        if ($enforceLimit && $max > 0 && $user->addresses()->count() >= $max) {
+            throw CommerceException::field('address', "You can save up to {$max} addresses. Delete one you no longer use first.");
+        }
 
         return DB::transaction(function () use ($user, $data) {
             $first = ! $user->addresses()->exists();
@@ -105,7 +109,7 @@ class AddressService
         $cols = $this->columns($data);
         $existing = $user->addresses()->where($cols)->first();
 
-        return $existing ?? $this->create($user, $data);
+        return $existing ?? $this->create($user, $data, false); // checkout must not fail on the saved-address limit
     }
 
     public function makeDefault(User $user, Address $address): void

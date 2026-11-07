@@ -9,6 +9,8 @@ import { Countdown } from "./offers/Countdown";
 import { headlineDeal } from "./offers/offerMeta";
 import { CardNotices } from "./cms/CardNotices";
 import { PriceInsightChip } from "./shopping/PriceInsightChip";
+import { FxImg, HoverImage } from "./motion/FxImg";
+import { CountUp } from "./motion/CountUp";
 
 export function ProductImage({
   p,
@@ -23,9 +25,8 @@ export function ProductImage({
 }) {
   const url = src ?? p.image;
   if (url) {
-    // Amazon CDN images are already sized; plain img keeps the demo free of an image proxy.
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt={p.title} loading="lazy" decoding="async" className={"object-contain " + (className ?? "")} />;
+    // Amazon CDN images are already sized; FxImg fades them in once decoded (blur-up stand-in).
+    return <FxImg src={url} alt={p.title} loading="lazy" decoding="async" className={"object-contain " + (className ?? "")} />;
   }
   const hue = p.placeholder?.hue ?? 210;
   return (
@@ -76,7 +77,9 @@ export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
   const d = discountPct(p);
   return (
     <div className="flex flex-wrap items-baseline gap-x-2">
-      <span className={(big ? "text-3xl" : "text-lg") + " font-extrabold tracking-tight text-ink"}>{formatBdt(priceBdt(p))}</span>
+      <span className={(big ? "text-3xl" : "text-lg") + " font-extrabold tracking-tight text-ink"}>
+        {big ? <CountUp value={priceBdt(p)} /> : formatBdt(priceBdt(p))}
+      </span>
       {d > 0 && (
         <>
           <span className={(big ? "text-base" : "text-xs") + " text-ink-3 line-through"}>{formatBdt(mrpBdt(p))}</span>
@@ -98,12 +101,14 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   return (
     <article
       data-store={p.market}
-      className="rise group relative flex flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-1)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-2)]"
+      data-reveal=""
+      className="mo-press group relative flex flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-1 hover:shadow-[var(--shadow-2)]"
       style={{ ["--i" as string]: i % 12 }}
     >
       <Link href={`/p/${p.id}`} className="flex flex-1 flex-col" prefetch={false}>
-        <div className={"relative bg-white " + (fashion ? "aspect-[4/5] p-2" : grocery ? "aspect-[5/4] p-3" : "aspect-square p-3")}>
+        <div className={"mo-media overflow-hidden bg-white " + (fashion ? "aspect-[4/5] p-2" : grocery ? "aspect-[5/4] p-3" : "aspect-square p-3")}>
           <ProductImage p={p} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]" />
+          {p.images?.[1] && p.images[1] !== p.image && <HoverImage src={p.images[1]} />}
           {discountPct(p) >= 10 && (
             <span className="absolute left-2 top-2 rounded-full bg-brand-2 px-2 py-0.5 text-[11px] font-bold text-white shadow">
               -{discountPct(p)}%
@@ -152,7 +157,11 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
                 <Icon name="tag" size={12} stroke={2.2} /> {offerCount} {offerCount === 1 ? "offer" : "offers"} on the source store
               </p>
             ) : null}
-            {p.market === "amazon" && p.salesVolume && <p className="mt-0.5 text-[11px] font-semibold text-ink-2">{p.salesVolume}</p>}
+            {p.market === "amazon" && p.salesVolume && (
+              <p className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--brand-2)_12%,transparent)] px-2 py-0.5 text-[11px] font-semibold text-ink">
+                <Icon name="bolt" size={11} stroke={2.4} className="text-brand-2" /> {p.salesVolume}
+              </p>
+            )}
             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-2">
               <Icon name="truck" size={13} /> Home delivery in 7-12 days
             </p>

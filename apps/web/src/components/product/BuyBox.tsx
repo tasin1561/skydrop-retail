@@ -12,6 +12,7 @@ import type { Variant } from "@/lib/types";
 import type { BuyInfo } from "./types";
 import { QtyStepper } from "./QtyStepper";
 import { groupVariants, Spinner, VariantGroup } from "./Variants";
+import { flyToCart } from "@/components/motion/flyToCart";
 
 type Phase = "idle" | "busy" | "done";
 
@@ -116,11 +117,21 @@ export function BuyBox({
     });
   }
 
-  function onAdd() {
+  // Storytelling add: idle -> busy while a thumbnail arcs to the cart icon -> the cart really changes as it
+  // lands (badge pops, icon bumps) -> label morphs to "Added". Busy shows at least 600ms so it never flickers.
+  function onAdd(from: HTMLElement | null) {
     if (add !== "idle" || !info.available) return;
     setAdd("busy");
-    later(() => {
+    const t0 = Date.now();
+    let added = false;
+    const land = () => {
+      if (added) return;
+      added = true;
       put();
+    };
+    const flight = flyToCart(from, info.image, land);
+    later(() => {
+      land();
       setAdd("done");
       toast({
         kind: "success",
@@ -129,7 +140,7 @@ export function BuyBox({
         action: { label: "View cart", href: "/cart" },
       });
       later(() => setAdd("idle"), 1800);
-    }, 550);
+    }, Math.max(600, flight + 40) - (Date.now() - t0));
   }
 
   function onBuy() {
@@ -180,7 +191,7 @@ export function BuyBox({
       </SafeSection>
 
       <div ref={actionsRef} className="grid grid-cols-2 gap-2.5">
-        <AddButton phase={add} onClick={onAdd} disabled={!info.available} className="h-[52px] text-[15px]" />
+        <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!info.available} className="h-[52px] text-[15px]" />
         <BuyButton phase={buy} onClick={onBuy} disabled={!info.available} className="h-[52px] text-[15px]" />
       </div>
 
@@ -204,7 +215,7 @@ export function BuyBox({
               )}
             </p>
           </div>
-          <AddButton phase={add} onClick={onAdd} disabled={!info.available} compact className="h-11 px-4 text-sm" />
+          <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!info.available} compact className="h-11 px-4 text-sm" />
           <BuyButton phase={buy} onClick={onBuy} disabled={!info.available} compact className="h-11 px-4 text-sm" />
         </div>
       </div>
@@ -224,7 +235,7 @@ function AddButton({
   className,
 }: {
   phase: Phase;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   compact?: boolean;
   className?: string;
@@ -235,9 +246,10 @@ function AddButton({
       onClick={onClick}
       disabled={disabled}
       aria-busy={phase === "busy"}
+      aria-label="Add to cart"
       className={"btn btn-ghost !bg-[var(--accent-soft)] font-bold !text-accent hover:!bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] " + (className ?? "")}
     >
-      <span className="roll" aria-live="polite">
+      <span className="roll" aria-hidden="true">
         <span data-on={phase === "idle"} data-gone={phase !== "idle"} className="inline-flex items-center gap-1.5">
           <Icon name="cart" size={compact ? 17 : 19} /> {compact ? "Add" : "Add to cart"}
         </span>
@@ -271,8 +283,8 @@ function BuyButton({
   className?: string;
 }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-busy={phase !== "idle"} className={"btn btn-primary font-bold " + (className ?? "")}>
-      <span className="roll">
+    <button type="button" onClick={onClick} disabled={disabled} aria-busy={phase !== "idle"} aria-label="Buy now" className={"btn btn-primary font-bold " + (className ?? "")}>
+      <span className="roll" aria-hidden="true">
         <span data-on={phase === "idle"} data-gone={phase !== "idle"} className="inline-flex items-center gap-1.5">
           {compact ? "Buy" : "Buy now"} <Icon name="arrow" size={17} className="arrow" />
         </span>

@@ -84,7 +84,7 @@ export function OrdersList({ initialTab }: { initialTab: Tab }) {
         {!ready ? (
           <LoadingBlock rows={3} />
         ) : shown.length === 0 ? (
-          <EmptyState {...EMPTY[tab]} action={orders.length ? { label: "See all orders", onClick: () => change("all") } : { label: "Start shopping", href: "/" }} />
+          <EmptyState {...EMPTY[tab]} icon="receipt" action={orders.length ? { label: "See all orders", onClick: () => change("all") } : { label: "Start shopping", href: "/" }} />
         ) : (
           <ul className="space-y-3">
             {shown.map(({ o, s }, i) => (

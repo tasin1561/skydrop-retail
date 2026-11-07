@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { EmptyArt } from "@/components/motion/EmptyArt";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { checkPhone, formatPhone, phoneDigits } from "./phone";
@@ -344,22 +345,9 @@ export function EmptyState({
   icon?: string;
 }) {
   return (
-    <div className="card fade-in mx-auto flex max-w-md flex-col items-center px-6 py-10 text-center">
-      <svg width="148" height="120" viewBox="0 0 148 120" aria-hidden className="text-accent">
-        <circle cx="74" cy="58" r="50" fill="currentColor" opacity="0.08" />
-        <path className="ac-twinkle" d="M22 26l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="currentColor" opacity="0.5" />
-        <path className="ac-twinkle" style={{ animationDelay: "0.8s" }} d="M124 34l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="var(--brand-2)" />
-        <ellipse className="ac-shadow" cx="74" cy="108" rx="26" ry="4" fill="currentColor" opacity="0.4" />
-        <g className="ac-float" style={{ transformOrigin: "74px 60px" }}>
-          <path d="M44 34a30 20 0 0 1 60 0z" fill="currentColor" opacity="0.85" />
-          <path d="M44 34l20 24M104 34l-20 24M74 34v24" stroke="currentColor" strokeWidth="1.4" opacity="0.6" />
-          <rect x="58" y="56" width="32" height="28" rx="6" fill="var(--brand-2)" />
-          <path d="M58 66h32M74 56v10" stroke="#fff" strokeOpacity="0.6" strokeWidth="2" />
-        </g>
-      </svg>
-      <span className="sr-only">
-        <Icon name={icon} />
-      </span>
+    <div className="card fade-in relative isolate mx-auto flex max-w-md flex-col items-center overflow-hidden px-6 py-10 text-center">
+      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 bg-[radial-gradient(70%_100%_at_50%_0%,var(--accent-soft),transparent)]" />
+      <EmptyArt kind={icon === "heart" ? "wishlist" : icon === "receipt" ? "orders" : icon === "search" ? "search" : "parcel"} className="relative mb-2" />
       <h2 className="text-lg font-extrabold tracking-tight">{title}</h2>
       <p className="mt-1 text-sm text-ink-2">{body}</p>
       {"href" in action ? (

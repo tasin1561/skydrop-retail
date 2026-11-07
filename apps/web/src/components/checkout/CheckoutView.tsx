@@ -334,6 +334,7 @@ export function CheckoutView() {
         disabled={!!blockedReason || phase === "blocked"}
         idleLabel={actionLabel}
         busyText={phase === "verifying" ? "Verifying price, stock and delivery" : "Placing your order"}
+        error={phase === "error"}
         className={cls}
       />
     );

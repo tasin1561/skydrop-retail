@@ -8,7 +8,7 @@ function OfferCard({ o, i }: { o: Offer; i: number }) {
   const meta = OFFER_META[o.type] ?? OFFER_META.other;
   return (
     <li
-      className="rise relative flex w-[240px] shrink-0 flex-col gap-2 rounded-2xl bg-surface p-3.5 shadow-[var(--shadow-1)] sm:w-[260px]"
+      className="relative flex w-[240px] shrink-0 flex-col gap-2 rounded-2xl bg-surface p-3.5 shadow-[var(--shadow-1)] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[260px]"
       style={{ ["--i" as string]: i }}
     >
       <div className="flex items-center gap-2">
@@ -55,7 +55,7 @@ export function OffersSection({ p }: { p: Product }) {
           <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-white">{offers.length}</span>
         </h2>
       </div>
-      <ul className="no-scrollbar snap-x-rail -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:px-0">
+      <ul data-reveal="stagger" className="no-scrollbar snap-x-rail -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:px-0">
         {offers.map((o, i) => (
           <OfferCard key={i} o={o} i={i} />
         ))}

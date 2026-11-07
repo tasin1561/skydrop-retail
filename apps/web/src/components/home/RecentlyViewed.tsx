@@ -16,5 +16,10 @@ export function RecentlyViewed() {
       .catch(() => {});
   }, []);
   if (items.length < 2) return null;
-  return <EnabledRail title="Recently viewed" note="Pick up where you left off" items={items} />;
+  // arrives after the page has rendered, so it eases in instead of popping into place
+  return (
+    <div className="reveal-in">
+      <EnabledRail title="Recently viewed" note="Pick up where you left off" items={items} />
+    </div>
+  );
 }

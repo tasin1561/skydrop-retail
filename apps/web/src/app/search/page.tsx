@@ -12,6 +12,7 @@ import { HelpMeChoose } from "@/components/assistant/AskAssistant";
 import { LiveSearch } from "@/components/resilience/LiveSearch";
 import { StaleNote } from "@/components/resilience/LiveRefresh";
 import { SafeSection } from "@/components/resilience/SafeSection";
+import { EmptyArt } from "@/components/motion/EmptyArt";
 
 type SP = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -86,11 +87,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {res.items.length ? (
             <EnabledGrid items={res.items} />
           ) : res.status === "pending" ? null : (
-            <div className="card mx-auto max-w-md p-8 text-center">
-              <span className="chip-icon mx-auto h-14 w-14">
-                <Icon name="search" size={26} />
-              </span>
-              <h2 className="mt-4 text-lg font-extrabold">No matches yet</h2>
+            <div className="card fade-in mx-auto flex max-w-md flex-col items-center p-8 text-center">
+              <EmptyArt kind="search" />
+              <h2 className="mt-3 text-lg font-extrabold">No matches yet</h2>
               <p className="mt-1 text-sm text-ink-2">
                 Try a broader word, paste a product link from amazon.in, Flipkart or BigBasket, or ask us to find it for you.
               </p>

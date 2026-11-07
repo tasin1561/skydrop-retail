@@ -72,7 +72,7 @@
   z-index: -1;
   border-radius: 999px;
   background: rgb(255 255 255 / 0.14);
-  animation: hc-drift 14s ease-in-out infinite alternate;
+  animation: hc-drift 14s var(--ease-in-out) infinite alternate;
 }
 @keyframes hc-drift {
   to {

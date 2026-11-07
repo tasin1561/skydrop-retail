@@ -28,8 +28,9 @@ export function MobileNav() {
           aria-hidden
           className="absolute -top-3 h-12 w-12 rounded-full bg-accent shadow-[var(--glow)] transition-transform duration-500"
           style={{
-            left: `calc(${(idx + 0.5) * 20}% - 24px)`,
-            transform: "translateY(0)",
+            // travels on transform only: one cell is a fifth of the (max 28rem) bar
+            left: "calc(10% - 24px)",
+            transform: `translateX(calc(${idx} * min(100vw, 28rem) / 5))`,
             transitionTimingFunction: "var(--spring)",
           }}
         />
@@ -43,6 +44,7 @@ export function MobileNav() {
               className="relative flex h-16 flex-col items-center justify-end gap-0.5 pb-2 text-[11px] font-semibold"
             >
               <span
+                data-cart-target={it.href === "/cart" ? "" : undefined}
                 className={
                   "relative grid h-7 w-7 place-items-center transition-all duration-500 " +
                   (on ? "-translate-y-4 text-white" : "text-ink-3")
@@ -53,7 +55,7 @@ export function MobileNav() {
                 {it.href === "/cart" && cartCount > 0 && (
                   <span
                     key={cartCount}
-                    className="pop absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand-2 px-1 text-[10px] text-white"
+                    className="mo-badge pop absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand-2 px-1 text-[10px] text-white"
                   >
                     {cartCount}
                   </span>

@@ -91,14 +91,14 @@ class HubReceive extends Page
                     ->colors(['ok' => 'success', 'damaged' => 'danger', 'wrong_item' => 'warning'])
                     ->icons(['ok' => Heroicon::OutlinedCheckCircle, 'damaged' => Heroicon::OutlinedExclamationTriangle, 'wrong_item' => Heroicon::OutlinedArrowsRightLeft]),
                 Textarea::make('notes')->rows(2)->maxLength(1000)->placeholder('Optional: what you saw, seal intact, etc.'),
-                FileUpload::make('photos')->label('Photos')->multiple()->image()->maxFiles(10)->maxSize(8192)
+                FileUpload::make('photos')->label('Photos')->multiple()->image()->maxFiles(\App\Support\Limits::int('uploads.max_files'))->maxSize(\App\Support\Limits::int('uploads.image_mb') * 1024)
                     ->disk('public')->directory('hub/'.now()->format('Y/m'))->visibility('public')
                     ->panelLayout('grid')->reorderable()->appendFiles()
                     ->extraInputAttributes(['capture' => 'environment'])
                     ->required(fn () => (bool) $this->selectedOrder()?->unboxing)
                     ->helperText(fn () => $this->selectedOrder()?->unboxing ? 'Paid unboxing: open the parcel and photograph the item from every side. The customer approves these photos.' : null),
                 FileUpload::make('video')->label('Short unboxing video (optional)')->disk('public')->directory('hub/video/'.now()->format('Y/m'))
-                    ->visibility('public')->acceptedFileTypes(['video/mp4', 'video/quicktime', 'video/webm'])->maxSize(51200)
+                    ->visibility('public')->acceptedFileTypes(['video/mp4', 'video/quicktime', 'video/webm'])->maxSize(\App\Support\Limits::int('uploads.video_mb') * 1024)
                     ->visible(fn () => (bool) $this->selectedOrder()?->unboxing),
             ]);
     }

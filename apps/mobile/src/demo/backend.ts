@@ -2,6 +2,9 @@
 // unreachable. Responses have the same shapes as the real endpoints so screens don't care.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import data from "./catalog.json";
+import categoryTree from "./category-tree.json";
+import categoryMap from "./category-map.json";
+import { PRICING_GROUPS, filterTree, type CatNode } from "@/lib/categories";
 import type { Address, CartItem, MarketId, Order, Product, StoreMode, User } from "@/lib/types";
 import { MARKET_IDS, STORES } from "@/lib/markets";
 import { priceBdt } from "@/lib/pricing";
@@ -67,7 +70,7 @@ export function search(sp: SearchParams): SearchResponse {
     .filter((w) => w.length > 1);
   let list = ALL.map((p) => ({ p, s: score(p, words) })).filter((x) => x.s > 0);
   if (sp.store && sp.store !== "all") list = list.filter((x) => x.p.market === sp.store);
-  if (sp.category) list = list.filter((x) => x.p.category === sp.category);
+  if (sp.category) list = list.filter((x) => inCategory(x.p, sp.category!));
   if (sp.min) list = list.filter((x) => priceBdt(x.p) >= sp.min!);
   if (sp.max) list = list.filter((x) => priceBdt(x.p) <= sp.max!);
   if (sp.rating) list = list.filter((x) => x.p.rating >= sp.rating!);
@@ -317,4 +320,27 @@ export async function setWatch(productId: string, on: boolean, _type?: WatchType
 
 export async function signOut() {
   await AsyncStorage.removeItem(K.user).catch(() => {});
+}
+
+// ---------- category tree (demo) ----------
+const CAT_TREE = (categoryTree as unknown as { tree: CatNode[] }).tree;
+const CAT_MAP = categoryMap as Record<string, string>;
+
+/** Tree path (with descendants) or one of the five pricing groups, like GET /search?category=. */
+function inCategory(p: Product, category: string) {
+  if (PRICING_GROUPS.includes(category)) return p.category === category;
+  const path = CAT_MAP[p.id];
+  return !!path && (path === category || path.startsWith(category + "/"));
+}
+
+function withCounts(nodes: CatNode[], store: StoreMode): CatNode[] {
+  return nodes.map((n) => ({
+    ...n,
+    count: ALL.filter((p) => (store === "all" || p.market === store) && inCategory(p, n.path)).length,
+    children: withCounts(n.children, store),
+  }));
+}
+
+export function categories(store: StoreMode): CatNode[] {
+  return withCounts(filterTree(CAT_TREE, store), store);
 }

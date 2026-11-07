@@ -65,6 +65,7 @@ class CatalogService
             $q = implode(' ', $words);
             $sort = $this->storeSort((string) ($sp['sort'] ?? 'relevance'));
             $storePages = (int) ceil(max(1, (int) ($sp['page'] ?? 1)) * CatalogQuery::PER_PAGE / self::STORE_PAGE_SIZE);
+            $storePages = min($storePages, max(1, \App\Support\Limits::int('catalog.search_pages'))); // System → Limits
             foreach ($this->query->markets($sp['store'] ?? null) as $market) {
                 if (! $this->isLive($market)) {
                     continue;
@@ -78,7 +79,7 @@ class CatalogService
                         }
                         $this->logger->cacheHit('search', $market, "$q#$page");
                     }
-                    if ($crawler || ($row && $age <= RetailSettings::ttl('search_fresh'))) {
+                    if ($crawler || ($row && $age <= max(RetailSettings::ttl('search_fresh'), \App\Support\Limits::int('catalog.search_ttl_min_minutes')))) {
                         continue;
                     }
                     $id = $this->queueSearch($market, $q, $page, $sort, $sp['category'] ?? null);
@@ -183,6 +184,7 @@ class CatalogService
         $ttl = $p->deal_ends_at && $p->deal_ends_at->lt(now()->addDay())
             ? RetailSettings::ttl('lightning')
             : ($ttlMinutes ?? RetailSettings::ttl('product_fresh'));
+        $ttl = max($ttl, \App\Support\Limits::int('catalog.product_ttl_min_minutes')); // System → Limits: never refresh sooner
 
         return $p->details_fetched_at->gt(now()->subMinutes($ttl));
     }
@@ -291,7 +293,7 @@ class CatalogService
 
         $fresh = Product::query()->whereIn('id', [...$colours, ...$sizes])->get()
             ->filter(fn (Product $s) => $this->isFresh($s, RetailSettings::ttl('sibling_fresh')))->pluck('id')->all();
-        $max = RetailSettings::int('variants.max', 60);
+        $max = \App\Support\Limits::int('catalog.variant_max'); // same setting as "variants.max"
         $colours = array_slice(array_values(array_diff($colours, $fresh)), 0, $max);
         $sizes = array_slice(array_values(array_diff($sizes, $fresh)), 0, max(0, $max - count($colours)));
 
@@ -306,7 +308,7 @@ class CatalogService
     public function fetchSiblings(Product $parent, array $ids): int
     {
         $n = 0;
-        foreach (array_chunk($ids, 10) as $chunk) {
+        foreach (array_chunk($ids, max(1, \App\Support\Limits::int('catalog.max_concurrent_fetches'))) as $chunk) {
             foreach ($this->chain->products($parent->market, $chunk) as $id => $sp) {
                 if ($sp instanceof SourceProduct) {
                     $this->writer->detailed($sp, $parent->category);
@@ -364,7 +366,7 @@ class CatalogService
         $ids = array_slice(array_values(array_unique($ids)), 0, RetailSettings::int('offers.ingest_max_products', 40));
         $stale = array_values(array_filter($ids, fn ($id) => ! (($p = Product::query()->find($id)) && $this->isFresh($p, RetailSettings::ttl('lightning')))));
         $n = 0;
-        foreach (array_chunk($stale, 10) as $chunk) {
+        foreach (array_chunk($stale, max(1, \App\Support\Limits::int('catalog.max_concurrent_fetches'))) as $chunk) {
             foreach ($this->chain->products($market, $chunk) as $id => $sp) {
                 if ($sp instanceof SourceProduct) {
                     $this->writer->detailed($sp, Product::query()->whereKey($id)->value('category'));
@@ -413,6 +415,16 @@ class CatalogService
         if ($this->isLive($before->market) && ! $before->demo) {
             [$fresh, $answered] = $this->fetch($id, true, 'verify');
             if (! $answered || ! $fresh) {
+                // Store unreachable (provider outage, budget stop). Never block a sale on our scraper: if the price was
+                // checked recently and the item was in stock, accept it at that price and let the supplier-price-alert
+                // job re-check before staff buy (it runs every 2 h for unpurchased items).
+                $graceHours = (int) \App\Models\Setting::get('checkout.verify_grace_hours', config('retail.checkout.verify_grace_hours', 72));
+                $recent = $before->price_checked_at && $before->price_checked_at->gt(now()->subHours($graceHours));
+                if ($graceHours > 0 && $recent && $before->in_stock && ! $before->hidden && $before->price_inr > 0) {
+                    return ['productId' => $id, 'ok' => true, 'freshBdt' => $this->pricing->productBdt($before), 'changed' => false,
+                        'deliverable' => true, 'offerExpired' => false, 'reason' => null, 'unverified' => true, 'provider' => 'cache'];
+                }
+
                 return ['productId' => $id, 'ok' => false, 'freshBdt' => $this->pricing->productBdt($before), 'changed' => false,
                     'deliverable' => ! $before->hidden, 'offerExpired' => false, 'reason' => 'verify_failed', 'provider' => null];
             }

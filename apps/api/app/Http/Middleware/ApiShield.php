@@ -103,7 +103,7 @@ class ApiShield
         if ($phone && $this->wrongCode($response)) {
             $wrongKey = 'otp:wrong:'.$phone;
             $n = RateLimiter::hit($wrongKey, 3600);
-            if ($n >= (int) config('security.otp.wrong_lockout', 5)) {
+            if ($n >= \App\Support\Limits::int('accounts.otp_wrong_lockout')) { // System → Limits (default config security.otp.wrong_lockout)
                 RateLimiter::clear($wrongKey);
                 RateLimiter::hit($lock, (int) config('security.otp.lockout_minutes', 30) * 60);
                 ActivityLogger::log('security.otp_lockout', null, [], 'OTP lockout for '.Phone::mask($phone), ['ip' => $ip]);

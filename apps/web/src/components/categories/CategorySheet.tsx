@@ -87,7 +87,7 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Categories">
+    <div className="fixed inset-0 z-[90] md:hidden" role="dialog" aria-modal="true" aria-label="Categories">
       <button type="button" aria-label="Close categories" tabIndex={-1} onClick={onClose} className="cm-backdrop absolute inset-0 bg-black/45" />
       <div className="cm-sheet absolute inset-x-0 bottom-0 flex max-h-[92dvh] min-h-[60dvh] flex-col overflow-hidden rounded-t-3xl bg-surface pb-[env(safe-area-inset-bottom)] shadow-[var(--shadow-2)]">
         <div className="flex items-center gap-1 border-b border-line px-2 py-2">

@@ -105,11 +105,11 @@
 
 /* ---------- empty state: parcel on a parachute, swaying ---------- */
 .co-empty-art {
-  animation: co-sway 3.6s ease-in-out infinite alternate;
+  animation: co-sway 3.6s var(--ease-in-out) infinite alternate;
   transform-origin: 50% 0;
 }
 .co-empty-shadow {
-  animation: co-shadow 3.6s ease-in-out infinite alternate;
+  animation: co-shadow 3.6s var(--ease-in-out) infinite alternate;
   transform-origin: center;
 }
 .co-cloud {

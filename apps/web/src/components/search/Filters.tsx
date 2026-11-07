@@ -47,9 +47,9 @@ function useParamsUpdater() {
   };
 }
 
-function FilterBody() {
+/** hideCategory: on /c/{path} the URL already scopes the category, so the pricing-group list is hidden. */
+function FilterBody({ hideCategory = false }: { hideCategory?: boolean }) {
   const sp = useSearchParams();
-  const onCategoryPage = usePathname().startsWith("/c/"); // the /c/{path} URL already scopes the category
   const set = useParamsUpdater();
   const { enabled } = useStore();
   const store = sp.get("store") ?? "all";
@@ -86,7 +86,7 @@ function FilterBody() {
           </Opt>
         ))}
       </fieldset>
-      {!onCategoryPage && (
+      {!hideCategory && (
         <fieldset>
           <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Category</legend>
           {CATS.map(([v, l]) => (
@@ -129,15 +129,15 @@ function FilterBody() {
   );
 }
 
-export function FilterSidebar() {
+export function FilterSidebar({ hideCategory }: { hideCategory?: boolean } = {}) {
   return (
     <aside className="sticky top-40 hidden max-h-[calc(100dvh-11rem)] w-64 shrink-0 overflow-y-auto pr-2 lg:block">
-      <FilterBody />
+      <FilterBody hideCategory={hideCategory} />
     </aside>
   );
 }
 
-export function SortAndFilterBar({ total }: { total: number }) {
+export function SortAndFilterBar({ total, hideCategory }: { total: number; hideCategory?: boolean }) {
   const sp = useSearchParams();
   const set = useParamsUpdater();
   const [open, setOpen] = useState(false);
@@ -189,7 +189,7 @@ export function SortAndFilterBar({ total }: { total: number }) {
                 <Icon name="x" />
               </button>
             </div>
-            <FilterBody />
+            <FilterBody hideCategory={hideCategory} />
             <button className="btn btn-primary mt-6 w-full" onClick={() => setOpen(false)}>
               Show {total} results
             </button>

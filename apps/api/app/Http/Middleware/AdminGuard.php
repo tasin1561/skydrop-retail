@@ -20,7 +20,7 @@ class AdminGuard
             abort(403, 'The admin panel is not available from this network.');
         }
 
-        $timeout = (int) Knobs::get('security.admin.session_timeout_minutes', 60);
+        $timeout = \App\Support\Limits::int('api.admin_session_minutes'); // System → Limits (same knob as Finance & security)
         if ($timeout > 0 && $request->hasSession()) {
             $session = $request->session();
             $last = (int) $session->get('admin_last_seen', 0);

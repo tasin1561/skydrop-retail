@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
 import type { Media } from "./types";
 import { sized } from "./media";
+import { flipOpen } from "@/components/motion/flipOpen";
 
 // Viewer (and with it the video player) is only loaded once someone opens it.
 const Viewer = dynamic(() => import("./Viewer").then((m) => m.Viewer), { ssr: false });
@@ -49,7 +50,9 @@ export function Gallery({
     if (r) r.scrollTo({ left: i * r.clientWidth, behavior: "smooth" });
   }
 
-  function open(i: number, autoPlay = false) {
+  function open(i: number, autoPlay = false, from?: Element | null) {
+    const m = media[i];
+    if (!autoPlay && m?.kind === "image") flipOpen(from?.querySelector("img") ?? from, m.src);
     setView({ start: i, autoPlay });
   }
 
@@ -123,7 +126,7 @@ export function Gallery({
               <button
                 key={i}
                 type="button"
-                onClick={() => open(i, m.kind === "video")}
+                onClick={(e) => open(i, m.kind === "video", e.currentTarget)}
                 aria-label={m.kind === "video" ? `Play video ${i + 1} of ${count}` : `Open image ${i + 1} of ${count} fullscreen`}
                 className="group relative aspect-square w-full shrink-0 p-6"
               >
@@ -148,7 +151,7 @@ export function Gallery({
           <div className="relative hidden aspect-square overflow-hidden rounded-[20px] bg-white shadow-[var(--shadow-1)] lg:block">
             <button
               type="button"
-              onClick={() => open(idx, current?.kind === "video")}
+              onClick={(e) => open(idx, current?.kind === "video", e.currentTarget)}
               className="group absolute inset-0 grid cursor-zoom-in place-items-center p-10"
               aria-label={current?.kind === "video" ? "Play video" : "Open image fullscreen"}
             >

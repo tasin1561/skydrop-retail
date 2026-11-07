@@ -102,7 +102,7 @@
   height: 220px;
   border-radius: 50%;
   background: radial-gradient(circle, color-mix(in srgb, var(--plus-gold) 45%, transparent), transparent 70%);
-  animation: plus-float 6s ease-in-out infinite;
+  animation: plus-float 6s var(--ease-in-out) infinite;
 }
 @keyframes plus-float {
   50% { transform: translate(-16px, 14px) scale(1.06); }

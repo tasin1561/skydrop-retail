@@ -17,6 +17,9 @@ import { DeliveryPromise, SummaryLines, TrustRow } from "./Summary";
 import { CartPlusNudge } from "@/components/money/CartPlusNudge";
 import { useBundleTotals } from "@/components/shopping/useBundleTotals";
 import { CartShoppingExtras } from "@/components/shopping/CartShoppingExtras";
+import { FreeShipMeter } from "@/components/motion/FreeShipMeter";
+import { SavedChip } from "@/components/motion/SavedChip";
+import { CountUp } from "@/components/motion/CountUp";
 
 const key = (i: Pick<CartItem, "productId" | "variant">) => i.productId + "::" + (i.variant ?? "");
 
@@ -36,14 +39,14 @@ export function CartView() {
 
   const t = useBundleTotals(computeTotals(cart, coupon), cart); // Shopping: bundle saving
 
-  // Let the row slide out first, then remove it from the store.
+  // Let the row slide out and its space close first (about 480ms), then remove it from the store.
   const animateOut = (item: CartItem, after: () => void) => {
     const k = key(item);
     setLeaving((l) => [...l, k]);
     setTimeout(() => {
       after();
       setLeaving((l) => l.filter((x) => x !== k));
-    }, 260);
+    }, 480);
   };
 
   const remove = (item: CartItem) =>
@@ -79,6 +82,11 @@ export function CartView() {
           <p className="text-sm text-ink-2" aria-live="polite">
             {t.count} item{t.count === 1 ? "" : "s"} from {t.groups.length} Indian store{t.groups.length === 1 ? "" : "s"}
           </p>
+          {t.discount > 0 && (
+            <div className="mt-2">
+              <SavedChip amount={t.discount} />
+            </div>
+          )}
         </div>
         <Link href="/" className="hidden items-center gap-1 text-sm font-semibold text-accent sm:inline-flex">
           <Icon name="left" size={16} /> Keep shopping
@@ -119,8 +127,8 @@ export function CartView() {
           <div className="mx-auto flex max-w-md items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Total · {t.count} items</p>
-              <p key={t.total} className="co-bump text-lg font-extrabold leading-tight tabular-nums">
-                {formatBdt(t.total)}
+              <p className="text-lg font-extrabold leading-tight tabular-nums">
+                <CountUp value={t.total} />
               </p>
             </div>
             <Link href="/checkout" className="btn btn-primary shrink-0 px-5">
@@ -191,7 +199,6 @@ function StoreGroup({
   setQty: (id: string, v: string | undefined, q: number) => void;
 }) {
   const s = STORES[g.market];
-  const pct = Math.min(1, g.sub / PRICING.shipping.freeAboveBdt);
   return (
     <section data-store={g.market} className="co-card rise overflow-hidden" style={{ ["--i" as string]: gi }} aria-label={`Items from ${s.source}, India`}>
       <header className="co-store-head flex items-center gap-3 p-4 pb-3">
@@ -211,7 +218,8 @@ function StoreGroup({
         {g.items.map((item, i) => {
           const k = key(item);
           return (
-            <li key={k} data-leaving={leaving.includes(k)} className="co-row flex gap-3 px-4 py-3" style={{ animationDelay: `${i * 40}ms` }}>
+            <li key={k} data-leaving={leaving.includes(k)} className="mo-collapse co-row" style={{ animationDelay: `${i * 40}ms` }}>
+              <div className="flex gap-3 px-4 py-3">
               <Link href={`/p/${item.productId}`} className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white p-1.5 shadow-[var(--shadow-1)] sm:h-24 sm:w-24" tabIndex={-1} aria-hidden="true">
                 <ProductImage p={item} className="h-full w-full rounded-xl" />
               </Link>
@@ -243,6 +251,7 @@ function StoreGroup({
                   </button>
                 </div>
               </div>
+              </div>
             </li>
           );
         })}
@@ -255,20 +264,7 @@ function StoreGroup({
           </span>
           <span className={"font-bold tabular-nums " + (g.shipping === 0 ? "text-good" : "")}>{g.shipping === 0 ? "Free" : formatBdt(g.shipping)}</span>
         </div>
-        <div className="co-track" role="progressbar" aria-valuemin={0} aria-valuemax={PRICING.shipping.freeAboveBdt} aria-valuenow={Math.min(g.sub, PRICING.shipping.freeAboveBdt)} aria-label={`Free shipping progress for ${s.source}`}>
-          <span style={{ transform: `scaleX(${pct})` }} />
-        </div>
-        <p className="text-xs text-ink-2" aria-live="polite">
-          {g.toFree > 0 ? (
-            <>
-              Add <b className="text-ink">{formatBdt(g.toFree)}</b> more from {s.source} for free shipping
-            </>
-          ) : (
-            <span className="inline-flex items-center gap-1 font-semibold text-good">
-              <Icon name="check" size={14} stroke={2.6} /> Free shipping unlocked for this store
-            </span>
-          )}
-        </p>
+        <FreeShipMeter sub={g.sub} threshold={PRICING.shipping.freeAboveBdt} source={s.source} />
       </footer>
     </section>
   );
