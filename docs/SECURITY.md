@@ -16,7 +16,8 @@ credential/OTP abuse, admin takeover and data leaks.
   (`APP_SIGNING_KEYS` accepts several `id:secret` pairs so old builds keep working during rollout).
 - **Rate limits** (Laravel RateLimiter, `App\Http\Middleware\CatalogThrottle`): per IP, per signed-in user and per
   device fingerprint; strict buckets for search, suggest, resolve, product detail and price history; progressive slowdown
-  then 429. The Next.js server has one high bucket; shoppers are limited by Cloudflare in front of Next.js (rules below).
+  then 429. Search, product-view and paste-link-resolve per-IP limits are editable on Admin → System → Limits, and every
+  `/api/v1` request also has a per-IP ceiling (`PublicApiThrottle`, default 300/min). Health, worker and alerting: `docs/OPERATIONS.md`. The Next.js server has one high bucket; shoppers are limited by Cloudflare in front of Next.js (rules below).
 - **Pagination caps**: page ≤ 20, perPage ≤ 48, `ids` ≤ 48. Product ids are marketplace ids (ASIN etc.), not sequential;
   bursts of 404s on product ids flag the IP.
 - **Bot detection** (`BotGuard`): automation user agents, headless hints, missing `Accept-Language`, more than 40 distinct
@@ -26,8 +27,8 @@ credential/OTP abuse, admin takeover and data leaks.
   and is logged (Admin → System → Activity log, action `security.honeypot`).
 
 ### Accounts
-- **OTP abuse**: `OtpService` allows 3 codes per phone and per IP per 10 min and 5 attempts per code. `ApiShield` adds a
-  60 s cooldown per phone, a 30 min lockout after 5 wrong codes (across codes), 20 verify attempts per IP per 10 min,
+- **OTP abuse**: `OtpService` allows 3 codes per phone and 10 per IP per hour (Admin → System → Limits) and 5 attempts per code. `ApiShield` adds a
+  60 s cooldown per phone, a 30 min lockout after 5 wrong codes (across codes; limit `accounts.otp_wrong_lockout`), 20 verify attempts per IP per 10 min,
   the phone blocklist and Cloudflare Turnstile on `POST /auth/otp/request` (when `TURNSTILE_*` keys are set).
 - **Fraud check** on every order (`App\Services\Fraud`): courier history (Steadfast live; Pathao, RedX, CarryBee stubs) and
   internal signals. High risk → "Needs review" (no automatic verification) and full prepayment instead of the 50% advance.

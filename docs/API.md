@@ -182,6 +182,11 @@ posting again updates your review. No helpful-vote counts yet.
 
 ## Checkout
 
+**Limits** (Admin → System → Limits, `App\Support\Limits`; see `docs/OPERATIONS.md`). Every failure is `422 { message, code, errors: { field: [message] }, limit }`:
+`limit_items` / `limit_qty` (`errors.items` / `errors["items.N.qty"]`; quote, verify, order), `limit_order_value` (quote, order),
+`full_prepayment_required` (`errors.payment`; `advance50` above the cap; quote with `payment`, order), and on `POST /orders` only:
+`limit_min_order`, `limit_orders_per_day`, `limit_unpaid_orders`. Request validation keeps hard ceilings of 200 items / qty 99.
+
 `POST /checkout/verify { items: [{ productId, variant?, qty, unitBdt }] }`
 → `{ ok, checkedAt, results: [{ productId, ok, freshBdt, changed, deliverable, reason?, restriction? }] }`
 Items blocked by a restricted rule come back `ok:false, deliverable:false, reason:"restricted", message`.
@@ -318,7 +323,23 @@ Always re-validated with the gateway (bKash execute/query, Nagad verify, SSLComm
   (surcharge), quote notices, verify and order creation.
 - Features: `banners`, `flash_sales` (off → no discount anywhere), `restrictions` (off → no checks), `reviews`, `coupons`, `support_chat` (web only).
 
+## System: features, maintenance, health
+
+`GET /features` → `{ features: { [key]: boolean }, maintenance: { on, message, since } }`. `maintenance.on` = storefront maintenance
+(Admin → System → Settings): web and app show a full-page "We'll be right back" with `message`; the API keeps working.
+
+- `GET /health` → `200 { ok: true, time }` (liveness).
+- `GET /health/ready` → `200 | 503 { ok, checks: { database, cache, queue }, time }` (queue = fresh worker heartbeat; sync queue → true).
+- `GET /health/details` with `X-Health-Token: <HEALTH_TOKEN>` → `200 | 503 { status, generatedAt, cards }` (the Admin → System → Health
+  report). `404` when `HEALTH_TOKEN` is unset, `401` for a wrong token. Details in `docs/OPERATIONS.md`.
+
+Every `/api/v1` request also passes a per-IP ceiling (`api.per_ip_per_minute`, default 300/min; internal key, webhooks and health exempt)
+→ `429 { code: "rate_limited", retryAfter }`. Account limits: `POST /wishlist` → `422 code limit_wishlist`, `POST /watches` →
+`422 code limit_alerts`, `POST /addresses` → `422 errors.address`; OTP request limits are per phone / per IP per hour (429).
+
 ## Admin
+
+System group: **Health** (`system.health`), **Limits** (`system.limits`), **Settings (maintenance)** (`system.settings`); see `docs/OPERATIONS.md`.
 
 Filament panel at `/admin` (staff users). Marketplace toggles, pricing rules, orders, products, provider health, API cost dashboard.
 CMS: Sales → Banners (upload or URL, schedule, live preview), Sales → Flash sales (product picker by title/id with flash-price preview),
