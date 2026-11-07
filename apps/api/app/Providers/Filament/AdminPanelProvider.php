@@ -30,6 +30,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Security module: TOTP 2FA with recovery codes (required for admin/manager), profile page to manage it.
+            ->profile(isSimple: false)
+            ->multiFactorAuthentication(
+                [\Filament\Auth\MultiFactor\App\AppAuthentication::make()->recoverable()->brandName('Skydrop Retail Admin')],
+                isRequired: true, // routes always registered; AdminRequire2fa decides per user (admin/manager) at runtime
+            )
+            ->multiFactorAuthenticationRequiredMiddlewareName(\App\Http\Middleware\AdminRequire2fa::class)
             ->brandName('Skydrop Retail Admin')
             ->brandLogo(fn () => new HtmlString(
                 '<span style="display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:1.05rem">'
@@ -47,11 +54,13 @@ class AdminPanelProvider extends PanelProvider
                 'gray' => Color::Slate,
             ])
             ->darkMode()
+            ->databaseNotifications() // fulfilment: staff alerts (price alerts, returns, unboxing problems)
             ->sidebarCollapsibleOnDesktop()
             ->globalSearch()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([
                 NavigationGroup::make('Sales'),
+                NavigationGroup::make('Hub'), // fulfilment: Kolkata hub receiving, packing, return-to-seller
                 NavigationGroup::make('Catalog'),
                 NavigationGroup::make('Pricing'),
                 NavigationGroup::make('System'),
@@ -67,6 +76,7 @@ class AdminPanelProvider extends PanelProvider
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 AuthenticateSession::class,
+                \App\Http\Middleware\AdminGuard::class, // IP allowlist + idle timeout (security module)
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,

@@ -133,3 +133,29 @@ scripts/make-demo-catalog.mjs
   - It polls `GET /jobs/{id}` every 1.5 s for up to about 25 s, and stops when the screen loses focus.
   - It reloads when the job is done.
 - `/offers`, `/points`, `/watches`, `redeemPoints` and `returnUrl` are not in `docs/API.md` yet. The app follows `apps/web/src/lib/apiClient.ts` for them.
+
+## Notifications and push
+
+- **Notification centre.** The bell on the Home header (hidden when signed out or when the `in_app_notifications` feature is off) shows the unread count
+  and opens the Notifications screen (`src/app/notifications.tsx`): Today / Earlier groups, pull-to-refresh, infinite scroll, tap to open
+  (deep link + mark read), long-press or × to delete, "Read all". State lives in `src/lib/notifications.ts`; it polls `GET /notifications`
+  every 60 s while the app is in the foreground. Demo mode builds items from the local demo orders.
+- **Feature switches.** `src/lib/features.ts` fetches `GET /api/v1/features` once at startup; `useFeature("push")` etc. gate the UI.
+- **Cart sync.** Signed-in shoppers' carts are sent with `PUT /cart` (debounced 1.5 s) so the API can send abandoned-cart reminders.
+- **Push notifications (needs one install).** `expo-notifications` is not in `package.json`, and Metro cannot bundle an import of a missing
+  package, so `src/lib/push.ts` is written against a small interface and stays inactive until the module is provided:
+  1. `npx expo install expo-notifications expo-device`
+  2. In `app.json` add `"expo-notifications"` to `plugins`, and make sure the EAS project id is set (`eas init` writes `extra.eas.projectId`).
+     Android needs a Firebase project: add `google-services.json` and `"android": { "googleServicesFile": "./google-services.json" }`, then upload
+     the FCM V1 service-account key in Expo (Project → Credentials). iOS push keys are created by `eas credentials`.
+  3. At the top of `src/app/_layout.tsx`:
+     ```ts
+     import * as Notifications from "expo-notifications";
+     import { setNotificationsModule } from "@/lib/push";
+     setNotificationsModule(Notifications);
+     ```
+  4. Rebuild the dev client / APK (push does not work in Expo Go on Android since SDK 53).
+
+  After that the app asks for permission after sign-in, sends the token with `POST /api/v1/push/expo-token`, removes it on sign-out, shows
+  pushes in the foreground, and opens `/order/{id}` or `/product/{id}` when a push is tapped (also from a cold start). The API sends a
+  `route` in the push data; `routeFor()` also maps web paths (`/orders/{id}`, `/p/{id}`).

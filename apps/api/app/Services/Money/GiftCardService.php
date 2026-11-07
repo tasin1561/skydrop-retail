@@ -7,8 +7,10 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\Notifier;
+use App\Services\Commerce\Payments\PaymentService;
 use App\Services\Commerce\Phone;
 use App\Services\Messaging\Messenger;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -80,7 +82,7 @@ class GiftCardService
 
             return [$card, $order];
         });
-        $payment = app(\App\Services\Commerce\Payments\PaymentService::class)->start($order);
+        $payment = app(PaymentService::class)->start($order);
 
         return ['giftCard' => $card->refresh(), 'order' => $order->refresh(), 'payment' => $payment];
     }
@@ -200,7 +202,7 @@ class GiftCardService
         $card->forceFill(['delivered_at' => now()])->save();
     }
 
-    private function expiry(): ?\Illuminate\Support\Carbon
+    private function expiry(): ?Carbon
     {
         $m = MoneySettings::int('gift_cards.expiry_months');
 

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Rbac\PermissionRegistry;
 use Illuminate\Support\ServiceProvider;
 
 // Money module wiring: admin permission keys for wallet, gift card and Skydrop Plus actions (RBAC matrix).
@@ -20,8 +21,8 @@ class MoneyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (class_exists(\App\Support\Rbac\PermissionRegistry::class) && method_exists(\App\Support\Rbac\PermissionRegistry::class, 'extend')) {
-            \App\Support\Rbac\PermissionRegistry::extend(self::PERMISSIONS, 'Wallet, gift cards & Plus');
+        if (class_exists(PermissionRegistry::class) && method_exists(PermissionRegistry::class, 'extend')) {
+            PermissionRegistry::extend(self::PERMISSIONS, 'Wallet, gift cards & Plus');
         }
     }
 }

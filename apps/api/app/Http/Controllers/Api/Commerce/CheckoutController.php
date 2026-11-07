@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Services\Cms\RestrictionService;
 use App\Services\Commerce\CheckoutService;
 use App\Services\Commerce\Verify\PriceVerifier;
+use App\Services\Money\MoneyRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,10 +31,10 @@ class CheckoutController extends Controller
             'coupon' => ['nullable', 'string', 'max:30'],
             'redeemPoints' => ['nullable', 'integer', 'min:0'],
             'unboxing' => ['nullable', 'boolean'], // fulfilment: paid unboxing at the Kolkata hub
-        ] + \App\Services\Money\MoneyRules::quote());
+        ] + MoneyRules::quote());
         $lines = $checkout->lines($data['items']);
         $quote = $checkout->quote($lines, $checkout->coupon($data['coupon'] ?? null), $request->user('sanctum'), (int) ($data['redeemPoints'] ?? 0),
-            \App\Services\Money\MoneyRules::opts($data) + ['unboxing' => (bool) ($data['unboxing'] ?? false)]);
+            MoneyRules::opts($data) + ['unboxing' => (bool) ($data['unboxing'] ?? false)]);
         $quote['items'] = array_map(fn ($l) => ['productId' => $l['product_id'], 'variant' => $l['variant'], 'qty' => $l['qty'],
             'unitBdt' => (int) $l['unit_bdt'], 'weightKg' => $l['weight_kg'], 'market' => $l['market'],
             'changed' => $l['client_bdt'] !== null && (int) round($l['client_bdt']) !== (int) $l['unit_bdt'],

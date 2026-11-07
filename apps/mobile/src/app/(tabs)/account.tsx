@@ -8,11 +8,14 @@ import { prettyPhone } from "@/lib/phone";
 import { haptic } from "@/lib/haptics";
 import { Button, Card, Divider, IconChip, Pill, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
+import { useFeature } from "@/lib/features";
 
 export default function Account() {
   const { c, pref, setPref } = useTheme();
   const insets = useSafeAreaInsets();
   const { user, signOut, wish, demo } = useStore();
+  const walletOn = useFeature("wallet");
+  const plusOn = useFeature("membership");
 
   const row = (icon: string, title: string, sub: string, onPress: () => void) => (
     <Tap onPress={onPress} accessibilityLabel={title} style={styles.row} scaleTo={0.98}>
@@ -70,6 +73,11 @@ export default function Account() {
         {row("map-pin", "Addresses", "Where Skydrop delivers your parcels", () => (user ? router.push("/addresses") : router.push("/login")))}
         <Divider style={{ marginLeft: 60 }} />
         {row("star", "Skydrop Points", "Earn on every order, save at checkout", () => (user ? router.push("/points") : router.push({ pathname: "/login", params: { next: "/points" } })))}
+        {/* money module: wallet + Skydrop Plus (feature switches "wallet" / "membership") */}
+        {walletOn && <Divider style={{ marginLeft: 60 }} />}
+        {walletOn && row("credit-card", "Skydrop Wallet", "Balance, gift cards and refunds", () => (user ? router.push("/wallet") : router.push({ pathname: "/login", params: { next: "/wallet" } })))}
+        {plusOn && <Divider style={{ marginLeft: 60 }} />}
+        {plusOn && row("award", "Skydrop Plus", "Free shipping on every order", () => router.push("/plus"))}
         <Divider style={{ marginLeft: 60 }} />
         {row("heart", "Wishlist", `${wish.length} saved`, () => router.push("/wishlist"))}
         <Divider style={{ marginLeft: 60 }} />

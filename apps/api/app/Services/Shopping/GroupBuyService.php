@@ -4,6 +4,7 @@ namespace App\Services\Shopping;
 
 use App\Models\GroupBuy;
 use App\Models\GroupBuyMember;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Commerce\CheckoutService;
@@ -179,7 +180,7 @@ class GroupBuyService
         return ['placed' => $placed, 'failed' => $failed];
     }
 
-    private function placeFor(GroupBuyMember $m, GroupBuy $group, ?int $share): \App\Models\Order
+    private function placeFor(GroupBuyMember $m, GroupBuy $group, ?int $share): Order
     {
         $user = $m->user;
         $items = array_map(fn ($i) => ['productId' => $i['productId'], 'variant' => $i['variant'] ?? null, 'qty' => (int) $i['qty']], $m->items);

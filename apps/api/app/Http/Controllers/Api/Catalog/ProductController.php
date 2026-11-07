@@ -10,14 +10,36 @@ use App\Services\Catalog\UrlResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ProductController extends CatalogController
 {
     public function show(Request $request, string $id, CatalogService $catalog): JsonResponse
     {
-        $res = $catalog->product($id, $this->isCrawler($request));
+        try {
+            $res = $catalog->product($id, $this->isCrawler($request));
+        } catch (Throwable $e) {
+            // Live fetch / queue / provider trouble: serve what we have in the database.
+            report($e);
+            $p = rescue(fn () => Product::query()->with('details')->find($id), null, false);
+            if (! $p) {
+                return $this->degraded('We could not load this product right now. Please try again in a moment.');
+            }
+            $res = ['status' => 'ready', 'stale' => true, 'product' => $p];
+        }
         abort_if(! $res, 404, 'Product not found');
-        $res['product'] = (new ProductResource($res['product']->loadMissing('details')))->resolve($request);
+        if ($res['product'] === null) {
+            // Not in our database yet: fetch queued. 202 + jobId; the client polls /jobs/{id}.
+            return response()->json($res, 202);
+        }
+        try {
+            $res['product'] = (new ProductResource($res['product']->loadMissing('details')))->resolve($request);
+        } catch (Throwable $e) {
+            // Broken detail payload (bad parse): fall back to the card fields so the page still renders.
+            report($e);
+            $res['product'] = (new ProductResource($res['product']->setRelation('details', null)))->resolve($request);
+            $res['stale'] = true;
+        }
 
         return response()->json($res);
     }

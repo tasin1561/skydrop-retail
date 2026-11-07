@@ -16,6 +16,10 @@ class Knobs
 
     public static function get(string $key, mixed $default = null): mixed
     {
+        $scope = spl_object_id(app()); // per application instance (tests boot a fresh app each time)
+        if ((self::$memo['__scope'] ?? null) !== $scope) {
+            self::$memo = ['__scope' => $scope];
+        }
         if (array_key_exists($key, self::$memo)) {
             return self::$memo[$key];
         }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Commerce\OrderController;
 use App\Http\Controllers\Controller;
 use App\Models\GiftCard;
 use App\Services\Commerce\Payments\PaymentService;
+use App\Services\Money\DigitalOrders;
 use App\Services\Money\EmiService;
 use App\Services\Money\GiftCardService;
 use App\Services\Money\MembershipService;
@@ -95,7 +96,7 @@ class MoneyController extends Controller
             'returnUrl' => ['nullable', 'string', 'max:500', $this->returnRule()],
         ]);
         $plan = $plus->plan($data['plan']);
-        $r = app(\App\Services\Money\DigitalOrders::class)->create($request->user(), 'membership', (float) $plan->price_bdt, $data['payment'],
+        $r = app(DigitalOrders::class)->create($request->user(), 'membership', (float) $plan->price_bdt, $data['payment'],
             ['plan_id' => $plan->id], $data['returnUrl'] ?? rtrim((string) config('retail.web_url'), '/').'/plus/success');
 
         return response()->json(['order' => ['id' => $r['order']->id, 'total' => (int) $r['order']->total_bdt], 'plan' => $plan->toApi(), 'payment' => $r['payment']], 201);

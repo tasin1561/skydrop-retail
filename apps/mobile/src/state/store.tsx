@@ -4,6 +4,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api, isDemo, onModeChange, resolveMode, tokenStore } from "@/api/client";
 import type { CartItem, StoreMode, User } from "@/lib/types";
 import { cartKey, computeTotals, findCoupon, type Coupon, type Totals } from "@/lib/cart";
+import { messagingApi } from "@/api/messaging";
+import { loadFeatures } from "@/lib/features";
+import { registerForPush, unregisterPush } from "@/lib/push";
 
 const K = { cart: "sr:cart", coupon: "sr:coupon", wish: "sr:wish", store: "sr:store", recent: "sr:recent", watches: "sr:watches" };
 
@@ -70,6 +73,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setReady(true);
       await resolveMode();
       setDemo(isDemo());
+      loadFeatures().catch(() => {}); // admin feature switches, fetched once
       try {
         const mk = await api.marketplaces();
         const on = mk.filter((m) => m.enabled).map((m) => m.id);
@@ -81,7 +85,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (await tokenStore.get()) {
         try {
           const u = await api.me();
-          if (u) setUserState(u);
+          if (u) {
+            setUserState(u);
+            registerForPush().catch(() => {}); // messaging: refresh the Expo token for this device
+          }
         } catch {
           /* token expired */
         }
@@ -97,6 +104,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loaded.current) AsyncStorage.setItem(K.cart, JSON.stringify(cart)).catch(() => {});
   }, [cart]);
+
+  // Messaging: debounced cart sync for signed-in shoppers (abandoned-cart reminders).
+  const lastSynced = useRef<string | null>(null);
+  useEffect(() => {
+    if (!user || demo || !loaded.current) return;
+    const json = JSON.stringify(cart.map((i) => [i.productId, i.variant ?? null, i.qty, i.unitBdt]));
+    if (json === lastSynced.current) return;
+    const t = setTimeout(() => {
+      messagingApi
+        .syncCart(cart)
+        .then(() => {
+          lastSynced.current = json;
+        })
+        .catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [cart, user, demo]);
   useEffect(() => {
     if (loaded.current) AsyncStorage.setItem(K.wish, JSON.stringify(wish)).catch(() => {});
   }, [wish]);
@@ -157,6 +181,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback((u: User) => {
     setUserState(u);
+    registerForPush().catch(() => {}); // messaging: send the Expo push token after login
     // merge the server wishlist into the local one
     api
       .wishlist()
@@ -165,6 +190,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    await unregisterPush().catch(() => {});
     await api.logout().catch(() => {});
     setUserState(null);
   }, []);

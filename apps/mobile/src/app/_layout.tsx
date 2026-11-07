@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "@/theme";
 import { StoreProvider, useStore } from "@/state/store";
 import { ToastProvider } from "@/components/Toast";
+import { listenForTaps } from "@/lib/push";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -36,6 +37,9 @@ function Nav() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
+
+  // Push taps deep-link to /order/{id} or /product/{id} (active once expo-notifications is installed, see src/lib/push.ts).
+  useEffect(() => listenForTaps(), []);
 
   const base = c.dark ? DarkTheme : DefaultTheme;
   const navTheme = {
@@ -68,12 +72,15 @@ function Nav() {
         <Stack.Screen name="checkout/success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
         <Stack.Screen name="deals" options={{ headerShown: false }} />
         <Stack.Screen name="points" options={{ title: "Skydrop Points" }} />
+        <Stack.Screen name="wallet" options={{ title: "Skydrop Wallet" }} />
+        <Stack.Screen name="plus" options={{ title: "Skydrop Plus" }} />
         <Stack.Screen name="success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
         <Stack.Screen name="order/[id]" options={{ title: "Order" }} />
         <Stack.Screen name="login" options={{ title: "Sign in", presentation: "modal" }} />
         <Stack.Screen name="addresses" options={{ title: "Addresses" }} />
         <Stack.Screen name="wishlist" options={{ title: "Wishlist" }} />
         <Stack.Screen name="profile" options={{ title: "Profile" }} />
+        <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
       </Stack>
     </NavTheme>
   );

@@ -2,6 +2,7 @@
 
 namespace App\Services\Fulfilment;
 
+use App\Filament\Pages\PriceAlerts;
 use App\Filament\Support\Ops;
 use App\Jobs\Fulfilment\CheckSourcePriceJob;
 use App\Models\Order;
@@ -121,7 +122,7 @@ class PriceAlertService
 
         $what = $inStock ? "price rose {$rise}% (₹".number_format($old).' → ₹'.number_format($new).')' : 'is out of stock';
         StaffAlerts::send("Price alert on {$item->order_id}", mb_strimwidth($item->title, 0, 60, '…')." {$what}. Margin impact ৳".number_format($item->price_alert['marginAfterBdt'] - $item->price_alert['marginBeforeBdt']).'.',
-            rescue(fn () => \App\Filament\Pages\PriceAlerts::getUrl(), null, false));
+            rescue(fn () => PriceAlerts::getUrl(), null, false));
 
         return true;
     }
@@ -219,7 +220,7 @@ class PriceAlertService
         $this->syncOrderFlag($order->id);
         $order->loadMissing('user');
         if ($order->user) {
-            rescue(fn () => $this->notifier->custom($order->user, "Skydrop Retail: we removed \"".mb_strimwidth($item->title, 0, 50, '…')."\" from order {$order->id} ({$reason}). Any payment for it is refunded.", 'sms'), null, true);
+            rescue(fn () => $this->notifier->custom($order->user, 'Skydrop Retail: we removed "'.mb_strimwidth($item->title, 0, 50, '…')."\" from order {$order->id} ({$reason}). Any payment for it is refunded.", 'sms'), null, true);
         }
 
         return $item->refresh();
@@ -273,7 +274,7 @@ class PriceAlertService
             'unit_inr' => (float) $p->price_inr,
             'price_alert' => ['resolution' => 'switched', 'switchedTo' => $p->id, 'resolvedAt' => now()->toIso8601String()] + $a])->save();
         $order = Order::query()->findOrFail($item->order_id);
-        $this->workflow->event($order, $order->status, 'admin', "Switched \"".mb_strimwidth($item->title, 0, 50, '…')."\" from {$from} to {$p->market} (same product, better price/stock)");
+        $this->workflow->event($order, $order->status, 'admin', 'Switched "'.mb_strimwidth($item->title, 0, 50, '…')."\" from {$from} to {$p->market} (same product, better price/stock)");
         $this->syncOrderFlag($item->order_id);
 
         return $item;

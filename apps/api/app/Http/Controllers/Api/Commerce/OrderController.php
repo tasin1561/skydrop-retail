@@ -67,7 +67,8 @@ class OrderController extends Controller
     public function pay(Request $request, string $id, PaymentService $payments): JsonResponse
     {
         $order = $this->own($request, $id);
-        if ($order->status === 'cancelled' || in_array($order->payment_status, ['paid', 'partial', 'refunded', 'refund_pending'], true)) {
+        $preorderBalance = $order->is_preorder && $order->payment_status === 'partial' && $order->balanceBdt() > 0; // Shopping: pre-order balance
+        if ($order->status === 'cancelled' || (! $preorderBalance && in_array($order->payment_status, ['paid', 'partial', 'refunded', 'refund_pending'], true))) {
             throw new CommerceException('This order does not need an online payment.', 409);
         }
 

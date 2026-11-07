@@ -37,6 +37,7 @@ class OrderActions
                 self::invoice(),
                 self::refund(),
                 self::cancel(),
+                ...FraudActions::record(), // fraud module
             ])->label('More')->icon(Heroicon::EllipsisVertical)->button()->color('gray'),
         ];
     }
@@ -83,7 +84,8 @@ class OrderActions
             ->label('Hand to Skydrop')
             ->icon(Heroicon::OutlinedTruck)
             ->color('warning')
-            ->visible(fn (Order $record) => Admin::can('orders.hand_to_skydrop') && ($record->status === 'purchased' || ($record->status === 'india_hub' && ! $record->skydrop_consignment_id)))
+            ->visible(fn (Order $record) => Admin::can('orders.hand_to_skydrop') && ($record->status === 'purchased' || ($record->status === 'india_hub' && ! $record->skydrop_consignment_id))
+                && ! \App\Services\Fulfilment\HubService::holdsShipping($record)) // fulfilment: unboxing approval pending
             ->requiresConfirmation()
             ->modalDescription('Creates the Skydrop consignment (Kolkata hub → Bangladesh) and assigns a tracking code.')
             ->action(fn (Order $record) => self::run(fn () => Ops::handToSkydrop($record), 'Consignment created'));
@@ -95,7 +97,8 @@ class OrderActions
             ->label(fn (Order $record) => ($n = Ops::nextStatus($record)) ? 'Move to: '.Admin::ORDER_STATUS_LABELS[$n] : 'Advance')
             ->icon(Heroicon::OutlinedForward)
             ->color('success')
-            ->visible(fn (Order $record) => $record->stageIndex() >= $record->stageIndex('india_hub') && Ops::nextStatus($record) !== null)
+            ->visible(fn (Order $record) => $record->stageIndex() >= $record->stageIndex('india_hub') && Ops::nextStatus($record) !== null
+                && ! \App\Services\Fulfilment\HubService::holdsShipping($record)) // fulfilment: unboxing approval pending
             ->requiresConfirmation()
             ->schema([Textarea::make('note')->rows(2)])
             ->action(fn (Order $record, array $data) => self::run(fn () => Ops::transition($record, Ops::nextStatus($record), $data['note'] ?? null), 'Status updated'));
@@ -170,13 +173,31 @@ class OrderActions
             TextInput::make('amount')->label('Amount')->prefix('৳')->numeric()->minValue(1)->required()
                 ->default($first ? $first->amount_bdt - (float) $first->refunded_bdt : null),
             TextInput::make('reason')->required()->maxLength(200),
+            self::refundToField(), // money module: Skydrop Wallet (instant) vs original method
             TextInput::make('ref')->label('Already refunded in the merchant portal? Enter its reference')->maxLength(100)
                 ->helperText('Leave blank to refund through the gateway now.'),
         ];
     }
 
+    /** Money module: "Refund to Skydrop Wallet (instant)" vs the original method; default from Wallet & Plus → Settings. */
+    private static function refundToField(): Select
+    {
+        $bonus = \App\Services\Money\WalletPayments::bonusPct();
+
+        return Select::make('refund_to')->label('Refund to')->required()
+            ->visible(fn () => \App\Support\Features::enabled('wallet'))
+            ->default(\App\Services\Money\WalletPayments::defaultDestination())
+            ->options(['wallet' => 'Skydrop Wallet (instant'.($bonus > 0 ? ', +'.$bonus.'% bonus' : '').')', 'original' => 'Original payment method'])
+            ->helperText('Store-credit (wallet) payments always go back to the wallet.');
+    }
+
     private static function doRefund(Payment $payment, array $data): void
     {
+        if (($data['refund_to'] ?? null) === 'wallet' || $payment->gateway === \App\Services\Money\WalletPayments::GATEWAY) {
+            self::run(fn () => app(\App\Services\Money\WalletPayments::class)->refundPaymentToWallet($payment, (float) $data['amount'], $data['reason']), 'Refunded to Skydrop Wallet');
+
+            return;
+        }
         self::run(fn () => Ops::refund($payment, (float) $data['amount'], $data['reason'], $data['ref'] ?? null), 'Refund recorded');
     }
 
@@ -189,8 +210,9 @@ class OrderActions
             ->visible(fn (Order $record) => Admin::can('orders.cancel') && $record->canCancel())
             ->requiresConfirmation()
             ->modalDescription('Only possible before the items are bought in India. Online payments and redeemed points are refunded automatically.')
-            ->schema([Textarea::make('reason')->required()->rows(2)])
+            ->schema([Textarea::make('reason')->required()->rows(2), self::refundToField()])
             ->action(function (Order $record, array $data) {
+                \App\Services\Money\WalletPayments::prefer($record->id, $data['refund_to'] ?? null); // money: refund destination
                 self::run(fn () => Ops::cancel($record, $data['reason']), 'Order cancelled');
                 if (! Ops::hasWorkflow()) {
                     foreach ($record->payments()->where('status', 'paid')->get() as $p) {

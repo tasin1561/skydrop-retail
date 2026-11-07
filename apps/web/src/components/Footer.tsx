@@ -52,6 +52,10 @@ export function Footer() {
         <span aria-hidden> · </span>
         <ConsentLink />
       </div>
+      {/* Honeypot for scrapers (hidden from people and screen readers; robots.txt disallows /api). Following it blocks the IP. */}
+      <a href="/api/catalog-export" rel="nofollow noindex" tabIndex={-1} aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+        Full catalog export (CSV)
+      </a>
     </footer>
   );
 }

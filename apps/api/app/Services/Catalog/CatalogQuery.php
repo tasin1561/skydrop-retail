@@ -4,6 +4,7 @@ namespace App\Services\Catalog;
 
 use App\Models\Marketplace;
 use App\Models\Product;
+use App\Services\Categories\CategoryTree;
 use App\Services\PricingService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -68,7 +69,9 @@ class CatalogQuery
         $words = self::words($sp['q'] ?? null);
         $q = $this->visible($sp['store'] ?? null);
         if (! empty($sp['category'])) {
-            $q->where('category', $sp['category']);
+            // A tree path (fashion/men/clothing) includes its descendants; the five pricing groups keep the legacy filter.
+            $nodeIds = app(CategoryTree::class)->filterIds((string) $sp['category']);
+            $nodeIds === null ? $q->where('category', $sp['category']) : $q->whereIn('category_id', $nodeIds);
         }
         if ($words) {
             $q->where(function (Builder $w) use ($words, $boost) {
@@ -124,6 +127,8 @@ class CatalogQuery
             'page' => $page,
             'pages' => max(1, (int) ceil($total / $perPage)),
             'items' => collect(array_slice($list, ($page - 1) * $perPage, $perPage))->pluck('p')->values(),
+            // child-category counts of the whole result (top-level nodes when no tree path was given)
+            'facets' => app(CategoryTree::class)->facets(array_map(fn ($x) => $x['p']->category_id, $list), $sp['category'] ?? null),
         ];
     }
 
@@ -137,7 +142,9 @@ class CatalogQuery
     /** @return Collection<int, Product> */
     public function popular(?string $store, int $limit = 12, ?string $category = null): Collection
     {
-        return $this->visible($store)->when($category, fn ($q) => $q->where('category', $category))
+        $nodeIds = $category ? app(CategoryTree::class)->filterIds($category) : null;
+
+        return $this->visible($store)->when($category, fn ($q) => $nodeIds === null ? $q->where('category', $category) : $q->whereIn('category_id', $nodeIds))
             ->orderByDesc('reviews')->limit($limit)->get();
     }
 

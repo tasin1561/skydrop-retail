@@ -5,6 +5,31 @@ Errors: `{ "message": string, "errors"?: Record<string, string[]> }` with the ri
 Money: BDT integers (`*_bdt`), INR numbers (`*_inr`). Times: ISO 8601 UTC.
 Field names in JSON responses are **camelCase** so the web and app types (`apps/web/src/lib/types.ts`) map 1:1.
 
+## Client authentication (security module, see `docs/SECURITY.md`)
+
+| Caller | Headers | Reaches |
+|---|---|---|
+| Next.js server (server components, `/api/*` route handlers) | `X-Internal-Key: <INTERNAL_API_KEY>` (+ `X-Client-IP` on the honeypot proxy) | everything; route throttles skipped (Cloudflare limits shoppers in front of Next.js) |
+| Mobile app | `X-App-Key: <id>`, `X-App-Timestamp: <unix s>`, `X-App-Signature: hex(HMAC-SHA256(secret, "{ts}\n{METHOD}\n{path}\n{query}"))`, optional `X-Device-Id` | everything; per IP / user / device limits |
+| Browser | `Authorization: Bearer` only | auth, account, orders, checkout, reviews, tracking … **not** the catalog |
+
+- `path` is the full request path (`/api/v1/search`), `query` the raw query string without `?` (empty string when none).
+  Timestamps more than 300 s off are rejected. Implementation: `apps/mobile/src/api/sign.ts`, `App\Services\Security\AppSignature`.
+- **Catalog guard** (`catalog.guard`): every route in `routes/api_catalog.php` (marketplaces, suggest, offers, jobs, products*,
+  search, resolve) plus `products/{id}/price-history|compare|bought-together|bundles` answers only the first two callers;
+  anything else gets `401 {code:"unsigned"}`. `GET /features`, `/cms/*` and commerce routes stay public.
+- Limits: `page` > 20 → `422 {code:"page_limit"}`; `perPage`/`limit` capped at 48; `ids` capped at 48 (100 for the Next.js server).
+  Strict buckets (search, suggest, resolve, product detail, price history): 40/min per IP and per device, 60/min per user;
+  10/min for resolve; 120/min per IP on the rest. Past 75 % of a bucket responses slow down; then `429 {code:"rate_limited", retryAfter}` + `Retry-After`.
+- Bot checks (signed apps skip the header checks): automation user agents, headless hints, missing `Accept-Language`,
+  more than 40 distinct products per minute per IP, bursts of 404s on product ids → `403 {code:"challenge", turnstileSiteKey}`.
+  `POST /security/challenge {token}` (Cloudflare Turnstile) clears the IP for an hour.
+- Blocked IPs (honeypot, staff blocklist) get `403 {code:"blocked"}` on every endpoint except payment/courier webhooks.
+- OTP: `POST /auth/otp/request` takes `turnstileToken` (or `X-Turnstile-Token`) when Turnstile is configured (else `403 {code:"challenge"}`),
+  one code per phone per 60 s; 5 wrong codes for a phone within an hour lock it for 30 min (`429`); 20 verify attempts per IP per 10 min.
+- `GET /qr?text=<url>` → `image/svg+xml` QR code; only URLs on our own hosts (`WEB_URL`, `APP_URL`, `QR_ALLOWED_HOSTS`), 30/min.
+- Honeypots (never call): `GET /products/export`, `GET /products/SR-HONEYPOT-0001`. A hit blocks the caller's IP for 24 h.
+
 ## Marketplaces
 
 `GET /marketplaces` → `{ items: [{ id: "amazon"|"flipkart"|"bigbasket", name, source, enabled, liveFetch }] }`
@@ -13,7 +38,7 @@ Field names in JSON responses are **camelCase** so the web and app types (`apps/
 ## Catalog
 
 All catalog reads detect crawlers by User-Agent (the storefront may forward the shopper's agent as `X-Client-UA`);
-crawler requests never trigger provider fetches. `search`, `products/{id}`: 60 req/min per IP. `products/resolve`: 20/min.
+crawler requests never trigger provider fetches. Callers must be the Next.js server or a signed app (see "Client authentication").
 
 `GET /search?q=&store=all|amazon|flipkart|bigbasket&category=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
 → `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[] }` (24 per page)
@@ -52,7 +77,10 @@ deal badge, biggest saving first; expired deals excluded. `type` is one of the o
 `Product` (camelCase, same as web `Product` type): `id, market, category, title, brand, priceInr, mrpInr, priceBdt, mrpBdt,
 rating, reviews, image, images[], placeholder?, prime, bestSeller, amazonsChoice, salesVolume, detailed, demo?, inStock, stock?,
 bullets?, specs?, weight?, variants?, aplus?, hasVideos?, videos?, reviewList?, starBreakdown?, deliveryKolkata?,
-categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effectivePriceInr, dealEndsAt`
+categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effectivePriceInr, dealEndsAt, flashSale, restriction`
+- `flashSale`: `{ saleId, title, endsAt, extraOffBdt, maxQty } | null` — live CMS flash sale; `priceBdt` **already** has `extraOffBdt` taken off.
+- `restriction`: `{ action: "block"|"warn"|"surcharge", message, surchargeBdt } | null` — can it ship to Bangladesh (see CMS);
+  `surcharge` amounts are already **added** to `priceBdt`. Both come from `App\Support\ProductJson::cms()`.
 - `variants[]`: `{ id, label, dimensions, swatch, selected, available }` (`available:false` only when the sibling is known
   to be out of stock or undeliverable).
 - `priceBdt` is `PricingService::productBdt()`: it uses `effectivePriceInr` (deal price minus a clippable coupon) while the
@@ -75,6 +103,7 @@ categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effe
 - Blocked account → `403 { code: "blocked" }`. New accounts get the signup points bonus.
 
 `GET /me` → `{ user }` · `PATCH /me { name?, email? }` → `{ user }` · `POST /auth/logout` → `{ ok }` (revokes the current token)
+- Changing `email` sends a verification link (signed `GET /email/verify/{user}/{hash}`, 3 days, redirects to `WEB_URL/account?email=verified|invalid`). Resend: `POST /me/email/verification` → `{ ok, verified }` (3/hour).
 
 Phone is stored normalised as `+8801XXXXXXXXX`. Staff (email + password) sign in to the Filament admin only.
 
@@ -100,10 +129,14 @@ Address: `{ id (string), name, phone, division, district, area, line, isDefault 
 
 ## Reviews
 
-`GET /products/{id}/reviews` → `{ items: [{ id, productId, author, rating, title, content, date, verifiedPurchase, status }], count, average, canReview }`
-(approved reviews, plus the caller's own pending review when a token is sent)
-`POST /products/{id}/reviews { rating 1-5, title?, body }` (auth) → `201 { review }` — only buyers with a **delivered** order containing
-the product (`403 { code: "not_a_buyer" }` otherwise). New reviews are `pending` until approved in the admin.
+Feature `reviews` (off → `404 { error: "feature_disabled" }`). These are **Skydrop shopper** reviews; the source store's rating stays in
+`Product.rating/reviews/reviewList` and is shown separately ("4.3 on amazon.in").
+
+`GET /products/{id}/reviews` → `{ items: [{ id, productId, author, rating, title, content, date, verifiedPurchase, status, photoUrl }], count, average,
+breakdown: [{ rating: 5..1, count }], canReview }` (approved reviews, plus the caller's own pending review when a token is sent)
+`POST /products/{id}/reviews { rating 1-5, title?, body, photoUrl? (https URL) }` (auth) → `201 { review }` — only buyers with a **delivered** order
+containing the product (`401` signed out, `403 { code: "not_a_buyer" }` otherwise). New reviews are `pending` until approved in the admin;
+posting again updates your review. No helpful-vote counts yet.
 
 ## Loyalty points (auth)
 
@@ -116,7 +149,8 @@ the product (`403 { code: "not_a_buyer" }` otherwise). New reviews are `pending`
 ## Checkout
 
 `POST /checkout/verify { items: [{ productId, variant?, qty, unitBdt }] }`
-→ `{ ok, checkedAt, results: [{ productId, ok, freshBdt, changed, deliverable, reason? }] }`
+→ `{ ok, checkedAt, results: [{ productId, ok, freshBdt, changed, deliverable, reason?, restriction? }] }`
+Items blocked by a restricted rule come back `ok:false, deliverable:false, reason:"restricted", message`.
 Always a live provider call per item (Oxylabs with pincode 700001), never cached (delegates to `CatalogService::verify`).
 `CatalogService::verify` results also carry `offerExpired` (a coupon/deal behind the shopper's price ended; `freshBdt` is the
 new price), `pincodeVerified` and `provider`. Provider failure → `ok:false, reason:"verify_failed"`. Stores with
@@ -124,10 +158,15 @@ new price), `pincodeVerified` and `provider`. Provider failure → `ok:false, re
 
 `POST /checkout/quote { items, coupon?, redeemPoints? }` (token optional; needed for points) →
 `{ groups: [{ market, count, subtotal, shipping, weightKg }], count, subtotal, shipping, itemDiscount, shipDiscount, couponDiscount,
-pointsRedeemed, pointsDiscount, maxRedeemPoints, pointsToEarn, discount, total, coupon?: { code, label, kind: "percent"|"freeship"|"fixed" },
-items: [{ productId, variant, qty, unitBdt, weightKg, market, changed }] }`
+pointsRedeemed, pointsDiscount, maxRedeemPoints, pointsToEarn, discount, total,
+coupon?: { code, label, kind: "percent"|"freeship"|"fixed", value, maxDiscountBdt, minSubtotalBdt },
+flashDiscount, restrictions: [{ productId, title, action, message, surchargeBdt }],
+items: [{ productId, variant, qty, unitBdt, weightKg, market, changed, flashSale, restriction }] }`
+- `flashDiscount`: flash-sale savings already inside `subtotal`. More than the sale's `maxQty` of one product → `422 { code: "flash_limit", productId, maxQty }`.
+- The web `CouponField` calls this endpoint to validate any code (admin-created ones too) and keeps `coupon` to price the cart.
 - Uses **server** prices (client `unitBdt` only sets `changed`). Shipping per marketplace group (`PricingService::shipping`).
 - Coupons (table `coupons`): `SKYDROP10` = 10% off items up to ৳1,000; `FREESHIP` = all shipping free. Invalid → `422 errors.coupon`.
+  Feature `coupons` off → any code is rejected with `422 errors.coupon`.
 
 ## Orders (auth)
 
@@ -138,6 +177,8 @@ coupon?, redeemPoints?, returnUrl?, ref? }`
 → `201 { order: Order, payment: { status: "pending"|"redirect"|"paid", redirectUrl?, amount, paymentId?, message? } }`
 - Server re-verifies every item live. Price moved > 3% vs the client's `unitBdt` → `409 { code: "price_changed", prices: [{ productId, variant, title, oldBdt, freshBdt }], results }`;
   unavailable → `422 { code: "unavailable", unavailable: [...] }`. Within 3% the order uses the fresh price.
+- Items that cannot ship to Bangladesh → `422 { code: "restricted", restricted: [{ productId, title, message }], errors.items }` (checked before the live verify).
+- Live flash sales are applied through `PricingService::productBdt`, so the verified price, order lines and totals all include them.
 - An inline `address` is validated like `/addresses` and saved to the address book (deduplicated).
 - `returnUrl`: where the shopper lands after paying. Must be on `WEB_URL`'s host or the app scheme `skydropretail://`.
   The API redirects to `returnUrl` + `order=SR-XXXXXX&status=paid|failed|cancelled` (`&` if it already has a query).
@@ -160,6 +201,54 @@ deliveredAt, invoiceUrl, timeline: [{ status, at, note }] }`
 Statuses: `placed, verified, purchased, india_hub, in_transit, dhaka_hub, out_for_delivery, delivered, cancelled`.
 `placed → verified` happens automatically when the (advance) payment succeeds; later stages come from the admin and Skydrop webhooks.
 
+## Notifications and messaging
+
+Every customer message is rendered from `message_templates` (event key × channel `sms|email|push` × locale `en|bn`, `{{placeholder}}`,
+`{{#flag}}…{{/flag}}` / `{{^flag}}…{{/flag}}`), logged in `notifications_log` and delivered by a queued job with retries. Each event also writes
+an in-app item. Categories: **transactional** (orders, payments, points, review requests: always sent), **alert** (price drop / back in stock the
+shopper asked for), **marketing** (abandoned cart, broadcasts: respects opt-outs, held during quiet hours 22:00–09:00 Asia/Dhaka), **otp**
+(SMS only, sent synchronously, never through marketing). Email is only sent when the shopper has an email address. The user's `locale` picks the language.
+Feature switches: `sms` (OTP ignores it), `email`, `push`, `in_app_notifications`, `abandoned_cart`, `marketing_messages`; a disabled feature's
+routes answer `404 { error: "feature_disabled", feature }`.
+
+Events: `welcome`, `order_placed`, `payment_received`, `payment_failed`, `payment_pending` (30 min reminder), `order_verified`, `order_purchased`,
+`order_india_hub`, `order_in_transit`, `order_dhaka_hub`, `order_out_for_delivery` (includes the rider's due amount for 50% advance orders),
+`order_delivered`, `order_cancelled`, `review_request` (3 days after delivery), `points_expiring` (14 days before), `price_drop`, `back_in_stock`,
+`cart_reminder_1h` (push), `cart_reminder_24h` (SMS + email), `email_verify`, plus `custom` (staff), `broadcast`, `admin_alert`.
+
+### In-app notification centre (auth, feature `in_app_notifications`)
+`GET /notifications?page=1&perPage=20&unread=0|1` → `{ items: Notification[], unreadCount, page, perPage, total, hasMore }`
+`Notification = { id, type, title, body?, icon?, link? ("/orders/SR-…", "/p/{id}", "/cart"), image?, data, read, readAt?, createdAt }`
+`POST /notifications/{id}/read` → `{ item, unreadCount }` · `POST /notifications/read-all` → `{ ok, marked, unreadCount: 0 }` ·
+`DELETE /notifications/{id}` → `{ ok, unreadCount }`. Another user's id → 404. Clients poll every 60 s while visible.
+
+### Preferences (auth)
+`GET /me/notifications` → `{ locale: "en"|"bn", marketing: { sms, email, push, inapp }, email?, emailVerified, transactional }`
+`PATCH /me/notifications { locale?, marketing?: { sms?, email?, push?, inapp? } }` → same shape. Marketing defaults to on; transactional cannot be turned off.
+Email footers link to a signed one-click `GET|POST /unsubscribe/{user}/{channel}` (also sent as `List-Unsubscribe`).
+
+### Push devices (auth, feature `push` for registering)
+`POST /push/expo-token { token: "ExponentPushToken[…]", platform?: ios|android }` → `201 { ok, id }` (upsert; a token moves to the signed-in user) ·
+`DELETE /push/expo-token { token }` (sign-out). Sent through `https://exp.host/--/api/v2/push/send`; `DeviceNotRegistered` tokens are removed.
+Push `data`: `{ type, link (web path), route (app route: /order/{id}, /product/{id}, /cart, /points, /notifications), orderId?, productId? }`.
+`POST /push/subscribe { endpoint, keys: { p256dh, auth } }` → `201 { ok, delivering, vapidPublicKey }` stores a browser Web Push subscription;
+`delivering` is `false` until `minishlink/web-push` is installed and a `WebPushSender` is bound (TODO). `DELETE /push/subscribe { endpoint }`.
+
+### Cart sync (auth)
+`PUT /cart { items: [{ productId, market?, title?, image?, variant?, unitBdt?, qty }] }` → `{ ok, items }` (replaces; `[]` clears) · `GET /cart` → `{ items, updatedAt }`.
+Web and mobile send it debounced (1.5 s) for signed-in shoppers. A change restarts the reminder clock; placing an order stops reminders.
+
+### Schedule (`routes/console.php`)
+Cart reminders every 15 min (push after 1 h, SMS/email after 24 h, carts up to 7 days old) · payment reminders every 5 min (once, 30 min after an
+unpaid order, retry link `WEB_URL/orders/{id}?pay=1`) · review requests hourly (3 days after delivery, skipped if reviewed) · points expiry daily ·
+`retail:sms-balance --alert` every 6 h (emails `ALERT_EMAIL` below the low-balance threshold). Timings are editable in Admin → Messaging settings.
+
+### SMS
+Drivers: `log` (dev), `bulksmsbd` (form POST `{url}/smsapi` `api_key, type=text|unicode, number=8801…, senderid, message`; success
+`response_code: 202`; balance `{url}/getBalanceApi`), `sslwireless` (ISMS v3), `alpha` (api.sms.net.bd), `http` (legacy generic). Failover walks
+`SMS_FAILOVER` / the admin list until one gateway accepts; invalid numbers stop the chain. Phones are normalised to `8801XXXXXXXXX`. Non-OTP SMS
+are limited per phone per hour (default 8). Segments: GSM-7 160 / 153 per part, Unicode (Bangla) 70 / 67; stored in `notifications_log.segments`.
+
 ## Webhooks
 
 `POST /webhooks/skydrop` — header `X-Skydrop-Signature: <hex HMAC-SHA256 of the raw body with SKYDROP_WEBHOOK_SECRET>` (`sha256=` prefix ok;
@@ -173,9 +262,33 @@ is booked by a queued job when the order reaches `purchased`.
 Always re-validated with the gateway (bKash execute/query, Nagad verify, SSLCommerz validator API, HMAC for mock); idempotent.
 `PAYMENTS_MODE=mock` (default) sends shoppers to a signed local test page `/payments/mock/{id}` with Pay / Fail / Cancel buttons.
 
+## CMS: banners, flash sales, shipping restrictions
+
+`GET /cms/home?store=all|amazon|flipkart|bigbasket` → `{ store, enabled: { banners, flashSales }, banners: Banner[], flashSales: FlashSale[], serverTime }`
+(cache 60 s). `store=all` returns everything; a marketplace returns its own items plus `store:"all"` ones.
+- `Banner`: `{ id, title, subtitle, image, link, cta, store, placement: "hero"|"strip"|"category", startsAt, endsAt, sort }` — active and inside
+  its schedule only. `image` is the uploaded file (public disk) or the image URL.
+- `FlashSale`: `{ id, title, store, status: "live"|"upcoming", startsAt, endsAt, maxQty, items: [{ product: Product, regularBdt, extraOffBdt, flashBdt }] }`
+  — live sales plus those starting within 7 days; hidden products are skipped.
+- Flash discount (`flash_sale_items.off_pct` or `off_bdt`) is funded from our margin and **capped at the margin** of that price
+  (`FlashSaleService::amount`). Applied in `PricingService::productBdt` while the sale is live and the product's market matches the sale store.
+  `flash_sales.max_qty` = max units of one product per order at the flash price.
+- Restricted items (table `restricted_rules`: `type` keyword|category|brand, `pattern` = comma-separated words or `/regex/i`,
+  `action` block|warn|surcharge, `message`, `surcharge_bdt`). Highest action wins (block > surcharge > warn). Defaults seeded by
+  `RestrictedRuleSeeder` (migration): power banks/lithium batteries, liquids > 1 L, medicines/supplements, drones → warn; aerosols/flammables,
+  weapons/knives, seeds/plants, meat, alcohol, tobacco/vapes → block. `RestrictionService::check(Product)` feeds product JSON, prices
+  (surcharge), quote notices, verify and order creation.
+- Features: `banners`, `flash_sales` (off → no discount anywhere), `restrictions` (off → no checks), `reviews`, `coupons`, `support_chat` (web only).
+
 ## Admin
 
 Filament panel at `/admin` (staff users). Marketplace toggles, pricing rules, orders, products, provider health, API cost dashboard.
+CMS: Sales → Banners (upload or URL, schedule, live preview), Sales → Flash sales (product picker by title/id with flash-price preview),
+Catalog → Shipping restrictions (rules + "Test a title" action).
+Messaging group: **Message templates** (live preview with sample data, SMS segment counter, test send, "Add missing defaults"), **Notification log**
+(filters, masked recipients, resend), **Broadcast** (segment all / bought in last N days / store / has points; SMS, email, push, in-app; dry-run count
+and SMS cost; queued in chunks of 200; permission `broadcast.send`), **Messaging settings** (SMS gateways + keys stored encrypted, failover order,
+mail from / reply-to, reminder timings, quiet hours, balance check). Template editing uses permission `templates.manage`.
 
 ## Tracking and feeds (features `tracking`, `feeds`; off → `404 { error: "feature_disabled" }`)
 
@@ -243,3 +356,90 @@ the inviter's phone.
 `POST /wishlist/share` (auth) → `{ code, url: "{WEB_URL}/w/{code}" }` (stable per user)
 `GET /wishlists/{code}` (public) → `{ code, owner: { name (first name only) }, count, items: Product[] }` · unknown → `404`
 
+
+## AI shopping assistant (feature `ai_assistant`; off → `404 { error: "feature_disabled" }`)
+
+Claude API (`ANTHROPIC_API_KEY`), called directly over HTTP with our own SSE parser. Token optional (Sanctum); guests are
+tracked by a hashed IP. The web storefront calls it only through its proxy `POST /api/assistant` (+ `/api/assistant/config`,
+`/feedback`, `/clear`), which adds `X-Internal-Key: INTERNAL_API_KEY` and `X-Client-IP`; the API trusts `X-Client-IP` only with
+that key.
+
+`GET /assistant/config` → `{ enabled, basic, greeting: { en, bn }, prompts: { en: string[], bn: string[] }, limit, remaining, signedIn }`
+(`basic:true` = no API key or monthly budget reached: replies are plain search results)
+
+`POST /assistant/chat { conversationId?, message (≤2000), store?, locale?: "en"|"bn", client?: "web"|"mobile", context?: { productId?, cartIds?[] } }`
+→ `text/event-stream`, each event `event: <type>\ndata: <json>\n\n`:
+- `meta { conversationId, degraded }` (first) · `text { delta }` · `tool { name }` (a tool started, for "Searching…")
+- cards: `products { query?, total?, items: AssistantProduct[] }` · `compare { items, rows: [{ label, values[] }] }` ·
+  `orders { items: OrderCard[] }` · `order OrderCard` (with `timeline`) · `cart { product, variant?, qty }` (an "Add to cart" action;
+  the server never changes the cart) · `delivery { minDays: 7, maxDays: 12, earliest, latest, cutoffs: [{ name, date, orderBy,
+  status: "on_time"|"maybe"|"too_late" }], restriction? }` · `priceHistory { productId, currentBdt, points: [{ date, bdt }] }` ·
+  `login { reason }` (a sign-in-only tool was asked for by a guest) · `request { id, title }`
+- `done { conversationId, messageId, degraded, remaining }` (last) · `error { code, message }`
+- `AssistantProduct`: `{ id, market, category, title, brand, image, placeholder, priceBdt, mrpBdt, rating, reviews, inStock, weightKg, restriction }`
+- `OrderCard`: `{ id, status, createdAt, total, paymentStatus, trackingCode, itemCount, items: [{ title, image, qty }], expectedBy? }`
+- `?stream=0` → JSON `{ conversationId, messageId, text, events: [{ type, data }], degraded, remaining }` (same events, for clients without streaming).
+- Daily limit (UTC day): guests 10 per IP, signed-in 40, Skydrop Plus members 120 (admin settings) → `429 { code: "rate_limited", limit, remaining: 0, retryAfter }`.
+- Server-side tool loop (max 5 tool rounds, then a final answer without tools): `search_products`, `get_product`, `compare_products`,
+  `delivery_estimate` (holiday cutoffs from admin settings), `get_my_orders` / `track_order` (signed-in only, own orders only:
+  another user's order id answers `order_not_found`), `add_to_cart_suggestion`, `get_price_history` (feature `price_history`),
+  `create_product_request` (when a `product_requests` table exists and feature `product_requests` is on). Prices only come from tools (BDT).
+- System prompt and tool definitions use prompt caching (`cache_control: ephemeral`).
+- Budget: monthly USD budget with a hard stop. At the limit (or without a key, or on API errors) the reply degrades to plain
+  catalog search (`degraded: true`). The admin model is used until `fallback_at_pct` of the budget, then the cheaper fallback
+  model; an overloaded/5xx primary is retried once on the fallback.
+- Storage: `assistant_conversations`, `assistant_messages` (PII-scrubbed text, cards, tools, tokens incl. cache read/write, `cost_usd`),
+  `assistant_feedback`. Phone numbers, emails and long digit runs are replaced before storing; message text is never logged.
+
+`GET /assistant/conversations/{id}` → `{ id, messages: [{ id, role, text, events, degraded, createdAt }] }` (owner only; guest
+conversations only without a token) · `DELETE /assistant/conversations/{id}` → `{ ok }` (wipes the transcript)
+`POST /assistant/feedback { messageId, rating: "up"|"down", comment? }` → `{ ok }` (one vote per shopper per message)
+
+Admin: System → **AI conversations** (read-only, masked phones; permission `assistant.view`, with the usage/cost widget),
+System → **AI assistant** settings (enable, model, fallback model and threshold, monthly budget, daily limits, greeting and
+suggested prompts in en/bn, holiday cutoffs `YYYY-MM-DD | Name | note` per line; permission `settings.manage`).
+
+## Wallet, gift cards, Skydrop Plus, card EMI (money module)
+
+Feature switches (Admin → System → Features): `wallet`, `gift_cards`, `membership`, `pay.emi`. Routes in `routes/api_wallet.php`;
+switched-off routes answer `404 { error: "feature_disabled", feature }`. Settings: Admin → Wallet & Plus → Settings (`money.*` keys,
+defaults in `config/money.php`). `GET /checkout/options` includes `card_emi` (when `pay.emi` is on), `membership` and `emi` (config).
+
+**Wallet (auth)** `GET /wallet` → `{ balanceBdt, expiringBdt, expiringAt, history: [{ id, type: "credit"|"debit", amountBdt, reason, note,
+orderId, balanceAfterBdt, expiresAt, at }], refund: { default: "wallet"|"original", bonusPct } }`
+- reasons: `refund | gift_card | admin | promo | order_payment | expire`. Ledger `wallet_ledger`, cached `users.wallet_balance_bdt`; every
+  change locks the user row and the balance can never go negative. Credits may expire (FIFO, soonest-expiring spent first; daily job).
+
+**Checkout additions** — `POST /checkout/quote` and `POST /orders` accept `useWallet` (true = as much as possible, or a BDT cap),
+`payment: "card_emi"` with `emiTenure` (+ optional `emiBank`). The quote adds:
+`membershipDiscount, membership: { active, plan, lines: [{ key, label, amountBdt }], savedBdt, pointsMultiplier, bonusPoints } | null,
+plusPreview: { plan, savedBdt, lines } | null` (non-members: "You'd save ৳X with Plus"), `wallet: { balanceBdt, appliedBdt } | null,
+walletApplied, emi: { eligible, reason, tenure, bank, bankName, ratePct, chargeBdt, totalBdt, monthlyBdt } | null, emiCharge,
+emiAvailable, payNow` (= total − walletApplied). `discount`/`total`/`pointsToEarn` include Plus; `total` includes the EMI charge.
+- Order: wallet is debited inside the order transaction (a `payments` row with gateway `wallet`); the gateway collects the rest. A fully
+  covered order is paid immediately. With `advance50` the wallet counts towards the advance.
+- `card_emi` below the minimum / not offered → `422 errors.emiTenure`. SSLCommerz gets `emi_option=1, emi_max_inst_option, emi_selected_inst,
+  emi_allow_only=1`. `Order` JSON adds `kind, walletBdt, membershipDiscount, emiChargeBdt, emi`.
+- `POST /orders/{id}/cancel { reason?, refundTo?: "wallet"|"original" }` — wallet payments always go back to the wallet; others follow
+  `refundTo`, else the admin default. Wallet refunds are instant and get the optional bonus %.
+
+**Gift cards** `GET /gift-cards/config` → `{ presets, minBdt, maxBdt, expiryMonths, designs: [{ key, label }] }`
+`POST /gift-cards { amountBdt, design, recipientName, recipientPhone? | recipientEmail?, message?, payment: bkash|nagad|card, returnUrl? }` (auth)
+→ `201 { giftCard, order: { id, total }, payment }` — an order of `kind: "gift_card"` (not listed in `GET /orders`) paid through the normal
+gateway flow; default return `{WEB_URL}/gift-cards/success?order=&status=`. Once paid the card is activated and the code sent by SMS/email.
+`GET /gift-cards` (auth) → cards you bought, with codes. `POST /gift-cards/redeem { code }` (auth, also needs `wallet`, 10/min)
+→ `{ amountBdt, balanceBdt, giftCard }`; the whole balance moves into the wallet. Codes: 16 chars, shown `XXXX-XXXX-XXXX-XXXX`.
+
+**Skydrop Plus** `GET /membership/plans` → `{ items: [{ id, name, slug, priceBdt, period: monthly|quarterly|yearly, months, monthlyBdt,
+highlight, tagline, benefits, benefitList }] }` · `GET /membership` (auth) → `{ membership: { status, plan, startedAt, renewsAt, cancelledAt,
+daysLeft } | null, benefits, savings: { totalBdt, ordersBdt, creditsBdt, orders, paidBdt } }` ·
+`POST /membership { plan (slug|id), payment, returnUrl? }` (auth) → `201 { order, plan, payment }` (order `kind: "membership"`).
+- Benefits (admin plan builder): `free_shipping`, `free_shipping_threshold_bdt`, `shipping_discount_pct`, `points_multiplier`,
+  `extra_discount_pct` + `extra_discount_cap_bdt`, `free_unboxing`, `priority_support`, `early_flash_sale_access_minutes`,
+  `monthly_wallet_credit_bdt`, `free_returns`. Server code reads them only through `MembershipService::benefitsFor($user)`.
+- Renewal is manual (BD gateways have no reliable recurring billing): paying again stacks on the paid-through date; a daily job texts a
+  pay link `{WEB_URL}/plus?renew={slug}` `reminder_days` before `renewsAt`, expires lapsed plans and gives the monthly wallet credit.
+
+**EMI** `GET /emi?amount=` → `{ enabled, minOrderBdt, tenures, banks: [{ code, name, rates: { "3": pct, … } }], amountBdt?, eligible?,
+fromMonthlyBdt?, options?: EmiPlan[] }` (public; `enabled:false` when `pay.emi` or the EMI setting is off). Charge = rate % of the amount
+paid by card, paid by the customer, added to the order total. bKash "pay later" is a TODO (needs merchant approval).

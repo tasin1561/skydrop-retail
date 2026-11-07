@@ -19,6 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use UnitEnum;
 
 /** Skydrop Wallet ledger (read-only) + staff credit/debit. */
@@ -75,7 +76,7 @@ class WalletLedgerResource extends Resource
                         $wallet = app(WalletService::class);
                         MoneyAdmin::run(fn () => $data['type'] === 'credit'
                             ? $wallet->credit($user, (float) $data['amount'], $data['reason'], $data['note'], null,
-                                ! empty($data['expires_at']) ? \Illuminate\Support\Carbon::parse($data['expires_at']) : null, [], auth()->id())
+                                ! empty($data['expires_at']) ? Carbon::parse($data['expires_at']) : null, [], auth()->id())
                             : $wallet->debit($user, (float) $data['amount'], 'admin', $data['note'], null, [], auth()->id()), 'Wallet updated');
                     }),
             ]);

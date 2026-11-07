@@ -5,6 +5,7 @@ namespace App\Services\Commerce;
 use App\Models\OtpCode;
 use App\Models\User;
 use App\Services\Commerce\Sms\SmsManager;
+use App\Services\Messaging\Messenger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,7 +44,7 @@ class OtpService
         });
 
         // Messaging module: OTP template (user's language), sent synchronously through the OTP SMS chain, never queued as marketing.
-        app(\App\Services\Messaging\Messenger::class)->otp($phone, $code, $ttl, User::query()->where('phone', $phone)->first());
+        app(Messenger::class)->otp($phone, $code, $ttl, User::query()->where('phone', $phone)->first());
 
         $out = ['ok' => true, 'expiresIn' => $ttl];
         if (config('retail.otp.driver') === 'log') {

@@ -7,7 +7,6 @@ use App\Filament\Resources\FlashSales\Pages\EditFlashSale;
 use App\Filament\Resources\FlashSales\Pages\ListFlashSales;
 use App\Filament\Resources\FlashSales\Schemas\FlashSaleForm;
 use App\Filament\Resources\FlashSales\Tables\FlashSalesTable;
-use App\Filament\Support\Admin;
 use App\Models\FlashSale;
 use BackedEnum;
 use Filament\Resources\Resource;

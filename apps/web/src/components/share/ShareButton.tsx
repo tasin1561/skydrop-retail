@@ -8,6 +8,7 @@ import { Sheet, Spinner } from "@/components/account/ui";
 import { withCode } from "@/lib/growth";
 import { useShareCodes } from "./useShareCodes";
 import { useFeature } from "@/components/features/FeaturesProvider";
+import { API_URL, apiEnabled } from "@/lib/apiClient";
 
 type Props = {
   title: string;
@@ -269,7 +270,11 @@ function ShareSheet({
                 <div className="sh-qr mt-2 flex flex-col items-center gap-2 rounded-2xl border border-line bg-white p-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=0&data=${encodeURIComponent(url)}`}
+                    src={
+                      apiEnabled
+                        ? `${API_URL}/qr?text=${encodeURIComponent(url)}` // our own QR endpoint (GET /qr, own-site links only)
+                        : `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=0&data=${encodeURIComponent(url)}`
+                    }
                     alt={`QR code for ${url}`}
                     width={180}
                     height={180}

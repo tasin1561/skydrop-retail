@@ -13,6 +13,9 @@ Route::middleware('catalog.guard')->group(fn () => require __DIR__.'/api_catalog
 // Commerce: auth (OTP), account, addresses, wishlist, checkout, orders, payments, webhooks.
 require __DIR__.'/api_commerce.php';
 
+// Categories: unified category tree (GET /categories, GET /categories/{path}).
+require __DIR__.'/api_categories.php';
+
 // Growth: affiliate program, refer a friend, shared wishlists.
 require __DIR__.'/api_growth.php';
 
@@ -33,6 +36,7 @@ require __DIR__.'/api_assistant.php';
 
 // Feature switches (Admin → System → Features) for web and mobile.
 Route::get('/features', fn () => ['features' => \App\Support\Features::all()]);
+require __DIR__.'/api_features.php'; // GET checkout/options (payment methods that are switched on)
 
 // Shopping: price history, compare stores, bundles, group buy, pre-orders, product requests.
 require __DIR__.'/api_shopping.php';

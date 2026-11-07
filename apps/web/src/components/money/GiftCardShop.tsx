@@ -1,0 +1,302 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useState } from "react";
+import { Icon } from "@/components/Icon";
+import { useToast } from "@/components/Toast";
+import { useFeature } from "@/components/features/FeaturesProvider";
+import { ApiError, apiEnabled } from "@/lib/apiClient";
+import { DEMO_GIFT_CONFIG, money, type GiftCard, type GiftCardConfig } from "@/lib/money";
+import { formatBdt } from "@/lib/pricing";
+import { useStore } from "@/state/store";
+import { RedeemGiftCard } from "./RedeemGiftCard";
+import "./money.css";
+
+const PAY = [
+  { id: "bkash", label: "bKash", icon: "wallet" },
+  { id: "nagad", label: "Nagad", icon: "phone" },
+  { id: "card", label: "Card", icon: "card" },
+] as const;
+type Pay = (typeof PAY)[number]["id"];
+
+export function GiftCardVisual({ design, amount, to, message, code }: { design: string; amount: number; to?: string; message?: string; code?: string }) {
+  return (
+    <div className="gc-card p-5" data-design={design} aria-label={`Gift card preview, ${formatBdt(amount)}`}>
+      <div className="flex h-full flex-col justify-between">
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-sm font-extrabold tracking-tight">Skydrop Retail</span>
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Gift card</span>
+        </div>
+        <div>
+          <p key={amount} className="gc-amount text-4xl font-extrabold tabular-nums tracking-tight">
+            {formatBdt(amount || 0)}
+          </p>
+          {message ? <p className="mt-1 line-clamp-2 text-xs text-white/85">&ldquo;{message}&rdquo;</p> : null}
+        </div>
+        <div className="flex items-end justify-between gap-3 text-xs">
+          <span className="truncate font-semibold text-white/90">{to ? `For ${to}` : "For someone special"}</span>
+          <span className="shrink-0 font-mono tracking-wider text-white/80">{code ?? "XXXX-XXXX-XXXX-XXXX"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function GiftCardShop({ redeem }: { redeem?: boolean }) {
+  const { user } = useStore();
+  const on = useFeature("gift_cards");
+  const walletOn = useFeature("wallet");
+  const toast = useToast();
+  const router = useRouter();
+  const uid = useId();
+  const [cfg, setCfg] = useState<GiftCardConfig>(DEMO_GIFT_CONFIG);
+  const [amount, setAmount] = useState(1000);
+  const [custom, setCustom] = useState("");
+  const [design, setDesign] = useState("classic");
+  const [to, setTo] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [pay, setPay] = useState<Pay>("bkash");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [mine, setMine] = useState<GiftCard[]>([]);
+
+  useEffect(() => {
+    if (!on) return;
+    money
+      .giftCardConfig()
+      .then(setCfg)
+      .catch(() => {});
+  }, [on]);
+
+  useEffect(() => {
+    if (!on || !apiEnabled || !user) return;
+    money
+      .myGiftCards()
+      .then((r) => setMine(r.items))
+      .catch(() => {});
+  }, [on, user]);
+
+  if (!on)
+    return (
+      <div className="mx-auto max-w-3xl px-4 pb-24 pt-10 text-center md:pb-12">
+        <h1 className="text-2xl font-extrabold">Gift cards</h1>
+        <p className="mt-2 text-sm text-ink-2">Gift cards are not available right now.</p>
+      </div>
+    );
+
+  const value = custom ? Number(custom) : amount;
+  const inRange = value >= cfg.minBdt && value <= cfg.maxBdt;
+  const contactOk = /^(?:\+?880|0)?1[3-9]\d{8}$/.test(phone.replace(/[\s-]/g, "")) || /^\S+@\S+\.\S+$/.test(email);
+  const canBuy = inRange && to.trim().length > 0 && contactOk;
+
+  const buy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canBuy || busy) return;
+    if (!apiEnabled) {
+      toast({ kind: "info", title: "Preview store", body: "Gift cards can be bought once payments are connected." });
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await money.buyGiftCard({
+        amountBdt: value,
+        design,
+        recipientName: to.trim(),
+        recipientPhone: phone.trim() || undefined,
+        recipientEmail: email.trim() || undefined,
+        message: message.trim() || undefined,
+        payment: pay,
+        returnUrl: `${window.location.origin}/gift-cards/success`,
+      });
+      if (r.payment.redirectUrl) window.location.assign(r.payment.redirectUrl);
+      else router.push(`/gift-cards/success?order=${r.order.id}&status=${r.payment.status === "paid" ? "paid" : "failed"}`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "We couldn't start the payment. Nothing was charged.");
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6 md:pb-12">
+      <header className="mb-6">
+        <p className="text-sm font-bold text-accent">Skydrop gift cards</p>
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Send shopping from India, instantly</h1>
+        <p className="mt-2 max-w-xl text-sm text-ink-2">
+          They get a code by SMS or email, redeem it into their Skydrop Wallet and spend it on anything from Mega Store, Style Bazaar or Daily Basket.
+        </p>
+      </header>
+
+      <div className="grid gap-6 md:grid-cols-[1fr_380px]">
+        <form onSubmit={buy} className="order-2 space-y-5 md:order-1" noValidate>
+          <fieldset className="card p-4">
+            <legend className="sr-only">Amount</legend>
+            <p className="mb-3 text-sm font-extrabold">1. Amount</p>
+            <div role="radiogroup" aria-label="Amount" className="flex flex-wrap gap-2">
+              {cfg.presets.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  role="radio"
+                  aria-checked={!custom && amount === p}
+                  className="money-chip"
+                  onClick={() => {
+                    setAmount(p);
+                    setCustom("");
+                  }}
+                >
+                  {formatBdt(p)}
+                </button>
+              ))}
+            </div>
+            <label htmlFor={uid + "-custom"} className="mt-3 block text-xs font-semibold text-ink-2">
+              Or enter an amount ({formatBdt(cfg.minBdt)} to {formatBdt(cfg.maxBdt)})
+            </label>
+            <input
+              id={uid + "-custom"}
+              inputMode="numeric"
+              value={custom}
+              onChange={(e) => setCustom(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="Custom amount"
+              aria-invalid={!!custom && !inRange}
+              className="mt-1 min-h-11 w-full rounded-2xl border border-line bg-surface px-3 tabular-nums outline-none focus:border-accent sm:w-56"
+            />
+            {custom && !inRange && <p className="mt-1 text-xs font-semibold text-bad">Choose between {formatBdt(cfg.minBdt)} and {formatBdt(cfg.maxBdt)}.</p>}
+          </fieldset>
+
+          <fieldset className="card p-4">
+            <legend className="sr-only">Design</legend>
+            <p className="mb-3 text-sm font-extrabold">2. Design</p>
+            <div role="radiogroup" aria-label="Design" className="grid grid-cols-5 gap-2">
+              {cfg.designs.map((d) => (
+                <button
+                  key={d.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={design === d.key}
+                  aria-label={d.label}
+                  title={d.label}
+                  onClick={() => setDesign(d.key)}
+                  className="gc-swatch gc-card aspect-[1.586] !rounded-xl !shadow-none"
+                  data-design={d.key}
+                />
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="card space-y-3 p-4">
+            <legend className="sr-only">Recipient</legend>
+            <p className="text-sm font-extrabold">3. Who is it for?</p>
+            {[
+              { id: "to", label: "Recipient name", value: to, set: setTo, type: "text", auto: "name", max: 100 },
+              { id: "phone", label: "Their mobile (SMS)", value: phone, set: setPhone, type: "tel", auto: "tel", max: 20 },
+              { id: "email", label: "Or their email", value: email, set: setEmail, type: "email", auto: "email", max: 190 },
+            ].map((f) => (
+              <div key={f.id}>
+                <label htmlFor={uid + f.id} className="block text-xs font-semibold text-ink-2">
+                  {f.label}
+                </label>
+                <input
+                  id={uid + f.id}
+                  type={f.type}
+                  autoComplete={f.auto}
+                  maxLength={f.max}
+                  value={f.value}
+                  onChange={(e) => f.set(e.target.value)}
+                  className="mt-1 min-h-11 w-full rounded-2xl border border-line bg-surface px-3 outline-none focus:border-accent"
+                />
+              </div>
+            ))}
+            <div>
+              <label htmlFor={uid + "msg"} className="block text-xs font-semibold text-ink-2">
+                Message (optional)
+              </label>
+              <textarea
+                id={uid + "msg"}
+                rows={2}
+                maxLength={300}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="mt-1 w-full rounded-2xl border border-line bg-surface px-3 py-2 outline-none focus:border-accent"
+              />
+              <p className="text-right text-[11px] text-ink-3">{message.length}/300</p>
+            </div>
+          </fieldset>
+
+          <fieldset className="card p-4">
+            <legend className="sr-only">Payment</legend>
+            <p className="mb-3 text-sm font-extrabold">4. Pay with</p>
+            <div role="radiogroup" aria-label="Payment method" className="flex flex-wrap gap-2">
+              {PAY.map((p) => (
+                <button key={p.id} type="button" role="radio" aria-checked={pay === p.id} className="money-chip gap-1.5" onClick={() => setPay(p.id)}>
+                  <Icon name={p.icon} size={16} /> {p.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          {error && (
+            <p role="alert" className="shake rounded-2xl bg-bad/10 p-3 text-sm font-semibold text-bad">
+              {error}
+            </p>
+          )}
+
+          {user ? (
+            <button type="submit" disabled={!canBuy || busy} className="btn btn-primary min-h-12 w-full sm:w-auto">
+              {busy ? <Icon name="refresh" size={17} className="animate-spin" /> : <Icon name="shield" size={17} />} Pay {formatBdt(inRange ? value : 0)}
+            </button>
+          ) : (
+            <Link href="/login?next=%2Fgift-cards" className="btn btn-primary min-h-12 w-full sm:w-auto">
+              <Icon name="user" size={17} /> Sign in to buy
+            </Link>
+          )}
+          {!canBuy && user && <p className="text-xs text-ink-3">Choose an amount, add the recipient&apos;s name and a mobile number or email.</p>}
+        </form>
+
+        <aside className="order-1 md:order-2">
+          <div className="space-y-4 md:sticky md:top-24">
+            <GiftCardVisual design={design} amount={inRange ? value : 0} to={to.trim() || undefined} message={message.trim() || undefined} />
+            <ul className="grid gap-2 text-xs text-ink-2">
+              {[
+                ["clock", cfg.expiryMonths ? `Valid for ${cfg.expiryMonths} months` : "Never expires"],
+                ["phone", "Delivered by SMS / email as soon as you pay"],
+                ["wallet", "Redeemed into the Skydrop Wallet, spend it on any order"],
+              ].map(([i, t]) => (
+                <li key={t} className="flex items-center gap-2">
+                  <Icon name={i} size={15} className="text-accent" /> {t}
+                </li>
+              ))}
+            </ul>
+            {user && walletOn && (
+              <div id="redeem" className="card p-4">
+                <RedeemGiftCard autoFocus={redeem} />
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+
+      {mine.length > 0 && (
+        <section className="mt-10" aria-labelledby="mine-h">
+          <h2 id="mine-h" className="mb-3 text-lg font-extrabold">
+            Gift cards you sent
+          </h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mine.map((c, i) => (
+              <li key={c.id} className="rise space-y-2" style={{ ["--i" as string]: i }}>
+                <GiftCardVisual design={c.design} amount={c.initialBdt} to={c.recipientName} code={c.code} />
+                <p className="flex justify-between text-xs text-ink-2">
+                  <span className="font-semibold capitalize">{c.status}</span>
+                  {c.expiresAt && <span>Expires {new Date(c.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}

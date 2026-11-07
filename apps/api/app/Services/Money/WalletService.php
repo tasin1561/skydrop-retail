@@ -23,7 +23,7 @@ class WalletService
     /** Sum of the ledger (the cached balance must always equal this). */
     public function ledgerBalance(User $user): float
     {
-        $rows = WalletLedger::query()->where('user_id', $user->id)->selectRaw("type, SUM(amount_bdt) as s")->groupBy('type')->pluck('s', 'type');
+        $rows = WalletLedger::query()->where('user_id', $user->id)->selectRaw('type, SUM(amount_bdt) as s')->groupBy('type')->pluck('s', 'type');
 
         return round((float) ($rows['credit'] ?? 0) - (float) ($rows['debit'] ?? 0), 2);
     }

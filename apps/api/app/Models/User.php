@@ -13,10 +13,10 @@ use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'phone', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements Contracts\PanelUser
+class User extends Authenticatable implements Contracts\PanelUser, \Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication, \Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
-    use Concerns\HasRoles, HasApiTokens, HasFactory, Notifiable;
+    use Concerns\HasAdminTwoFactor, Concerns\HasRoles, HasApiTokens, HasFactory, Notifiable; // HasAdminTwoFactor: admin TOTP (security module)
 
     protected function casts(): array
     {

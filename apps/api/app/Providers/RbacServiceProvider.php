@@ -63,6 +63,6 @@ class RbacServiceProvider extends ServiceProvider
         Role::deleted(fn () => app(PermissionResolver::class)->flush());
 
         // marketplaces.enabled <-> features.store.{id}
-        Marketplace::saved(fn (Marketplace $m) => ! $m->wasRecentlyCreated && $m->wasChanged('enabled') ?FeatureSync::fromMarketplace($m) : null);
+        Marketplace::saved(fn (Marketplace $m) => $m->wasChanged('enabled') ? FeatureSync::fromMarketplace($m) : null);
     }
 }

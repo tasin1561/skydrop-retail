@@ -4,6 +4,8 @@ import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow, formatBdt } from "@/lib/pricing";
 import type { Coupon, Totals } from "./cart-math";
+import { BundleSavingRow } from "@/components/shopping/BundleSavingRow";
+import { bundleOf } from "@/components/shopping/useBundleTotals";
 
 // Order summary lines used by the cart side card, the checkout side card and the review step.
 export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupon | null; perStore?: boolean }) {
@@ -34,13 +36,14 @@ export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupo
           </dd>
         </div>
       )}
-      {t.discount - t.pointsDiscount > 0 && (
+      <BundleSavingRow t={t} />
+      {t.discount - t.pointsDiscount - bundleOf(t) > 0 && (
         <div className="flex justify-between gap-3 text-good">
           <dt className="inline-flex items-center gap-1.5">
             <Icon name="tag" size={14} stroke={2} /> {coupon?.code ?? "Discount"}
           </dt>
           <dd key={t.discount} className="co-bump font-semibold tabular-nums">
-            −{formatBdt(t.discount - t.pointsDiscount)}
+            −{formatBdt(t.discount - t.pointsDiscount - bundleOf(t))}
           </dd>
         </div>
       )}
@@ -51,6 +54,16 @@ export function SummaryLines({ t, coupon, perStore }: { t: Totals; coupon: Coupo
           </dt>
           <dd key={t.pointsDiscount} className="co-bump font-semibold tabular-nums">
             −{formatBdt(t.pointsDiscount)}
+          </dd>
+        </div>
+      )}
+      {!!t.unboxingFee && (
+        <div className="flex justify-between gap-3">
+          <dt className="inline-flex items-center gap-1.5 text-ink-2">
+            <Icon name="package" size={14} stroke={2} /> Unboxing check
+          </dt>
+          <dd key={t.unboxingFee} className="co-bump font-semibold tabular-nums">
+            {formatBdt(t.unboxingFee)}
           </dd>
         </div>
       )}

@@ -1,0 +1,135 @@
+<?php
+
+namespace App\Filament\Pages;
+
+use App\Filament\Concerns\HasPagePermission;
+use App\Support\Knobs;
+use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Symfony\Component\HttpFoundation\IpUtils;
+use UnitEnum;
+
+/**
+ * Runtime knobs for profit, fraud and admin security (settings table keys "finance.*" / "security.*",
+ * defaults in config/finance.php and config/security.php). Form state uses "__" for dots.
+ */
+class FinanceSecuritySettings extends Page
+{
+    use HasPagePermission; // RBAC: page.{slug} + the keys below
+
+    /** @var list<string> */
+    protected static array $requiredPermissions = ['settings.manage'];
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLockClosed;
+
+    protected static string|UnitEnum|null $navigationGroup = 'System';
+
+    protected static ?int $navigationSort = 10;
+
+    protected static ?string $title = 'Finance & security';
+
+    /** key => cast (float | int | bool | string) */
+    public const KEYS = [
+        'finance.gateway_fees.bkash' => 'float', 'finance.gateway_fees.nagad' => 'float', 'finance.gateway_fees.sslcommerz' => 'float',
+        'finance.gateway_fees.card' => 'float', 'finance.gateway_fees.cod' => 'float',
+        'finance.fx_paid' => 'float', 'finance.usd_bdt' => 'float',
+        'finance.skydrop_cost.base_bdt' => 'float', 'finance.skydrop_cost.per_kg_bdt' => 'float', 'finance.unboxing_cost_bdt' => 'float',
+        'finance.vat_percent' => 'float', 'finance.vat_on' => 'string',
+        'finance.fraud.medium_at' => 'int', 'finance.fraud.high_at' => 'int', 'finance.fraud.require_full_prepay_high' => 'bool',
+        'security.admin.require_2fa' => 'bool', 'security.admin.ip_allowlist' => 'string', 'security.admin.session_timeout_minutes' => 'int',
+        'security.activity.retention_days' => 'int',
+    ];
+
+    /** @var array<string, mixed> */
+    public ?array $data = [];
+
+    private static function f(string $key): string
+    {
+        return str_replace('.', '__', $key);
+    }
+
+    public function mount(): void
+    {
+        $state = [];
+        foreach (self::KEYS as $key => $cast) {
+            $state[self::f($key)] = Knobs::get($key);
+        }
+        $this->form->fill($state);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        $pct = fn (string $k, string $label) => TextInput::make(self::f($k))->label($label)->numeric()->minValue(0)->maxValue(20)->step(0.01)->suffix('%');
+
+        return $schema->statePath('data')->columns(2)->components([
+            Section::make('Gateway fees')->description('Percent of each payment, used by the profit report and accounting exports.')->columns(5)->schema([
+                $pct('finance.gateway_fees.bkash', 'bKash'), $pct('finance.gateway_fees.nagad', 'Nagad'), $pct('finance.gateway_fees.sslcommerz', 'SSLCommerz'),
+                $pct('finance.gateway_fees.card', 'Card'), $pct('finance.gateway_fees.cod', 'COD collection'),
+            ])->columnSpanFull(),
+            Section::make('Costs')->columns(3)->schema([
+                TextInput::make(self::f('finance.fx_paid'))->label('FX actually paid (BDT per INR)')->numeric()->minValue(0)->step(0.0001)
+                    ->helperText('0 = use the order FX. Per-day rates (Reports → FX paid) and per-order overrides win.'),
+                TextInput::make(self::f('finance.usd_bdt'))->label('USD → BDT (API spend)')->numeric()->minValue(1),
+                TextInput::make(self::f('finance.unboxing_cost_bdt'))->label('Unboxing cost per order')->prefix('৳')->numeric()->minValue(0),
+                TextInput::make(self::f('finance.skydrop_cost.base_bdt'))->label('Skydrop cost: base')->prefix('৳')->numeric()->minValue(0),
+                TextInput::make(self::f('finance.skydrop_cost.per_kg_bdt'))->label('Skydrop cost: per kg')->prefix('৳')->numeric()->minValue(0),
+            ]),
+            Section::make('VAT / tax (placeholder)')->columns(2)->schema([
+                TextInput::make(self::f('finance.vat_percent'))->label('VAT')->numeric()->minValue(0)->maxValue(30)->suffix('%'),
+                Select::make(self::f('finance.vat_on'))->label('VAT base')->options(['margin' => 'Service margin', 'revenue' => 'Revenue']),
+            ]),
+            Section::make('Fraud check')->columns(3)->schema([
+                TextInput::make(self::f('finance.fraud.medium_at'))->label('Medium risk from score')->numeric()->minValue(1)->maxValue(100),
+                TextInput::make(self::f('finance.fraud.high_at'))->label('High risk from score')->numeric()->minValue(1)->maxValue(100),
+                Toggle::make(self::f('finance.fraud.require_full_prepay_high'))->label('High risk: full prepayment instead of 50% advance')->inline(false),
+            ]),
+            Section::make('Admin security')->columns(2)->schema([
+                Toggle::make(self::f('security.admin.require_2fa'))->label('Require 2FA for admin and manager')->inline(false),
+                TextInput::make(self::f('security.admin.session_timeout_minutes'))->label('Idle session timeout')->numeric()->minValue(5)->maxValue(1440)->suffix('min'),
+                Textarea::make(self::f('security.admin.ip_allowlist'))->label('Admin IP allowlist')->rows(2)
+                    ->helperText('Comma-separated IPs or CIDRs (e.g. 103.10.20.0/24). Empty = any network. Make sure your own IP is included.'),
+                TextInput::make(self::f('security.activity.retention_days'))->label('Keep activity log for')->numeric()->minValue(30)->suffix('days'),
+            ]),
+        ]);
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema->components([
+            Form::make([EmbeddedSchema::make('form')])->id('form')->livewireSubmitHandler('save')
+                ->footer([Actions::make([Action::make('save')->label('Save')->submit('save')->keyBindings(['mod+s'])])]),
+        ]);
+    }
+
+    public function save(): void
+    {
+        abort_unless(static::canAccess(), 403);
+        $state = $this->form->getState();
+        $allow = trim((string) ($state[self::f('security.admin.ip_allowlist')] ?? ''));
+        if ($allow !== '' && ! IpUtils::checkIp((string) request()->ip(), array_map('trim', explode(',', $allow)))) {
+            Notification::make()->title('Your current IP ('.request()->ip().') is not in the allowlist; add it first so you are not locked out.')->danger()->send();
+
+            return;
+        }
+        foreach (self::KEYS as $key => $cast) {
+            $v = $state[self::f($key)] ?? null;
+            $v = $v === null || $v === '' ? null : match ($cast) {
+                'float' => (float) $v, 'int' => (int) $v, 'bool' => (bool) $v, default => (string) $v,
+            };
+            Knobs::put($key, $v);
+        }
+        Notification::make()->title('Saved')->success()->send();
+    }
+}

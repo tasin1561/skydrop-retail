@@ -14,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -87,7 +88,7 @@ class GiftCardResource extends Resource
             ->action(function (array $data) {
                 MoneyAdmin::run(function () use ($data) {
                     $card = app(GiftCardService::class)->issue((float) $data['amount'], $data, 'admin');
-                    \Filament\Notifications\Notification::make()->title('Code: '.$card->formatted())->persistent()->info()->send();
+                    Notification::make()->title('Code: '.$card->formatted())->persistent()->info()->send();
                 }, 'Gift card issued');
             });
     }

@@ -83,6 +83,8 @@ export type Product = {
   flashSale?: FlashSaleInfo | null;
   /** Can this ship to Bangladesh? block = cannot order, warn = info, surcharge = added to price. */
   restriction?: Restriction | null;
+  /** Shopping: card badge from price history ("Lowest price in 30 days" / "Price dropped ৳X this week"). */
+  priceInsight?: { type: "lowest" | "drop"; label: string; days?: number; dropBdt?: number } | null;
 };
 
 export type FlashSaleInfo = { saleId?: number | string; title?: string; endsAt: string; extraOffBdt: number; maxQty?: number | null };

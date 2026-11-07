@@ -40,6 +40,7 @@ class DigitalOrders
             throw CommerceException::field('payment', 'Choose bKash, Nagad or card.');
         }
         $orders = app(OrderService::class);
+
         return Order::query()->create([
             'id' => $orders->newOrderId(), 'user_id' => $user->id, 'kind' => $kind, 'status' => 'placed',
             'payment_method' => $method, 'payment_status' => 'pending',

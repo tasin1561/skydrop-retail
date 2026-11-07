@@ -92,7 +92,7 @@ class GroupBuyResource extends Resource
     public static function forceClose(): Action
     {
         return Action::make('forceClose')->label('Force close')->icon(Heroicon::OutlinedLockClosed)->color('warning')
-            ->visible(fn (GroupBuy $record) => $record->status === 'open')->requiresConfirmation()
+            ->visible(fn (GroupBuy $record) => $record->status === 'open' && Admin::can('groups.close'))->requiresConfirmation()
             ->modalDescription('Places every member\'s order now (with the group shipping discount when there are 2+ members).')
             ->action(function (GroupBuy $record) {
                 $r = app(GroupBuyService::class)->close($record, 'Closed by staff');
@@ -103,7 +103,7 @@ class GroupBuyResource extends Resource
     public static function cancel(): Action
     {
         return Action::make('cancelGroup')->label('Cancel')->icon(Heroicon::OutlinedXCircle)->color('danger')
-            ->visible(fn (GroupBuy $record) => $record->status === 'open')->requiresConfirmation()
+            ->visible(fn (GroupBuy $record) => $record->status === 'open' && Admin::can('groups.cancel'))->requiresConfirmation()
             ->action(fn (GroupBuy $record) => app(GroupBuyService::class)->cancel($record, 'Cancelled by staff'));
     }
 

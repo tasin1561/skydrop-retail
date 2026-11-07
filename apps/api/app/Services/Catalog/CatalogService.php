@@ -39,6 +39,11 @@ class CatalogService
 
     public function isLive(string $market): bool
     {
+        // Global switch (Admin → System → Features → live_fetch) OR the per-marketplace switch turns live fetching off.
+        if (! \App\Support\Features::enabled('live_fetch')) {
+            return false;
+        }
+
         return (bool) Cache::remember("catalog:live:$market", 30, fn () => (bool) Marketplace::query()
             ->whereKey($market)->where('enabled', true)->where('live_fetch', true)->exists());
     }
@@ -137,6 +142,12 @@ class CatalogService
             $market = $this->markets->forId($id);
             if (! $market || $crawler || ! $this->isLive($market)) {
                 return null;
+            }
+            // Never block the request on a live fetch (10-40 s): queue it and let the client show a
+            // "fetching live from the store" state that polls GET /jobs/{id}. ?wait=1 keeps the old
+            // synchronous behaviour for CLI/admin callers.
+            if (! request()->boolean('wait')) {
+                return ['status' => 'pending', 'jobId' => $this->queueProduct($id), 'product' => null, 'market' => $market];
             }
             $p = $this->refreshProduct($id, interactive: true);
             if (! $p) {

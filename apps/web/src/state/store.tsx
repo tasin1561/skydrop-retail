@@ -6,7 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Address, CartItem, MarketId, Order, StoreMode, User } from "@/lib/types";
 import { DEFAULT_ENABLED, MARKET_IDS } from "@/lib/markets";
-import { api, apiEnabled, API_URL, setApiToken } from "@/lib/apiClient";
+import { api, apiEnabled, setApiToken } from "@/lib/apiClient";
 import { cartItems, track } from "@/lib/track";
 
 type State = {
@@ -97,7 +97,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready || !apiEnabled) return;
     let cancelled = false;
-    fetch(`${API_URL}/marketplaces`, { headers: { Accept: "application/json" } })
+    fetch("/api/marketplaces", { headers: { Accept: "application/json" } }) // via Next.js: the catalog API is server-to-server only
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { items?: { id: MarketId; enabled: boolean }[] } | null) => {
         if (cancelled || !d?.items) return;

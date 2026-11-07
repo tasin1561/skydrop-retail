@@ -8,6 +8,7 @@ import { QuickAdd } from "./QuickAdd";
 import { Countdown } from "./offers/Countdown";
 import { headlineDeal } from "./offers/offerMeta";
 import { CardNotices } from "./cms/CardNotices";
+import { PriceInsightChip } from "./shopping/PriceInsightChip";
 
 export function ProductImage({
   p,
@@ -130,6 +131,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           )}
           <Stars rating={p.rating} reviews={p.reviews} size={12} />
           <CardNotices p={p} />
+          <PriceInsightChip p={p} />
           {deal && (
             <span className="inline-flex w-fit items-center gap-1 rounded-md bg-bad px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
               <Icon name="bolt" size={11} stroke={2.4} /> {deal.label}

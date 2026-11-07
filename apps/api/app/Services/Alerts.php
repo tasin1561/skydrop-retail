@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Messaging\Messenger;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -14,7 +15,7 @@ class Alerts
         Log::log($level, '[alert] '.$message);
         // Messaging module: also email ALERT_EMAIL (queued; no-op when unset).
         if (config('retail.alerts.email')) {
-            rescue(fn () => app(\App\Services\Messaging\Messenger::class)->admin(ucfirst($level).' alert', $message), null, false);
+            rescue(fn () => app(Messenger::class)->admin(ucfirst($level).' alert', $message), null, false);
         }
         $bot = config('retail.alerts.telegram_bot');
         $chat = config('retail.alerts.telegram_chat');

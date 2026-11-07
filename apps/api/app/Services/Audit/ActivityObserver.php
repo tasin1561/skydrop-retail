@@ -2,6 +2,7 @@
 
 namespace App\Services\Audit;
 
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Model;
 
 /** Logs create/update/delete with a field diff when a staff member is signed in (admin panel). */
@@ -43,8 +44,8 @@ class ActivityObserver
     /** Dates, enums and casts → JSON-friendly scalars; secret settings masked. */
     private static function normalise(array $diff, ?Model $model = null): array
     {
-        if ($model instanceof \App\Models\Setting && \App\Models\Setting::isSecret((string) $model->getKey()) && isset($diff['value'])) {
-            $diff['value'] = array_map(fn ($v) => \App\Models\Setting::mask($v), $diff['value']);
+        if ($model instanceof Setting && Setting::isSecret((string) $model->getKey()) && isset($diff['value'])) {
+            $diff['value'] = array_map(fn ($v) => Setting::mask($v), $diff['value']);
         }
 
         return array_map(fn ($pair) => array_map(fn ($v) => $v instanceof \DateTimeInterface ? $v->format(DATE_ATOM)

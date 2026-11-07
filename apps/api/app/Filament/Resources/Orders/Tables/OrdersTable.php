@@ -38,6 +38,10 @@ class OrdersTable
                 TextColumn::make('payment_status')->label('Payment')->badge()
                     ->color(fn ($state) => Admin::PAYMENT_STATUS_COLORS[$state] ?? 'gray')
                     ->description(fn (Order $r) => $r->payment_method),
+                TextColumn::make('fraud_level')->label('Risk')->badge()->toggleable() // fraud module
+                    ->formatStateUsing(fn ($state, Order $r) => $r->fraud_review ? 'Review '.$r->fraud_score : ucfirst((string) $state))
+                    ->color(fn ($state, Order $r) => $r->fraud_review ? 'danger' : (\App\Filament\Resources\Orders\Schemas\OrderFraudSection::COLORS[$state] ?? 'gray'))
+                    ->placeholder('—'),
                 TextColumn::make('tracking_code')->label('Tracking')->searchable()->toggleable()->placeholder('—'),
                 TextColumn::make('address.district')->label('District')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('staff_notes')->label('Notes')->limit(30)->toggleable(isToggledHiddenByDefault: true),
@@ -49,6 +53,7 @@ class OrdersTable
                     ->query(fn (Builder $query, array $data) => $query->when($data['value'] ?? null, fn ($q, $m) => $q->whereHas('items', fn ($i) => $i->where('market', $m)))),
                 SelectFilter::make('payment_status')->options(array_combine(array_keys(Admin::PAYMENT_STATUS_COLORS), array_map('ucfirst', array_keys(Admin::PAYMENT_STATUS_COLORS)))),
                 SelectFilter::make('payment_method')->options(Order::PAYMENT_LABELS),
+                \Filament\Tables\Filters\TernaryFilter::make('fraud_review')->label('Needs fraud review'), // fraud module
                 Filter::make('created_at')->label('Date')
                     ->schema([DatePicker::make('from'), DatePicker::make('until')])
                     ->query(fn (Builder $query, array $data) => $query

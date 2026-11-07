@@ -7,6 +7,10 @@ import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
 import { FilterSidebar, SortAndFilterBar } from "@/components/search/Filters";
 import { TrackSearch } from "@/components/tracking/TrackSearch";
+import { HelpMeChoose } from "@/components/assistant/AskAssistant";
+import { LiveSearch } from "@/components/resilience/LiveSearch";
+import { StaleNote } from "@/components/resilience/LiveRefresh";
+import { SafeSection } from "@/components/resilience/SafeSection";
 
 type SP = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -63,6 +67,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <SortAndFilterBar total={res.total} />
         </Suspense>
         <TrackSearch q={q} store={store} ids={res.items.slice(0, 10).map((p) => p.id)} />
+        {res.items.length > 1 && (
+          <SafeSection label="Assistant" quiet>
+            <HelpMeChoose query={q} />
+          </SafeSection>
+        )}
+        {res.stale && <StaleNote what="results" />}
+        {res.status === "pending" && res.jobId && <LiveSearch jobId={res.jobId} q={q} store={store} empty={!res.items.length} />}
       </div>
 
       <div className="flex gap-6">
@@ -72,18 +83,23 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <div className="min-w-0 flex-1">
           {res.items.length ? (
             <EnabledGrid items={res.items} />
-          ) : (
+          ) : res.status === "pending" ? null : (
             <div className="card mx-auto max-w-md p-8 text-center">
               <span className="chip-icon mx-auto h-14 w-14">
                 <Icon name="search" size={26} />
               </span>
-              <h2 className="mt-4 text-lg font-extrabold">Nothing in our catalog yet</h2>
+              <h2 className="mt-4 text-lg font-extrabold">No matches yet</h2>
               <p className="mt-1 text-sm text-ink-2">
-                Once live search is connected, we fetch this straight from the Indian store for you. Try a broader word for now.
+                Try a broader word, paste a product link from amazon.in, Flipkart or BigBasket, or ask us to find it for you.
               </p>
-              <Link href="/search?q=&store=all" className="btn btn-primary mt-5">
-                Browse everything <Icon name="arrow" size={18} className="arrow" />
-              </Link>
+              <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <Link href={`/request?q=${encodeURIComponent(q)}`} className="btn btn-primary">
+                  Request this product <Icon name="arrow" size={18} className="arrow" />
+                </Link>
+                <Link href="/search?q=&store=all" className="btn btn-ghost">
+                  Browse everything
+                </Link>
+              </div>
             </div>
           )}
 

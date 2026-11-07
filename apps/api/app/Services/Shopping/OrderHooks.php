@@ -2,6 +2,7 @@
 
 namespace App\Services\Shopping;
 
+use App\Models\GroupBuy;
 use App\Models\Order;
 
 /**
@@ -45,7 +46,7 @@ class OrderHooks
         }
         if ($o->group_id) {
             $out['groupId'] = (string) $o->group_id;
-            $out['groupCode'] = \App\Models\GroupBuy::query()->whereKey($o->group_id)->value('code');
+            $out['groupCode'] = GroupBuy::query()->whereKey($o->group_id)->value('code');
             $out['groupDiscount'] = (int) round($o->group_discount_bdt);
         }
         if ($o->is_preorder) {

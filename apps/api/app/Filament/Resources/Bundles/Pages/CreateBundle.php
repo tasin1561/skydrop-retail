@@ -8,5 +8,4 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateBundle extends CreateRecord
 {
     protected static string $resource = BundleResource::class;
-
 }

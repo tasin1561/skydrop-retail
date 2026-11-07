@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Services\Cms\FlashSaleService;
 use App\Services\Cms\RestrictionService;
 use App\Services\PricingService;
+use App\Services\Shopping\PriceHistoryService;
 use Illuminate\Http\Request;
 
 /**
@@ -57,7 +58,7 @@ final class ProductJson
             'flashSale' => app(FlashSaleService::class)->forProduct($p),
             'restriction' => app(RestrictionService::class)->forProduct($p),
             // Shopping: card badge { type: "lowest"|"drop", label, days?, dropBdt? } | null (feature "price_history").
-            'priceInsight' => $p instanceof Product ? app(\App\Services\Shopping\PriceHistoryService::class)->insight($p) : null,
+            'priceInsight' => $p instanceof Product ? app(PriceHistoryService::class)->insight($p) : null,
         ];
     }
 }

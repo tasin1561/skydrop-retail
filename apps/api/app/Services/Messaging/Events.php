@@ -167,7 +167,7 @@ final class Events
                         'push' => ['Pay {{amount}} now to keep this price.', 'Order {{order_id}} is waiting'],
                     ],
                     'bn' => [
-                        'sms' => ['Skydrop Retail: অর্ডার {{order_id}}-এর {{amount}} পেমেন্ট বাকি। দাম ধরে রাখতে এখনই পে করুন: {{pay_link}}'],
+                        'sms' => ['Skydrop Retail: অর্ডার {{order_id}}-এর {{amount}} পেমেন্ট বাকি। পে করুন: {{pay_link}}'],
                         'email' => ["প্রিয় {{name}},\n\nঅর্ডার {{order_id}}-এর {{amount}} পেমেন্ট এখনও বাকি। ভারতের স্টোরে দাম প্রায়ই বদলায়, তাই এই দাম পেতে দ্রুত পেমেন্ট করুন।", '{{order_id}}-এর পেমেন্ট সম্পন্ন করুন'],
                         'push' => ['এই দাম ধরে রাখতে এখনই {{amount}} পে করুন।', 'অর্ডার {{order_id}} অপেক্ষায়'],
                     ],
@@ -260,7 +260,7 @@ final class Events
                         'push' => ['Worth {{value}}. Use them before {{expires_on}}.', '{{points}} points expiring soon'],
                     ],
                     'bn' => [
-                        'sms' => ['Skydrop Retail: আপনার {{points}} পয়েন্ট ({{value}}) {{expires_on}} তারিখে শেষ হবে। পরের অর্ডারে ব্যবহার করুন: {{link}}'],
+                        'sms' => ['Skydrop Retail: আপনার {{points}} পয়েন্ট ({{value}}) {{expires_on}}-এ শেষ হবে। {{link}}'],
                         'email' => ["প্রিয় {{name}},\n\nআপনার {{points}} Skydrop পয়েন্ট ({{value}} মূল্যের) {{expires_on}} তারিখে মেয়াদোত্তীর্ণ হবে। তার আগেই চেকআউটে ব্যবহার করুন।", 'আপনার {{points}} পয়েন্ট {{expires_on}}-এ শেষ হবে'],
                         'push' => ['{{value}} মূল্যের। {{expires_on}}-এর আগে ব্যবহার করুন।', '{{points}} পয়েন্ট শিগগির শেষ হবে'],
                     ],
@@ -335,7 +335,7 @@ final class Events
                     'push' => [$en, $titleEn],
                 ],
                 'bn' => [
-                    'sms' => ['Skydrop Retail: অর্ডার {{order_id}}: '.$bn.' ট্র্যাক: {{link}}', 'off' => $smsOff],
+                    'sms' => ['Skydrop Retail: অর্ডার {{order_id}}: '.$bn, 'off' => $smsOff], // no link: keeps Bangla within 2 parts
                     'email' => ["প্রিয় {{name}},\n\n".$bn."\n\nঅর্ডার পেজ থেকে প্রতিটি ধাপ দেখতে পারবেন।", $titleBn.' · {{order_id}}'],
                     'push' => [$bn, $titleBn],
                 ],

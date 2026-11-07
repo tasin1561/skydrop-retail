@@ -5,6 +5,7 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as demo from "@/demo/backend";
+import { signHeaders } from "./sign";
 import type { Address, Order, Product, StoreMode, User } from "@/lib/types";
 import type {
   ApiErrorBody,
@@ -61,7 +62,7 @@ export function isDemo() {
 
 async function resolveMode(): Promise<Mode> {
   if (mode !== "unknown") return mode;
-  probing ??= fetchWithTimeout(BASE + "/marketplaces", { headers: { Accept: "application/json" } }, 4000)
+  probing ??= fetchWithTimeout(BASE + "/marketplaces", { headers: { Accept: "application/json", ...signHeaders("GET", BASE + "/marketplaces") } }, 4000)
     .then((r) => (r.ok ? "live" : "demo") as Mode)
     .catch(() => "demo" as Mode)
     .then((m) => {
@@ -119,10 +120,12 @@ async function http<T>(method: string, path: string, opts: { query?: Query; body
   const token = await tokenStore.get();
   let res: Response;
   try {
-    res = await fetchWithTimeout(BASE + path + qs(opts.query), {
+    const url = BASE + path + qs(opts.query);
+    res = await fetchWithTimeout(url, {
       method,
       headers: {
         Accept: "application/json",
+        ...signHeaders(method, url), // catalog guard: X-App-Key + HMAC timestamp signature
         ...(opts.body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },

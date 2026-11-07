@@ -6,10 +6,12 @@ use App\Models\Membership;
 use App\Models\MembershipPlan;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\WalletLedger;
 use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\Notifier;
 use App\Services\Messaging\Messenger;
 use App\Support\Features;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -113,7 +115,7 @@ class MembershipService
         return rtrim(rtrim(number_format($n, 2), '0'), '.');
     }
 
-    /** @return \Illuminate\Support\Collection<int, MembershipPlan> */
+    /** @return Collection<int, MembershipPlan> */
     public function plans()
     {
         return MembershipPlan::query()->where('active', true)->orderBy('sort')->orderBy('price_bdt')->get();
@@ -324,7 +326,7 @@ class MembershipService
     public function savings(User $user): array
     {
         $orders = Order::query()->where('user_id', $user->id)->where('status', '!=', 'cancelled')->where('membership_discount_bdt', '>', 0);
-        $credits = (float) \App\Models\WalletLedger::query()->where('user_id', $user->id)->where('type', 'credit')
+        $credits = (float) WalletLedger::query()->where('user_id', $user->id)->where('type', 'credit')
             ->where('reason', 'promo')->where('note', 'Skydrop Plus monthly credit')->sum('amount_bdt');
         $paid = (float) Order::query()->where('user_id', $user->id)->where('kind', 'membership')->whereIn('payment_status', ['paid'])->sum('total_bdt');
         $orderSaved = (float) (clone $orders)->sum('membership_discount_bdt');

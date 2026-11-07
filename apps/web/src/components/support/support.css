@@ -10,6 +10,12 @@
   gap: 10px;
   pointer-events: none;
 }
+/* product and cart pages have a sticky buy bar above the tab bar on phones */
+@media (max-width: 767px) {
+  .sc-wrap[data-lift="true"] {
+    bottom: calc(160px + env(safe-area-inset-bottom));
+  }
+}
 @media (min-width: 768px) {
   .sc-wrap {
     right: 24px;

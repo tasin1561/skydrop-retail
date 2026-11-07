@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Support\Admin;
+use App\Filament\Concerns\HasPagePermission;
 use App\Services\Assistant\AssistantSettings as Settings;
 use App\Support\Features;
 use BackedEnum;
@@ -24,6 +24,11 @@ use UnitEnum;
 /** AI assistant settings (settings table "assistant.*"); on/off is the central feature switch "ai_assistant". */
 class AssistantSettings extends Page
 {
+    use HasPagePermission;
+
+    /** @var list<string> */
+    protected static array $requiredPermissions = ['settings.manage'];
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
@@ -38,11 +43,6 @@ class AssistantSettings extends Page
 
     /** @var array<string, mixed> */
     public ?array $data = [];
-
-    public static function canAccess(): bool
-    {
-        return method_exists(Admin::class, 'can') ? Admin::can('settings.manage') : Admin::canManage();
-    }
 
     private static function field(string $key): string
     {

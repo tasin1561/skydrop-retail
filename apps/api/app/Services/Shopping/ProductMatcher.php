@@ -88,7 +88,7 @@ class ProductMatcher
         }
         if ($a['models'] && $b['models'] && array_intersect($a['models'], $b['models'])) {
             // Same model number; check the size/quantity does not contradict ("128GB" vs "256GB").
-            if ($a['sizes'] && $b['sizes'] && ! array_intersect($a['sizes'], $b['sizes'])) {
+            if (self::sizesConflict($a['sizes'], $b['sizes'])) {
                 return null;
             }
 
@@ -97,7 +97,7 @@ class ProductMatcher
         if ($pa->category !== $pb->category) {
             return null;
         }
-        if ($a['sizes'] && $b['sizes'] && ! array_intersect($a['sizes'], $b['sizes'])) {
+        if (self::sizesConflict($a['sizes'], $b['sizes'])) {
             return null;
         }
         $score = self::similarity($a['title'], $b['title']);
@@ -207,16 +207,35 @@ class ProductMatcher
         return array_values(array_unique($out));
     }
 
-    /** Sizes / capacities in a title, normalised ("128gb", "500ml", "1kg"). */
+    /** Sizes / capacities in a title, normalised ("128gb", "500ml", "1kg"); "4G"/"5G" network names are skipped. */
     public static function sizes(string $title): array
     {
         preg_match_all('/(\d+(?:\.\d+)?)\s?(gb|tb|ml|l|kg|g|mah|w|inch|pcs)\b/i', $title, $m, PREG_SET_ORDER);
         $out = [];
         foreach ($m as $x) {
-            $out[] = rtrim(rtrim($x[1], '0'), '.').strtolower($x[2]);
+            $unit = strtolower($x[2]);
+            if ($unit === 'g' && in_array($x[1], ['2', '3', '4', '5'], true)) {
+                continue;
+            }
+            $out[] = (str_contains($x[1], '.') ? rtrim(rtrim($x[1], '0'), '.') : $x[1]).$unit;
         }
 
         return array_values(array_unique($out));
+    }
+
+    /** True when both titles state a size in the same unit and none of those sizes agree ("128gb" vs "256gb"). */
+    public static function sizesConflict(array $a, array $b): bool
+    {
+        $unit = fn (string $s) => preg_replace('/^[\d.]+/', '', $s);
+        foreach (array_unique(array_map($unit, $a)) as $u) {
+            $va = array_filter($a, fn ($s) => $unit($s) === $u);
+            $vb = array_filter($b, fn ($s) => $unit($s) === $u);
+            if ($vb && ! array_intersect($va, $vb)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function normTitle(string $title, string $brand = ''): string

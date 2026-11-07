@@ -12,12 +12,15 @@ import { StoreSwitcher } from "@/components/StoreSwitcher";
 import { CategoryChips, HowItWorks, Rail, SearchBar, StoreHero, useAsync } from "@/components/Shop";
 import { IconButton, Pill, T, Tap } from "@/components/ui";
 import type { MarketId, StoreMode } from "@/lib/types";
+import { useNotifications } from "@/lib/notifications";
+import { AskAiButton } from "@/components/AskAiButton";
 
 export default function Home() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { mode, setMode, enabled, demo, totals, recent } = useStore();
   const [refreshing, setRefreshing] = useState(false);
+  const notes = useNotifications();
 
   const popular = useAsync(() => api.rail(mode, "popular"), [mode]);
   const deals = useAsync(() => api.rail(mode, "deals"), [mode]);
@@ -54,7 +57,16 @@ export default function Home() {
           </T>
         </View>
         {demo && <Pill text="Demo data" icon="info" />}
+        <AskAiButton />
         <IconButton icon="zap" label="Live deals and offers" tint={c.coral} onPress={() => router.push({ pathname: "/deals", params: { store: mode } })} />
+        {notes.enabled && (
+          <IconButton
+            icon="bell"
+            label={notes.unread > 0 ? `Notifications, ${notes.unread} unread` : "Notifications"}
+            badge={notes.unread}
+            onPress={() => router.push("/notifications")}
+          />
+        )}
         <IconButton icon="shopping-cart" label={`Cart, ${totals.count} items`} badge={totals.count} onPress={() => router.navigate("/cart")} />
       </View>
 

@@ -1,0 +1,194 @@
+/* Money module: wallet, gift cards, Skydrop Plus, EMI. Motion uses transform/opacity only. */
+
+:root {
+  --plus-a: #0b1020;
+  --plus-b: #1e3a8a;
+  --plus-gold: #f5c451;
+  --plus-ink: #fff8e1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --plus-a: #05070f;
+    --plus-b: #172554;
+  }
+}
+:root[data-theme="dark"] {
+  --plus-a: #05070f;
+  --plus-b: #172554;
+}
+
+/* ---------- gift card visual ---------- */
+.gc-card {
+  position: relative;
+  aspect-ratio: 1.586;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  color: #fff;
+  box-shadow: var(--shadow-2);
+  isolation: isolate;
+  transition: transform 0.35s var(--ease);
+}
+.gc-card::before {
+  /* moving sheen */
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.28) 50%, transparent 60%);
+  transform: translateX(-60%);
+  animation: gc-sheen 4.5s var(--ease) infinite;
+  z-index: -1;
+}
+.gc-card[data-design="classic"] { background: linear-gradient(135deg, var(--brand), #38bdf8); }
+.gc-card[data-design="eid"] { background: linear-gradient(135deg, #065f46, #10b981); }
+.gc-card[data-design="birthday"] { background: linear-gradient(135deg, #be185d, #f472b6); }
+.gc-card[data-design="thanks"] { background: linear-gradient(135deg, #b45309, #f59e0b); }
+.gc-card[data-design="wedding"] { background: linear-gradient(135deg, #6d28d9, #c084fc); }
+.gc-card .gc-amount {
+  display: inline-block;
+  animation: gc-pop 0.35s var(--spring);
+}
+@keyframes gc-sheen {
+  0%, 55% { transform: translateX(-60%); }
+  100% { transform: translateX(60%); }
+}
+@keyframes gc-pop {
+  from { transform: scale(0.85); opacity: 0; }
+}
+
+.gc-swatch {
+  display: grid;
+  min-height: 44px;
+  min-width: 44px;
+  place-items: center;
+  border-radius: 14px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: transform 0.2s var(--ease), outline-color 0.2s;
+}
+.gc-swatch[aria-checked="true"] { outline-color: var(--accent); transform: scale(1.05); }
+.gc-swatch:active { transform: scale(0.96); }
+
+.money-chip {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-2);
+  padding: 0 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.2s var(--ease), background-color 0.2s, color 0.2s;
+}
+.money-chip:active { transform: scale(0.96); }
+.money-chip[aria-checked="true"],
+.money-chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- Skydrop Plus ---------- */
+.plus-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  color: var(--plus-ink);
+  background: radial-gradient(120% 120% at 100% 0%, var(--plus-b), var(--plus-a));
+}
+.plus-hero::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -60px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--plus-gold) 45%, transparent), transparent 70%);
+  animation: plus-float 6s ease-in-out infinite;
+}
+@keyframes plus-float {
+  50% { transform: translate(-16px, 14px) scale(1.06); }
+}
+.plus-gold { color: var(--plus-gold); }
+
+.plus-toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), 1fr);
+  border-radius: 999px;
+  background: var(--surface-2);
+  padding: 4px;
+}
+.plus-toggle-pill {
+  position: absolute;
+  inset: 4px auto 4px 4px;
+  width: calc((100% - 8px) / var(--n, 3));
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  transform: translateX(calc(var(--idx, 0) * 100%));
+  transition: transform 0.35s var(--spring);
+}
+.plus-toggle button {
+  position: relative;
+  min-height: 44px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.plus-plan {
+  position: relative;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.plus-plan:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+.plus-plan[data-highlight="true"] { outline: 2px solid var(--plus-gold); outline-offset: -2px; }
+
+.plus-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--plus-a), var(--plus-b));
+  color: var(--plus-gold);
+  padding: 0.15rem 0.6rem;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.money-in { animation: money-in 0.4s var(--ease) both; }
+@keyframes money-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+.money-count { display: inline-block; animation: gc-pop 0.3s var(--spring); }
+
+/* savings meter */
+.plus-meter {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.plus-meter > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--plus-gold), #fb923c);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  transition: transform 0.8s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-card::before,
+  .plus-hero::after,
+  .gc-card .gc-amount,
+  .money-in,
+  .money-count { animation: none; }
+  .gc-card,
+  .gc-swatch,
+  .money-chip,
+  .plus-toggle-pill,
+  .plus-plan,
+  .plus-meter > span { transition: none; }
+}

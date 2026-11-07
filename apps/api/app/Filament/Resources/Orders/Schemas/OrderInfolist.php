@@ -22,6 +22,7 @@ class OrderInfolist
             ->columns(3)
             ->components([
                 Grid::make(1)->columnSpan(2)->schema([
+                    \App\Filament\Support\FulfilmentOrderSection::make(), // fulfilment: price alerts, hub, unboxing, returns
                     Section::make('Summary')->columns(4)->schema([
                         TextEntry::make('status')->badge()
                             ->formatStateUsing(fn ($state) => Admin::ORDER_STATUS_LABELS[$state] ?? $state)
@@ -104,6 +105,8 @@ class OrderInfolist
                     Section::make('Skydrop')->schema([
                         TextEntry::make('skydrop_consignment_id')->label('Consignment')->copyable()->placeholder('not created'),
                     ]),
+                    OrderFraudSection::make(), // fraud module
+                    OrderProfitSection::make(), // finance module
                     OrderAttributionSection::make(),
                     Section::make('Staff notes')->schema([
                         TextEntry::make('staff_notes')->hiddenLabel()->placeholder('No notes')->prose(),

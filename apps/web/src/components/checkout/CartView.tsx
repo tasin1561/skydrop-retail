@@ -14,6 +14,9 @@ import { CouponField } from "./CouponField";
 import { EmptyCart } from "./EmptyCart";
 import { QtyStepper } from "./QtyStepper";
 import { DeliveryPromise, SummaryLines, TrustRow } from "./Summary";
+import { CartPlusNudge } from "@/components/money/CartPlusNudge";
+import { useBundleTotals } from "@/components/shopping/useBundleTotals";
+import { CartShoppingExtras } from "@/components/shopping/CartShoppingExtras";
 
 const key = (i: Pick<CartItem, "productId" | "variant">) => i.productId + "::" + (i.variant ?? "");
 
@@ -31,7 +34,7 @@ export function CartView() {
     if (timer.current) clearTimeout(timer.current);
   }, []);
 
-  const t = computeTotals(cart, coupon);
+  const t = useBundleTotals(computeTotals(cart, coupon), cart); // Shopping: bundle saving
 
   // Let the row slide out first, then remove it from the store.
   const animateOut = (item: CartItem, after: () => void) => {
@@ -90,6 +93,7 @@ export function CartView() {
             {t.groups.map((g, gi) => (
               <StoreGroup key={g.market} g={g} gi={gi} leaving={leaving} onRemove={remove} onSave={saveForLater} setQty={setQty} />
             ))}
+            <CartShoppingExtras items={cart} />
             {t.groups.length > 1 && (
               <p className="flex items-start gap-2 px-1 text-xs text-ink-2">
                 <Icon name="info" size={15} className="mt-px shrink-0" />
@@ -151,6 +155,7 @@ export function CartView() {
 }
 
 function SideCard({ t, coupon, withCta }: { t: ReturnType<typeof computeTotals>; coupon: ReturnType<typeof useCoupon>[0]; withCta?: boolean }) {
+  const { cart } = useStore(); // money module: Plus nudge needs the cart lines
   return (
     <section className="co-card space-y-4 p-4 sm:p-5" aria-labelledby="sum-h">
       <h2 id="sum-h" className="text-base font-extrabold">
@@ -158,6 +163,7 @@ function SideCard({ t, coupon, withCta }: { t: ReturnType<typeof computeTotals>;
       </h2>
       <CouponField />
       <SummaryLines t={t} coupon={coupon} perStore />
+      <CartPlusNudge cart={cart} coupon={coupon?.code} />
       {withCta && (
         <Link href="/checkout" className="btn btn-primary w-full">
           Proceed to checkout <Icon name="arrow" size={18} className="arrow" />

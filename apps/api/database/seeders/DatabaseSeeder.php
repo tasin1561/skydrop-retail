@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
     
         // ---- catalog module seeders (runs first: commerce data may reference products) ----
-        $this->call([MarketplaceSeeder::class, CategorySeeder::class, PricingRuleSeeder::class, CatalogSeeder::class]);
+        $this->call([MarketplaceSeeder::class, CategorySeeder::class, CategoryTreeSeeder::class, PricingRuleSeeder::class, CatalogSeeder::class, CategorizeProductsSeeder::class]);
         // ---- end catalog module seeders ----
 
         // ---- commerce module seeders ----

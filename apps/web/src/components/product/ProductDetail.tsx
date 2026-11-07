@@ -18,6 +18,9 @@ import { ShareButton } from "@/components/share/ShareButton";
 import type { BuyInfo, Media } from "./types";
 import { FlashNotice, isBlocked, RestrictionNotice } from "@/components/cms/ProductNotices";
 import { ShopperReviews } from "@/components/cms/ShopperReviews";
+import { AskAboutProduct } from "@/components/assistant/AskAssistant";
+import { SafeSection } from "@/components/resilience/SafeSection";
+import { ShoppingBuyExtras, ShoppingSections } from "@/components/shopping/ShoppingSections";
 
 // Server component: shapes the product into small serialisable props for the client parts.
 export function ProductDetail({
@@ -184,10 +187,12 @@ export function ProductDetail({
           </div>
 
           <RestrictionNotice p={p} />
+          <SafeSection label="Assistant" quiet><div className="mt-3"><AskAboutProduct productId={p.id} title={p.title} /></div></SafeSection>
 
           <div className="mt-5">
             <BuyBox key={p.id} info={info} knownIds={knownIds} unavailableIds={unavailableIds} />
           </div>
+          <ShoppingBuyExtras p={p} />
 
           {!available && !p.demo && (
             <p className="mt-3 text-xs text-bad" role="status">
@@ -321,6 +326,7 @@ export function ProductDetail({
         </div>
       </div>
 
+      <ShoppingSections p={p} />
       {children}
     </div>
   );

@@ -7,7 +7,6 @@ use App\Filament\Resources\RestrictedRules\Pages\EditRestrictedRule;
 use App\Filament\Resources\RestrictedRules\Pages\ListRestrictedRules;
 use App\Filament\Resources\RestrictedRules\Schemas\RestrictedRuleForm;
 use App\Filament\Resources\RestrictedRules\Tables\RestrictedRulesTable;
-use App\Filament\Support\Admin;
 use App\Models\RestrictedRule;
 use BackedEnum;
 use Filament\Resources\Resource;

@@ -6,6 +6,8 @@ import { useStore } from "@/state/store";
 import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
 import { formatBdt } from "@/lib/pricing";
+import { EmiLine } from "@/components/money/EmiLine";
+import { SafeSection } from "@/components/resilience/SafeSection";
 import type { Variant } from "@/lib/types";
 import type { BuyInfo } from "./types";
 import { QtyStepper } from "./QtyStepper";
@@ -173,6 +175,9 @@ export function BuyBox({
         </div>
         <QtyStepper value={qty} onChange={setQty} />
       </div>
+      <SafeSection label="EMI" quiet>
+        <EmiLine amount={info.unitBdt * qty} />
+      </SafeSection>
 
       <div ref={actionsRef} className="grid grid-cols-2 gap-2.5">
         <AddButton phase={add} onClick={onAdd} disabled={!info.available} className="h-[52px] text-[15px]" />

@@ -15,7 +15,7 @@ class StaffTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($q) => $q->with('roles'))
+            ->modifyQueryUsing(fn ($query) => $query->with('roles'))
             ->columns([
                 TextColumn::make('name')->searchable()->weight('bold'),
                 TextColumn::make('email')->searchable(),

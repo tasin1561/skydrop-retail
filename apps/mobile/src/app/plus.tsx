@@ -1,0 +1,156 @@
+import { useCallback, useState } from "react";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { ApiError, isDemo } from "@/api/client";
+import { moneyApi, RETURN_PLUS, type PlusMembership, type PlusPeriod, type PlusPlan, type PlusSavings } from "@/api/money";
+import { useStore } from "@/state/store";
+import { useFeature } from "@/lib/features";
+import { formatBdt } from "@/lib/pricing";
+import { useTheme } from "@/theme";
+import { Button, Card, Empty, Pill, Skeleton, T, Tap } from "@/components/ui";
+import { Icon } from "@/components/Icon";
+
+const PERIOD: Record<PlusPeriod, string> = { monthly: "month", quarterly: "3 months", yearly: "year" };
+const PAY = [
+  { id: "bkash", label: "bKash" },
+  { id: "nagad", label: "Nagad" },
+  { id: "card", label: "Card" },
+] as const;
+
+// Skydrop Plus: plans with a period toggle, buy through the payment gateway (manual renewal).
+export default function PlusScreen() {
+  const { c } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { user } = useStore();
+  const on = useFeature("membership");
+  const [plans, setPlans] = useState<PlusPlan[] | null>(null);
+  const [me, setMe] = useState<{ membership: PlusMembership | null; savings: PlusSavings } | null>(null);
+  const [period, setPeriod] = useState<PlusPeriod | null>(null);
+  const [pay, setPay] = useState<(typeof PAY)[number]["id"]>("bkash");
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await moneyApi.plans();
+      setPlans(r.items);
+      setPeriod((p) => p ?? r.items.find((x) => x.highlight)?.period ?? r.items[0]?.period ?? null);
+    } catch {
+      setPlans([]);
+    }
+    if (user && !isDemo()) moneyApi.membership().then(setMe).catch(() => {});
+  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      if (on) load();
+    }, [on, load]),
+  );
+
+  if (!on) return <Empty icon="star" title="Skydrop Plus" text="Skydrop Plus is not available right now." />;
+
+  const periods = (["monthly", "quarterly", "yearly"] as PlusPeriod[]).filter((p) => plans?.some((x) => x.period === p));
+  const current = me?.membership && me.membership.status !== "expired" ? me.membership : null;
+
+  const buy = async (plan: PlusPlan) => {
+    if (!user) return router.push({ pathname: "/login", params: { next: "/plus" } });
+    if (isDemo()) return Alert.alert("Preview", "Plus can be bought once the app is connected to the store.");
+    setBusy(plan.slug);
+    try {
+      const r = await moneyApi.buyPlus(plan.slug, pay);
+      if (r.payment.redirectUrl) await WebBrowser.openAuthSessionAsync(r.payment.redirectUrl, RETURN_PLUS);
+      await load();
+    } catch (e) {
+      Alert.alert("Payment not started", e instanceof ApiError ? e.message : "Please try again.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32, gap: 14 }}>
+      <LinearGradient colors={["#0b1020", "#1e3a8a"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+        <Pill text="SKYDROP PLUS" icon="star" color="#f5c451" bg="rgba(255,255,255,0.08)" />
+        <T style={{ color: "#fff8e1", fontSize: 28, lineHeight: 34, fontWeight: "900" }}>Free shipping from India on every order</T>
+        {current ? (
+          <T v="small" style={{ color: "rgba(255,255,255,0.8)" }}>
+            You&apos;re on {current.plan?.name}
+            {current.renewsAt ? ` · paid through ${new Date(current.renewsAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+          </T>
+        ) : null}
+        {current && me && me.savings.totalBdt > 0 ? (
+          <T style={{ color: "#f5c451", fontWeight: "800" }}>Plus saved you {formatBdt(me.savings.totalBdt)}</T>
+        ) : null}
+      </LinearGradient>
+
+      {periods.length > 1 && (
+        <View style={[styles.toggle, { backgroundColor: c.surface2 }]} accessibilityRole="radiogroup">
+          {periods.map((p) => (
+            <Tap
+              key={p}
+              onPress={() => setPeriod(p)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: p === period }}
+              style={[styles.toggleBtn, p === period && { backgroundColor: c.surface }]}
+            >
+              <T style={{ fontWeight: "700", textTransform: "capitalize" }}>{p}</T>
+            </Tap>
+          ))}
+        </View>
+      )}
+
+      {!plans ? (
+        <Skeleton h={260} r={20} />
+      ) : (
+        plans
+          .filter((p) => p.period === period)
+          .map((p, i) => (
+            <Animated.View key={p.id} entering={FadeInDown.delay(i * 40)}>
+              <Card style={[{ gap: 8 }, p.highlight && { borderWidth: 2, borderColor: "#f5c451" }]}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <T v="h3">{p.name}</T>
+                  {p.highlight && <Pill text="Popular" color="#b45309" />}
+                </View>
+                <T style={{ fontSize: 28, fontWeight: "900", fontVariant: ["tabular-nums"] }}>
+                  {formatBdt(p.priceBdt)}
+                  <T tone="ink2"> / {PERIOD[p.period]}</T>
+                </T>
+                {p.benefitList.map((b) => (
+                  <View key={b} style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+                    <Icon name="check" size={16} color={c.good} />
+                    <T style={{ flex: 1 }}>{b}</T>
+                  </View>
+                ))}
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
+                  {PAY.map((m) => (
+                    <Tap
+                      key={m.id}
+                      onPress={() => setPay(m.id)}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: pay === m.id }}
+                      style={[styles.chip, { backgroundColor: pay === m.id ? c.brand : c.surface2 }]}
+                    >
+                      <T style={{ fontWeight: "700", color: pay === m.id ? "#fff" : c.ink }}>{m.label}</T>
+                    </Tap>
+                  ))}
+                </View>
+                <Button label={user ? `Pay ${formatBdt(p.priceBdt)}` : "Sign in to join"} icon="shield" busy={busy === p.slug} onPress={() => buy(p)} />
+              </Card>
+            </Animated.View>
+          ))
+      )}
+      <T v="tiny" tone="ink3" style={{ textAlign: "center" }}>
+        Plus does not renew automatically. We&apos;ll text you before it ends with a link to renew.
+      </T>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  hero: { borderRadius: 24, padding: 20, gap: 8 },
+  toggle: { flexDirection: "row", borderRadius: 999, padding: 4 },
+  toggleBtn: { flex: 1, minHeight: 44, borderRadius: 999, alignItems: "center", justifyContent: "center" },
+  chip: { flex: 1, minHeight: 44, borderRadius: 999, alignItems: "center", justifyContent: "center" },
+});

@@ -29,10 +29,14 @@ export function FaqSearch({ faqs }: { faqs: Faq[] }) {
   return (
     <div className="faq">
       <div className="field">
-        <input id={id} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder=" " autoComplete="off" enterKeyHint="search" />
-        <label htmlFor={id}>Search questions, e.g. refund, customs, bKash</label>
+        <input id={id} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder=" " autoComplete="off" enterKeyHint="search" aria-describedby={id + "-hint"} />
+        <label htmlFor={id}>Search questions</label>
         <Icon name="search" size={18} className="field-icon" />
       </div>
+
+      <p id={id + "-hint"} className="mt-1.5 pl-1 text-xs text-ink-3">
+        Try refund, customs, bKash or points
+      </p>
 
       <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Topics">
         {topics.map((t) => (

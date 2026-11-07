@@ -9,6 +9,7 @@ import { checkPhone, formatPhone, toE164 } from "./phone";
 import { OtpInput } from "./OtpInput";
 import { api, apiEnabled, ApiError } from "@/lib/apiClient";
 import { clearInvite, getInvite } from "@/lib/growth";
+import { TurnstileWidget } from "@/components/security/Turnstile";
 
 type Step = "phone" | "code" | "name";
 
@@ -211,6 +212,7 @@ export function LoginFlow({ next }: { next: string }) {
             <div className={"mt-5 " + phoneShake.shakeClass} onAnimationEnd={phoneShake.onAnimationEnd}>
               <PhoneField digits={digits} onChange={setDigits} autoFocus showErrors={tried} />
             </div>
+            <TurnstileWidget className="mt-3" />
             <button type="submit" className="btn btn-primary mt-3 w-full" aria-busy={sending === "busy"} disabled={sending === "busy"}>
               {sending === "busy" ? (
                 <>
@@ -270,6 +272,7 @@ export function LoginFlow({ next }: { next: string }) {
               {!apiEnabled ? "Demo: no SMS is sent. Use any 6 digits." : demoCode ? `Test mode code: ${demoCode}` : "Didn't get it? Wait for the timer, then resend."}
             </p>
             <OtpInput key={otpKey} onComplete={onVerified} disabled={verified} />
+            {!verified && resendIn <= 0 && <TurnstileWidget className="mt-3" />}
             {apiError && (
               <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad">
                 {apiError}

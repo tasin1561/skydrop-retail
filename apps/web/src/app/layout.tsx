@@ -12,6 +12,7 @@ import { StoreTheme } from "@/components/StoreTheme";
 import { RefCapture } from "@/components/growth/RefCapture";
 import { Tracking } from "@/components/tracking/Tracking";
 import { SupportButton } from "@/components/support/SupportButton";
+import { Assistant } from "@/components/assistant/Assistant";
 
 export const metadata: Metadata = {
   title: { default: "Skydrop Retail: shop Indian stores from Bangladesh", template: "%s · Skydrop Retail" },
@@ -54,6 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Suspense>
               <MobileNav />
               <SupportButton />
+              <Assistant />
             </Suspense>
           </ToastProvider>
         </StoreProvider>

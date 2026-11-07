@@ -9,6 +9,7 @@ use App\Services\Security\ClientIdentity;
 use App\Services\Security\Turnstile;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,6 +22,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ApiShield
 {
+    public const CATALOG_LIKE = ['api/v1/products/{id}/price-history', 'api/v1/products/{id}/compare', 'api/v1/products/{id}/bought-together',
+        'api/v1/products/{id}/bundles'];
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! config('security.enforce')) {
@@ -36,6 +40,13 @@ class ApiShield
         }
         if ($request->isMethod('post') && $request->is('api/v1/auth/otp/verify')) {
             return $this->otpVerify($request, $next, $ip);
+        }
+
+        // Catalog-like reads that live in other route files (price history, compare, bundles) get the same guard.
+        if ($request->isMethod('get') && in_array($request->route()?->uri(), self::CATALOG_LIKE, true)) {
+            return (new Pipeline(app()))->send($request)
+                ->through([CatalogGuard::class, BotGuard::class, CatalogThrottle::class])
+                ->then($next);
         }
 
         return $next($request);

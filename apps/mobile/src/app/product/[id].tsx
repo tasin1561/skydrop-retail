@@ -18,6 +18,7 @@ import { Icon } from "@/components/Icon";
 import { QtyStepper } from "@/components/QtyStepper";
 import { Rail, useAsync } from "@/components/Shop";
 import { useToast } from "@/components/Toast";
+import { AskAiButton } from "@/components/AskAiButton";
 import { Gallery, type Media } from "@/components/product/Gallery";
 import { VariantGroup } from "@/components/product/Variants";
 import { DeliveryRoute, PriceBreakdown, Reviews, Specs } from "@/components/product/Details";
@@ -347,6 +348,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
             {p.title}
           </T>
         </Animated.View>
+        <AskAiButton productId={p.id} spaced />
         <IconButton
           icon="share-2"
           label="Share this product"

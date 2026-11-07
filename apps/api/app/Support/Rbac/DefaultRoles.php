@@ -26,7 +26,7 @@ class DefaultRoles
             'manager' => [
                 'name' => 'Manager',
                 'description' => 'Runs the shop: everything except staff, roles, feature switches and security settings.',
-                'permissions' => ['*', '!roles.*', '!staff.*', '!features.*', '!page.features', '!security*', '!page.security*', '!settings.security*'],
+                'permissions' => ['*', '!roles.*', '!staff.*', '!features.*', '!page.features', '!security*', '!page.*security*', '!settings.security*'],
             ],
             'order_ops' => [
                 'name' => 'Order Ops',
@@ -59,6 +59,7 @@ class DefaultRoles
                     'payments.*', 'orders.viewAny', 'orders.view', 'orders.export', 'orders.refund', 'refunds*', 'payouts*',
                     'affiliate-payouts.*', 'affiliate-commissions.*', 'finance*', 'page.finance*', 'page.*report*', 'page.*profit*',
                     'page.*accounting*', 'reports.*', 'wallet*', 'fx-rates.viewAny', 'fx-rates.view', 'widget.*', 'actions.manage',
+                    '!page.*security*', '!security*',
                 ],
             ],
             'marketing' => [

@@ -12,6 +12,9 @@ import { STAGES, canCancel, currentStatus, etaRange, isInProgress, stageIndex, s
 import { ConfirmDialog, EmptyState, LoadingBlock, PageHead, useNow } from "./ui";
 import { ProgressBar, StatusChip, Thumb, orderDate, shortId } from "./OrderBits";
 import { prettyPhone } from "./phone";
+import { SafeSection } from "@/components/resilience/SafeSection";
+import { TrackingPanel } from "@/components/fulfilment/TrackingPanel";
+import { OrderCases } from "@/components/fulfilment/OrderCases";
 
 const TRACK_URL = "https://track.skydrop.online";
 
@@ -80,6 +83,14 @@ export function OrderDetail({ id }: { id: string }) {
         <TrackingCode code={order.trackingCode} />
         <p className="mt-2 text-[11px] text-ink-3">Demo: tracking moves forward on its own every few minutes. Live orders update from Skydrop hub scans.</p>
       </section>
+
+      {/* fulfilment: route map + live rider, unboxing approval, returns */}
+      <SafeSection label="Route map" quiet>
+        <TrackingPanel order={order} status={s} now={now} />
+      </SafeSection>
+      <SafeSection label="Unboxing and returns">
+        <OrderCases order={order} status={s} />
+      </SafeSection>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_340px]">
         {/* items by store */}

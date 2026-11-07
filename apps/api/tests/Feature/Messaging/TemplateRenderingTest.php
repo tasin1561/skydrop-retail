@@ -59,7 +59,8 @@ class TemplateRenderingTest extends TestCase
                 continue;
             }
             $body = $r->string($t['body'], Events::get($t['key'])['sample']);
-            $max = $t['locale'] === 'bn' ? 3 : 2;
+            // Active: 1 part in English, at most 2 in Bangla. Optional (off by default) ones may use one more.
+            $max = ($t['locale'] === 'bn' ? 2 : 1) + ($t['active'] ? 0 : 1);
             $this->assertLessThanOrEqual($max, SmsSegments::count($body), "{$t['key']} {$t['locale']} is too long: {$body}");
         }
     }

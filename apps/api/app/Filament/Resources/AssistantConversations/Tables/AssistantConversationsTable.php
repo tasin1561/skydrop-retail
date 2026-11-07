@@ -17,7 +17,7 @@ class AssistantConversationsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $q) => $q->with(['user', 'feedback']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['user', 'feedback']))
             ->defaultSort('last_message_at', 'desc')
             ->columns([
                 TextColumn::make('last_message_at')->label('Last message')->dateTime('d M, H:i')->sortable(),
@@ -38,8 +38,8 @@ class AssistantConversationsTable
             ])
             ->filters([
                 SelectFilter::make('client')->options(['web' => 'Web', 'mobile' => 'Mobile']),
-                Filter::make('signed_in')->label('Signed-in shoppers')->query(fn (Builder $q) => $q->whereNotNull('user_id')),
-                Filter::make('negative')->label('Has thumbs down')->query(fn (Builder $q) => $q->whereHas('feedback', fn ($f) => $f->where('rating', -1))),
+                Filter::make('signed_in')->label('Signed-in shoppers')->query(fn (Builder $query) => $query->whereNotNull('user_id')),
+                Filter::make('negative')->label('Has thumbs down')->query(fn (Builder $query) => $query->whereHas('feedback', fn ($f) => $f->where('rating', -1))),
             ])
             ->recordActions([ViewAction::make()]);
     }

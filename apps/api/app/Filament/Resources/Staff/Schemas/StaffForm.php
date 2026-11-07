@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Staff\Schemas;
 use App\Filament\Support\Admin;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Rbac\DefaultRoles;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
@@ -52,7 +53,7 @@ class StaffForm
     /** Pre-tick the role a legacy users.role string maps to. */
     private static function legacyRoleIds(User $user): array
     {
-        $slug = \App\Support\Rbac\DefaultRoles::LEGACY[$user->role ?: 'admin'] ?? null;
+        $slug = DefaultRoles::LEGACY[$user->role ?: 'admin'] ?? null;
 
         return $slug ? Role::query()->where('slug', $slug)->pluck('id')->map(fn ($id) => (string) $id)->all() : [];
     }

@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Categories;
 
 use App\Filament\Resources\Categories\Pages\CreateCategory;
+use App\Filament\Resources\Categories\Pages\CategoryTreePage;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
+use App\Filament\Resources\Categories\Pages\UnmatchedProducts;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
 use App\Filament\Support\Admin;
@@ -49,6 +51,8 @@ class CategoryResource extends Resource
         return [
             'index' => ListCategories::route('/'),
             'create' => CreateCategory::route('/create'),
+            'tree' => CategoryTreePage::route('/tree'),
+            'unmatched' => UnmatchedProducts::route('/unmatched'),
             'edit' => EditCategory::route('/{record}/edit'),
         ];
     }

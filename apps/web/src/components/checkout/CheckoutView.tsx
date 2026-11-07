@@ -23,6 +23,11 @@ import { DeliveryPromise, SummaryLines, TrustRow } from "./Summary";
 import { VanButton, type VanState } from "./VanButton";
 import { CheckoutRestrictions } from "@/components/cms/CheckoutRestrictions";
 import { CHECKS, VerifyPanel, type CheckState, type VerifyResult } from "./VerifyPanel";
+import { UnboxingToggle, unboxingFeeFor } from "@/components/fulfilment/UnboxingToggle";
+import { useFeature } from "@/components/features/FeaturesProvider";
+import { useBundleTotals } from "@/components/shopping/useBundleTotals";
+import { CheckoutMoney, EmiOption, type EmiChoice } from "@/components/money/CheckoutMoney";
+import type { MoneyQuote } from "@/lib/money";
 
 const ALNUM = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function rand(n: number, chars: string) {
@@ -51,6 +56,12 @@ export function CheckoutView() {
   const [payment, setPayment] = useState<PaymentId | null>(null);
   const [terms, setTerms] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
+  const [unboxing, setUnboxing] = useState(false); // fulfilment: paid unboxing at the Kolkata hub
+  const unboxingOn = useFeature("unboxing");
+  // money module: store credit, card EMI and the server quote (Plus savings, wallet, EMI charge, pay now)
+  const [useWallet, setUseWallet] = useState(false);
+  const [emi, setEmi] = useState<EmiChoice | null>(null);
+  const [moneyQ, setMoneyQ] = useState<MoneyQuote | null>(null);
   const [apiPoints, setApiPoints] = useState<number | null>(null);
   const [nudge, setNudge] = useState<{ n: number; msg: string } | null>(null);
 
@@ -89,7 +100,9 @@ export function CheckoutView() {
     : cart.map((i) => (fresh[itemKey(i)] ? { ...i, unitBdt: fresh[itemKey(i)] } : i));
   const pointsBalance = apiEnabled ? (apiPoints ?? 0) : demoLedger(store.orders, user ? "" : undefined).balance;
   const redeemable = maxRedeem(pointsBalance, computeTotals(items, coupon).subtotal);
-  const t = computeTotals(items, coupon, usePoints && !placed ? redeemable.points : (placed?.pointsRedeemed ?? 0));
+  const t0 = useBundleTotals(computeTotals(items, coupon, usePoints && !placed ? redeemable.points : (placed?.pointsRedeemed ?? 0)), items); // Shopping: bundle saving
+  const unboxingFee = unboxingFeeFor(unboxingOn && unboxing, t0.groups.length);
+  const t = unboxingFee ? { ...t0, unboxingFee, total: t0.total + unboxingFee } : t0;
   const address = addresses.find((a) => a.id === addrPick) ?? addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;
 
   if (!ready) return <CheckoutSkeleton />;
@@ -138,11 +151,13 @@ export function CheckoutView() {
           api.createOrder({
             items: orderItems,
             address,
-            payment,
+            payment: emi ? "card_emi" : payment,
             coupon: coupon?.code,
             redeemPoints: tt.pointsRedeemed || undefined,
+            unboxing: unboxingOn && unboxing ? true : undefined,
             returnUrl: `${window.location.origin}/checkout/success`,
             ref: getRef(),
+            extra: { useWallet: useWallet || undefined, emiTenure: emi?.tenure, emiBank: emi?.bank },
           }),
           wait(Math.max(0, 700 - (msSince(startedAt)))),
         ]);
@@ -191,7 +206,7 @@ export function CheckoutView() {
       subtotal: tt.subtotal,
       shipping: tt.shipping,
       discount: tt.discount,
-      total: tt.total,
+      total: tt.total + unboxingFee, // fulfilment: unboxing fee (demo)
       status: "placed",
       trackingCode: "SD" + rand(9, "0123456789"),
       pointsRedeemed: tt.pointsRedeemed,
@@ -303,7 +318,7 @@ export function CheckoutView() {
       </>
     ) : (
       <>
-        <Icon name="shield" size={17} /> Place order · {formatBdt(t.total)}
+        <Icon name="shield" size={17} /> Place order · {formatBdt(step === 3 && moneyQ ? moneyQ.payNow : t.total)}
       </>
     );
 
@@ -349,8 +364,34 @@ export function CheckoutView() {
             </h2>
 
             {step === 0 && <AddressStep key={user?.phone ?? "guest"} selected={address?.id ?? null} onSelect={setAddrPick} />}
-            {step === 1 && <DeliveryStep t={t} coupon={coupon} />}
-            {step === 2 && <PaymentStep value={payment} onChange={setPayment} total={t.total} />}
+            {step === 1 && (
+              <>
+                <DeliveryStep t={t} coupon={coupon} />
+                <UnboxingToggle checked={unboxing} onChange={setUnboxing} shipments={t.groups.length} disabled={phase === "placing" || phase === "done"} />
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <PaymentStep
+                  value={emi ? null : payment}
+                  onChange={(id) => {
+                    setEmi(null);
+                    setPayment(id);
+                  }}
+                  total={t.total}
+                />
+                <div className="mt-3">
+                  <EmiOption
+                    amount={t.total}
+                    value={emi}
+                    onChange={(v) => {
+                      setEmi(v);
+                      if (v) setPayment("card");
+                    }}
+                  />
+                </div>
+              </>
+            )}
             {step === 3 && (
               <>
               {pointsBalance >= 100 && (
@@ -379,7 +420,7 @@ export function CheckoutView() {
               <Review
                 t={t}
                 addressLine={address ? `${address.name}, ${address.phone} · ${addressText(address)}` : "No address"}
-                paymentText={payment ? paymentLabel(payment, t.total) : "Not chosen"}
+                paymentText={emi ? `Card EMI · ${emi.tenure} months` : payment ? paymentLabel(payment, t.total) : "Not chosen"}
                 paymentIcon={PAYMENTS.find((p) => p.id === payment)?.icon ?? "wallet"}
                 onEdit={go}
                 terms={terms}
@@ -387,6 +428,19 @@ export function CheckoutView() {
                 lock={phase === "verifying" || phase === "placing" || phase === "done"}
                 coupon={coupon}
               />
+              <div className="mt-3">
+                <CheckoutMoney
+                  items={items}
+                  coupon={coupon?.code}
+                  redeemPoints={usePoints ? redeemable.points : 0}
+                  payment={payment}
+                  emi={emi}
+                  useWallet={useWallet}
+                  setUseWallet={setUseWallet}
+                  onQuote={setMoneyQ}
+                  lock={phase === "verifying" || phase === "placing" || phase === "done"}
+                />
+              </div>
               </>
             )}
 
@@ -446,7 +500,7 @@ export function CheckoutView() {
           <div className="min-w-0 shrink-0 pr-1">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Total</p>
             <p key={t.total} className="co-bump text-base font-extrabold leading-tight tabular-nums">
-              {formatBdt(t.total)}
+              {formatBdt(step === 3 && moneyQ ? moneyQ.payNow : t.total)}
             </p>
           </div>
           {action("min-w-0 flex-1 px-3 text-sm")}

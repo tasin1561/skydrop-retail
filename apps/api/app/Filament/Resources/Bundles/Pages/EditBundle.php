@@ -8,5 +8,4 @@ use Filament\Resources\Pages\EditRecord;
 class EditBundle extends EditRecord
 {
     protected static string $resource = BundleResource::class;
-
 }

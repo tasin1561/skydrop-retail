@@ -107,6 +107,8 @@ export type Totals = {
   pointsRedeemed: number;
   pointsDiscount: number;
   pointsToEarn: number;
+  /** fulfilment: paid unboxing at the Kolkata hub (already inside total) */
+  unboxingFee?: number;
 };
 
 /** redeemPoints: points the shopper chose to use (already capped by maxRedeem). */

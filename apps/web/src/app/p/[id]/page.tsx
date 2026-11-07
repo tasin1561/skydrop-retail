@@ -1,19 +1,27 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProduct, related } from "@/lib/data";
+import { byMarket, loadProduct, related, usingApi } from "@/lib/data";
+import { getProduct } from "@/lib/data";
 import { STORES } from "@/lib/markets";
 import { formatBdt, priceBdt } from "@/lib/pricing";
 import { Rail } from "@/components/ProductBits";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { isUnavailableStock } from "@/components/product/DeliveryCard";
 import { TrackView } from "@/components/tracking/TrackView";
+import { LiveFetch } from "@/components/resilience/LiveFetch";
+import { LiveRefresh, StaleNote } from "@/components/resilience/LiveRefresh";
+import { ErrorState } from "@/components/resilience/ErrorState";
+import { SafeSection } from "@/components/resilience/SafeSection";
+import type { Product } from "@/lib/types";
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const p = await getProduct(decodeURIComponent(id));
-  if (!p) return { title: "Product not found" };
+  const r = await loadProduct(decodeURIComponent(id));
+  if (r.kind === "fetching") return { title: "Loading product", robots: { index: false } };
+  if (r.kind !== "ready") return { title: "Product not found" };
+  const p = r.product;
   const source = STORES[p.market].source;
   const title = p.title.length > 70 ? p.title.slice(0, 67).trimEnd() + "..." : p.title;
   const description = `${p.brand ? p.brand + " · " : ""}${formatBdt(priceBdt(p))} delivered to Bangladesh. Bought for you from ${source}, India and delivered by Skydrop.`;
@@ -30,35 +38,74 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const { id } = await params;
-  const p = await getProduct(decodeURIComponent(id));
-  if (!p) notFound();
+  const { id: raw } = await params;
+  const id = decodeURIComponent(raw);
+  const r = await loadProduct(id);
 
-  // Which variant ids we can open as their own page, and which are known out of stock.
-  const knownIds: string[] = [];
-  const unavailableIds: string[] = [];
-  const ids = Array.from(new Set((p.variants ?? []).map((v) => v.id).filter((v): v is string => !!v && v !== p.id)));
-  const others = await Promise.all(ids.slice(0, 60).map((vid) => getProduct(vid)));
-  for (const other of [p, ...others]) {
-    if (!other || !(p.variants ?? []).some((v) => v.id === other.id)) continue;
-    knownIds.push(other.id);
-    if (isUnavailableStock(other.stock)) unavailableIds.push(other.id);
+  if (r.kind === "notfound") notFound();
+  if (r.kind === "unavailable") {
+    return <ErrorState title="This product is taking a moment" body="We couldn't reach the store just now. Please try again in a few seconds." />;
+  }
+  if (r.kind === "fetching") {
+    // Not in our database yet: show the live-fetch screen with something to browse meanwhile.
+    const browse = await byMarket(((r.market as Product["market"]) ?? "all") as never, 12).catch(() => [] as Product[]);
+    return (
+      <LiveFetch
+        jobId={r.jobId}
+        market={r.market}
+        productId={id}
+        browse={browse.length ? <Rail title="While you wait" note="Popular right now" items={browse} /> : null}
+      />
+    );
   }
 
-  const more = await related(p);
+  const p = r.product;
   const store = STORES[p.market];
 
+  // Variant availability. With the API, the product JSON already says which variants we know and which
+  // are out of stock (no extra calls). In demo mode we look the siblings up in the bundled catalog.
+  const knownIds: string[] = [];
+  const unavailableIds: string[] = [];
+  if (usingApi) {
+    for (const v of p.variants ?? []) {
+      const vv = v as { id?: string; available?: boolean };
+      if (!vv.id) continue;
+      knownIds.push(vv.id);
+      if (vv.available === false) unavailableIds.push(vv.id);
+    }
+  } else {
+    const ids = Array.from(new Set((p.variants ?? []).map((v) => v.id).filter((v): v is string => !!v && v !== p.id)));
+    const others = await Promise.all(ids.slice(0, 60).map((vid) => getProduct(vid).catch(() => null)));
+    for (const other of [p, ...others]) {
+      if (!other || !(p.variants ?? []).some((v) => v.id === other.id)) continue;
+      knownIds.push(other.id);
+      if (isUnavailableStock(other.stock)) unavailableIds.push(other.id);
+    }
+  }
+
+  const more = await related(p).catch(() => [] as Product[]);
+
   return (
-    <ProductDetail p={p} knownIds={knownIds} unavailableIds={unavailableIds}>
-      <TrackView product={{ id: p.id, title: p.title, brand: p.brand, category: p.category, priceBdt: priceBdt(p) }} />
-      <div className="mt-4">
-        <Rail
-          title="More like this"
-          note={`Popular on ${store.source}`}
-          href={`/search?q=&store=${p.market}&category=${p.category}`}
-          items={more}
-        />
-      </div>
-    </ProductDetail>
+    <>
+      {r.stale && (
+        <div className="mx-auto max-w-7xl px-4 pt-3">
+          <StaleNote />
+        </div>
+      )}
+      <ProductDetail p={p} knownIds={knownIds} unavailableIds={unavailableIds}>
+        <TrackView product={{ id: p.id, title: p.title, brand: p.brand, category: p.category, priceBdt: priceBdt(p) }} />
+        <SafeSection label="Similar products" quiet>
+          <div className="mt-4">
+            <Rail
+              title="More like this"
+              note={`Popular on ${store.source}`}
+              href={`/search?q=&store=${p.market}&category=${p.category}`}
+              items={more}
+            />
+          </div>
+        </SafeSection>
+      </ProductDetail>
+      {r.refreshJobId && <LiveRefresh jobId={r.refreshJobId} source={store.source} />}
+    </>
   );
 }

@@ -10,6 +10,7 @@ import { currentStatus, isInProgress } from "@/lib/orderStatus";
 import { ConfirmDialog, LoadingBlock, useNow } from "./ui";
 import { SignedOut } from "./SignedOut";
 import { prettyPhone } from "./phone";
+import { AccountMoney, PlusBadge } from "@/components/money/AccountMoney";
 import { Feature } from "@/components/features/FeaturesProvider";
 
 type Theme = "light" | "dark" | "system";
@@ -77,7 +78,9 @@ export function AccountDashboard() {
           </span>
           <div className="min-w-0">
             <p className="text-sm text-white/80">{greeting(now)},</p>
-            <h1 className="truncate text-2xl font-extrabold tracking-tight">{user.name}</h1>
+            <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+              <span className="truncate">{user.name}</span> <PlusBadge />
+            </h1>
             <p className="text-sm tabular-nums text-white/80">{prettyPhone(user.phone)}</p>
           </div>
         </div>
@@ -101,6 +104,9 @@ export function AccountDashboard() {
         ))}
       </section>
 
+      {/* money module: wallet balance + Skydrop Plus status / savings */}
+      <AccountMoney />
+
       {/* menu */}
       <section aria-label="Account menu" className="card rise mt-4 overflow-hidden" style={{ ["--i" as string]: 4 }}>
         <Row href="/orders" icon="receipt" label="Orders" sub="Track and manage" badge={orders.length} />
@@ -113,6 +119,15 @@ export function AccountDashboard() {
         />
         <Row href="/wishlist" icon="heart" label="Wishlist" sub="Saved for later" badge={wishlist.length} />
         <Row href="/account/points" icon="spark" label="Skydrop Points" sub="Earn on every order, save at checkout" />
+        <Feature name="wallet">
+          <Row href="/account/wallet" icon="wallet" label="Skydrop Wallet" sub="Refunds, gift cards and store credit" />
+        </Feature>
+        <Feature name="gift_cards">
+          <Row href="/gift-cards" icon="bag" label="Gift cards" sub="Send or redeem a gift card" />
+        </Feature>
+        <Feature name="membership">
+          <Row href="/plus" icon="star" label="Skydrop Plus" sub="Free shipping on every order" />
+        </Feature>
         <Feature name="referral">
           <Row href="/account/invite" icon="share" label="Invite friends" sub="You both get Skydrop Points" />
         </Feature>

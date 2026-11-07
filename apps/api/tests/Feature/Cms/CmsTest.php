@@ -232,8 +232,9 @@ class CmsTest extends TestCase
         $this->assertSame($this->bdt($p), app(PricingService::class)->productBdt($p));
         $this->getJson('/api/v1/cms/home')->assertOk()->assertJsonCount(0, 'banners')->assertJsonCount(0, 'flashSales')
             ->assertJsonPath('enabled.flashSales', false);
+        // Coupons switched off: the code is ignored with a notice (App\Http\Middleware\EnforceFeatureSwitches).
         $this->postJson('/api/v1/checkout/quote', ['items' => [['productId' => 'A1', 'qty' => 1]], 'coupon' => 'SKYDROP10'])
-            ->assertStatus(422)->assertJsonValidationErrors('coupon');
+            ->assertOk()->assertJsonPath('notices.0.feature', 'coupons')->assertJsonPath('coupon', null);
         $this->getJson('/api/v1/products/A1/reviews')->assertNotFound()->assertJsonPath('error', 'feature_disabled');
         $this->postJson('/api/v1/orders', ['items' => [['productId' => 'K1', 'qty' => 1, 'unitBdt' => $this->bdt($knife)]],
             'addressId' => $u->addresses()->first()->id, 'payment' => 'bkash'])->assertCreated();

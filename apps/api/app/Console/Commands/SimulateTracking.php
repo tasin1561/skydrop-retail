@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Order;
 use App\Services\Commerce\OrderWorkflow;
+use App\Services\Fulfilment\TrackingRecorder;
 use Illuminate\Console\Command;
 
 // Dev helper: walks an order through the tracking stages like the web demo (one stage per step).
@@ -42,7 +43,7 @@ class SimulateTracking extends Command
         }
 
         if ((int) $this->option('rider') > 0 && $order->status === 'out_for_delivery') {
-            $n = app(\App\Services\Fulfilment\TrackingRecorder::class)->simulateRider($order, (int) $this->option('rider'));
+            $n = app(TrackingRecorder::class)->simulateRider($order, (int) $this->option('rider'));
             $this->info("{$order->id}: {$n} rider location ping(s)");
         }
 

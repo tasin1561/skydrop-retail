@@ -40,7 +40,7 @@ export function SupportButton() {
   ].filter(Boolean) as { href: string; label: string; bg: string }[];
 
   return (
-    <div ref={wrap} className="sc-wrap" data-open={open}>
+    <div ref={wrap} className="sc-wrap" data-open={open} data-lift={path.startsWith("/p/") || path === "/cart"}>
       {options.map((o, i) => (
         <a
           key={o.label}

@@ -52,13 +52,15 @@ class PurchaseQueue extends Page implements HasTable
     {
         return OrderItem::query()
             ->whereNull('purchase_ref')
+            ->whereNull('cancelled_at') // fulfilment: items cancelled after a price alert
             ->whereIn('order_id', Order::query()->select('id')->whereIn('status', ['placed', 'verified'])
                 ->where(fn ($q) => $q->where('is_preorder', false)->orWhere('status', '!=', 'placed'))); // Shopping: unpaid pre-orders wait for stock
     }
 
     public function content(Schema $schema): Schema
     {
-        return $schema->components([EmbeddedTable::make()]);
+        // Fulfilment: red banner for supplier price alerts (old vs new price, margin impact).
+        return $schema->components([\Filament\Schemas\Components\View::make('filament.hub.price-alert-banner'), EmbeddedTable::make()]);
     }
 
     public function table(Table $table): Table
@@ -86,31 +88,47 @@ class PurchaseQueue extends Page implements HasTable
                 SelectFilter::make('market')->label('Store')->options(Admin::MARKETS),
             ])
             ->recordActions([
+                Action::make('recheckPrice')->label('Check price')->icon(Heroicon::OutlinedArrowPath)->color('gray') // fulfilment: right before buying
+                    ->visible(fn () => app(\App\Services\Fulfilment\PriceAlertService::class)->enabled())
+                    ->action(function (OrderItem $record) {
+                        \App\Filament\Support\Ops::refreshProduct($record->product_id);
+                        $flagged = app(\App\Services\Fulfilment\PriceAlertService::class)->check($record);
+                        Notification::make()->title($flagged ? 'Price alert: review before buying' : 'Price OK')->{$flagged ? 'danger' : 'success'}()->send();
+                    }),
                 Action::make('open')->label('Open')->icon(Heroicon::OutlinedArrowTopRightOnSquare)->color('gray')
                     ->url(fn (OrderItem $r) => Admin::sourceUrl($r->market, $r->product_id), true),
                 Action::make('bought')->label('Bought')->icon(Heroicon::OutlinedCheck)->color('success')
-                    ->schema([TextInput::make('ref')->label('Marketplace order reference')->required()->maxLength(100)])
-                    ->action(fn (OrderItem $record, array $data) => $this->recordBought(collect([$record]), $data['ref'])),
+                    ->schema([TextInput::make('ref')->label('Marketplace order reference')->required()->maxLength(100),
+                        TextInput::make('actual_paid_inr')->label('Actually paid (₹, all units)')->prefix('₹')->numeric()->minValue(0) // profit report
+                            ->default(fn (OrderItem $record) => $record->unit_inr * $record->qty)])
+                    ->action(fn (OrderItem $record, array $data) => $this->recordBought(collect([$record]), $data['ref'], $data['actual_paid_inr'] ?? null)),
             ])
             ->toolbarActions([
                 BulkAction::make('boughtBulk')->label('Mark bought (one marketplace order)')->icon(Heroicon::OutlinedCheck)
-                    ->schema([TextInput::make('ref')->label('Marketplace order reference')->required()->maxLength(100)])
-                    ->action(fn (Collection $records, array $data) => $this->recordBought($records, $data['ref'])),
+                    ->schema([TextInput::make('ref')->label('Marketplace order reference')->required()->maxLength(100),
+                        TextInput::make('actual_paid_inr')->label('Actually paid for these items (₹ total)')->prefix('₹')->numeric()->minValue(0)
+                            ->helperText('Optional; split across the items by their catalog price (profit report).')])
+                    ->action(fn (Collection $records, array $data) => $this->recordBought($records, $data['ref'], $data['actual_paid_inr'] ?? null)),
             ])
             ->emptyStateHeading('Nothing to buy')
             ->emptyStateDescription('All placed and verified orders have their items bought.');
     }
 
     /** @param  \Illuminate\Support\Collection<int, OrderItem>  $items */
-    protected function recordBought($items, string $ref): void
+    protected function recordBought($items, string $ref, mixed $paidInr = null): void
     {
+        $catalogInr = max(0.01, (float) $items->sum(fn ($i) => $i->unit_inr * $i->qty));
         foreach ($items as $item) {
-            $item->forceFill(['purchase_ref' => trim($ref)])->save();
+            $fill = ['purchase_ref' => trim($ref)];
+            if (is_numeric($paidInr)) { // actual purchase cost, split by catalog value (finance module)
+                $fill['actual_paid_inr'] = round((float) $paidInr * ($item->unit_inr * $item->qty) / $catalogInr, 2);
+            }
+            $item->forceFill($fill)->save();
         }
         $moved = [];
         foreach ($items->pluck('order_id')->unique() as $orderId) {
             $order = Order::query()->with('items')->find($orderId);
-            if ($order && $order->items->every(fn ($i) => filled($i->purchase_ref)) && in_array($order->status, ['placed', 'verified'], true)) {
+            if ($order && $order->items->every(fn ($i) => filled($i->purchase_ref) || $i->cancelled_at) && in_array($order->status, ['placed', 'verified'], true)) {
                 try {
                     Ops::markPurchased($order, [], 'All items bought from the source stores');
                     $moved[] = $order->id;

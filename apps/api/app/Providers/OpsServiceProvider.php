@@ -10,6 +10,7 @@ use App\Services\Audit\ActivityObserver;
 use App\Services\Fraud\FraudGate;
 use App\Services\Security\ClientIdentity;
 use App\Support\Knobs;
+use App\Support\Rbac\PermissionRegistry;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -37,11 +38,33 @@ class OpsServiceProvider extends ServiceProvider
         'App\\Models\\GiftCard', 'App\\Models\\WalletLedger', 'App\\Models\\Role',
     ];
 
+    /** Hidden from toArray()/toJson() everywhere; API responses use explicit shapes (toApi(), ProductJson) anyway. */
+    public const INTERNAL_FIELDS = [
+        'App\\Models\\Order' => ['staff_notes', 'fx_paid', 'fraud_score', 'fraud_level', 'fraud_reasons', 'fraud_review', 'fraud_checked_at', 'client_ip', 'device_id'],
+        'App\\Models\\OrderItem' => ['unit_inr', 'actual_paid_inr', 'purchase_ref', 'fx_rate'],
+        'App\\Models\\Payment' => ['payload'],
+        'App\\Models\\RawPage' => ['html', 'body', 'content'],
+        'App\\Models\\ProductDetail' => ['raw', 'raw_html'],
+        'App\\Models\\OtpCode' => ['code_hash'],
+    ];
+
     public function boot(): void
     {
         foreach (self::AUDITED as $model) {
             if (class_exists($model)) {
                 $model::observe(ActivityObserver::class);
+            }
+        }
+
+        if (class_exists(PermissionRegistry::class)) {
+            PermissionRegistry::extend(['activity.view' => 'View the staff activity log'], 'Security');
+        }
+
+        // Never serialise internal fields (costs, supplier refs, raw HTML, staff notes, fraud data) into any JSON response.
+        foreach (self::INTERNAL_FIELDS as $model => $fields) {
+            if (class_exists($model)) {
+                $model::retrieved(fn ($m) => $m->makeHidden($fields));
+                $model::created(fn ($m) => $m->makeHidden($fields));
             }
         }
 

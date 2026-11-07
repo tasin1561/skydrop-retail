@@ -9,15 +9,60 @@ const API = process.env.API_URL?.replace(/\/$/, "");
 
 export const usingApi = Boolean(API);
 
-async function api<T>(path: string, revalidate = 60): Promise<T | null> {
-  if (!API) return null;
-  try {
-    const res = await fetch(API + path, { headers: { Accept: "application/json" }, next: { revalidate } });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
+// Server-to-server key: the API's catalog endpoints only answer the Next.js server (or signed apps). Never expose it to the browser.
+export const internalHeaders: Record<string, string> = process.env.INTERNAL_API_KEY ? { "X-Internal-Key": process.env.INTERNAL_API_KEY } : {};
+
+type ApiResult<T> = { ok: true; status: number; data: T } | { ok: false; status: number };
+
+// Last good answer per path, kept in this server process. When the API is slow or down we serve it
+// instead of an error, so product pages and search keep working (prices are re-checked at checkout).
+const lastGood = new Map<string, unknown>();
+const LAST_GOOD_MAX = 800;
+function remember(path: string, data: unknown) {
+  if (lastGood.has(path)) lastGood.delete(path);
+  lastGood.set(path, data);
+  if (lastGood.size > LAST_GOOD_MAX) lastGood.delete(lastGood.keys().next().value as string);
+}
+export function lastGoodFor<T>(path: string): T | null {
+  return (lastGood.get(path) as T | undefined) ?? null;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Fetch from the Laravel API with a hard timeout and one quick retry on network errors / 502-504.
+ * Never throws. status 0 = network error or timeout.
+ */
+async function apiFetch<T>(path: string, { revalidate = 60, timeoutMs = 8000 }: { revalidate?: number; timeoutMs?: number } = {}): Promise<ApiResult<T>> {
+  if (!API) return { ok: false, status: 0 };
+  const started = Date.now();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const left = timeoutMs - (Date.now() - started);
+    if (left < 500) break;
+    try {
+      const res = await fetch(API + path, {
+        headers: { Accept: "application/json", ...internalHeaders },
+        next: { revalidate },
+        signal: AbortSignal.timeout(left),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as T;
+        if (res.status === 200) remember(path, data);
+        return { ok: true, status: res.status, data };
+      }
+      if (![502, 503, 504].includes(res.status)) return { ok: false, status: res.status };
+    } catch {
+      // timeout or network error: retry once if there is time left
+    }
+    await sleep(250);
   }
+  return { ok: false, status: 0 };
+}
+
+async function api<T>(path: string, revalidate = 60): Promise<T | null> {
+  const r = await apiFetch<T>(path, { revalidate });
+  if (r.ok) return r.data;
+  return r.status === 404 ? null : lastGoodFor<T>(path);
 }
 
 function qs(params: Record<string, string | number | boolean | undefined>) {
@@ -26,7 +71,7 @@ function qs(params: Record<string, string | number | boolean | undefined>) {
   return u.toString();
 }
 
-export type SearchResult = { total: number; page: number; pages: number; items: Product[]; status?: "ready" | "pending"; jobId?: string };
+export type SearchResult = { total: number; page: number; pages: number; items: Product[]; status?: "ready" | "pending"; jobId?: string; stale?: boolean };
 
 export async function searchProducts(sp: SearchParams): Promise<SearchResult> {
   const r = await api<SearchResult>(
@@ -34,14 +79,67 @@ export async function searchProducts(sp: SearchParams): Promise<SearchResult> {
     30,
   );
   if (r) return r;
+  // Demo mode, or the API is down with nothing cached: answer from the bundled catalog (marked stale in API mode).
   const res = local.searchProducts(sp);
-  return { ...res, items: res.items.map(demoDecorate) };
+  return { ...res, items: res.items.map(demoDecorate), ...(API ? { stale: true } : {}) };
+}
+
+/**
+ * Product page loader with explicit states so the page never crashes or blocks:
+ * - ready: render it (refreshJobId = a live price refresh is running; stale = served from a fallback)
+ * - fetching: not in our database yet; a live fetch was queued (show the live-fetch screen, poll jobId)
+ * - notfound: real 404
+ * - unavailable: API down and nothing cached (show retry)
+ */
+export type ProductLoad =
+  | { kind: "ready"; product: Product; refreshJobId?: string; stale?: boolean }
+  | { kind: "fetching"; jobId: string; market?: string }
+  | { kind: "notfound" }
+  | { kind: "unavailable" };
+
+export async function loadProduct(id: string): Promise<ProductLoad> {
+  if (!API) {
+    const p = demoDecorate(local.getProduct(id));
+    return p ? { kind: "ready", product: p } : { kind: "notfound" };
+  }
+  const path = `/products/${encodeURIComponent(id)}`;
+  type Body = { product: Product | null; status: string; jobId?: string; market?: string; stale?: boolean };
+  const r = await apiFetch<Body>(path, { revalidate: 30, timeoutMs: 8000 });
+  if (r.ok) {
+    if (r.status === 202 || !r.data.product) {
+      return r.data.jobId ? { kind: "fetching", jobId: r.data.jobId, market: r.data.market } : { kind: "unavailable" };
+    }
+    return {
+      kind: "ready",
+      product: r.data.product,
+      refreshJobId: r.data.status === "pending" ? r.data.jobId : undefined,
+      stale: r.data.stale,
+    };
+  }
+  if (r.status === 404) return { kind: "notfound" };
+  // API slow/down: last good copy, then the bundled catalog, then a retry screen.
+  const cached = lastGoodFor<Body>(path)?.product ?? demoDecorate(local.getProduct(id));
+  return cached ? { kind: "ready", product: cached, stale: true } : { kind: "unavailable" };
 }
 
 export async function getProduct(id: string): Promise<(Product & { pending?: boolean }) | null> {
-  const r = await api<{ product: Product; status: string }>(`/products/${encodeURIComponent(id)}`, 30);
-  if (r?.product) return { ...r.product, pending: r.status === "pending" };
-  return demoDecorate(local.getProduct(id));
+  const r = await loadProduct(id);
+  return r.kind === "ready" ? { ...r.product, pending: Boolean(r.refreshJobId) } : null;
+}
+
+/** Fetch-job status for the live-fetch / live-search screens. */
+export async function jobStatus(id: string): Promise<{ status: "queued" | "running" | "done" | "failed" | "unknown"; result?: Record<string, unknown>; error?: string }> {
+  const r = await apiFetch<{ status: string; result?: Record<string, unknown>; error?: string }>(`/jobs/${encodeURIComponent(id)}`, {
+    revalidate: 0,
+    timeoutMs: 5000,
+  });
+  if (!r.ok) return { status: "unknown" };
+  const st = r.data.status;
+  return {
+    status: st === "done" || st === "failed" || st === "running" || st === "queued" ? st : "unknown",
+    result: r.data.result,
+    error: r.data.error,
+  };
 }
 
 export async function byMarket(m: StoreMode, limit = 12, category?: string): Promise<Product[]> {
@@ -60,8 +158,9 @@ export async function related(p: Product, limit = 8): Promise<Product[]> {
 }
 
 export async function suggestions(q: string, store: StoreMode, limit = 6) {
-  const r = await api<{ items: { id: string; title: string; market: string }[] }>(`/suggest?${qs({ q, store, limit })}`, 30);
-  return r?.items ?? local.suggestions(q, store, limit);
+  // Typeahead must feel instant: short timeout, then the bundled catalog.
+  const r = await apiFetch<{ items: { id: string; title: string; market: string }[] }>(`/suggest?${qs({ q, store, limit })}`, { revalidate: 30, timeoutMs: 2500 });
+  return r.ok ? r.data.items : local.suggestions(q, store, limit);
 }
 
 export async function productsByIds(ids: string[]): Promise<Product[]> {
@@ -76,9 +175,10 @@ export async function verifyItems(items: { productId: string; unitBdt: number; q
   try {
     const res = await fetch(API + "/checkout/verify", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...internalHeaders },
       body: JSON.stringify({ items }),
       cache: "no-store",
+      signal: AbortSignal.timeout(25000),
     });
     return res.ok ? await res.json() : null;
   } catch {

@@ -37,6 +37,11 @@ class LiveFetchTest extends TestCase
         $this->fakeOxylabs();
         Product::query()->whereKey('B0FMDLD86P')->delete();
 
+        // Unknown product: never blocks the request. 202 + jobId, the fetch runs on the queue (sync in tests).
+        $pending = $this->getJson('/api/v1/products/B0FMDLD86P', ['User-Agent' => 'Mozilla/5.0'])
+            ->assertStatus(202)->assertJsonPath('status', 'pending')->assertJsonPath('product', null)->assertJsonPath('market', 'amazon');
+        $this->getJson('/api/v1/jobs/'.$pending->json('jobId'))->assertOk()->assertJsonPath('status', 'done');
+
         $r = $this->getJson('/api/v1/products/B0FMDLD86P', ['User-Agent' => 'Mozilla/5.0'])->assertOk()->assertJsonPath('status', 'ready');
         $this->assertSame(1849.0, (float) $r->json('product.priceInr'));
         $this->assertSame('Mega Festival Deal', $r->json('product.dealBadge'));
@@ -51,6 +56,27 @@ class LiveFetchTest extends TestCase
         $this->assertEqualsWithDelta(0.00045, (float) $log->cost_usd, 1e-9);
         $this->assertSame(1, RawPage::query()->count());
         $this->assertSame(1849.0, (float) PriceHistory::query()->where('product_id', 'B0FMDLD86P')->value('price_inr'));
+    }
+
+    public function test_wait_param_fetches_synchronously(): void
+    {
+        $this->fakeOxylabs();
+        Product::query()->whereKey('B0FMDLD86P')->delete();
+
+        $this->getJson('/api/v1/products/B0FMDLD86P?wait=1', ['User-Agent' => 'Mozilla/5.0'])->assertOk()->assertJsonPath('status', 'ready');
+    }
+
+    public function test_product_and_search_degrade_instead_of_failing(): void
+    {
+        // A broken live layer (e.g. queue/provider exploding) must not 500 the product page or search.
+        $this->mock(\App\Services\Catalog\CatalogService::class, function ($m) {
+            $m->shouldReceive('product')->andThrow(new \RuntimeException('provider exploded'));
+            $m->shouldReceive('search')->andThrow(new \RuntimeException('provider exploded'));
+        });
+
+        $this->getJson('/api/v1/products/B0FMDLD86P')->assertOk()->assertJsonPath('stale', true)->assertJsonPath('product.id', 'B0FMDLD86P');
+        $this->getJson('/api/v1/products/B0NOTHERE1')->assertStatus(503)->assertJsonPath('status', 'unavailable');
+        $this->getJson('/api/v1/search?q=juice')->assertOk()->assertJsonPath('stale', true);
     }
 
     public function test_stale_product_returns_cached_data_and_queues_refresh(): void

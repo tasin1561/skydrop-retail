@@ -2,6 +2,7 @@
 // Active only when NEXT_PUBLIC_API_URL is set; otherwise the storefront runs in demo mode.
 import type { Address, CartItem, Order, User } from "./types";
 import { getAttribution, type OrderAttribution } from "./track/attribution";
+import { takeTurnstileToken } from "./turnstile";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 export const apiEnabled = API_URL.length > 0;
@@ -77,7 +78,8 @@ export type NotifyPrefs = {
 export type PriceChange = { productId: string; oldBdt: number; freshBdt: number };
 
 export const api = {
-  requestOtp: (phone: string) => post<{ ok: boolean; expiresIn: number; demoCode?: string }>("/auth/otp/request", { phone }),
+  requestOtp: (phone: string) =>
+    post<{ ok: boolean; expiresIn: number; demoCode?: string }>("/auth/otp/request", { phone, turnstileToken: takeTurnstileToken() }),
   verifyOtp: (phone: string, code: string, name?: string, invite?: string) =>
     post<{ token: string; user: User & { id: number }; isNew: boolean }>("/auth/otp/verify", { phone, code, name, invite: invite || undefined }),
   me: () => call<{ user: User }>("/me"),
@@ -105,11 +107,15 @@ export const api = {
     payment: string;
     coupon?: string;
     redeemPoints?: number;
+    /** fulfilment: paid unboxing check at the Kolkata hub */
+    unboxing?: boolean;
     returnUrl: string;
     /** affiliate code captured by RefCapture (last click wins) */
     ref?: string;
     /** marketing attribution (utm, click ids, _fbp/_fbc); defaults to getAttribution() from src/lib/track */
     attribution?: OrderAttribution;
+    /** money module: useWallet, emiTenure, emiBank (payment "card_emi"); see src/lib/money.ts */
+    extra?: { useWallet?: boolean; emiTenure?: number; emiBank?: string };
   }) =>
     post<{ order: ApiOrder; payment: { status: string; redirectUrl?: string } }>("/orders", {
       items: input.items.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt })),
@@ -119,10 +125,12 @@ export const api = {
       ...(input.payment === "half" ? { paymentVia: "bkash" } : {}),
       coupon: input.coupon || undefined,
       redeemPoints: input.redeemPoints || undefined,
+      unboxing: input.unboxing || undefined,
       returnUrl: input.returnUrl,
       ref: input.ref || undefined,
       // defaults to the attribution captured on landing (first + last touch, 30 days)
       attribution: input.attribution ?? (typeof window !== "undefined" ? getAttribution() : undefined),
+      ...(input.extra ?? {}),
     }),
   points: () =>
     call<{ balance: number; pending: number; valueBdt: number; history: { type: string; points: number; note: string; at: string; orderId?: string }[] }>(

@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Fulfilment;
 
+use App\Jobs\Commerce\CreateSkydropConsignment;
 use App\Models\Fulfilment\HubBox;
 use App\Models\Fulfilment\HubTask;
 use App\Models\Fulfilment\ReturnRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\User;
+use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\Commerce\Skydrop\SkydropClient;
 use App\Services\Fulfilment\FulfilmentSettings;
@@ -33,7 +34,7 @@ class FulfilmentTest extends TestCase
     {
         parent::setUp();
         $this->setUpCommerce();
-        Bus::fake([\App\Jobs\Commerce\CreateSkydropConsignment::class]);
+        Bus::fake([CreateSkydropConsignment::class]);
         Features::flush();
     }
 
@@ -90,7 +91,7 @@ class FulfilmentTest extends TestCase
         app(HubService::class)->receive($order->items[0], ['weight_kg' => 0.5, 'condition' => 'damaged', 'notes' => 'Crushed box']);
 
         $this->assertSame(1, HubTask::query()->where('order_id', $order->id)->where('type', 'return_to_seller')->count());
-        $this->assertDatabaseHas('notification_logs', ['user_id' => $u->id]);
+        $this->assertDatabaseHas('user_notifications', ['user_id' => $u->id]);
     }
 
     public function test_weight_variance_flags_order(): void
@@ -112,7 +113,6 @@ class FulfilmentTest extends TestCase
             $this->assertSame($i === 106 ? 13 : 11, array_sum(str_split($p)), "pattern {$i}");
         }
         $this->assertCount(107, array_unique(Code128::PATTERNS));
-        // "PJJ123C" → checksum from the Code 128 spec example (start B 104).
         $values = Code128::values('SR-ABC123');
         $this->assertSame(104, $values[0]);
         $this->assertSame(106, end($values));
@@ -138,7 +138,7 @@ class FulfilmentTest extends TestCase
         try {
             app(HubService::class)->receive($order->items[0], ['weight_kg' => 0.5]);
             $this->fail('expected photos error');
-        } catch (\App\Services\Commerce\CommerceException $e) {
+        } catch (CommerceException $e) {
             $this->assertStringContainsString('photos', $e->getMessage());
         }
         app(HubService::class)->receive($order->items[0], ['weight_kg' => 0.5, 'photos' => ['hub/'.$order->id.'/a.jpg']]);
@@ -274,6 +274,7 @@ class FulfilmentTest extends TestCase
     public function test_price_alert_flags_item_and_actions(): void
     {
         FulfilmentSettings::put('price_alerts.rise_pct', 5);
+        User::query()->forceCreate(['name' => 'Ops', 'email' => 'ops@example.com', 'password' => 'secret-pass', 'is_admin' => true]);
         $u = $this->shopper();
         $p = $this->product('B0PRICE001', 1000);
         $q = $this->product('B0PRICE002', 400);
@@ -289,7 +290,7 @@ class FulfilmentTest extends TestCase
         $this->assertEquals(1100, $item->price_alert['newInr']);
         $this->assertLessThan($item->price_alert['marginBeforeBdt'], $item->price_alert['marginAfterBdt']);
         $this->assertTrue($order->refresh()->price_alert);
-        $this->assertDatabaseHas('notifications', ['notifiable_type' => User::class]) ?: null;
+        $this->assertDatabaseHas('notifications', ['notifiable_type' => User::class]);
 
         // Ask the customer to pay the difference → balance due + pay-difference endpoint.
         $total = $order->total_bdt;
@@ -306,7 +307,7 @@ class FulfilmentTest extends TestCase
         $qi = OrderItem::query()->where('order_id', $order->id)->where('product_id', $q->id)->first();
         $svc->cancelItem($qi);
         $this->assertNotNull($qi->refresh()->cancelled_at);
-        $this->assertSame('verified', $order->refresh()->status === 'cancelled' ? 'x' : 'verified');
+        $this->assertNotSame('cancelled', $order->refresh()->status); // the other item is still active
     }
 
     public function test_feature_switches_hide_customer_endpoints(): void
