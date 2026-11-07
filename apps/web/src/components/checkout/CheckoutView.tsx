@@ -21,6 +21,7 @@ import { QuickSignIn } from "./QuickSignIn";
 import { STEPS, Stepper } from "./Stepper";
 import { DeliveryPromise, SummaryLines, TrustRow } from "./Summary";
 import { VanButton, type VanState } from "./VanButton";
+import { CheckoutRestrictions } from "@/components/cms/CheckoutRestrictions";
 import { CHECKS, VerifyPanel, type CheckState, type VerifyResult } from "./VerifyPanel";
 
 const ALNUM = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -532,6 +533,8 @@ function Review({
         <SummaryLines t={t} coupon={coupon} perStore />
       </div>
 
+      <CheckoutRestrictions items={t.groups.flatMap((g) => g.items)} />
+
       <label className={"co-option items-center " + (terms ? "is-active" : "")}>
         <input type="checkbox" className="sr-only" checked={terms} disabled={lock} onChange={(e) => setTerms(e.target.checked)} />
         <span className={"grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors " + (terms ? "bg-accent text-white" : "bg-surface-2 text-transparent")}>
@@ -543,7 +546,19 @@ function Review({
         </span>
         <span className="text-xs leading-relaxed text-ink-2">
           I agree that Skydrop Retail buys these items for me from the Indian stores named above and Skydrop delivers them to my address. Prices are
-          re-checked live before the order is placed.
+          re-checked live before the order is placed. I have read the{" "}
+          <Link href="/legal/terms" target="_blank" className="font-semibold text-accent underline underline-offset-2">
+            terms
+          </Link>
+          ,{" "}
+          <Link href="/legal/refunds" target="_blank" className="font-semibold text-accent underline underline-offset-2">
+            refund policy
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/shipping" target="_blank" className="font-semibold text-accent underline underline-offset-2">
+            shipping policy
+          </Link>
+          .
         </span>
       </label>
     </div>

@@ -3,10 +3,13 @@
 import { ShareButton } from "./ShareButton";
 import { useShareCodes } from "./useShareCodes";
 import { Icon } from "@/components/Icon";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 /** Order success: invite friends (invite code, or affiliate ref for approved affiliates). */
 export function TellAFriend({ style }: { style?: React.CSSProperties }) {
   const codes = useShareCodes();
+  const enabled = useFeature("share");
+  if (!enabled) return null;
   const body = codes.ref
     ? "Share Skydrop Retail with your affiliate link and earn commission on their orders."
     : "When a friend joins with your link and their first order arrives, you both get Skydrop Points.";

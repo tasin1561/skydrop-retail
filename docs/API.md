@@ -175,3 +175,24 @@ Always re-validated with the gateway (bKash execute/query, Nagad verify, SSLComm
 ## Admin
 
 Filament panel at `/admin` (staff users). Marketplace toggles, pricing rules, orders, products, provider health, API cost dashboard.
+
+## Tracking and feeds (features `tracking`, `feeds`; off → `404 { error: "feature_disabled" }`)
+
+`POST /track` (public, 120/min, optional bearer) `{ event, eventId, url?, referrer?, value?, search?, orderId?, items?: [{ id, title?, brand?, category?, price?, qty? }],
+fbp?, fbc?, ttp?, ttclid?, gclid?, gaClientId?, user?: { phone?, email? } }` → `202 { ok, queued }`
+- `event`: `PageView | ViewContent | Search | AddToCart | AddToWishlist | InitiateCheckout | AddShippingInfo | AddPaymentInfo | CompleteRegistration | Lead`.
+  Purchase is sent by the API only (no client POST).
+- The client IP and user agent come from the request. With a token, the user's phone (`8801XXXXXXXXX`) and email are SHA-256 hashed and added.
+- Queued per destination by setting `tracking.driver`: `off | delivro | direct (Meta CAPI v21.0, GA4 Measurement Protocol, TikTok Events API v1.3) | both`.
+  Logged in `tracking_events`, where (event_id, destination) is unique (server-side dedupe). Retries 429/5xx with backoff.
+- Purchase: event id is `purchase_<ORDER_ID>`, the same on browser and server. It is sent when `tracking.purchase_on` = `paid` (paid or advance paid) | `placed` | `delivered`.
+  It is skipped when the order's attribution `consent` is `essential`. An optional custom `Delivered` event (`delivered_<ORDER_ID>`) is sent when `tracking.send_delivered` is on.
+
+`GET /tracking/config` → `{ metaPixelId, ga4Id, tiktokPixelId, gtmId, server }` (public ids only; `server` = a server driver is on)
+
+`POST /orders` also takes an optional `attribution: { first?, last?: { utm_source, utm_medium, utm_campaign, utm_term, utm_content, fbclid, gclid, ttclid,
+landing, referrer, at }, fbp?, fbc?, ttp?, gaClientId?, consent?: "all"|"essential" }`. The fields are whitelisted and stored in `orders.attribution` with the client ip and user agent.
+
+`GET /feeds/meta.csv` · `GET /feeds/google.xml`: `?store=amazon|flipkart|bigbasket`, and `?key=` when setting `tracking.feed_key` is set (otherwise 403). Cached for 1 h.
+- Skips hidden and unpriced products. Price comes from `PricingService::productBdt`; `price` is the MRP when higher, with `sale_price` set.
+- Other fields: `link` is `{WEB_URL}/p/{id}`, `custom_label_0` is the store.

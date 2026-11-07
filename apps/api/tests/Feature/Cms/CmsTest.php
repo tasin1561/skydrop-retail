@@ -17,6 +17,7 @@ use App\Services\Cms\CmsCache;
 use App\Services\Cms\RestrictionService;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\PricingService;
+use App\Support\Features;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Feature\Commerce\CommerceHelpers;
@@ -210,5 +211,31 @@ class CmsTest extends TestCase
         Livewire::test(CreateBanner::class)->fillForm(['title' => 'New hero', 'store' => 'amazon', 'placement' => 'hero', 'sort' => 0, 'active' => true])
             ->call('create')->assertHasNoFormErrors();
         $this->assertDatabaseHas('banners', ['title' => 'New hero', 'store' => 'amazon']);
+    }
+
+    public function test_feature_switches_turn_cms_off(): void
+    {
+        $u = $this->shopper();
+        $this->address($u);
+        $p = $this->product('A1', 1000);
+        $knife = $this->product('K1', 900, 'amazon', 'home', ['title' => 'Chef knife 8 inch']);
+        Banner::query()->create(['title' => 'Eid picks', 'placement' => 'hero']);
+        $this->sale(['A1' => ['off_bdt' => 100]]);
+
+        Features::set('flash_sales', false);
+        Features::set('banners', false);
+        Features::set('restrictions', false);
+        Features::set('coupons', false);
+        Features::set('reviews', false);
+        CmsCache::flush();
+
+        $this->assertSame($this->bdt($p), app(PricingService::class)->productBdt($p));
+        $this->getJson('/api/v1/cms/home')->assertOk()->assertJsonCount(0, 'banners')->assertJsonCount(0, 'flashSales')
+            ->assertJsonPath('enabled.flashSales', false);
+        $this->postJson('/api/v1/checkout/quote', ['items' => [['productId' => 'A1', 'qty' => 1]], 'coupon' => 'SKYDROP10'])
+            ->assertStatus(422)->assertJsonValidationErrors('coupon');
+        $this->getJson('/api/v1/products/A1/reviews')->assertNotFound()->assertJsonPath('error', 'feature_disabled');
+        $this->postJson('/api/v1/orders', ['items' => [['productId' => 'K1', 'qty' => 1, 'unitBdt' => $this->bdt($knife)]],
+            'addressId' => $u->addresses()->first()->id, 'payment' => 'bkash'])->assertCreated();
     }
 }

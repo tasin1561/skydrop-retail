@@ -2,16 +2,50 @@
 
 import { useId, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { couponHint, findCoupon, useCoupon } from "./cart-math";
+import { API_URL, apiEnabled } from "@/lib/apiClient";
+import { useStore } from "@/state/store";
+import { useFeature } from "@/components/features/FeaturesProvider";
+import { couponHint, findCoupon, useCoupon, type Coupon } from "./cart-math";
+
+type QuoteError = { message?: string; errors?: Record<string, string[]> };
+
+/**
+ * API mode: validate with POST /checkout/quote (server prices, so admin-created coupons and minimum-spend rules work).
+ * Returns the coupon, an error message for the shopper, or null when the API could not answer (use the demo list).
+ */
+async function validateWithApi(code: string, items: { productId: string; variant?: string; qty: number; unitBdt: number }[], token: string | null) {
+  try {
+    const res = await fetch(`${API_URL}/checkout/quote`, {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ items: items.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt })), coupon: code }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { coupon?: Coupon | null } & QuoteError;
+    if (res.ok && data.coupon) return { coupon: data.coupon };
+    if (data.errors?.coupon?.[0]) return { error: data.errors.coupon[0] };
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 // Coupon input with live staged validation; an applied code becomes a removable success chip.
 export function CouponField() {
+  const enabled = useFeature("coupons");
+  return enabled ? <CouponFieldInner /> : null;
+}
+
+function CouponFieldInner() {
   const [coupon, setCoupon] = useCoupon();
   const [value, setValue] = useState("");
   const [shake, setShake] = useState(0);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { cart, token } = useStore();
   const id = useId();
-  const hint = couponHint(value);
+  const rawHint = couponHint(value);
+  // With the API any code may exist, so an unknown code is not "invalid" until the server says so.
+  const hint = apiEnabled && rawHint === "unknown" ? "partial" : rawHint;
 
   if (coupon) {
     return (
@@ -37,15 +71,34 @@ export function CouponField() {
     );
   }
 
-  const apply = () => {
-    const c = findCoupon(value);
+  const fail = (msg: string) => {
+    setError(msg);
+    setShake((n) => n + 1);
+  };
+
+  const apply = async () => {
+    const code = value.trim().toUpperCase();
+    if (!code) return fail("Enter a coupon code");
+    if (busy) return;
+    if (apiEnabled && cart.length) {
+      setBusy(true);
+      const r = await validateWithApi(code, cart, token);
+      setBusy(false);
+      if (r?.coupon) {
+        setCoupon(r.coupon.code, r.coupon);
+        setValue("");
+        setError("");
+        return;
+      }
+      if (r?.error) return fail(r.error);
+    }
+    const c = findCoupon(code); // demo list (and fallback when the API is unreachable)
     if (c) {
       setCoupon(c.code);
       setValue("");
       setError("");
     } else {
-      setError(value.trim() ? `"${value.trim().toUpperCase()}" isn't a valid code` : "Enter a coupon code");
-      setShake((n) => n + 1);
+      fail(`"${code}" isn't a valid code`);
     }
   };
 
@@ -56,7 +109,9 @@ export function CouponField() {
       ? `Code found: ${findCoupon(value)?.label}. Tap Apply.`
       : hint === "unknown"
         ? "No coupon matches this code"
-        : "Try SKYDROP10 or FREESHIP");
+        : apiEnabled && value
+          ? "Tap Apply to check this code"
+          : "Try SKYDROP10 or FREESHIP");
 
   return (
     <form
@@ -90,8 +145,8 @@ export function CouponField() {
             {state === "invalid" && <Icon key="i" name="info" size={18} stroke={2.2} className="text-bad" />}
           </span>
         </div>
-        <button type="submit" className="btn btn-ghost h-[52px] shrink-0 rounded-2xl px-4">
-          Apply
+        <button type="submit" disabled={busy} aria-busy={busy} className="btn btn-ghost h-[52px] shrink-0 rounded-2xl px-4">
+          {busy ? "Checking…" : "Apply"}
         </button>
       </div>
       <p

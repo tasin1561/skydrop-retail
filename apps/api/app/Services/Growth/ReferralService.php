@@ -7,6 +7,7 @@ use App\Models\ReferralReward;
 use App\Models\User;
 use App\Services\Commerce\Phone;
 use App\Services\Commerce\PointsService;
+use App\Support\Features;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -61,7 +62,7 @@ class ReferralService
     public function attachInvite(User $friend, ?string $code): bool
     {
         $c = self::normalizeCode($code);
-        if (! $c || $friend->referred_by) {
+        if (! $c || $friend->referred_by || ! Features::enabled('referral')) {
             return false;
         }
         $inviter = User::query()->where('referral_code', $c)->first();
@@ -78,7 +79,7 @@ class ReferralService
     public function onDelivered(Order $order): ?ReferralReward
     {
         $friend = $order->user;
-        if (! $friend?->referred_by || ReferralReward::query()->where('friend_id', $friend->id)->exists()) {
+        if (! Features::enabled('referral') || ! $friend?->referred_by || ReferralReward::query()->where('friend_id', $friend->id)->exists()) {
             return null;
         }
         $inviter = User::query()->find($friend->referred_by);

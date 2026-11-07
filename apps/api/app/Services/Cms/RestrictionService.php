@@ -5,6 +5,7 @@ namespace App\Services\Cms;
 use App\Models\Product;
 use App\Models\RestrictedRule;
 use App\Services\Commerce\CommerceException;
+use App\Support\Features;
 
 /**
  * "Can this ship to Bangladesh?" rules (table restricted_rules). block > surcharge > warn.
@@ -27,6 +28,9 @@ class RestrictionService
      */
     public function check(object $p): ?array
     {
+        if (! Features::enabled('restrictions')) {
+            return null;
+        }
         $path = '';
         if ($p instanceof Product && $p->relationLoaded('details') && $p->details?->category_path) {
             $path = implode(' ', array_map('strval', (array) json_decode(json_encode($p->details->category_path), true)));

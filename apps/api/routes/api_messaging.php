@@ -15,16 +15,19 @@ Route::match(['get', 'post'], 'unsubscribe/{user}/{channel}', [PreferenceControl
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('me/notifications', [PreferenceController::class, 'show']);
     Route::patch('me/notifications', [PreferenceController::class, 'update']);
-    Route::post('me/email/verification', [PreferenceController::class, 'sendVerification'])->middleware('throttle:6,1');
+    Route::post('me/email/verification', [PreferenceController::class, 'sendVerification'])->middleware(['feature:email', 'throttle:6,1']);
 
-    Route::get('notifications', [NotificationController::class, 'index']);
-    Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
-    Route::post('notifications/{id}/read', [NotificationController::class, 'read'])->whereNumber('id');
-    Route::delete('notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
+    Route::middleware('feature:in_app_notifications')->group(function () {
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+        Route::post('notifications/{id}/read', [NotificationController::class, 'read'])->whereNumber('id');
+        Route::delete('notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
+    });
 
-    Route::post('push/expo-token', [PushController::class, 'expoToken'])->middleware('throttle:30,1');
+    // Removing a device always works, even with push switched off.
+    Route::post('push/expo-token', [PushController::class, 'expoToken'])->middleware(['feature:push', 'throttle:30,1']);
     Route::delete('push/expo-token', [PushController::class, 'removeExpoToken']);
-    Route::post('push/subscribe', [PushController::class, 'subscribe'])->middleware('throttle:30,1');
+    Route::post('push/subscribe', [PushController::class, 'subscribe'])->middleware(['feature:push', 'throttle:30,1']);
     Route::delete('push/subscribe', [PushController::class, 'unsubscribe']);
 
     Route::get('cart', [CartController::class, 'show']);

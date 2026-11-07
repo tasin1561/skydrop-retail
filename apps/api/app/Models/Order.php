@@ -28,6 +28,9 @@ class Order extends Model
             'points_redeemed' => 'integer', 'points_discount_bdt' => 'float', 'points_to_earn' => 'integer',
             'points_earned' => 'integer', 'delivered_at' => 'datetime', 'cancelled_at' => 'datetime',
             'attribution' => 'array',
+            // fulfilment module (hub, unboxing, tracking)
+            'unboxing' => 'boolean', 'unboxing_fee_bdt' => 'float', 'unboxing_requested_at' => 'datetime', 'unboxing_decided_at' => 'datetime',
+            'actual_weight_kg' => 'float', 'weight_flag' => 'array', 'price_alert' => 'boolean', 'pod' => 'array', 'rider_location' => 'array',
         ];
     }
 
@@ -116,6 +119,11 @@ class Order extends Model
             'status' => $this->status,
             'trackingCode' => (string) $this->tracking_code,
             'canCancel' => $this->canCancel(),
+            // fulfilment module: paid unboxing at the Kolkata hub
+            'unboxing' => (bool) $this->unboxing,
+            'unboxingFee' => (int) round((float) $this->unboxing_fee_bdt),
+            'unboxingStatus' => $this->unboxing_status,
+            'replacementOf' => $this->replacement_of,
             'deliveredAt' => $this->delivered_at?->toIso8601String(),
             'invoiceUrl' => URL::temporarySignedRoute('orders.invoice.signed', now()->addDay(), ['id' => $this->id]),
             'timeline' => $this->events->map(fn (OrderEvent $e) => [

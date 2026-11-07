@@ -43,7 +43,8 @@ class TrackingAdminTest extends TestCase
         $row = TrackingEvent::query()->create(['event' => 'Purchase', 'event_id' => 'purchase_'.$order->id, 'order_id' => $order->id,
             'destination' => 'meta', 'status' => 'failed', 'response_code' => 400, 'error' => 'bad token', 'payload' => ['event' => 'Purchase']]);
 
-        $this->actingAs($this->admin());
+        auth()->shouldUse('web'); // the shopper above switched the default guard to sanctum
+        $this->actingAs($this->admin(), 'web');
 
         Livewire::test(ListTrackingEvents::class)->assertOk()->assertCanSeeTableRecords([$row])
             ->filterTable('status', ['sent'])->assertCanNotSeeTableRecords([$row]);

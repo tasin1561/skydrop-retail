@@ -18,8 +18,10 @@ class BrandedMessage extends Mailable
     public function envelope(): Envelope
     {
         $reply = MessagingSettings::get('mail.reply_to');
+        $from = MessagingSettings::get('mail.from_address');
 
         return new Envelope(
+            from: $from ? new Address($from, MessagingSettings::get('mail.from_name') ?? config('mail.from.name')) : null,
             subject: (string) ($this->log->subject ?: config('messaging.brand.name')),
             replyTo: $reply ? [new Address($reply, config('messaging.mail.reply_to_name'))] : [],
             tags: [$this->log->event],

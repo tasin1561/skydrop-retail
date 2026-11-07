@@ -22,7 +22,7 @@ Route::post('auth/otp/verify', [AuthController::class, 'verifyOtp'])->middleware
 // ---- Public commerce ----
 Route::post('checkout/quote', [CheckoutController::class, 'quote'])->middleware('throttle:120,1');
 Route::post('checkout/verify', [CheckoutController::class, 'verify'])->middleware('throttle:20,1');
-Route::get('products/{id}/reviews', [ReviewController::class, 'index']);
+Route::get('products/{id}/reviews', [ReviewController::class, 'index'])->middleware('feature:reviews');
 
 // ---- Webhooks & payment pages ----
 Route::match(['get', 'post'], 'webhooks/payments/{gateway}', [PaymentController::class, 'callback'])
@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('watches', [WatchController::class, 'store']);
     Route::delete('watches/{productId}', [WatchController::class, 'destroy']);
 
-    Route::post('products/{id}/reviews', [ReviewController::class, 'store']);
+    Route::post('products/{id}/reviews', [ReviewController::class, 'store'])->middleware('feature:reviews');
 
     Route::get('points', [PointsController::class, 'show']);
 

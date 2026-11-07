@@ -6,6 +6,7 @@ use App\Models\FlashSale;
 use App\Models\Product;
 use App\Services\Commerce\CommerceException;
 use App\Services\PricingService;
+use App\Support\Features;
 use Illuminate\Support\Carbon;
 
 /**
@@ -48,6 +49,9 @@ class FlashSaleService
      */
     public function offer(object $p, int $baseBdt): ?array
     {
+        if (! Features::enabled('flash_sales')) {
+            return null;
+        }
         $id = (string) ($p->id ?? '');
         $list = $id !== '' ? ($this->index()[$id] ?? []) : [];
         if (! $list || $baseBdt <= 0) {

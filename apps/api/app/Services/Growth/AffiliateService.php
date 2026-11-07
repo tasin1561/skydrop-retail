@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\Phone;
+use App\Support\Features;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,7 @@ use Illuminate\Support\Str;
  * x category rate (or the affiliate's own rate), capped per order.
  * Lifecycle: pending (order placed) -> approved (delivered + hold_days) -> paid (payout marked paid);
  * reversed when the order is cancelled or refunded before payout.
+ * Feature switch "affiliate": off = no new attribution, no hold start/auto-approval (reversals still run).
  */
 class AffiliateService
 {
@@ -139,7 +141,7 @@ class AffiliateService
     public function attribute(Order $order, ?string $ref): ?AffiliateCommission
     {
         $code = self::normalizeCode($ref);
-        if (! $code) {
+        if (! $code || ! Features::enabled('affiliate')) {
             return null;
         }
         $order->forceFill(['ref_code' => $code])->saveQuietly();
@@ -201,6 +203,9 @@ class AffiliateService
 
     public function onDelivered(Order $order): void
     {
+        if (! Features::enabled('affiliate')) {
+            return; // paused: stays pending; approve from the admin if needed
+        }
         $c = AffiliateCommission::query()->where('order_id', $order->id)->where('status', 'pending')->first();
         if (! $c) {
             return;
@@ -250,6 +255,9 @@ class AffiliateService
     /** Approves pending commissions whose hold has passed (scheduled hourly). */
     public function approveDue(): int
     {
+        if (! Features::enabled('affiliate')) {
+            return 0;
+        }
         $n = 0;
         AffiliateCommission::query()->where('status', 'pending')->whereNotNull('approve_after')->where('approve_after', '<=', now())
             ->with('order')->get()

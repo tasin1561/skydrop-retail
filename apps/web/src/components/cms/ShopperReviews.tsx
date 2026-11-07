@@ -9,6 +9,7 @@ import { Icon } from "@/components/Icon";
 import { Stars } from "@/components/ProductBits";
 import { Sheet, Spinner } from "@/components/account/ui";
 import { StarBars } from "@/components/product/Reviews";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 type ApiReview = {
   id: string;
@@ -28,7 +29,11 @@ type ApiReviews = { items: ApiReview[]; count: number; average: number | null; c
  * Reviews from Skydrop shoppers (GET|POST /products/{id}/reviews). Kept visibly separate from the source store's
  * rating, which is shown as "4.3 on amazon.in". Writing needs a signed-in shopper who received the item.
  */
-export function ShopperReviews({ productId, source, sourceRating, sourceCount }: { productId: string; source: string; sourceRating: number; sourceCount: number }) {
+export function ShopperReviews(props: { productId: string; source: string; sourceRating: number; sourceCount: number }) {
+  return useFeature("reviews") ? <ShopperReviewsInner {...props} /> : null; // Admin → Features → Reviews
+}
+
+function ShopperReviewsInner({ productId, source, sourceRating, sourceCount }: { productId: string; source: string; sourceRating: number; sourceCount: number }) {
   const { token, user, ready } = useStore();
   const [data, setData] = useState<ApiReviews | null>(null);
   const [failed, setFailed] = useState(false);

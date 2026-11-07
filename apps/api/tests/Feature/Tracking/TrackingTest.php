@@ -9,6 +9,7 @@ use App\Models\TrackingEvent;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\PricingService;
 use App\Services\Tracking\Attribution;
+use App\Support\Features;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Request as HttpRequest;
@@ -268,5 +269,23 @@ class TrackingTest extends TestCase
         $this->get('/api/v1/feeds/google.xml?key=wrong')->assertForbidden();
         $this->get('/api/v1/feeds/google.xml?key=sekret')->assertOk();
         $this->get('/api/v1/feeds/meta.csv?key=sekret&store=nope')->assertStatus(422);
+    }
+
+    public function test_feature_switches_turn_tracking_and_feeds_off(): void
+    {
+        Features::set('tracking', false);
+        Features::set('feeds', false);
+        $this->postJson('/api/v1/track', ['event' => 'Lead', 'eventId' => 'off-1'])->assertNotFound()->assertJsonPath('feature', 'tracking');
+        $this->getJson('/api/v1/tracking/config')->assertNotFound();
+        $this->get('/api/v1/feeds/meta.csv')->assertNotFound();
+
+        // Server-side Purchase is not sent either.
+        config(['retail.tracking.purchase_on' => 'placed']);
+        $o = $this->placeOrder($this->shopper(), [$this->product('A1', 1000)]);
+        $this->assertDatabaseMissing('tracking_events', ['order_id' => $o->id]);
+        Http::assertNothingSent();
+
+        Features::set('tracking', true);
+        $this->postJson('/api/v1/track', ['event' => 'Lead', 'eventId' => 'on-1'])->assertStatus(202);
     }
 }

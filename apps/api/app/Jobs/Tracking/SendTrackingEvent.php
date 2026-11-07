@@ -4,6 +4,7 @@ namespace App\Jobs\Tracking;
 
 use App\Models\TrackingEvent;
 use App\Services\Tracking\TrackingService;
+use App\Support\Features;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,6 +30,11 @@ class SendTrackingEvent implements ShouldQueue
     {
         $row = TrackingEvent::query()->find($this->trackingEventId);
         if (! $row || in_array($row->status, ['sent', 'skipped'], true)) {
+            return;
+        }
+        if (! Features::enabled('tracking')) {
+            $row->forceFill(['status' => 'skipped', 'error' => 'Tracking feature switched off'])->save();
+
             return;
         }
         $attempt = $this->attempts();

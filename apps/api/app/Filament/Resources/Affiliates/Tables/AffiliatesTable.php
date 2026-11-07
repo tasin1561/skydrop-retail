@@ -37,6 +37,7 @@ class AffiliatesTable
                 TextColumn::make('created_at')->label('Applied')->since()->sortable(),
             ])
             ->filters([SelectFilter::make('status')->options(Affiliate::STATUSES)])
+            // TODO(rbac): swap Admin::canManage() for Admin::can('affiliates.approve') / ('affiliates.rate') once the RBAC helper lands.
             ->recordActions([
                 Action::make('approve')->label('Approve')->icon(Heroicon::OutlinedCheckCircle)->color('success')
                     ->visible(fn (Affiliate $r) => $r->status !== 'approved' && Admin::canManage())

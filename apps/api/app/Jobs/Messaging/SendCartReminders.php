@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Services\Commerce\Notifier;
 use App\Services\Messaging\MessagingSettings;
+use App\Support\Features;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -19,6 +20,9 @@ class SendCartReminders implements ShouldQueue
 
     public function handle(Notifier $notifier): void
     {
+        if (! Features::enabled('abandoned_cart') || ! Features::enabled('marketing_messages')) {
+            return;
+        }
         $r = fn (string $k, int $d) => (int) MessagingSettings::get('reminders.'.$k, $d);
         $first = now()->subMinutes($r('cart_push_after_minutes', 60));
         $second = now()->subHours($r('cart_followup_after_hours', 24));

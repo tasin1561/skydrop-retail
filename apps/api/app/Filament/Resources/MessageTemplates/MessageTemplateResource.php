@@ -43,17 +43,23 @@ class MessageTemplateResource extends Resource
 
     public static function canCreate(): bool
     {
-        return Admin::canManage();
+        return self::manage();
     }
 
     public static function canEdit(Model $record): bool
     {
-        return Admin::canManage();
+        return self::manage();
     }
 
     public static function canDelete(Model $record): bool
     {
-        return Admin::canManage();
+        return self::manage();
+    }
+
+    /** RBAC permission "templates.manage" when the RBAC module provides Admin::can(), else admin/manager. */
+    public static function manage(): bool
+    {
+        return method_exists(Admin::class, 'can') ? (bool) Admin::can('templates.manage') : Admin::canManage();
     }
 
     public static function getPages(): array

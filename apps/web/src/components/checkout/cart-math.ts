@@ -4,6 +4,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import type { CartItem, MarketId } from "@/lib/types";
 import { MARKET_IDS } from "@/lib/markets";
 import { PRICING, groupByMarket, shippingFor } from "@/lib/pricing";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 // ---------- coupons (demo codes until the Laravel promotions API exists) ----------
 export type Coupon = {
@@ -80,7 +81,8 @@ export function useCoupon() {
     }
     window.dispatchEvent(new Event(COUPON_EVT));
   }, []);
-  return [findCoupon(code) ?? readCouponMeta(code), set] as const;
+  const enabled = useFeature("coupons"); // Admin → Features → Coupons off: ignore any saved code
+  return [enabled ? (findCoupon(code) ?? readCouponMeta(code)) : null, set] as const;
 }
 
 // ---------- totals ----------

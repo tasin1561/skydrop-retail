@@ -41,6 +41,7 @@ class AffiliateCommissionsTable
                 SelectFilter::make('status')->options(AffiliateCommission::STATUSES)->multiple(),
                 SelectFilter::make('affiliate')->relationship('affiliate', 'code')->searchable(),
             ])
+            // TODO(rbac): Admin::can('affiliate-commissions.approve') / ('affiliate-commissions.reverse') once the RBAC helper lands.
             ->toolbarActions([
                 BulkActionGroup::make([
                     BulkAction::make('approve')->label('Approve')->icon(Heroicon::OutlinedCheckCircle)->color('success')

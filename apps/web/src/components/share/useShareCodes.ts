@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@/state/store";
 import { loadShareCodes, onShareCodesChange, type ShareCodes } from "@/lib/growth";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 /** { ref } for an approved affiliate, otherwise { invite } when signed in, else {}. */
 export function useShareCodes(): ShareCodes {
@@ -10,6 +11,8 @@ export function useShareCodes(): ShareCodes {
   const [codes, setCodes] = useState<ShareCodes>({});
   const [bump, setBump] = useState(0);
   const phone = user?.phone ?? null;
+  const affiliateOn = useFeature("affiliate");
+  const referralOn = useFeature("referral");
 
   useEffect(() => onShareCodesChange(() => setBump((n) => n + 1)), []);
 
@@ -24,5 +27,5 @@ export function useShareCodes(): ShareCodes {
     };
   }, [ready, phone, token, bump]);
 
-  return codes;
+  return { ref: affiliateOn ? codes.ref : undefined, invite: referralOn ? codes.invite : undefined };
 }

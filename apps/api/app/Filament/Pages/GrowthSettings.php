@@ -39,6 +39,7 @@ class GrowthSettings extends Page
 
     public static function canAccess(): bool
     {
+        // TODO(rbac): Admin::can('growth-settings.update') once the RBAC helper lands.
         return Admin::canManage();
     }
 

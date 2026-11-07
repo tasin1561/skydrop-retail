@@ -40,7 +40,7 @@ class TrackController extends Controller
             'user.email' => ['nullable', 'string', 'max:200'],
         ]);
 
-        if (TrackingSettings::driver() === 'off') {
+        if (TrackingSettings::driver() === 'off') { // feature switch is enforced by the feature:tracking route middleware
             return response()->json(['ok' => true, 'queued' => 0], 202);
         }
         $event = EventBuilder::fromTrack($d, $request->ip(), $request->userAgent(), $request->user('sanctum'));

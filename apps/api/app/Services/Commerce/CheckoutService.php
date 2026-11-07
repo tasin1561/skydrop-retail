@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Cms\FlashSaleService;
 use App\Services\Cms\RestrictionService;
 use App\Services\PricingService;
+use App\Support\Features;
 
 // Cart lines, coupons and totals. Same maths as apps/web/src/components/checkout/cart-math.ts.
 class CheckoutService
@@ -53,6 +54,9 @@ class CheckoutService
         $code = strtoupper(trim((string) $code));
         if ($code === '') {
             return null;
+        }
+        if (! Features::enabled('coupons')) {
+            throw CommerceException::field('coupon', 'Coupons are not available right now.');
         }
         $c = Coupon::query()->where('code', $code)->first();
         if (! $c || ! $c->usable()) {

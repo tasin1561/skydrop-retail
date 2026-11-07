@@ -10,6 +10,7 @@ use App\Services\Tracking\Drivers\Ga4Driver;
 use App\Services\Tracking\Drivers\MetaDriver;
 use App\Services\Tracking\Drivers\TikTokDriver;
 use App\Services\Tracking\Drivers\TrackingDriver;
+use App\Support\Features;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -30,6 +31,10 @@ class TrackingService
     /** @return array<int, string> destination names enabled by the driver setting */
     public function destinations(): array
     {
+        if (! Features::enabled('tracking')) {
+            return []; // Admin → Features → "Pixels & server-side tracking" is off
+        }
+
         return match (TrackingSettings::driver()) {
             'delivro' => ['delivro'],
             'direct' => ['meta', 'ga4', 'tiktok'],

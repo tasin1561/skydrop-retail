@@ -59,7 +59,13 @@ export function checkRestriction(title: string): Restriction | null {
   return best;
 }
 
-/** The product's restriction: from the API when present, otherwise the demo rules on its title. */
+const API_MODE = Boolean(process.env.NEXT_PUBLIC_API_URL || process.env.API_URL);
+
+/**
+ * The product's restriction. API mode: only what the API says (it honours Admin → Features → Restricted items).
+ * Demo mode: the demo rules on the title.
+ */
 export function restrictionOf(p: Pick<Product, "title" | "restriction">): Restriction | null {
-  return p.restriction !== undefined ? p.restriction : checkRestriction(p.title);
+  if (p.restriction !== undefined) return p.restriction;
+  return API_MODE ? null : checkRestriction(p.title);
 }

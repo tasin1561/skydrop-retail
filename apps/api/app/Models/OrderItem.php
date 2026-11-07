@@ -12,7 +12,9 @@ class OrderItem extends Model
 
     protected function casts(): array
     {
-        return ['placeholder' => 'array', 'unit_bdt' => 'float', 'unit_inr' => 'float', 'weight_kg' => 'float', 'qty' => 'integer', 'fx_rate' => 'float'];
+        return ['placeholder' => 'array', 'unit_bdt' => 'float', 'unit_inr' => 'float', 'weight_kg' => 'float', 'qty' => 'integer', 'fx_rate' => 'float',
+            // fulfilment module
+            'hub_received_at' => 'datetime', 'price_alert' => 'array', 'price_checked_at' => 'datetime', 'cancelled_at' => 'datetime'];
     }
 
     /** Web `CartItem` shape. */

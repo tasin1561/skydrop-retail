@@ -36,6 +36,7 @@ class AffiliatePayoutsTable
                 TextColumn::make('paid_at')->since()->placeholder('—'),
             ])
             ->filters([SelectFilter::make('status')->options(AffiliatePayout::STATUSES)])
+            // TODO(rbac): Admin::can('affiliates.payout') once the RBAC helper lands.
             ->recordActions([
                 Action::make('markPaid')->label('Mark paid')->icon(Heroicon::OutlinedCheckBadge)->color('success')
                     ->visible(fn (AffiliatePayout $r) => $r->status === 'requested' && Admin::canManage())

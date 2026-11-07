@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { apiEnabled } from "@/lib/apiClient";
+import { useFeature } from "@/components/features/FeaturesProvider";
 import { DEFAULT_COOKIE_DAYS, growthApi, normalizeInvite, normalizeRef, saveInvite, saveRef } from "@/lib/growth";
 
 /**
@@ -12,6 +13,8 @@ import { DEFAULT_COOKIE_DAYS, growthApi, normalizeInvite, normalizeRef, saveInvi
  */
 export function RefCapture() {
   const pathname = usePathname();
+  const affiliateOn = useFeature("affiliate");
+  const referralOn = useFeature("referral");
 
   useEffect(() => {
     let params: URLSearchParams;
@@ -20,8 +23,8 @@ export function RefCapture() {
     } catch {
       return;
     }
-    const ref = normalizeRef(params.get("ref"));
-    const invite = normalizeInvite(params.get("invite"));
+    const ref = affiliateOn ? normalizeRef(params.get("ref")) : null;
+    const invite = referralOn ? normalizeInvite(params.get("invite")) : null;
     if (!ref && !invite) return;
 
     if (ref) {
@@ -43,7 +46,7 @@ export function RefCapture() {
     } catch {
       /* ignore */
     }
-  }, [pathname]);
+  }, [pathname, affiliateOn, referralOn]);
 
   return null;
 }

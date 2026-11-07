@@ -10,6 +10,7 @@ use App\Services\Commerce\Phone;
 use App\Services\Commerce\Sms\SmsManager;
 use App\Services\Commerce\Sms\SmsResult;
 use App\Services\Messaging\Push\PushSender;
+use App\Support\Features;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -54,7 +55,7 @@ class Messenger
         $marketing = $category === 'marketing';
         try {
             foreach (array_intersect(self::CHANNELS, $channels) as $channel) {
-                if ($marketing && ! Prefs::allowsMarketing($user, $channel)) {
+                if (! self::channelEnabled($channel, $category) || ($marketing && ! Prefs::allowsMarketing($user, $channel))) {
                     continue;
                 }
                 $to = $this->recipient($user, $channel, $opts['phone'] ?? null);
@@ -64,7 +65,7 @@ class Messenger
                 $logs[] = $this->queue($user, $event, $category, $channel, Prefs::locale($user), $to, $subject, $body,
                     $this->meta($channel, $opts, $marketing, $user), $opts);
             }
-            if (in_array('inapp', $channels, true) && (! $marketing || Prefs::allowsMarketing($user, 'inapp'))) {
+            if (in_array('inapp', $channels, true) && self::channelEnabled('inapp', $category) && (! $marketing || Prefs::allowsMarketing($user, 'inapp'))) {
                 $this->inApp($user, $event, $subject, $body, $opts + ['icon' => $marketing ? 'megaphone' : 'info']);
             }
         } catch (Throwable $e) {
@@ -189,7 +190,7 @@ class Messenger
         $logs = [];
 
         foreach (array_intersect(self::CHANNELS, $opts['channels'] ?? self::CHANNELS) as $channel) {
-            if ($marketing && ! Prefs::allowsMarketing($user, $channel)) {
+            if (! self::channelEnabled($channel, $category) || ($marketing && ! Prefs::allowsMarketing($user, $channel))) {
                 continue;
             }
             $to = $this->recipient($user, $channel, $opts['phone'] ?? null);
@@ -204,7 +205,7 @@ class Messenger
                 $this->meta($channel, $opts, $marketing, $user), $opts);
         }
 
-        if (($opts['inapp'] ?? true) && (! $marketing || Prefs::allowsMarketing($user, 'inapp'))) {
+        if (($opts['inapp'] ?? true) && self::channelEnabled('inapp', $category) && (! $marketing || Prefs::allowsMarketing($user, 'inapp'))) {
             // The in-app item uses the push template (even if push itself is switched off), else the email one.
             $t = $this->templates->find($event, 'push', $locale) ?? $this->templates->find($event, 'email', $locale);
             if ($t) {
@@ -239,6 +240,22 @@ class Messenger
             $job->delay($until);
         }
         dispatch($job)->afterCommit();
+    }
+
+    /** Admin feature switches (App\Support\Features): channel + marketing. OTP, admin alerts and staff tests bypass these. */
+    public static function channelEnabled(string $channel, string $category = 'transactional'): bool
+    {
+        if (in_array($category, ['otp', 'admin', 'test'], true)) {
+            return true;
+        }
+        if ($category === 'marketing' && ! Features::enabled('marketing_messages')) {
+            return false;
+        }
+
+        return Features::enabled(match ($channel) {
+            'inapp' => 'in_app_notifications',
+            default => $channel,
+        });
     }
 
     private function recipient(User $user, string $channel, ?string $phone): ?string

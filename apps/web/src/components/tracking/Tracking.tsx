@@ -25,7 +25,7 @@ export function Tracking() {
 
   useEffect(() => {
     if (!enabled) {
-      deactivateTracking();
+      deactivateTracking(true);
       return;
     }
     captureAttribution();

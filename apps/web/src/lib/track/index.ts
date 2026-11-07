@@ -73,10 +73,11 @@ export function activateTracking(next: TrackingIds) {
   for (const q of queued) send(q.event, q.payload, q.eventId, q.url, q.referrer);
 }
 
-/** "Essential only" after having accepted: stop sending and tell the tags. */
 let disabled = false;
 
-export function deactivateTracking() {
+/** "Essential only" after having accepted, or the admin switched the "tracking" feature off (featureOff). */
+export function deactivateTracking(featureOff = false) {
+  if (featureOff) disabled = true;
   pending = [];
   if (ids) consentUpdate(false);
   ids = null;
@@ -84,7 +85,7 @@ export function deactivateTracking() {
 
 export function track(event: TrackEvent, payload: TrackPayload = {}): string {
   const eventId = payload.eventId ?? (event === "Purchase" && payload.orderId ? purchaseEventId(payload.orderId) : newEventId());
-  if (typeof window === "undefined") return eventId;
+  if (typeof window === "undefined" || disabled) return eventId;
   const consent = getConsent();
   if (consent === "essential") return eventId;
   const url = window.location.href;

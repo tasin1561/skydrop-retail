@@ -4,11 +4,14 @@ import { apiEnabled } from "@/lib/apiClient";
 import { demoWishlistCode, growthApi } from "@/lib/growth";
 import { useStore } from "@/state/store";
 import { ShareButton } from "./ShareButton";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 /** "Share my wishlist": a public /w/{code} page listing the saved products. */
 export function ShareWishlist({ ids }: { ids: string[] }) {
   const { token, user } = useStore();
   const first = user?.name.split(" ")[0];
+  const enabled = useFeature("share");
+  if (!enabled) return null;
 
   return (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3">

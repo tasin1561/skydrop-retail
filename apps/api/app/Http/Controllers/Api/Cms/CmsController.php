@@ -8,6 +8,7 @@ use App\Models\FlashSale;
 use App\Models\Product;
 use App\Services\Cms\FlashSaleService;
 use App\Services\PricingService;
+use App\Support\Features;
 use App\Support\ProductJson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,9 +24,10 @@ class CmsController extends Controller
         $store = in_array($request->query('store'), Banner::STORES, true) ? $request->query('store') : 'all';
         $forStore = fn ($q) => $store === 'all' ? $q : $q->whereIn('store', ['all', $store]);
 
-        $banners = $forStore(Banner::query()->live())->orderBy('sort')->orderByDesc('id')->limit(30)->get();
+        $banners = Features::enabled('banners')
+            ? $forStore(Banner::query()->live())->orderBy('sort')->orderByDesc('id')->limit(30)->get() : collect();
 
-        $sales = $forStore(FlashSale::query()->with('items')->where('active', true)->where('ends_at', '>', now())
+        $sales = ! Features::enabled('flash_sales') ? collect() : $forStore(FlashSale::query()->with('items')->where('active', true)->where('ends_at', '>', now())
             ->where('starts_at', '<=', now()->addDays(7)))->orderBy('starts_at')->limit(6)->get();
         $ids = $sales->flatMap(fn (FlashSale $s) => $s->items->pluck('product_id'))->unique()->values()->all();
         $products = Product::query()->whereIn('id', $ids)->where('hidden', false)->get()->keyBy('id');
@@ -51,6 +53,7 @@ class CmsController extends Controller
 
         return response()->json([
             'store' => $store,
+            'enabled' => ['banners' => Features::enabled('banners'), 'flashSales' => Features::enabled('flash_sales')],
             'banners' => $banners->map->toApi()->values(),
             'flashSales' => $saleJson,
             'serverTime' => now()->toIso8601String(),

@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toast";
 import { Sheet, Spinner } from "@/components/account/ui";
 import { withCode } from "@/lib/growth";
 import { useShareCodes } from "./useShareCodes";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 type Props = {
   title: string;
@@ -58,6 +59,7 @@ export function ShareButton({ title, text, path, resolvePath, variant = "icon", 
   const [open, setOpen] = useState<string | null>(null); // url shown in the sheet
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
+  const enabled = useFeature("share");
 
   async function share() {
     if (busy) return;
@@ -106,6 +108,8 @@ export function ShareButton({ title, text, path, resolvePath, variant = "icon", 
       : variant === "button"
         ? "btn btn-primary"
         : "btn btn-ghost";
+
+  if (!enabled) return null;
 
   return (
     <>
