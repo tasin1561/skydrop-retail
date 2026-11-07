@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import type { Offer, Product } from "@/lib/types";
 import { STORES } from "@/lib/markets";
@@ -52,6 +53,7 @@ export function OffersSection({ p }: { p: Product }) {
   const { t, digits } = useT();
   if (!offers.length) return null;
   const applied = offers.filter((o) => o.appliesToOurPrice).length;
+  const hasSourceOnly = offers.some((o) => !o.appliesToOurPrice);
   return (
     <section aria-labelledby="offers-h" className="mt-5">
       <div className="mb-2 flex items-end justify-between gap-2">
@@ -65,10 +67,19 @@ export function OffersSection({ p }: { p: Product }) {
           <OfferCard key={i} o={o} i={i} />
         ))}
       </ul>
-      <p className="mt-1 text-xs text-ink-3">
-        {applied > 0 ? t("offer.applied") : ""}
-        {t("offer.bankNote", { source: STORES[p.market].source })}
-      </p>
+      {/* Disclaimers: store coupons can be one-per-account / run out; bank & card offers are never in our price. */}
+      <div className="mt-2 rounded-[10px] border border-line bg-surface p-3 text-xs leading-relaxed text-ink-2">
+        <p className="mb-1.5 flex items-center gap-1.5 font-bold text-ink">
+          <Icon name="info" size={14} /> {t("offer.goodToKnow")}
+        </p>
+        <ul className="grid gap-1.5">
+          {applied > 0 && <li>{t("offer.couponNote", { source: STORES[p.market].source })}</li>}
+          {hasSourceOnly && <li>{t("offer.bankNote2", { source: STORES[p.market].source })}</li>}
+        </ul>
+        <Link href="/legal/terms#store-offers" className="mt-1.5 inline-flex min-h-8 items-center font-semibold text-accent hover:underline">
+          {t("offer.terms")}
+        </Link>
+      </div>
     </section>
   );
 }

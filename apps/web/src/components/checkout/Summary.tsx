@@ -110,6 +110,7 @@ export function TrustRow() {
       {[
         ["shield", t("sum.trust1")],
 ["refresh", t("sum.trust2")],
+        ["tag", t("sum.trust3")],
       ].map(([i, t]) => (
         <li key={t} className="flex items-center gap-2">
           <Icon name={i} size={15} className="text-good" /> {t}

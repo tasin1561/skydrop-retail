@@ -240,6 +240,10 @@ export const en = {
   "offer.claimed": "{pct}% claimed",
   "offer.title": "Offers on {source}",
   "offer.applied": "Coupons and deal prices we can use are already in your price. ",
+  "offer.goodToKnow": "Good to know",
+  "offer.couponNote": "Store coupons and deal prices from {source} are included in your price. They are often limited to one use per account or can run out. If one isn't available when we buy, we ask you before charging more, or refund you in full.",
+  "offer.bankNote2": "Bank, card, cashback, EMI and exchange offers are for paying {source} directly in India. They are not included in your price and can't be claimed through us.",
+  "offer.terms": "How store offers work",
   "offer.bankNote": "Bank, card and EMI offers apply when paying on {source} in India; we show them so you see the full deal.",
   "ship.progress": "Free Skydrop delivery progress for {source}",
   "ship.more": "{amount} more from {source} for free Skydrop delivery",
@@ -934,6 +938,7 @@ export const en = {
   "sum.doorBody": "We buy in India, Skydrop carries it via the Kolkata hub to your door in Bangladesh.",
   "sum.trust1": "Live price and stock check before you pay",
   "sum.trust2": "Full refund if we can't buy your item",
+  "sum.trust3": "Store coupons can run out. If your price would rise before we buy, we ask you first",
   // checkout steps
   "pay.bkashDesc": "Pay from your bKash account",
   "pay.nagadDesc": "Pay from your Nagad account",

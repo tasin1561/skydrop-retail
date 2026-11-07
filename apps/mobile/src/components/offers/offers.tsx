@@ -202,6 +202,7 @@ function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
 
 export function OffersSection({ p }: { p: Product }) {
   const { t, digits } = useT();
+  const { c } = useTheme();
   const a = useAccent(p.market);
   const offers = [...(p.offers ?? [])].sort((x, y) => Number(y.appliesToOurPrice) - Number(x.appliesToOurPrice));
   if (!offers.length) return null;
@@ -230,10 +231,22 @@ export function OffersSection({ p }: { p: Product }) {
         snapToInterval={250}
         decelerationRate="fast"
       />
-      <T v="tiny" tone="ink3" style={{ paddingHorizontal: 16 }}>
-        {applied > 0 ? t("offer.applied") : ""}
-        {t("offer.bankNote", { source })}
-      </T>
+      {/* Disclaimers: store coupons can be one-per-account / run out; bank & card offers are never in our price. */}
+      <View style={{ marginHorizontal: 16, padding: 12, gap: 6, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line, backgroundColor: c.surface }}>
+        <T v="tiny" style={{ fontWeight: "800" }}>
+          {t("offer.goodToKnow")}
+        </T>
+        {applied > 0 && (
+          <T v="tiny" tone="ink2">
+            {t("offer.couponNote", { source })}
+          </T>
+        )}
+        {offers.some((o) => !o.appliesToOurPrice) && (
+          <T v="tiny" tone="ink2">
+            {t("offer.bankNote2", { source })}
+          </T>
+        )}
+      </View>
     </View>
   );
 }

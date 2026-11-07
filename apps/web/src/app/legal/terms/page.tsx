@@ -70,6 +70,32 @@ export default async function TermsPage() {
           ),
         },
         {
+          id: "store-offers",
+          title: "Store coupons, deals and bank offers",
+          body: (
+            <>
+              <p>
+                <strong>Store coupons and deal prices.</strong> When an Indian store shows a coupon (for example &quot;Apply ₹50 coupon&quot;) or a
+                deal price that we can use when we buy, we include it in your taka price. Store coupons are often limited to one use per account,
+                limited in number, or end without notice, so we cannot guarantee that one will still apply when we buy your item.
+              </p>
+              <p>
+                If a coupon or deal is no longer available and the item would cost us more, we contact you <strong>before</strong> buying. You
+                choose: pay the difference, or cancel for a full refund. We never charge you more without asking.
+              </p>
+              <p>
+                <strong>Bank, card, cashback, EMI and exchange offers</strong> shown on a product are offers for people paying the Indian store
+                directly. They are <strong>not included</strong> in your Skydrop price and you cannot claim them through us. When we buy with a
+                payment card that happens to qualify for such an offer, that saving is ours and is not applied to your order; it helps us keep prices
+                low. We show these offers only so you can see the full deal on the source store.
+              </p>
+              <p>
+                Skydrop Retail coupons (codes you enter at our checkout) are separate and follow the rules shown with each code.
+              </p>
+            </>
+          ),
+        },
+        {
           id: "payment",
           title: "Payment",
           body: (
@@ -241,6 +267,30 @@ function TermsBn() {
               <p>
                 <strong>ডেলিভারির সময় বাড়তি কোনো চার্জ নেই</strong>, শুধু ৫০% অগ্রিম বেছে নিলে বাকি টাকাটা দিতে হবে।
               </p>
+            </>
+          ),
+        },
+        {
+          id: "store-offers",
+          title: "স্টোরের কুপন, ডিল ও ব্যাংক অফার",
+          body: (
+            <>
+              <p>
+                <strong>স্টোরের কুপন ও ডিলের দাম।</strong> ইন্ডিয়ান স্টোরে কুপন (যেমন &quot;₹৫০ কুপন প্রয়োগ করুন&quot;) বা ডিলের দাম থাকলে, আর
+                কেনার সময় আমরা তা ব্যবহার করতে পারলে, সেটা আপনার টাকার দামে ধরা থাকে। স্টোরের কুপন প্রায়ই প্রতি অ্যাকাউন্টে একবার ব্যবহারযোগ্য, সংখ্যায়
+                সীমিত, অথবা আগাম জানান না দিয়েই শেষ হয়ে যায়, তাই আপনার পণ্য কেনার সময়ও কুপনটি থাকবে এমন নিশ্চয়তা আমরা দিতে পারি না।
+              </p>
+              <p>
+                কুপন বা ডিল আর না থাকলে আর পণ্যটি কিনতে বেশি খরচ হলে, কেনার <strong>আগেই</strong> আমরা আপনার সাথে যোগাযোগ করি। আপনি ঠিক
+                করবেন: বাড়তি টাকাটা দেবেন, নাকি অর্ডার বাতিল করে পুরো টাকা ফেরত নেবেন। আপনাকে না জানিয়ে আমরা কখনো বেশি টাকা নিই না।
+              </p>
+              <p>
+                পণ্যে দেখানো <strong>ব্যাংক, কার্ড, ক্যাশব্যাক, EMI ও এক্সচেঞ্জ অফার</strong> শুধু যারা সরাসরি ইন্ডিয়ান স্টোরে পেমেন্ট করেন তাদের জন্য।
+                এগুলো আপনার Skydrop দামে <strong>ধরা নেই</strong>, আর আমাদের মাধ্যমে এগুলো নেওয়া যায় না। আমরা যে কার্ডে কিনি তাতে কোনো অফার
+                প্রযোজ্য হলে সেই সাশ্রয় আমাদের, আপনার অর্ডারে যোগ হয় না; এতে আমরা দাম কম রাখতে পারি। সোর্স স্টোরের পুরো ডিলটা যেন দেখতে পান, শুধু
+                সেজন্যই অফারগুলো দেখাই।
+              </p>
+              <p>Skydrop Retail-এর কুপন (আমাদের চেকআউটে যে কোড দেন) আলাদা, প্রতিটি কোডের সাথে দেখানো নিয়ম মেনে চলে।</p>
             </>
           ),
         },
