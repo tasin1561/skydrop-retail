@@ -31,21 +31,26 @@ return [
                 'api_key' => env('STEADFAST_API_KEY'),
                 'secret_key' => env('STEADFAST_SECRET_KEY'),
             ],
+            // Pathao merchant panel login (same account you use on merchant.pathao.com).
             'pathao' => [
-                'enabled' => (bool) env('PATHAO_FRAUD_ENABLED', false),
-                'base_url' => env('PATHAO_BASE_URL', 'https://api-hermes.pathao.com'),
-                'client_id' => env('PATHAO_CLIENT_ID'), 'client_secret' => env('PATHAO_CLIENT_SECRET'),
-                'username' => env('PATHAO_USERNAME'), 'password' => env('PATHAO_PASSWORD'),
+                'enabled' => (bool) env('PATHAO_FRAUD_ENABLED', true),
+                'merchant_url' => env('PATHAO_MERCHANT_URL', 'https://merchant.pathao.com'),
+                'username' => env('PATHAO_USERNAME'),
+                'password' => env('PATHAO_PASSWORD'),
             ],
             'redx' => [
                 'enabled' => (bool) env('REDX_FRAUD_ENABLED', false),
                 'base_url' => env('REDX_BASE_URL', 'https://openapi.redx.com.bd/v1.0.0-beta'),
                 'token' => env('REDX_API_TOKEN'),
             ],
+            // CarryBee merchant panel login (phone + password on merchant.carrybee.com).
             'carrybee' => [
-                'enabled' => (bool) env('CARRYBEE_FRAUD_ENABLED', false),
-                'base_url' => env('CARRYBEE_BASE_URL'),
-                'token' => env('CARRYBEE_API_TOKEN'),
+                'enabled' => (bool) env('CARRYBEE_FRAUD_ENABLED', true),
+                'login_url' => env('CARRYBEE_LOGIN_URL', 'https://merchant.carrybee.com'),
+                'api_url' => env('CARRYBEE_API_URL', 'https://api-merchant.carrybee.com/api/v2'),
+                'phone' => env('CARRYBEE_PHONE'),
+                'password' => env('CARRYBEE_PASSWORD'),
+                'business_id' => env('CARRYBEE_BUSINESS_ID'), // optional: empty = the account's selected business
             ],
         ],
         'disposable_domains' => ['mailinator.com', 'guerrillamail.com', '10minutemail.com', 'tempmail.com', 'temp-mail.org', 'yopmail.com',

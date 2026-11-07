@@ -3,6 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Concerns\HasPagePermission;
+use App\Models\Setting;
+use App\Services\Fraud\FraudService;
 use App\Support\Knobs;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -19,6 +21,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Symfony\Component\HttpFoundation\IpUtils;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -50,6 +53,13 @@ class FinanceSecuritySettings extends Page
         'finance.fraud.medium_at' => 'int', 'finance.fraud.high_at' => 'int', 'finance.fraud.require_full_prepay_high' => 'bool',
         'security.admin.require_2fa' => 'bool', 'security.admin.ip_allowlist' => 'string', 'security.admin.session_timeout_minutes' => 'int',
         'security.activity.retention_days' => 'int',
+        // Courier delivery history for the fraud check (secrets: write-only, encrypted at rest)
+        'finance.fraud.couriers.steadfast.enabled' => 'bool', 'finance.fraud.couriers.steadfast.api_key' => 'string',
+        'finance.fraud.couriers.steadfast.secret_key' => 'string',
+        'finance.fraud.couriers.pathao.enabled' => 'bool', 'finance.fraud.couriers.pathao.username' => 'string',
+        'finance.fraud.couriers.pathao.password' => 'string',
+        'finance.fraud.couriers.carrybee.enabled' => 'bool', 'finance.fraud.couriers.carrybee.phone' => 'string',
+        'finance.fraud.couriers.carrybee.password' => 'string', 'finance.fraud.couriers.carrybee.business_id' => 'string',
     ];
 
     /** @var array<string, mixed> */
@@ -64,7 +74,7 @@ class FinanceSecuritySettings extends Page
     {
         $state = [];
         foreach (self::KEYS as $key => $cast) {
-            $state[self::f($key)] = Knobs::get($key);
+            $state[self::f($key)] = Setting::isSecret($key) ? null : Knobs::get($key); // secrets are never sent to the browser
         }
         $this->form->fill($state);
     }
@@ -95,6 +105,23 @@ class FinanceSecuritySettings extends Page
                 TextInput::make(self::f('finance.fraud.high_at'))->label('High risk from score')->numeric()->minValue(1)->maxValue(100),
                 Toggle::make(self::f('finance.fraud.require_full_prepay_high'))->label('High risk: full prepayment instead of 50% advance')->inline(false),
             ]),
+            Section::make('Courier history (fraud check)')
+                ->description('Each customer phone is checked against these couriers\' delivery records (cached 7 days). Use your merchant accounts. '
+                    .'Passwords and keys are encrypted and never shown again; leave blank to keep the saved one.')
+                ->headerActions([Action::make('testCouriers')->label('Test logins')->icon(Heroicon::OutlinedSignal)->action(fn () => $this->testCouriers())])
+                ->columns(3)->columnSpanFull()->schema([
+                    Toggle::make(self::f('finance.fraud.couriers.steadfast.enabled'))->label('Steadfast')->inline(false),
+                    $this->secret('finance.fraud.couriers.steadfast.api_key', 'Steadfast API key'),
+                    $this->secret('finance.fraud.couriers.steadfast.secret_key', 'Steadfast secret key'),
+                    Toggle::make(self::f('finance.fraud.couriers.pathao.enabled'))->label('Pathao')->inline(false),
+                    TextInput::make(self::f('finance.fraud.couriers.pathao.username'))->label('Pathao merchant email / phone')->maxLength(120),
+                    $this->secret('finance.fraud.couriers.pathao.password', 'Pathao merchant password'),
+                    Toggle::make(self::f('finance.fraud.couriers.carrybee.enabled'))->label('CarryBee')->inline(false),
+                    TextInput::make(self::f('finance.fraud.couriers.carrybee.phone'))->label('CarryBee merchant phone')->tel()->maxLength(20),
+                    $this->secret('finance.fraud.couriers.carrybee.password', 'CarryBee merchant password'),
+                    TextInput::make(self::f('finance.fraud.couriers.carrybee.business_id'))->label('CarryBee business id (optional)')->maxLength(40)
+                        ->helperText('Only if your account has several businesses.')->columnStart(2),
+                ]),
             Section::make('Admin security')->columns(2)->schema([
                 Toggle::make(self::f('security.admin.require_2fa'))->label('Require 2FA for admin and manager')->inline(false),
                 TextInput::make(self::f('security.admin.session_timeout_minutes'))->label('Idle session timeout')->numeric()->minValue(5)->maxValue(1440)->suffix('min'),
@@ -103,6 +130,37 @@ class FinanceSecuritySettings extends Page
                 TextInput::make(self::f('security.activity.retention_days'))->label('Keep activity log for')->numeric()->minValue(30)->suffix('days'),
             ]),
         ]);
+    }
+
+    private function secret(string $key, string $label): TextInput
+    {
+        $saved = Setting::mask(Knobs::get($key));
+
+        return TextInput::make(self::f($key))->label($label)->password()->revealable()->maxLength(200)->autocomplete('new-password')
+            ->placeholder($saved ? 'Saved '.$saved : 'Not set');
+    }
+
+    /** Signs in to each enabled courier with a dummy lookup and reports the result (no customer data involved). */
+    public function testCouriers(): void
+    {
+        abort_unless(static::canAccess(), 403);
+        Knobs::forget();
+        $lines = [];
+        foreach (app(FraudService::class)->drivers() as $driver) {
+            if (! $driver->enabled()) {
+                $lines[] = ucfirst($driver->id()).': off or no login';
+
+                continue;
+            }
+            try {
+                $driver->check('01700000000');
+                $lines[] = ucfirst($driver->id()).': OK';
+            } catch (Throwable $e) {
+                $lines[] = ucfirst($driver->id()).': '.mb_substr($e->getMessage(), 0, 120);
+            }
+        }
+        $ok = ! array_filter($lines, fn ($l) => ! str_ends_with($l, 'OK') && ! str_ends_with($l, 'no login'));
+        Notification::make()->title('Courier logins')->body(implode("\n", $lines))->{$ok ? 'success' : 'warning'}()->persistent()->send();
     }
 
     public function content(Schema $schema): Schema
@@ -125,6 +183,9 @@ class FinanceSecuritySettings extends Page
         }
         foreach (self::KEYS as $key => $cast) {
             $v = $state[self::f($key)] ?? null;
+            if (Setting::isSecret($key) && ($v === null || $v === '')) {
+                continue; // write-only: blank keeps the saved secret
+            }
             $v = $v === null || $v === '' ? null : match ($cast) {
                 'float' => (float) $v, 'int' => (int) $v, 'bool' => (bool) $v, default => (string) $v,
             };

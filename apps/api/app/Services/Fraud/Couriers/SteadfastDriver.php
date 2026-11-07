@@ -22,14 +22,15 @@ class SteadfastDriver implements CourierFraudDriver
 
     public function enabled(): bool
     {
-        $c = config('finance.fraud.couriers.steadfast');
+        $c = CourierCreds::get('steadfast');
 
-        return ($c['enabled'] ?? false) && filled($c['api_key'] ?? null) && filled($c['secret_key'] ?? null);
+        return $c['enabled'] && filled($c['api_key'] ?? null) && filled($c['secret_key'] ?? null);
     }
 
     public function check(string $phone): array
     {
-        $c = config('finance.fraud.couriers.steadfast');
+        $c = CourierCreds::get('steadfast');
+        $phone = CourierCreds::localPhone($phone);
         $r = Http::withHeaders(['Api-Key' => $c['api_key'], 'Secret-Key' => $c['secret_key'], 'Accept' => 'application/json'])
             ->timeout(8)->get(str_replace('{phone}', rawurlencode($phone), $c['url']));
         if (! $r->successful()) {

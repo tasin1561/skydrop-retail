@@ -16,7 +16,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
-/** Look up any phone: courier delivery history (Steadfast, Pathao, RedX, CarryBee) plus our own signals. */
+/** Look up any phone: courier delivery history (Steadfast, Pathao, CarryBee (RedX pending)) plus our own signals. */
 class FraudCheck extends Page
 {
     use HasPagePermission; // RBAC: page.{slug} + the keys below
