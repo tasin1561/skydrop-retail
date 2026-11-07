@@ -61,10 +61,10 @@ function Pulse({ x, y, color }: { x: number; y: number; color: string }) {
   const reduce = useReducedMotion();
   const s = useSharedValue(0);
   useEffect(() => {
-    if (!reduce) s.value = withRepeat(withTiming(1, { duration: 1800, easing: Easing.out(Easing.quad) }), -1, false);
+    if (!reduce) s.value = withRepeat(withTiming(1, { duration: 2400, easing: Easing.out(Easing.quad) }), -1, false);
   }, [reduce, s]);
   // Radius + opacity on the ring only (the dot itself never moves).
-  const props = useAnimatedProps(() => ({ r: 7 + s.value * 10, opacity: reduce ? 0 : 0.9 * (1 - s.value) }));
+  const props = useAnimatedProps(() => ({ r: 7 + s.value * 5, opacity: reduce ? 0 : 0.4 * (1 - s.value) }));
   return (
     <>
       <ACircle cx={x} cy={y} fill="none" stroke={color} strokeWidth={2} animatedProps={props} />

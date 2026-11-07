@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import Animated, { Easing, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import type { Order, OrderStatus } from "@/lib/types";
 import { STAGES, progressOf, stageDetail, stageIndex, stageLabel, statusIcon, statusText } from "@/lib/orderStatus";
 import { useTheme, withAlpha } from "@/theme";
 import { Icon } from "./Icon";
 import { Pill, T } from "./ui";
 import { useT } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 /** Re-renders every 15 s so simulated demo progress shows up without a refresh. */
 export function useNow(ms = 15000) {
@@ -56,10 +57,12 @@ export function Timeline({ order }: { order: Order }) {
   const cur = stageIndex(order.status);
   const at = new Map((order.timeline ?? []).map((t) => [t.status, t.at]));
   const pulse = useSharedValue(1);
+  const reduce = useReducedMotion();
+  // current step: one slow, low-amplitude status pulse; none with Reduce Motion
   useEffect(() => {
-    pulse.value = withRepeat(withTiming(1.6, { duration: 1100, easing: Easing.out(Easing.quad) }), -1, false);
-  }, [pulse]);
-  const ring = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }], opacity: 1.6 - pulse.value }));
+    if (!reduce) pulse.value = withRepeat(withTiming(1.35, { duration: 2400, easing: Easing.out(Easing.quad) }), -1, false);
+  }, [pulse, reduce]);
+  const ring = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }], opacity: reduce ? 0 : (1.35 - pulse.value) * 1.2 }));
 
   if (order.status === "cancelled")
     return (
@@ -77,7 +80,7 @@ export function Timeline({ order }: { order: Order }) {
         const future = i > cur;
         const time = at.get(s.status);
         return (
-          <Animated.View key={s.status} entering={FadeInDown.delay(i * 50)} style={{ flexDirection: "row", gap: 12 }} accessibilityLabel={done ? t("m.stageDone", { label: stageLabel(s, order, tr) }) : active ? t("m.stageCurrent", { label: stageLabel(s, order, tr) }) : stageLabel(s, order, tr)}>
+          <Animated.View key={s.status} entering={listEnter(i)} style={{ flexDirection: "row", gap: 12 }} accessibilityLabel={done ? t("m.stageDone", { label: stageLabel(s, order, tr) }) : active ? t("m.stageCurrent", { label: stageLabel(s, order, tr) }) : stageLabel(s, order, tr)}>
             <View style={{ alignItems: "center", width: 30 }}>
               <View>
                 {active && <Animated.View style={[styles.ring, { backgroundColor: withAlpha(c.brand, 0.35) }, ring]} />}

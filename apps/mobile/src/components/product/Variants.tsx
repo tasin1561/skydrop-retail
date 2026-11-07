@@ -1,7 +1,7 @@
 // All variants as swatches (when images exist) or chips, grouped by dimension.
 import { memo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import Animated, { ZoomIn } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { Image } from "expo-image";
 import type { DimGroup } from "@/lib/variants";
 import { sized } from "@/lib/variants";
@@ -11,6 +11,7 @@ import { haptic } from "@/lib/haptics";
 import { Icon } from "../Icon";
 import { T, Tap } from "../ui";
 import { useT } from "@/i18n";
+import { enterFade } from "@/lib/motion";
 
 export const VariantGroup = memo(function VariantGroup({
   group,
@@ -66,7 +67,7 @@ export const VariantGroup = memo(function VariantGroup({
                     </T>
                   )}
                   {on && (
-                    <Animated.View entering={ZoomIn.springify()} style={[styles.check, { backgroundColor: a.accent }]}>
+                    <Animated.View entering={enterFade} style={[styles.check, { backgroundColor: a.accent }]}>
                       <Icon name="check" size={10} color="#fff" />
                     </Animated.View>
                   )}

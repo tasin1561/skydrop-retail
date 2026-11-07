@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { ApiError, isDemo } from "@/api/client";
 import { moneyApi, RETURN_PLUS, type PlusMembership, type PlusPeriod, type PlusPlan, type PlusSavings } from "@/api/money";
 import { useStore } from "@/state/store";
@@ -14,6 +14,7 @@ import { Button, Card, Empty, Pill, Skeleton, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 const PERIOD: Record<PlusPeriod, MsgKey> = { monthly: "period.monthly", quarterly: "period.quarterly", yearly: "period.yearly" };
 const PAY = [
@@ -111,7 +112,7 @@ export default function PlusScreen() {
         plans
           .filter((p) => p.period === period)
           .map((p, i) => (
-            <Animated.View key={p.id} entering={FadeInDown.delay(i * 40)}>
+            <Animated.View key={p.id} entering={listEnter(i)}>
               <Card style={[{ gap: 8 }, p.highlight && { borderWidth: 2, borderColor: "#f5c451" }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <T v="h3">{p.name}</T>

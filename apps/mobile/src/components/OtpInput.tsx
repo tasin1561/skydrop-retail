@@ -2,7 +2,7 @@
 // (iOS oneTimeCode / Android sms-otp) and backspace naturally.
 import { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputInstance } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { radius, useTheme } from "@/theme";
 import { T } from "./ui";
 import { useT } from "@/i18n";
@@ -12,22 +12,18 @@ export function OtpInput({ value, onChange, error, autoFocus = true }: { value: 
   const { c } = useTheme();
   const ref = useRef<TextInputInstance>(null);
   const [focused, setFocused] = useState(false);
-  const shake = useSharedValue(0);
   const caret = useSharedValue(1);
 
-  useEffect(() => {
-    if (error) shake.value = withSequence(withTiming(-8, { duration: 50 }), withTiming(8, { duration: 50 }), withTiming(-5, { duration: 50 }), withTiming(0, { duration: 50 }));
-  }, [error, shake]);
+  // invalid code: the boxes turn red (no shake)
   useEffect(() => {
     caret.value = withRepeat(withTiming(0, { duration: 500 }), -1, true);
   }, [caret]);
 
-  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }] }));
   const caretStyle = useAnimatedStyle(() => ({ opacity: caret.value }));
 
   return (
     <Pressable onPress={() => ref.current?.focus()} accessibilityLabel={t("m.otpA11y", { count: value.length })}>
-      <Animated.View style={[styles.row, shakeStyle]}>
+      <Animated.View style={styles.row}>
         {Array.from({ length: 6 }, (_, i) => {
           const ch = value[i];
           const active = focused && i === Math.min(value.length, 5);

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { router } from "expo-router";
 import type { Product, StoreMode } from "@/lib/types";
 import { STORES , storeText } from "@/lib/markets";
@@ -13,22 +13,16 @@ import { Card, IconChip, SectionTitle, T, Tap } from "./ui";
 import { haptic } from "@/lib/haptics";
 import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
+import { enterFade, listEnter } from "@/lib/motion";
 
 export function StoreHero({ mode }: { mode: StoreMode }) {
   const { t } = useT();
   const s = storeText(mode, t);
   const a = ACCENTS[mode];
-  const float = useSharedValue(0);
-  useEffect(() => {
-    float.value = withRepeat(withSequence(withTiming(-6, { duration: 1600, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 1600, easing: Easing.inOut(Easing.sin) })), -1);
-  }, [float]);
-  const floatStyle = useAnimatedStyle(() => ({ transform: [{ translateY: float.value }] }));
 
   return (
-    <Animated.View key={mode} entering={FadeIn.duration(260)} style={{ marginHorizontal: 16 }}>
-      <LinearGradient colors={[a.heroA, a.heroB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <View style={[styles.blob, { right: -30, top: -30, width: 140, height: 140 }]} />
-        <View style={[styles.blob, { left: -40, bottom: -50, width: 120, height: 120 }]} />
+    <Animated.View key={mode} entering={enterFade} style={{ marginHorizontal: 16 }}>
+      <LinearGradient colors={[a.heroA, a.heroA, a.heroB]} locations={[0, 0.6, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={{ flex: 1, gap: 8 }}>
           <View style={styles.heroTag}>
             <Icon name={s.icon} size={12} color="#fff" />
@@ -53,7 +47,7 @@ export function StoreHero({ mode }: { mode: StoreMode }) {
             </T>
           </Tap>
         </View>
-        <Animated.View style={[styles.heroArt, floatStyle]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Animated.View style={styles.heroArt} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Icon name="package" size={44} color="#fff" />
         </Animated.View>
       </LinearGradient>
@@ -73,7 +67,7 @@ export function CategoryChips({ mode, onPick }: { mode: StoreMode; onPick?: (slu
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
       renderItem={({ item, index }) => (
-        <Animated.View entering={FadeInDown.delay(index * 40).springify().damping(18)}>
+        <Animated.View entering={listEnter(index)}>
           <Tap
             onPress={() => {
               haptic.tap();
@@ -214,8 +208,7 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: radius.lg + 4, padding: 18, flexDirection: "row", overflow: "hidden", minHeight: 190 },
-  blob: { position: "absolute", borderRadius: 999, backgroundColor: "rgba(255,255,255,0.12)" },
+  hero: { borderRadius: radius.lg, padding: 18, flexDirection: "row", overflow: "hidden", minHeight: 190 },
   heroTag: { flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start", backgroundColor: "rgba(255,255,255,0.18)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
   heroBtn: { marginTop: 6, flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", backgroundColor: "#fff", paddingHorizontal: 14, minHeight: 44, borderRadius: 999 },
   heroArt: { width: 76, height: 76, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", alignSelf: "center", marginLeft: 8 },

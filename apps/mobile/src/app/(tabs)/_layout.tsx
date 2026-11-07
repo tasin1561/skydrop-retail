@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStore } from "@/state/store";
 import { ACCENTS, useTheme } from "@/theme";
@@ -9,6 +9,7 @@ import { Icon } from "@/components/Icon";
 import { T } from "@/components/ui";
 import { haptic } from "@/lib/haptics";
 import { useT, type MsgKey } from "@/i18n";
+import { DUR, timing } from "@/lib/motion";
 
 const TABS: Record<string, { label: MsgKey; icon: string }> = {
   index: { label: "nav.home", icon: "home" },
@@ -43,7 +44,7 @@ function TabBar({ state, navigateToTab }: BottomTabBarProps) {
   const n = state.routes.length;
 
   useEffect(() => {
-    x.value = withSpring(state.index, { damping: 18, stiffness: 220 });
+    x.value = withTiming(state.index, timing(DUR.open));
   }, [state.index, x]);
 
   const dot = useAnimatedStyle(() => ({

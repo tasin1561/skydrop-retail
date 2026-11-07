@@ -1,10 +1,11 @@
 import { StyleSheet, View } from "react-native";
-import Animated, { ZoomIn } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Icon } from "./Icon";
 import { T, Tap } from "./ui";
 import { useT } from "@/i18n";
+import { enterFade } from "@/lib/motion";
 
 export function QtyStepper({ value, onChange, min = 1, max = 10, small }: { value: number; onChange: (n: number) => void; min?: number; max?: number; small?: boolean }) {
   const { t, digits } = useT();
@@ -28,7 +29,7 @@ export function QtyStepper({ value, onChange, min = 1, max = 10, small }: { valu
   return (
     <View style={[styles.wrap, { backgroundColor: c.surface2 }]} accessibilityLabel={t("m.qtyA11y", { count: value })} accessibilityRole="adjustable">
       {btn("minus", value - 1, value <= min, t("qty.dec"))}
-      <Animated.View key={value} entering={ZoomIn.duration(160)} style={{ minWidth: 28, alignItems: "center" }}>
+      <Animated.View key={value} entering={enterFade} style={{ minWidth: 28, alignItems: "center" }}>
         <T v="h3">{digits(value)}</T>
       </Animated.View>
       {btn("plus", value + 1, value >= max, t("qty.inc"))}

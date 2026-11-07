@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import Animated, { FadeInDown, useAnimatedStyle, withSpring, withTiming, useReducedMotion } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, withTiming, useReducedMotion } from "react-native-reanimated";
 import { useFeature } from "@/lib/features";
 import { STORES } from "@/lib/markets";
 import { priceBdt } from "@/lib/pricing";
@@ -17,12 +17,13 @@ import { Button, Card, IconChip, ProductImage, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useT } from "@/i18n";
+import { DUR, timing, listEnter } from "@/lib/motion";
 
 /** Checkbox that pops (transform only; Reduce Motion → instant). */
 function Check({ on }: { on: boolean }) {
   const { c } = useTheme();
   const reduce = useReducedMotion();
-  const s = useAnimatedStyle(() => ({ transform: [{ scale: reduce ? 1 : on ? withSpring(1, { damping: 12 }) : withTiming(0.85, { duration: 120 }) }] }), [on, reduce]);
+  const s = useAnimatedStyle(() => ({ transform: [{ scale: reduce ? 1 : on ? withTiming(1, timing(DUR.open)) : withTiming(0.85, { duration: 120 }) }] }), [on, reduce]);
   return (
     <Animated.View style={[styles.check, { borderColor: on ? c.brand : c.line, backgroundColor: on ? c.brand : c.surface }, s]}>
       {on && <Icon name="check" size={14} color="#fff" />}
@@ -108,7 +109,7 @@ export function BundleCard({ b, index = 0 }: { b: Bundle; index?: number }) {
   const { c } = useTheme();
   const { t, bdt } = useT();
   return (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(240)}>
+    <Animated.View entering={listEnter(index)}>
       <Tap onPress={() => router.push(`/bundles/${encodeURIComponent(b.slug)}`)} accessibilityLabel={t("mx.bundleOpen", { title: b.title })} scaleTo={0.98}>
         <View style={[styles.bundle, { backgroundColor: c.surface2 }]}>
           {!!b.items?.length && (

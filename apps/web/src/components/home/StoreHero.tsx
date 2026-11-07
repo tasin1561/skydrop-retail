@@ -39,24 +39,24 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
         />
       ))}
 
-      <div className="relative grid gap-6 p-5 sm:p-8 md:grid-cols-[1.15fr_1fr] md:items-center lg:p-10">
+      <div className={`relative grid gap-6 ${fixed ? "p-4" : "p-5"} sm:p-8 md:grid-cols-[1.15fr_1fr] md:items-center lg:p-10`}>
         <div key={scene.mode} className="fade-in">
           <span className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white/90">
             <Icon name={info.icon} size={14} stroke={2} />
             {scene.mode === "all" ? "Skydrop Retail" : t("hero.sourced", { store: info.name, source: info.source })}
           </span>
-          <h1 className="mt-3 text-[26px] font-bold leading-[1.15] tracking-tight sm:text-4xl lg:text-[44px]">{info.heroTitle}</h1>
-          <p className="mt-3 max-w-md text-sm text-white/85 sm:text-base">{info.heroText}</p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <h1 className={`${fixed ? "mt-2 text-[20px]" : "mt-3 text-[26px]"} font-bold leading-[1.15] tracking-tight sm:text-4xl lg:text-[44px]`}>{info.heroTitle}</h1>
+          <p className={`mt-3 max-w-md text-sm text-white/85 sm:text-base ${fixed ? "hidden sm:block" : ""}`}>{info.heroText}</p>
+          <div className={`${fixed ? "mt-3" : "mt-5"} flex flex-wrap gap-2`}>
             <Link href={scene.mode === "all" ? "/search?q=&store=all" : `/store/${scene.mode}`} className="btn bg-white text-[color:var(--hero-a)] hover:bg-white/90">
               {scene.mode === "all" ? t("hero.start") : t("hero.shop", { store: info.name })} <Icon name="arrow" size={18} className="arrow" />
             </Link>
-            <Link href="/how-it-works" className="btn border border-white/40 text-white hover:bg-white/10">
+            <Link href="/how-it-works" className={`btn border border-white/40 text-white hover:bg-white/10 ${fixed ? "hidden sm:inline-flex" : ""}`}>
 {t("hero.how")}
 </Link>
           </div>
           {/* phones: a small fanned stack in its own row, clipped tiles, so nothing overlaps the copy */}
-          <div className="mt-6 flex items-center gap-2 md:hidden" aria-hidden>
+          <div className={`mt-6 items-center gap-2 md:hidden ${fixed ? "hidden" : "flex"}`} aria-hidden>
             {scene.images.slice(0, 3).map((src, i) =>
               src ? (
                 <span
@@ -69,7 +69,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
               ) : null,
             )}
           </div>
-          <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-white/85">
+          <div className={`mt-5 flex-wrap gap-x-4 gap-y-1.5 text-xs text-white/85 ${fixed ? "hidden sm:flex" : "flex"}`}>
             <span className="inline-flex items-center gap-1">
               <Icon name="truck" size={14} /> {t("hero.days")}
             </span>

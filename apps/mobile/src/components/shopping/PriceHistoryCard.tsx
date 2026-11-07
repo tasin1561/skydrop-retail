@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View, type LayoutChangeEvent } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Line, Path, Stop } from "react-native-svg";
 import { Card, Skeleton, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
@@ -10,6 +10,7 @@ import type { Product } from "@/lib/types";
 import { useAccent, useTheme, withAlpha } from "@/theme";
 import { useT, type MsgKey } from "@/i18n";
 import { fmtDate, type Lang } from "@/i18n/core";
+import { timing } from "@/lib/motion";
 
 const H = 150;
 const LABEL: Record<number, MsgKey> = { 30: "ph.30", 90: "ph.90", 365: "ph.365" };
@@ -46,7 +47,7 @@ export function PriceHistoryCard({ p }: { p: Product }) {
   }, [on, days, p, cache]);
 
   useEffect(() => {
-    ind.set(withSpring(PERIODS.indexOf(days as (typeof PERIODS)[number]) * tabW, { damping: 18, stiffness: 220 }));
+    ind.set(withTiming(PERIODS.indexOf(days as (typeof PERIODS)[number]) * tabW, timing(200)));
   }, [days, tabW, ind]);
 
   useEffect(() => {

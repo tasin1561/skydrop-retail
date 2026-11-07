@@ -13,19 +13,13 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { radius, shadow, useAccent, useTheme, withAlpha } from "@/theme";
 import { Icon } from "./Icon";
 import type { StoreMode } from "@/lib/types";
 import { useLang, useT } from "@/i18n";
+import { DUR, EASE, timing } from "@/lib/motion";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -60,7 +54,7 @@ export function T({
 export function Tap({
   children,
   style,
-  scaleTo = 0.97,
+  scaleTo = 0.98,
   ...rest
 }: PressableProps & { style?: StyleProp<ViewStyle>; scaleTo?: number; children?: ReactNode }) {
   const s = useSharedValue(1);
@@ -70,11 +64,11 @@ export function Tap({
       accessibilityRole="button"
       {...rest}
       onPressIn={(e) => {
-        s.set(withSpring(scaleTo, { damping: 20, stiffness: 400 }));
+        s.set(withTiming(scaleTo, timing(DUR.fast)));
         rest.onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        s.set(withSpring(1, { damping: 14, stiffness: 300 }));
+        s.set(withTiming(1, timing(DUR.base)));
         rest.onPressOut?.(e);
       }}
       style={[style, a]}
@@ -233,10 +227,12 @@ export function SectionTitle({ title, action, onAction }: { title: string; actio
 // ---------- skeleton ----------
 export function Skeleton({ w, h, r = 12, style }: { w?: number | `${number}%`; h: number; r?: number; style?: StyleProp<ViewStyle> }) {
   const { c } = useTheme();
-  const o = useSharedValue(0.55);
+  const o = useSharedValue(0.7);
+  const reduce = useReducedMotion();
+  // very slow, low-contrast breathing (one cycle per 1.6s); static with Reduce Motion
   useEffect(() => {
-    o.value = withRepeat(withTiming(1, { duration: 750, easing: Easing.inOut(Easing.quad) }), -1, true);
-  }, [o]);
+    if (!reduce) o.value = withRepeat(withTiming(1, { duration: 800, easing: EASE }), -1, true);
+  }, [o, reduce]);
   const a = useAnimatedStyle(() => ({ opacity: o.value }));
   return <Animated.View style={[{ width: w ?? "100%", height: h, borderRadius: r, backgroundColor: c.skeleton }, a, style]} />;
 }

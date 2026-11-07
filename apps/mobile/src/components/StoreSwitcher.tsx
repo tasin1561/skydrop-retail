@@ -1,13 +1,14 @@
 // Segmented store switcher with a sliding pill indicator (translateX + scaleX on the UI thread).
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View, type LayoutChangeEvent } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import type { StoreMode } from "@/lib/types";
 import { STORES } from "@/lib/markets";
 import { ACCENTS, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { T } from "./ui";
 import { useT } from "@/i18n";
+import { DUR, timing } from "@/lib/motion";
 
 export function StoreSwitcher({
   value,
@@ -29,9 +30,8 @@ export function StoreSwitcher({
   useEffect(() => {
     const l = layouts[value];
     if (!l) return;
-    const spring = { damping: 20, stiffness: 240, mass: 0.8 };
-    x.value = withSpring(l.x, spring);
-    w.value = withSpring(l.w, spring);
+    x.value = withTiming(l.x, timing(DUR.open));
+    w.value = withTiming(l.w, timing(DUR.open));
   }, [value, layouts, x, w]);
 
   // The pill is 100px wide at rest and scaled to the tab width (transform only, no layout work).

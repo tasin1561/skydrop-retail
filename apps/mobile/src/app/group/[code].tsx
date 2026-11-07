@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Alert, AppState, RefreshControl, ScrollView, Share, StyleSheet, View } from "react-native";
 import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { api, ApiError } from "@/api/client";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/lib/features";
@@ -17,6 +17,7 @@ import { Icon } from "@/components/Icon";
 import { Countdown } from "@/components/offers/offers";
 import { useToast } from "@/components/Toast";
 import { hasKey, useT, type MsgKey } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 type Act = "join" | "leave" | "close" | "cancel";
 
@@ -186,7 +187,7 @@ export default function GroupScreen() {
         <Card style={{ gap: 8 }}>
           <T v="h3" accessibilityRole="header">{t("grp.membersTitle")}</T>
           {g.members.map((m, i) => (
-            <Animated.View key={i} entering={FadeInDown.delay(i * 40).duration(220)} style={[styles.member, { backgroundColor: c.surface2 }]}>
+            <Animated.View key={i} entering={listEnter(i)} style={[styles.member, { backgroundColor: c.surface2 }]}>
               <View style={[styles.avatar, { backgroundColor: a.accent }]}>
                 <T v="small" tone="white" style={{ fontWeight: "800" }}>{m.name.slice(0, 1).toUpperCase()}</T>
               </View>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { couponFromApi, couponHint, findCoupon, type Totals } from "@/lib/cart";
 import { api, ApiError } from "@/api/client";
 import { useStore } from "@/state/store";
@@ -9,6 +9,7 @@ import { haptic } from "@/lib/haptics";
 import { Icon } from "./Icon";
 import { Button, Card, Divider, T } from "./ui";
 import { useT } from "@/i18n";
+import { enterFade } from "@/lib/motion";
 
 export function CouponField() {
   const { t } = useT();
@@ -22,7 +23,7 @@ export function CouponField() {
 
   if (coupon)
     return (
-      <Animated.View entering={FadeIn} style={[styles.applied, { backgroundColor: c.dark ? "rgba(34,197,94,0.12)" : "#ecfdf3" }]}>
+      <Animated.View entering={enterFade} style={[styles.applied, { backgroundColor: c.dark ? "rgba(34,197,94,0.12)" : "#ecfdf3" }]}>
         <Icon name="tag" size={18} color={c.good} />
         <View style={{ flex: 1 }}>
           <T v="h3" style={{ fontSize: 14, color: c.good }}>

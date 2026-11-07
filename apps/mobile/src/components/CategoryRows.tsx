@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { api } from "@/api/client";
 import type { CatNode } from "@/lib/categories";
 import type { StoreMode } from "@/lib/types";
@@ -9,6 +9,7 @@ import { useTheme } from "@/theme";
 import { IconChip, T, Tap } from "./ui";
 import { Icon } from "./Icon";
 import { useT } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 /** Category tree for a store (cached per store for the session). */
 const cache = new Map<StoreMode, CatNode[]>();
@@ -42,7 +43,7 @@ export function CategoryRows({ nodes, store }: { nodes: CatNode[]; store: StoreM
   return (
     <View style={[styles.list, { backgroundColor: c.surface }]}>
       {nodes.map((n, i) => (
-        <Animated.View key={n.path} entering={FadeInDown.delay(Math.min(i, 10) * 25).duration(220)}>
+        <Animated.View key={n.path} entering={listEnter(i)}>
           <Tap
             onPress={() => openCategory(n.path, store)}
             accessibilityLabel={`${bn && n.nameBn ? n.nameBn : n.name}${n.count ? `, ${t("m.products", { count: n.count })}` : ""}`}

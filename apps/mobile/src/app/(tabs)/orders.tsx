@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { api } from "@/api/client";
 import { useStore } from "@/state/store";
 import type { Order } from "@/lib/types";
@@ -13,6 +13,7 @@ import { useTheme } from "@/theme";
 import { Card, Empty, ProductImage, Skeleton, T, Tap } from "@/components/ui";
 import { StatusPill, TrackBar, useNow } from "@/components/OrderBits";
 import { useT } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 export default function Orders() {
   const tr = useT();
@@ -80,7 +81,7 @@ export default function Orders() {
       renderItem={({ item: o, index }) => {
         const status = demo ? currentStatus(o, now) : o.status;
         return (
-          <Animated.View entering={FadeInDown.delay(index * 50).springify().damping(18)}>
+          <Animated.View entering={listEnter(index)}>
             <Tap onPress={() => router.push(`/order/${o.id}`)} accessibilityLabel={t("m.orderA11y", { id: o.id, total: bdt(o.total) })}>
               <Card style={{ gap: 12 }}>
                 <View style={styles.row}>

@@ -2,7 +2,7 @@
 // apps/web/src/components/product/ProductExtras.tsx), plus the "fetching live details" shimmer.
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { api, isDemo } from "@/api/client";
@@ -84,14 +84,16 @@ export function FetchingLive({ market }: { market: MarketId }) {
   const a = useAccent(market);
   const [w, setW] = useState(0);
   const x = useSharedValue(0);
+  const reduce = useReducedMotion();
+  // loading indicator: one slow, low-contrast sweep per 1.6s; none with Reduce Motion
   useEffect(() => {
-    x.value = withRepeat(withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.quad) }), -1, false);
-  }, [x]);
+    if (!reduce) x.value = withRepeat(withTiming(1, { duration: 1600, easing: Easing.linear }), -1, false);
+  }, [x, reduce]);
   const sweep = useAnimatedStyle(() => ({ transform: [{ translateX: -120 + x.value * (w + 120) }] }));
   return (
     <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={[styles.live, { backgroundColor: a.soft }]} accessibilityLiveRegion="polite">
       <Animated.View style={[StyleSheet.absoluteFill, { width: 120 }, sweep]} pointerEvents="none">
-        <LinearGradient colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.45)", "rgba(255,255,255,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+        <LinearGradient colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.22)", "rgba(255,255,255,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
       </Animated.View>
       <Icon name="refresh-cw" size={14} color={a.ink} />
       <T v="tiny" style={{ color: a.ink, fontWeight: "800" }}>

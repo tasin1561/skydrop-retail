@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown, FadeOut, LinearTransition } from "react-native-reanimated";
+import Animated, { FadeOut, LinearTransition } from "react-native-reanimated";
 import { api } from "@/api/client";
 import { useStore } from "@/state/store";
 import type { Address } from "@/lib/types";
@@ -14,6 +14,7 @@ import { Button, Card, Empty, IconButton, IconChip, Pill, Skeleton, T } from "@/
 import { useToast } from "@/components/Toast";
 import { useT } from "@/i18n";
 import { bdName } from "@/lib/bd";
+import { listEnter } from "@/lib/motion";
 
 export default function Addresses() {
   const { t, lang } = useT();
@@ -67,7 +68,7 @@ export default function Addresses() {
               <Empty icon="map-pin" title={t("m.noAddresses")} text={t("m.noAddressesB")} />
             ) : (
               list.map((a, i) => (
-                <Animated.View key={a.id} entering={FadeInDown.delay(i * 40)} exiting={FadeOut} layout={LinearTransition}>
+                <Animated.View key={a.id} entering={listEnter(i)} exiting={FadeOut} layout={LinearTransition}>
                   <Card style={{ flexDirection: "row", gap: 12 }}>
                     <IconChip icon="map-pin" />
                     <View style={{ flex: 1, gap: 2 }}>

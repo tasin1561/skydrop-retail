@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { RefreshControl, SectionList, StyleSheet, View } from "react-native";
 import { Stack, router } from "expo-router";
-import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
+import Animated, { LinearTransition } from "react-native-reanimated";
 import { Icon } from "@/components/Icon";
 import { Empty, IconChip, Skeleton, T, Tap } from "@/components/ui";
 import { haptic } from "@/lib/haptics";
@@ -11,6 +11,7 @@ import { radius, useTheme, withAlpha } from "@/theme";
 import { useStore } from "@/state/store";
 import type { AppNotification } from "@/api/messaging";
 import { useT } from "@/i18n";
+import { DUR, EASE, listEnter } from "@/lib/motion";
 
 export default function NotificationsScreen() {
   const { t, lang } = useT();
@@ -105,7 +106,7 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
   const { c } = useTheme();
   const [icon, color] = CHIP[n.type] ?? [n.icon ?? "info", c.brand];
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 35).springify().damping(18)} layout={LinearTransition.springify()}>
+    <Animated.View entering={listEnter(index)} layout={LinearTransition.duration(DUR.open).easing(EASE)}>
       <Tap
         onPress={() => {
           onRead(n.id);

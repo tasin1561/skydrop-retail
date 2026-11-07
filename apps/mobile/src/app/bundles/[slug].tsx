@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useFeature } from "@/lib/features";
 import { STORES } from "@/lib/markets";
 import { priceBdt } from "@/lib/pricing";
@@ -16,6 +16,7 @@ import { Button, Card, Empty, ProductImage, Skeleton, T, Tap } from "@/component
 import { Icon } from "@/components/Icon";
 import { useAddBundle } from "@/components/shopping/Bundles";
 import { useT } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 export default function BundleScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -75,7 +76,7 @@ export default function BundleScreen() {
         </Card>
 
         {items.map(({ product: p, qty }, i) => (
-          <Animated.View key={p.id} entering={FadeInDown.delay(i * 50).duration(240)}>
+          <Animated.View key={p.id} entering={listEnter(i)}>
             <Tap onPress={() => router.push(`/product/${encodeURIComponent(p.id)}`)} accessibilityLabel={p.title} scaleTo={0.98}>
               <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <ProductImage uri={sized(p.image, "SL200")} placeholder={p.placeholder} size={72} style={{ borderRadius: 12 }} />

@@ -3,7 +3,7 @@
 // (we use it when we buy) or t("offer.onSource") (bank/card/EMI offers in India).
 import { useEffect, useState } from "react";
 import { AppState, FlatList, StyleSheet, View } from "react-native";
-import Animated, { FadeInRight } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import type { Offer, OfferType, Product } from "@/lib/types";
 import { STORES } from "@/lib/markets";
 import { useAccent, useTheme, withAlpha } from "@/theme";
@@ -11,6 +11,7 @@ import { Icon } from "../Icon";
 import { IconChip, T } from "../ui";
 import { useT } from "@/i18n";
 import { makeT, translate, type MsgKey, type TFn, type Translator } from "@/i18n/core";
+import { listEnter } from "@/lib/motion";
 
 /** label is a dictionary key. */
 export const OFFER_META: Record<OfferType, { icon: string; label: MsgKey }> = {
@@ -149,7 +150,7 @@ function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
   const { c } = useTheme();
   const meta = OFFER_META[o.type] ?? OFFER_META.other;
   return (
-    <Animated.View entering={FadeInRight.delay(i * 50).springify().damping(18)} style={[styles.card, { backgroundColor: c.surface, borderColor: o.appliesToOurPrice ? withAlpha(c.good, 0.5) : c.line }]}>
+    <Animated.View entering={listEnter(i)} style={[styles.card, { backgroundColor: c.surface, borderColor: o.appliesToOurPrice ? withAlpha(c.good, 0.5) : c.line }]}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <IconChip icon={meta.icon} size={32} mode={p.market} color={o.appliesToOurPrice ? c.good : undefined} />
         <T v="small" numberOfLines={1} style={{ flex: 1, fontWeight: "800" }}>

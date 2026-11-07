@@ -26,6 +26,7 @@ import { FetchingLive, ProductExtras } from "@/components/product/Extras";
 import { OffersSection, Countdown, headlineDeal } from "@/components/offers/offers";
 import { ShoppingSections } from "@/components/shopping/ShoppingSections";
 import { useT } from "@/i18n";
+import { enterFade } from "@/lib/motion";
 
 type Phase = "idle" | "busy" | "done";
 
@@ -242,7 +243,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           <Gallery media={media} placeholder={p.placeholder} title={p.title} />
         </View>
 
-        <Animated.View entering={FadeIn.duration(250)} style={{ padding: 16, gap: 10 }}>
+        <Animated.View entering={enterFade} style={{ padding: 16, gap: 10 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
             <Pill text={t("m.fromSource", { source: store.source })} icon="globe" color={a.ink} bg={a.soft} />
             <Pill text={store.name} />

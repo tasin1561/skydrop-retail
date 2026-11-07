@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
 import { ACCENTS, radius, useTheme } from "@/theme";
@@ -11,6 +11,7 @@ import { CategoryRows, useCategoryTree } from "@/components/CategoryRows";
 import { Icon } from "@/components/Icon";
 import type { MarketId } from "@/lib/types";
 import { useT } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 export default function Categories() {
   const { t } = useT();
@@ -36,7 +37,7 @@ export default function Categories() {
         <T v="label" tone="ink3" style={{ marginBottom: 8 }}>{t("m.everyStore")}</T>
         <View style={styles.grid}>
           {storeText("all", t).categories.map((cat, i) => (
-            <Animated.View key={cat.slug} entering={FadeInDown.delay(i * 40).springify().damping(18)} style={{ width: "48%" }}>
+            <Animated.View key={cat.slug} entering={listEnter(i)} style={{ width: "48%" }}>
               <Tap onPress={() => router.push({ pathname: "/search", params: { store: "all", category: cat.slug } })} accessibilityLabel={t("m.catFromEvery", { name: cat.label })}>
                 <Card pad={14} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <IconChip icon={cat.icon} size={40} />

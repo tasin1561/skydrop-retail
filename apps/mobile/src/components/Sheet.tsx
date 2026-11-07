@@ -1,11 +1,12 @@
 // Bottom sheet built on Modal + Reanimated (transform/opacity only).
 import { useEffect, useState, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme";
 import { T, IconButton } from "./ui";
 import { useT } from "@/i18n";
+import { DUR, timing } from "@/lib/motion";
 
 export function Sheet({
   open,
@@ -31,7 +32,7 @@ export function Sheet({
 
   useEffect(() => {
     if (open) {
-      y.value = withSpring(0, { damping: 22, stiffness: 220 });
+      y.value = withTiming(0, timing(DUR.open));
       fade.value = withTiming(1, { duration: 200 });
     } else if (mounted) {
       fade.value = withTiming(0, { duration: 180 });

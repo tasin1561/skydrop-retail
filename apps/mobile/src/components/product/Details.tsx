@@ -1,7 +1,7 @@
 // Product page sections: price breakdown, delivery route, specs, reviews.
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LayoutAnimation, Pressable, StyleSheet, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import type { MarketId, Product } from "@/lib/types";
 import { PRICING, buyPriceInr, deliveryWindow, priceBdt } from "@/lib/pricing";
 import { STORES } from "@/lib/markets";
@@ -99,7 +99,7 @@ export function PriceBreakdown({ p }: { p: Product }) {
   );
 }
 
-/** India store -> Skydrop Kolkata hub -> your door, with a parcel travelling along the route. */
+/** India store -> Skydrop Kolkata hub -> your door (static route). */
 export function DeliveryRoute({ market }: { market: MarketId }) {
   const { c } = useTheme();
   const a = useAccent(market);
@@ -107,11 +107,8 @@ export function DeliveryRoute({ market }: { market: MarketId }) {
   const { min, max } = deliveryWindow();
   const now = new Date().toISOString();
   const [w, setW] = useState(0);
-  const prog = useSharedValue(0);
-  useEffect(() => {
-    prog.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.cubic) }), -1, false);
-  }, [prog]);
-  const parcel = useAnimatedStyle(() => ({ transform: [{ translateX: prog.value * Math.max(0, w - 24) }], opacity: prog.value < 0.05 || prog.value > 0.95 ? 0.4 : 1 }));
+  // static: the parcel rests at the Kolkata hub (no looping travel)
+  const parcel = { transform: [{ translateX: 0.5 * Math.max(0, w - 24) }] };
   const stops = [
     { icon: "shopping-bag", title: STORES[market].source, sub: t("ws.store") },
     { icon: "package", title: t("ws.hub"), sub: t("m.hubSub") },

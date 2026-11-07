@@ -17,6 +17,7 @@ import type { Group } from "@/lib/cart";
 import { useFeature } from "@/lib/features";
 import { groupSavingPreview } from "@/lib/shopping";
 import { useT } from "@/i18n";
+import { DUR, EASE } from "@/lib/motion";
 
 export default function Cart() {
   const { t, bdt } = useT();
@@ -76,7 +77,7 @@ function StoreGroup({ g }: { g: Group }) {
   const s = STORES[g.market];
   const free = g.toFree === 0;
   return (
-    <Animated.View layout={LinearTransition.springify().damping(20)}>
+    <Animated.View layout={LinearTransition.duration(DUR.open).easing(EASE)}>
       <Card style={{ gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <IconChip icon={s.icon} mode={g.market} />
@@ -94,7 +95,7 @@ function StoreGroup({ g }: { g: Group }) {
         {g.items.map((i) => {
           const key = cartKey(i);
           return (
-            <Animated.View key={key} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(20)} style={styles.item}>
+            <Animated.View key={key} exiting={FadeOut.duration(160)} layout={LinearTransition.duration(DUR.open).easing(EASE)} style={styles.item}>
               <Tap onPress={() => router.push(`/product/${i.productId}`)} accessibilityLabel={t("m.openItem", { title: i.title })}>
                 <ProductImage uri={sized(i.image, "SL200")} placeholder={i.placeholder} size={72} style={{ borderRadius: 14 }} />
               </Tap>

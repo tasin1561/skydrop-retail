@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { shadow, useTheme } from "@/theme";
 import { Icon } from "./Icon";
 import { T } from "./ui";
+import { DUR, EASE } from "@/lib/motion";
 
 type Toast = { id: number; kind: "success" | "info" | "error"; title: string; body?: string; action?: { label: string; href: string } };
 const Ctx = createContext<(t: Omit<Toast, "id">) => void>(() => {});
@@ -30,7 +31,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {toast && (
         <Animated.View
           key={toast.id}
-          entering={FadeInUp.springify().damping(18)}
+          entering={FadeInUp.duration(DUR.open).easing(EASE)}
           exiting={FadeOutUp.duration(180)}
           style={[styles.wrap, { top: insets.top + 8 }]}
           pointerEvents="box-none"

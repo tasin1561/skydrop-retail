@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-n
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { ApiError, isDemo } from "@/api/client";
 import { formatGiftCode, moneyApi, type Wallet } from "@/api/money";
 import { useStore } from "@/state/store";
@@ -12,6 +12,7 @@ import { BRAND, useTheme } from "@/theme";
 import { Button, Card, Divider, Empty, IconChip, Skeleton, T } from "@/components/ui";
 import { useT } from "@/i18n";
 import { hasKey, type MsgKey } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 // Skydrop Wallet: balance, redeem a gift card, history.
 export default function WalletScreen() {
@@ -126,7 +127,7 @@ export default function WalletScreen() {
           <T v="small" tone="ink2" style={{ padding: 10 }}>{t("m.noWallet")}</T>
         ) : (
           w.history.map((h, i) => (
-            <Animated.View key={h.id} entering={FadeInDown.delay(Math.min(i, 8) * 30)}>
+            <Animated.View key={h.id} entering={listEnter(i)}>
               {i > 0 && <Divider style={{ marginLeft: 60 }} />}
               <View style={styles.row}>
                 <IconChip icon={h.type === "credit" ? "plus" : "tag"} color={h.type === "credit" ? c.good : c.brand} />

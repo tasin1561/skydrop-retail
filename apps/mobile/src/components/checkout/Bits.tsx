@@ -1,23 +1,13 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import Animated, {
-  Easing,
-  FadeIn,
-  ZoomIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
-import Svg, { Circle, Path, Rect } from "react-native-svg";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import type { CartItem } from "@/lib/types";
-import { BRAND, CORAL, useTheme, withAlpha } from "@/theme";
+import { BRAND, useTheme, withAlpha } from "@/theme";
 import { Icon } from "../Icon";
 import { Card, T, Tap } from "../ui";
 import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
+import { DUR, timing, enterFade } from "@/lib/motion";
 
 // ---------- stepper with travelling indicator ----------
 export const STEP_LABELS: MsgKey[] = ["co.step.address", "co.step.delivery", "co.step.payment", "co.step.review"];
@@ -28,7 +18,7 @@ export function Stepper({ step, onJump }: { step: number; onJump: (i: number) =>
   const [w, setW] = useState(0);
   const x = useSharedValue(0);
   useEffect(() => {
-    x.value = withSpring(step, { damping: 18, stiffness: 200 });
+    x.value = withTiming(step, timing(DUR.open));
   }, [step, x]);
   const seg = w / STEP_LABELS.length;
   const fill = useAnimatedStyle(() => ({ transform: [{ translateX: x.value * seg }] }));
@@ -100,7 +90,7 @@ export function VerifyPanel({ states, changed, failed, error }: { states: CheckS
                 ) : s === "wait" ? (
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.ink3 }} />
                 ) : (
-                  <Animated.View entering={ZoomIn.springify()}>
+                  <Animated.View entering={enterFade}>
                     <Icon name={s === "ok" ? "check" : s === "warn" ? "info" : "x"} size={14} color={color} />
                   </Animated.View>
                 )}
@@ -118,7 +108,7 @@ export function VerifyPanel({ states, changed, failed, error }: { states: CheckS
         </T>
       )}
       {changed.map(({ item, fresh }) => (
-        <Animated.View key={item.productId + item.variant} entering={FadeIn} style={[styles.note, { backgroundColor: withAlpha(c.warn, 0.12) }]}>
+        <Animated.View key={item.productId + item.variant} entering={enterFade} style={[styles.note, { backgroundColor: withAlpha(c.warn, 0.12) }]}>
           <T v="small" numberOfLines={1} style={{ fontWeight: "700" }}>
             {item.title}
           </T>
@@ -140,39 +130,13 @@ export function VerifyPanel({ states, changed, failed, error }: { states: CheckS
 }
 
 // ---------- Skydrop van driving across while the order is placed ----------
+/** Placing the order: a plain busy state (spinner + label). The old driving-van story is retired. */
 export function VanDrive({ label }: { label: string }) {
   const { c } = useTheme();
-  const [w, setW] = useState(0);
-  const x = useSharedValue(0);
-  const bob = useSharedValue(0);
-  useEffect(() => {
-    x.value = withRepeat(withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.quad) }), -1, false);
-    bob.value = withRepeat(withSequence(withTiming(-2, { duration: 140 }), withTiming(0, { duration: 140 })), -1);
-  }, [x, bob]);
-  const van = useAnimatedStyle(() => ({ transform: [{ translateX: -90 + x.value * (w + 90) }, { translateY: bob.value }] }));
-  const road = useAnimatedStyle(() => ({ transform: [{ translateX: -(x.value * 40) % 40 }] }));
   return (
-    <View style={{ gap: 10 }} accessibilityLabel={label} accessibilityLiveRegion="polite">
-      <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: 64, overflow: "hidden", justifyContent: "flex-end" }}>
-        <Animated.View style={[{ flexDirection: "row", gap: 16, marginBottom: 2, width: w + 80 }, road]}>
-          {Array.from({ length: Math.ceil((w + 80) / 40) }, (_, i) => (
-            <View key={i} style={{ width: 24, height: 3, borderRadius: 2, backgroundColor: c.line }} />
-          ))}
-        </Animated.View>
-        <Animated.View style={[{ position: "absolute", bottom: 6, left: 0 }, van]}>
-          <Svg width={84} height={50} viewBox="0 0 84 50">
-            <Rect x={2} y={8} width={50} height={30} rx={6} fill={BRAND} />
-            <Path d="M52 16h14l12 12v10H52z" fill={BRAND} />
-            <Path d="M56 19h9l8 8H56z" fill="#e4defe" />
-            <Rect x={10} y={16} width={30} height={10} rx={3} fill={CORAL} />
-            <Circle cx={18} cy={40} r={7} fill="#0b0b0f" />
-            <Circle cx={18} cy={40} r={3} fill="#e7e5de" />
-            <Circle cx={64} cy={40} r={7} fill="#0b0b0f" />
-            <Circle cx={64} cy={40} r={3} fill="#e7e5de" />
-          </Svg>
-        </Animated.View>
-      </View>
-      <T v="small" style={{ textAlign: "center", fontWeight: "700" }}>
+    <View style={{ minHeight: 64, alignItems: "center", justifyContent: "center", gap: 10 }} accessibilityLabel={label} accessibilityLiveRegion="polite">
+      <ActivityIndicator color={c.brand} />
+      <T v="small" style={{ textAlign: "center", fontWeight: "600" }}>
         {label}
       </T>
     </View>

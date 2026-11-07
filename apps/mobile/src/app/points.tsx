@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { api, isDemo } from "@/api/client";
 import type { PointsResponse } from "@/api/types";
 import { useStore } from "@/state/store";
@@ -12,6 +12,7 @@ import { BRAND, useTheme } from "@/theme";
 import { Card, Divider, Empty, IconChip, Progress, Skeleton, T } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useT } from "@/i18n";
+import { listEnter } from "@/lib/motion";
 
 export default function Points() {
   const { t, bdt, num, digits, date: fmt } = useT();
@@ -114,7 +115,7 @@ export default function Points() {
         ["tag", t("pv.save"), t("pv.saveT", { count: POINTS.blockPoints, amount: bdt(POINTS.blockValueBdt), pct: POINTS.maxRedeemPct * 100 })],
         ["clock", t("pv.keep"), t("pv.keepT", { count: POINTS.expiryMonths })],
       ].map(([icon, title, text], i) => (
-        <Animated.View key={title} entering={FadeInDown.delay(i * 60).springify().damping(18)}>
+        <Animated.View key={title} entering={listEnter(i)}>
           <Card style={{ flexDirection: "row", gap: 12 }}>
             <IconChip icon={icon} />
             <View style={{ flex: 1 }}>

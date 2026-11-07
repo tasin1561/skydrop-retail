@@ -107,6 +107,10 @@
 .pd-spin {
   animation: pd-spin 0.8s linear infinite;
 }
+/* spinners inside a hidden add-to-cart label do not run */
+.roll [data-on="false"] .pd-spin {
+  animation: none;
+}
 @keyframes pd-spin {
   to {
     transform: rotate(360deg);

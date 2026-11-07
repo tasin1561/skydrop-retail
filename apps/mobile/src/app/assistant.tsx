@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ai from "@/api/assistant";
 import type { AiCard, AiEvent, AiOrder, AiProduct } from "@/api/assistant";
@@ -26,6 +26,7 @@ import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
 import { statusText, STAGES } from "@/lib/orderStatus";
 import type { OrderStatus } from "@/lib/types";
+import { listEnter, enterFade } from "@/lib/motion";
 
 type Msg = {
   key: string;
@@ -176,7 +177,7 @@ export default function AssistantScreen() {
 
       {msgs.length === 0 ? (
         <ScrollView contentContainerStyle={styles.empty} keyboardShouldPersistTaps="handled">
-          <Animated.View entering={FadeIn.duration(400)} style={[styles.orb, { backgroundColor: c.brand }]}>
+          <Animated.View entering={enterFade} style={[styles.orb, { backgroundColor: c.brand }]}>
             <Icon name="star" size={28} color="#fff" />
           </Animated.View>
           <T v="h3" style={{ textAlign: "center", maxWidth: 300 }}>
@@ -202,7 +203,7 @@ export default function AssistantScreen() {
               <Chip label={lang === "bn" ? "এই পণ্য সম্পর্কে জানতে চাই" : t("m.askThis")} onPress={() => send(lang === "bn" ? "এই পণ্যটি কেমন? কবে পাব?" : "Is this product worth it, and when would it arrive?")} />
             )}
             {prompts.map((p, i) => (
-              <Animated.View key={p} entering={FadeInDown.delay(80 + i * 50).springify().damping(18)}>
+              <Animated.View key={p} entering={listEnter(i)}>
                 <Chip label={p} onPress={() => send(p)} disabled={out} />
               </Animated.View>
             ))}
@@ -311,7 +312,7 @@ function Bubble({ m, last, busy, onRate, onRegenerate }: { m: Msg; last: boolean
         </T>
       )}
       {m.cards.map((card, i) => (
-        <Animated.View key={i} entering={FadeInDown.delay(i * 60).duration(260)}>
+        <Animated.View key={i} entering={listEnter(i)}>
           <Card card={card} />
         </Animated.View>
       ))}
