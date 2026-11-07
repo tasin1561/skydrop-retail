@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('watches', [WatchController::class, 'index']);
     Route::post('watches', [WatchController::class, 'store']);
-    Route::delete('watches/{id}', [WatchController::class, 'destroy']);
+    Route::delete('watches/{productId}', [WatchController::class, 'destroy']);
 
     Route::post('products/{id}/reviews', [ReviewController::class, 'store']);
 

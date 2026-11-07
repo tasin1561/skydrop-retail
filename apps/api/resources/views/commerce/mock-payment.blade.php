@@ -34,6 +34,12 @@
     <input type="hidden" name="signature" value="{{ $sigFail }}">
     <button class="bad" type="submit">Fail payment</button>
   </form>
+  <form method="post" action="{{ $action }}">
+    <input type="hidden" name="paymentId" value="{{ $payment->id }}">
+    <input type="hidden" name="status" value="cancelled">
+    <input type="hidden" name="signature" value="{{ $sigCancel }}">
+    <button class="bad" type="submit" style="background:#f1f5f9;color:#334155">Cancel</button>
+  </form>
 </div>
 </body>
 </html>

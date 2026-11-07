@@ -29,6 +29,7 @@ class PaymentController extends Controller
             'payment' => $payment, 'order' => $order, 'action' => $action,
             'sigSuccess' => MockGateway::signature($payment->id, 'success'),
             'sigFail' => MockGateway::signature($payment->id, 'failed'),
+            'sigCancel' => MockGateway::signature($payment->id, 'cancelled'),
         ]);
     }
 
@@ -59,7 +60,7 @@ class PaymentController extends Controller
 
         $order = Order::query()->find($payment->order_id);
         if ($this->isBrowser($request, $gateway)) {
-            return redirect()->away($this->returnUrl($order, $payment));
+            return redirect()->away($this->returnUrl($order, $payment, $request));
         }
 
         return response()->json(['ok' => true, 'status' => $payment->status, 'orderId' => $order?->id, 'paymentStatus' => $order?->payment_status]);
@@ -71,12 +72,17 @@ class PaymentController extends Controller
         return $request->boolean('return') || $request->isMethod('get');
     }
 
-    private function returnUrl(?Order $order, Payment $payment): string
+    /**
+     * Shopper's return URL (order.return_url or {web}/checkout/success) + order=SR-XXXXXX&status=paid|failed|cancelled.
+     * Works for web URLs and app deep links (skydropretail://...).
+     */
+    public static function returnUrl(?Order $order, Payment $payment, ?Request $request = null): string
     {
-        $web = rtrim((string) config('retail.web_url'), '/');
-        $base = $order?->return_url ?: $web.'/checkout/success?order='.($order?->id ?? '');
+        $base = $order?->return_url ?: rtrim((string) config('retail.web_url'), '/').'/checkout/success';
+        $cancelled = in_array(strtolower((string) $request?->input('status')), ['cancel', 'cancelled'], true);
+        $status = $payment->status === 'paid' ? 'paid' : ($cancelled ? 'cancelled' : 'failed');
         $sep = str_contains($base, '?') ? '&' : '?';
 
-        return $base.$sep.http_build_query(['payment' => $payment->status === 'paid' ? 'success' : ($payment->status === 'failed' ? 'failed' : 'pending')]);
+        return $base.$sep.http_build_query(['order' => $order?->id, 'status' => $status]);
     }
 }

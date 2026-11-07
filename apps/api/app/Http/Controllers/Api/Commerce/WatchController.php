@@ -36,10 +36,13 @@ class WatchController extends Controller
         return response()->json(['watch' => $watch->toApi()], 201);
     }
 
-    public function destroy(Request $request, string $id): JsonResponse
+    /** DELETE watches/{productId}?type=price_drop|back_in_stock (omit type to remove both). */
+    public function destroy(Request $request, string $productId): JsonResponse
     {
-        ProductWatch::query()->where('user_id', $request->user()->id)->whereKey($id)->delete();
+        $type = $request->query('type');
+        $n = ProductWatch::query()->where('user_id', $request->user()->id)->where('product_id', $productId)
+            ->when(in_array($type, ['price_drop', 'back_in_stock'], true), fn ($q) => $q->where('type', $type))->delete();
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true, 'removed' => $n]);
     }
 }

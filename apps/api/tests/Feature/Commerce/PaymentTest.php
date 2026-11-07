@@ -20,7 +20,7 @@ class PaymentTest extends TestCase
     public function test_mock_page_and_success_callback_is_idempotent(): void
     {
         $u = $this->shopper();
-        $o = $this->placeOrder($u, [$this->product('A1', 1000)], ['returnUrl' => 'http://localhost:3000/checkout/success?order=abc']);
+        $o = $this->placeOrder($u, [$this->product('A1', 1000)], ['returnUrl' => 'http://localhost:3000/checkout/success?from=app']);
         $pay = $o->payments()->first();
 
         // Signed mock page renders; unsigned is rejected.
@@ -30,7 +30,7 @@ class PaymentTest extends TestCase
 
         $body = ['status' => 'success', 'signature' => MockGateway::signature($pay->id, 'success')];
         $this->post('/api/v1/webhooks/payments/mock?payment='.$pay->id.'&return=1', $body)
-            ->assertRedirect('http://localhost:3000/checkout/success?order=abc&payment=success');
+            ->assertRedirect('http://localhost:3000/checkout/success?from=app&order='.$o->id.'&status=paid');
 
         $o->refresh();
         $this->assertSame('paid', $o->payment_status);
@@ -41,6 +41,15 @@ class PaymentTest extends TestCase
         $this->postJson('/api/v1/webhooks/payments/mock?payment='.$pay->id, $body)->assertOk()->assertJsonPath('status', 'paid');
         $this->assertEquals($o->total_bdt, $o->refresh()->paid_bdt);
         $this->assertSame(2, $o->events()->count());
+    }
+
+    public function test_app_deep_link_return_url(): void
+    {
+        $u = $this->shopper();
+        $o = $this->placeOrder($u, [$this->product('A1', 1000)], ['returnUrl' => 'skydropretail://checkout/success']);
+        $pay = $o->payments()->first();
+        $this->post('/api/v1/webhooks/payments/mock?payment='.$pay->id.'&return=1', ['status' => 'cancelled', 'signature' => MockGateway::signature($pay->id, 'cancelled')])
+            ->assertRedirect('skydropretail://checkout/success?order='.$o->id.'&status=cancelled');
     }
 
     public function test_forged_callback_is_rejected(): void

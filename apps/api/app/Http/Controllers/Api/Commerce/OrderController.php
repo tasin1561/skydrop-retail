@@ -16,6 +16,9 @@ use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
+    /** Custom URL schemes of the Android/iOS apps accepted as returnUrl. */
+    public const APP_SCHEMES = ['skydropretail'];
+
     public function index(Request $request): JsonResponse
     {
         $orders = Order::query()->where('user_id', $request->user()->id)->with(['items', 'events'])->latest()->limit(200)->get();
@@ -42,7 +45,7 @@ class OrderController extends Controller
             'paymentVia' => ['nullable', Rule::in(PaymentService::WALLETS)],
             'coupon' => ['nullable', 'string', 'max:30'],
             'redeemPoints' => ['nullable', 'integer', 'min:0'],
-            'returnUrl' => ['nullable', 'url', 'max:500', function ($attr, $value, $fail) {
+            'returnUrl' => ['nullable', 'string', 'max:500', function ($attr, $value, $fail) {
                 if (! self::allowedReturnUrl($value)) {
                     $fail('returnUrl must point to the storefront.');
                 }
@@ -93,8 +96,15 @@ class OrderController extends Controller
         if (! $url) {
             return true;
         }
-        $web = parse_url((string) config('retail.web_url'));
         $u = parse_url($url);
+        if ($u === false || empty($u['scheme'])) {
+            return false;
+        }
+        // Mobile app deep links (skydropretail://checkout/success).
+        if (in_array(strtolower($u['scheme']), self::APP_SCHEMES, true)) {
+            return true;
+        }
+        $web = parse_url((string) config('retail.web_url'));
 
         return isset($u['host'], $web['host']) && strcasecmp($u['host'], $web['host']) === 0
             && ($u['scheme'] ?? '') === ($web['scheme'] ?? 'https') && ($u['port'] ?? null) === ($web['port'] ?? null);
