@@ -96,7 +96,15 @@ class RoleForm
                 $lists['Actions: '.$group] = $left;
             }
         }
-        $lists['Pages'] = array_map(fn ($p) => $p['label'], PermissionRegistry::pages());
+        // Pages that also need action keys (HasPagePermission::$requiredPermissions) say so; duplicate labels get their group.
+        $pages = PermissionRegistry::pages();
+        $counts = array_count_values(array_column($pages, 'label'));
+        $lists['Pages'] = array_map(function ($p) use ($counts) {
+            $label = $p['label'].($counts[$p['label']] > 1 && $p['group'] ? ' ('.$p['group'].')' : '');
+            $needs = method_exists($p['class'], 'requiredPermissions') ? $p['class']::requiredPermissions() : [];
+
+            return $needs ? $label.' — also needs '.implode(', ', $needs) : $label;
+        }, $pages);
         $lists['Dashboard widgets'] = array_map(fn ($w) => $w['label'], PermissionRegistry::widgets());
 
         return ['abilities' => $abilities, 'areas' => $areas, 'lists' => $lists];

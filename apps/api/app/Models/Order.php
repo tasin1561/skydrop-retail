@@ -35,6 +35,8 @@ class Order extends Model
             // fulfilment module (hub, unboxing, tracking)
             'unboxing' => 'boolean', 'unboxing_fee_bdt' => 'float', 'unboxing_requested_at' => 'datetime', 'unboxing_decided_at' => 'datetime',
             'actual_weight_kg' => 'float', 'weight_flag' => 'array', 'price_alert' => 'boolean', 'pod' => 'array', 'rider_location' => 'array',
+            // fraud module
+            'fraud_reasons' => 'array', 'fraud_review' => 'boolean', 'fraud_checked_at' => 'datetime',
         ];
     }
 

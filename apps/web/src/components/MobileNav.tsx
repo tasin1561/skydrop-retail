@@ -12,7 +12,7 @@ const ITEMS: { href: string; label: MsgKey; icon: string; match: (p: string) => 
   { href: "/categories", label: "nav.categories", icon: "grid", match: (p: string) => p.startsWith("/categories") || p.startsWith("/c/") || p.startsWith("/search") },
   { href: "/cart", label: "nav.cart", icon: "cart", match: (p: string) => p.startsWith("/cart") || p.startsWith("/checkout") },
   { href: "/orders", label: "nav.orders", icon: "receipt", match: (p: string) => p.startsWith("/orders") },
-  { href: "/account", label: "nav.account", icon: "user", match: (p: string) => p.startsWith("/account") || p.startsWith("/login") || p.startsWith("/wishlist") },
+  { href: "/account", label: "nav.account", icon: "user", match: (p: string) => p.startsWith("/account") || p.startsWith("/login") || p.startsWith("/wishlist") || p.startsWith("/notifications") },
 ];
 
 // Bottom tab bar with a travelling bead that rises over the active tab.
@@ -20,7 +20,9 @@ export function MobileNav() {
   const path = usePathname();
   const { cartCount } = useStore();
   const { t, digits } = useT();
-  const idx = Math.max(0, ITEMS.findIndex((i) => i.match(path)));
+  // pages outside the five tabs (product, deals, help...) light none of them instead of pretending to be Home
+  const found = ITEMS.findIndex((i) => i.match(path));
+  const idx = Math.max(0, found);
   return (
     <nav
       aria-label={t("nav.main")}
@@ -29,16 +31,17 @@ export function MobileNav() {
       <div className="relative mx-auto grid max-w-md grid-cols-5">
         <span
           aria-hidden
-          className="absolute -top-3 h-12 w-12 rounded-full bg-accent shadow-[var(--glow)] transition-transform duration-500"
+          className="absolute -top-3 h-12 w-12 rounded-full bg-accent shadow-[var(--glow)] transition-[transform,opacity] duration-500"
           style={{
             // travels on transform only: one cell is a fifth of the (max 28rem) bar
             left: "calc(10% - 24px)",
             transform: `translateX(calc(${idx} * min(100vw, 28rem) / 5))`,
+            opacity: found < 0 ? 0 : 1,
             transitionTimingFunction: "var(--spring)",
           }}
         />
         {ITEMS.map((it, i) => {
-          const on = i === idx;
+          const on = i === found;
           return (
             <Link
               key={it.href}

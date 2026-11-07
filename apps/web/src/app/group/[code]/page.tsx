@@ -8,7 +8,8 @@ type Props = { params: Promise<{ code: string }> };
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getT();
-  return { title: t("gp.joinMeta"), description: t("gp.joinDesc") };
+  // personal share links (and "group not found"): keep them out of search results
+  return { title: t("gp.joinMeta"), description: t("gp.joinDesc"), robots: { index: false } };
 }
 
 export default async function GroupCodePage({ params }: Props) {

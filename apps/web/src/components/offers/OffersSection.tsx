@@ -60,7 +60,7 @@ export function OffersSection({ p }: { p: Product }) {
           <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-white">{digits(offers.length)}</span>
         </h2>
       </div>
-      <ul data-reveal="stagger" className="no-scrollbar snap-x-rail -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:px-0">
+      <ul data-reveal="stagger" suppressHydrationWarning className="no-scrollbar snap-x-rail -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:px-0">
         {offers.map((o, i) => (
           <OfferCard key={i} o={o} i={i} />
         ))}

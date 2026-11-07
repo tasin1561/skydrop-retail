@@ -130,7 +130,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
               aria-selected={s.mode === scene.mode}
               onClick={() => setIdx(i)}
               className={
-                "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition " +
+                "flex min-h-10 shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition sm:min-h-0 " +
                 (s.mode === scene.mode ? "bg-white text-[color:var(--hero-a)]" : "bg-white/15 text-white hover:bg-white/25")
               }
             >

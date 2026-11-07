@@ -109,6 +109,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
     <article
       data-store={p.market}
       data-reveal=""
+      suppressHydrationWarning
       className="mo-press group relative flex flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-1 hover:shadow-[var(--shadow-2)]"
       style={{ ["--i" as string]: i % 12 }}
     >
@@ -208,7 +209,7 @@ export function Rail({ title, href, items, note }: { title: string; href?: strin
           {note && <p className="text-xs text-ink-2 sm:text-sm">{note}</p>}
         </div>
         {href && (
-          <Link href={href} className="group inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-accent">
+          <Link href={href} className="group -my-3 -mr-2 inline-flex min-h-11 shrink-0 items-center gap-1 px-2 text-sm font-semibold text-accent">
             {t("card.seeAll")} <Icon name="right" size={16} className="transition-transform group-hover:translate-x-0.5" />
           </Link>
         )}

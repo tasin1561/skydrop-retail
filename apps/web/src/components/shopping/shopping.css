@@ -163,6 +163,9 @@
   position: relative;
   height: 8px;
   border-radius: 999px;
+  /* the translated marker box is as wide as the track; clip it so it never widens the page (knob still shows at the ends) */
+  overflow: clip;
+  overflow-clip-margin: 12px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--good) 70%, transparent), color-mix(in srgb, var(--warn) 55%, transparent), color-mix(in srgb, var(--bad) 60%, transparent));
 }
 .sh-meter__pos {

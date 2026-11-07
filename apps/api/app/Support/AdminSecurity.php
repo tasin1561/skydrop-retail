@@ -31,4 +31,17 @@ class AdminSecurity
 
         return Admin::canManage();
     }
+
+    /**
+     * Admin IP allowlist entries (IPs / CIDRs). Commas, spaces and new lines all separate entries, because the
+     * setting is a textarea and staff naturally put one IP per line.
+     *
+     * @return list<string>
+     */
+    public static function allowlist(?string $raw = null): array
+    {
+        $raw ??= (string) Knobs::get('security.admin.ip_allowlist', '');
+
+        return array_values(array_filter(preg_split('/[\s,;]+/', $raw) ?: [], fn ($v) => $v !== ''));
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\Knobs;
+use App\Support\AdminSecurity;
 use App\Support\Limits;
 use Closure;
 use Filament\Facades\Filament;
@@ -16,7 +16,7 @@ class AdminGuard
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $allow = array_values(array_filter(array_map('trim', explode(',', (string) Knobs::get('security.admin.ip_allowlist', '')))));
+        $allow = AdminSecurity::allowlist();
         if ($allow && ! IpUtils::checkIp((string) $request->ip(), $allow)) {
             abort(403, 'The admin panel is not available from this network.');
         }

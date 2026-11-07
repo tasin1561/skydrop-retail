@@ -54,7 +54,12 @@ export default async function DealsPage({ searchParams }: { searchParams: SP }) 
         {items.length ? (
           <EnabledGrid items={items} />
         ) : (
-          <p className="card p-8 text-center text-sm text-ink-2">{t("deals.none")}</p>
+          <div className="card flex flex-col items-center gap-4 p-8 text-center text-sm text-ink-2">
+            <p>{t("deals.none")}</p>
+            <Link href="/search" className="btn btn-ghost min-h-11">
+              {t("cart.keepShopping")} <Icon name="arrow" size={16} className="arrow" />
+            </Link>
+          </div>
         )}
       </div>
     </div>

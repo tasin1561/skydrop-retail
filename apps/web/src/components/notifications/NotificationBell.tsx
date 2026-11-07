@@ -61,12 +61,12 @@ export function NotificationBell() {
         }}
         className={"relative grid h-11 w-11 place-items-center rounded-full transition hover:bg-surface-2 hover:text-ink " + (open ? "bg-surface-2 text-ink" : "text-ink-2")}
       >
-        <span key={ring} className={ring ? "nc-ring" : undefined}>
+        <span key={`ring-${ring}`} className={ring ? "nc-ring" : undefined}>
           <Icon name="bell" size={20} />
         </span>
         {n.unread > 0 && (
           <span
-            key={n.unread}
+            key={`badge-${n.unread}`}
             className="nc-badge absolute right-1.5 top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-bad px-1 text-[10px] font-bold leading-none text-white ring-2 ring-[var(--bg)]"
           >
             {digits(n.unread > 99 ? "99+" : n.unread)}

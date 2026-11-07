@@ -9,7 +9,7 @@ import type { MsgKey } from "@/i18n/core";
 function Shell({ label, children, className }: { label: MsgKey; children: React.ReactNode; className?: string }) {
   const { t } = useT();
   return (
-    <div className={"mo-skel " + (className ?? "")} aria-busy="true" data-loop="">
+    <div className={"mo-skel " + (className ?? "")} aria-busy="true" data-loop="" suppressHydrationWarning>
       <span className="sr-only" role="status">
         {t(label)}
       </span>

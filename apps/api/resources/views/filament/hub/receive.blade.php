@@ -1,8 +1,10 @@
 <x-filament-panels::page>
     <style>
-        .hub-wrap { display: grid; gap: 1rem; max-width: 46rem; }
+        .hub-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; max-width: 46rem; width: 100%; }
         .hub-scan { display: flex; gap: .5rem; flex-wrap: wrap; }
-        .hub-scan input { flex: 1 1 14rem; min-height: 48px; font-size: 1.05rem; font-family: ui-monospace, monospace; }
+        .hub-scan > .grow { flex: 1 1 12rem; min-width: 0; }
+        .hub-scan input { width: 100%; min-height: 48px; font-size: 1.05rem; font-family: ui-monospace, monospace; }
+        .hub-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
         .hub-btn { min-height: 48px; min-width: 48px; }
         .hub-video { position: relative; overflow: hidden; border-radius: .75rem; background: #000; aspect-ratio: 4 / 3; }
         .hub-video video { width: 100%; height: 100%; object-fit: cover; }
@@ -57,14 +59,14 @@
                 this.scanning = false;
                 if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
             },
-        }" x-on:hub-received.window="$refs.code.focus()" x-on:beforeunload.window="stop()">
+        }" x-on:hub-received.window="document.getElementById('hub-code')?.focus()" x-on:beforeunload.window="stop()">
 
         <x-filament::section>
             <x-slot name="heading">1. Scan or type</x-slot>
             <x-slot name="description">Marketplace order no. / AWB on the parcel, our order id (SR-…), item id (IT-…) or tracking code.</x-slot>
 
             <form class="hub-scan" wire:submit="lookup">
-                <label for="hub-code" class="sr-only">Code</label>
+                <label for="hub-code" class="hub-sr">Code</label>
                 <x-filament::input.wrapper class="grow">
                     <x-filament::input id="hub-code" x-ref="code" type="text" wire:model="code" autocomplete="off" autocapitalize="characters"
                         spellcheck="false" inputmode="text" placeholder="e.g. 403-1234567-1234567" autofocus />

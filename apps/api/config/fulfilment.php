@@ -29,7 +29,8 @@ return [
     'tracking' => [
         'rider_fresh_minutes' => 10,
         // Remaining days to delivery from each stage (ETA shown on the tracking map).
-        'eta_days' => ['placed' => [5, 9], 'verified' => [5, 8], 'purchased' => [4, 7], 'india_hub' => [3, 5],
-            'in_transit' => [2, 4], 'dhaka_hub' => [1, 2], 'out_for_delivery' => [0, 0]],
+        // 'placed' matches the 7-12 day window promised at checkout and on the order page
+        'eta_days' => ['placed' => [7, 12], 'verified' => [7, 11], 'purchased' => [5, 9], 'india_hub' => [4, 7],
+            'in_transit' => [2, 5], 'dhaka_hub' => [1, 2], 'out_for_delivery' => [0, 0]],
     ],
 ];

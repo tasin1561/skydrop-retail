@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\BizTime;
 use App\Filament\Concerns\HasPagePermission;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Support\Admin;
@@ -42,7 +43,7 @@ class Profit extends Page
 
     public function mount(): void
     {
-        $this->form->fill(['from' => now()->startOfMonth()->toDateString(), 'to' => now()->toDateString(), 'store' => null, 'category' => null]);
+        $this->form->fill(['from' => now(BizTime::TZ)->startOfMonth()->toDateString(), 'to' => now(BizTime::TZ)->toDateString(), 'store' => null, 'category' => null]);
     }
 
     public function form(Schema $schema): Schema
@@ -62,7 +63,7 @@ class Profit extends Page
         $f = $this->filters ?? [];
 
         return app(ProfitService::class)->report(
-            Carbon::parse($f['from'] ?? now()->startOfMonth()), Carbon::parse($f['to'] ?? now()),
+            Carbon::parse($f['from'] ?? now(BizTime::TZ)->startOfMonth()), Carbon::parse($f['to'] ?? now(BizTime::TZ)),
             ['store' => $f['store'] ?? null, 'category' => $f['category'] ?? null],
         );
     }

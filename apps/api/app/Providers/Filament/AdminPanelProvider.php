@@ -51,7 +51,9 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/skydrop-retail-logo.svg'))
             ->colors([
-                'primary' => Color::hex('#5b3df5'), // Midnight Luxe violet
+                // Midnight Luxe violet. The generated 600 shade was too light for white text, so Filament fell back to pale
+                // lavender buttons that looked disabled; pin 500-700 to the brand violet (5.6:1 on white).
+                'primary' => array_replace(Color::hex('#5b3df5'), [500 => '#7357f7', 600 => '#5b3df5', 700 => '#4a2fd6']),
                 'danger' => Color::Rose,
                 'warning' => Color::Amber,
                 'success' => Color::Emerald,
@@ -65,10 +67,15 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearch()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([
+                // Every group is listed so the sidebar order is fixed (unlisted groups would float above Sales).
                 NavigationGroup::make('Sales'),
                 NavigationGroup::make('Hub'), // fulfilment: Kolkata hub receiving, packing, return-to-seller
                 NavigationGroup::make('Catalog'),
                 NavigationGroup::make('Pricing'),
+                NavigationGroup::make('Growth'),
+                NavigationGroup::make('Wallet & Plus'),
+                NavigationGroup::make('Messaging'),
+                NavigationGroup::make('Reports'),
                 NavigationGroup::make('System'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

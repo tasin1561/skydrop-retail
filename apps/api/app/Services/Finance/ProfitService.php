@@ -2,6 +2,7 @@
 
 namespace App\Services\Finance;
 
+use App\Support\BizTime;
 use App\Models\ApiLog;
 use App\Models\FxPaidRate;
 use App\Models\Order;
@@ -94,7 +95,7 @@ class ProfitService
         unset($l);
 
         return [
-            'order_id' => $order->id, 'date' => $order->created_at?->toDateString(), 'status' => $order->status,
+            'order_id' => $order->id, 'date' => BizTime::date($order->created_at), 'status' => $order->status,
             'items_bdt' => $items, 'shipping_bdt' => $shipping, 'fees_bdt' => $fees, 'discounts_bdt' => $discounts, 'points_bdt' => $points,
             'revenue' => round($revenue, 2),
             'purchase_inr' => round($inr, 2), 'fx_order' => $fxOrder, 'fx_paid' => $fxPaid, 'estimated' => $estimated,
@@ -117,7 +118,7 @@ class ProfitService
 
         $rows = collect();
         Order::query()->goods()->with(['items', 'payments'])->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->whereBetween('created_at', [BizTime::dayStart($from), BizTime::dayEnd($to)])
             ->when($store, fn ($q) => $q->whereHas('items', fn ($i) => $i->where('market', $store)))
             ->orderBy('created_at')
             ->chunk(200, function ($orders) use (&$rows) {
@@ -197,7 +198,7 @@ class ProfitService
         if ($order->fx_paid) {
             return (float) $order->fx_paid;
         }
-        $day = ($order->created_at ?? now())->toDateString();
+        $day = BizTime::date($order->created_at ?? now());
         if (! array_key_exists($day, $this->fxDay)) {
             $this->fxDay[$day] = FxPaidRate::query()->where('date', '<=', $day)->orderByDesc('date')->value('rate');
         }
@@ -219,7 +220,7 @@ class ProfitService
         $out = ['plus' => ['count' => 0, 'revenue' => 0.0, 'fees' => 0.0, 'refunds' => 0.0, 'profit' => 0.0, 'by_day' => []], 'gift_card' => ['count' => 0, 'amount' => 0.0]];
         Order::query()->with('payments')->whereIn('kind', ['membership', 'gift_card'])->where('status', '!=', 'cancelled')
             ->whereIn('payment_status', ['paid', 'partial', 'refunded', 'refund_pending'])
-            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->whereBetween('created_at', [BizTime::dayStart($from), BizTime::dayEnd($to)])
             ->get()->each(function (Order $o) use (&$out) {
                 if ($o->kind === 'gift_card') {
                     $out['gift_card']['count']++;
@@ -237,7 +238,7 @@ class ProfitService
                 }
                 $revenue = (float) $o->total_bdt;
                 $profit = $revenue - $fees - $refunds;
-                $d = (string) $o->created_at?->toDateString();
+                $d = (string) BizTime::date($o->created_at);
                 $out['plus']['count']++;
                 $out['plus']['revenue'] += $revenue;
                 $out['plus']['fees'] += $fees;

@@ -21,10 +21,16 @@ class AuthorizePanelPage
     {
         $class = $request->route()?->getControllerClass();
         if ($class && is_subclass_of($class, Page::class) && ! is_subclass_of($class, ResourcePage::class)
-            && ! is_a($class, Dashboard::class, true) && $request->user()) {
+            && ! is_a($class, Dashboard::class, true) && ! self::isAccountPage($class) && $request->user()) {
             abort_unless(Admin::can(PermissionRegistry::pageKey($class), $request->user()), 403);
         }
 
         return $next($request);
+    }
+
+    /** Every staff member's own account pages (profile: password + optional 2FA, required-2FA set-up) are always open. */
+    private static function isAccountPage(string $class): bool
+    {
+        return str_starts_with($class, 'Filament\\Auth\\');
     }
 }

@@ -232,7 +232,8 @@ const PROGRESS: Partial<Record<OrderStatus, { progress: number; leg: number | nu
   delivered: { progress: 1, leg: 2, stage: "customer" },
 };
 const ETA_DAYS: Partial<Record<OrderStatus, [number, number]>> = {
-  placed: [5, 9], verified: [5, 8], purchased: [4, 7], india_hub: [3, 5], in_transit: [2, 4], dhaka_hub: [1, 2], out_for_delivery: [0, 0],
+  // placed matches the 7-12 day promise shown at checkout and on the order (deliveryWindow)
+  placed: [7, 12], verified: [7, 11], purchased: [5, 9], india_hub: [4, 7], in_transit: [2, 5], dhaka_hub: [1, 2], out_for_delivery: [0, 0],
 };
 
 /** Demo-mode tracking (no API): same shape as GET /orders/{id}/tracking. */

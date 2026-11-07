@@ -80,9 +80,9 @@ class HubReceive extends Page
         return $schema
             ->statePath('data')
             ->components([
-                TextInput::make('weight_kg')->label('Weight')->suffix('kg')->numeric()->minValue(0.001)->maxValue(500)->step(0.01)->required()
+                TextInput::make('weight_kg')->label('Weight')->suffix('kg')->numeric()->minValue(0.001)->maxValue(500)->step('any')->required() // 'any': a 0.01 step from min 0.001 rejected 0.12 kg
                     ->inputMode('decimal')->autofocus(),
-                Grid::make(3)->schema([
+                Grid::make(['default' => 3])->schema([ // three across even on a phone
                     TextInput::make('length_cm')->label('Length')->suffix('cm')->numeric()->minValue(0)->inputMode('decimal'),
                     TextInput::make('width_cm')->label('Width')->suffix('cm')->numeric()->minValue(0)->inputMode('decimal'),
                     TextInput::make('height_cm')->label('Height')->suffix('cm')->numeric()->minValue(0)->inputMode('decimal'),

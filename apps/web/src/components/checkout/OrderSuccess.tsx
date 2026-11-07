@@ -88,6 +88,29 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
     );
   }
 
+  if (!order && (payStatus === "failed" || payStatus === "cancelled") && orderId) {
+    // Payment failed, but this browser can't see the order (signed out or another device): never a dead end.
+    return (
+      <section className="fade-in mx-auto max-w-md px-4 py-14 text-center" aria-labelledby="pay-h">
+        <span className="chip-icon mx-auto h-14 w-14 rounded-2xl" style={{ background: "color-mix(in oklab, var(--bad) 14%, transparent)", color: "var(--bad)" }}>
+          <Icon name="wallet" size={26} />
+        </span>
+        <h1 id="pay-h" className="mt-4 text-2xl font-extrabold tracking-tight">
+          {payStatus === "cancelled" ? t("os.payCancelled") : t("os.payIncomplete")}
+        </h1>
+        <p className="mt-2 text-sm text-ink-2">{rich(t("os.savedNothing"), { id: <b className="text-ink">{orderId}</b> })}</p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <Link href={`/login?next=${encodeURIComponent(`/orders/${orderId}`)}`} className="btn btn-primary">
+            <Icon name="wallet" size={18} /> {t("os.signInPay")}
+          </Link>
+          <Link href="/" className="btn btn-ghost">
+            {t("os.continue")}
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   if (!order) {
     return (
       <section className="fade-in mx-auto max-w-md px-4 py-16 text-center" aria-labelledby="nf-h">
@@ -212,7 +235,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
               </span>
               <span className="min-w-0">
                 <span className="block text-[11px] font-semibold uppercase tracking-wide text-ink-3">{k}</span>
-                <span className="block break-words text-sm font-bold">{v}</span>
+                <span className={"block break-words font-bold " + (k === t("os.tracking") ? "text-[13px] tabular-nums tracking-tight" : "text-sm")}>{v}</span>
               </span>
             </div>
           ))}

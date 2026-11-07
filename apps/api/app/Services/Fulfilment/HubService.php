@@ -87,6 +87,9 @@ class HubService
         if ($item->cancelled_at) {
             throw new CommerceException('This item was cancelled.', 409, [], 'item_cancelled');
         }
+        if ($item->hub_received_at) {
+            throw new CommerceException('IT-'.$item->id.' was already received at the hub.', 409, [], 'already_received');
+        }
         $condition = $data['condition'] ?? 'ok';
         if (! array_key_exists($condition, HubReceipt::CONDITIONS)) {
             throw CommerceException::field('condition', 'Choose ok, damaged or wrong item.');

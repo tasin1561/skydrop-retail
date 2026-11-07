@@ -104,7 +104,7 @@ export function GroupView({ code }: { code: string }) {
           <p className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
             <Icon name={store.icon} size={14} /> {t("grp.groupBuyStore", { store: store.name })}
           </p>
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight">{t("grp.ownerOrder", { owner: g.owner })}</h1>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight">{g.isOwner || g.owner === "You" ? t("grp.yourOrder") : t("grp.ownerOrder", { owner: g.owner })}</h1>
           {open ? (
             <p className="mt-1 text-sm text-white/90">
               {rich(t("grp.closesIn", { source: store.source }), { time: <Countdown endsAt={g.closesAt} compact /> })}
@@ -158,8 +158,9 @@ export function GroupView({ code }: { code: string }) {
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-extrabold text-white">{m.name.slice(0, 1).toUpperCase()}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold">
-                  {m.name}
-                  {m.isYou && t("grp.youSuffix")}
+                  {/* demo groups name a signed-out shopper "You": show it in the page language, without "You (you)" */}
+                  {m.isYou && m.name === "You" ? t("grp.you") : m.name}
+                  {m.isYou && m.name !== "You" && t("grp.youSuffix")}
                   {m.isOwner && <span className="ml-1.5 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-bold text-ink-2">{t("grp.organiser")}</span>}
                 </span>
                 <span className="block text-xs text-ink-2">

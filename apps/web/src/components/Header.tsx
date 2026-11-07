@@ -24,12 +24,16 @@ export function StoreSwitcher({ className }: { className?: string }) {
   const [pill, setPill] = useState({ x: 0, w: 0, ok: false });
 
   useEffect(() => {
-    const el = wrap.current?.querySelector<HTMLElement>(`[data-mode="${mode}"]`);
-    if (el) {
-      setPill({ x: el.offsetLeft, w: el.offsetWidth, ok: true });
-      const box = wrap.current!;
-      box.scrollTo({ left: Math.max(0, el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2), behavior: "smooth" });
-    }
+    const box = wrap.current;
+    const el = box?.querySelector<HTMLElement>(`[data-mode="${mode}"]`);
+    if (!box || !el) return;
+    const measure = () => setPill({ x: el.offsetLeft, w: el.offsetWidth, ok: true });
+    measure();
+    box.scrollTo({ left: Math.max(0, el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2), behavior: "smooth" });
+    // labels change width when the web fonts (or the Bangla font) finish loading: keep the pill on its tab
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [mode, modes.length]);
 
   return (
@@ -59,8 +63,10 @@ export function StoreSwitcher({ className }: { className?: string }) {
             aria-selected={on}
             href={m === "all" ? "/" : `/store/${m}`}
             className={
-              "relative z-10 inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:text-sm " +
-              (on ? "text-white" : "text-ink-2 hover:text-ink")
+              "relative z-10 inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:min-h-0 sm:text-sm " +
+              (on ? "text-white" : "text-ink-2 hover:text-ink") +
+              // until the sliding pill is measured (server HTML, before hydration) the active tab paints its own fill
+              (on && !pill.ok ? " bg-accent" : "")
             }
           >
             <Icon name={STORES[m].icon} size={15} stroke={2} />
@@ -110,7 +116,7 @@ export function Header() {
         <div className="ml-auto flex items-center gap-1">
           {!checkout && <CategorySheetButton />}
           <NotificationBell />
-          <LangSwitch size="sm" className="hidden lg:grid" />
+          <LangSwitch size="sm" className="hidden xl:grid" />
           <button
             className="grid h-11 w-11 place-items-center rounded-full text-ink-2 transition hover:bg-surface-2 hover:text-ink"
             aria-label={t("header.darkMode")}
@@ -118,12 +124,15 @@ export function Header() {
           >
             <Icon name={theme === "dark" ? "sun" : "moon"} size={19} />
           </button>
+          {/* below 2xl the account, request and orders links are icon-only so the search box keeps its width */}
           <Link
             href={user ? "/account" : "/login"}
-            className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink md:inline-flex"
+            aria-label={user ? t("nav.account") : t("nav.signIn")}
+            title={user ? user.name : t("nav.signIn")}
+            className="hidden h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink md:inline-flex"
           >
             <Icon name="user" size={19} />
-            {user ? user.name.split(" ")[0] : t("nav.signIn")}
+            <span className="hidden max-w-[8rem] truncate 2xl:inline">{user ? user.name.split(" ")[0] : t("nav.signIn")}</span>
           </Link>
           <RequestHeaderLink />
           <Link
@@ -134,9 +143,11 @@ export function Header() {
           </Link>
           <Link
             href="/orders"
-            className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink lg:inline-flex"
+            aria-label={t("nav.orders")}
+            title={t("nav.orders")}
+            className="hidden h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink lg:inline-flex"
           >
-            <Icon name="receipt" size={19} /> {t("nav.orders")}
+            <Icon name="receipt" size={19} /> <span className="hidden 2xl:inline">{t("nav.orders")}</span>
           </Link>
           <Link
             href="/cart"

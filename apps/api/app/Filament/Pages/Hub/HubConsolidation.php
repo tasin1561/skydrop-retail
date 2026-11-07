@@ -25,6 +25,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -70,35 +72,42 @@ class HubConsolidation extends Page implements HasTable
             ->query(self::query())
             ->description('Pack every received item of an order into one outbound box, print its label, then hand it to Skydrop. Orders waiting for the customer to approve an unboxing stay here.')
             ->defaultSort('updated_at', 'desc')
+            // Card layout: stacked on phones (hub staff), one row per order from md up. Actions sit with the order.
             ->columns([
-                TextColumn::make('id')->label('Order')->searchable()->weight('bold')->fontFamily('mono')
-                    ->url(fn (Order $r) => OrderResource::getUrl('view', ['record' => $r])),
-                TextColumn::make('status')->badge()->formatStateUsing(fn ($state) => Admin::ORDER_STATUS_LABELS[$state] ?? $state)
-                    ->color(fn ($state) => Admin::ORDER_STATUS_COLORS[$state] ?? 'gray'),
-                TextColumn::make('received')->label('Received')
-                    ->state(fn (Order $r) => collect(app(HubService::class)->progress($r))->map(fn ($p, $m) => ucfirst($m).' '.$p['received'].'/'.$p['total'])->implode(' · ')),
-                TextColumn::make('address.district')->label('City'),
-                TextColumn::make('actual_weight_kg')->label('Weight')->suffix(' kg')->numeric(2)->placeholder('—')
-                    ->description(fn (Order $r) => $r->weight_flag && empty($r->weight_flag['resolution']) ? '+'.$r->weight_flag['variancePct'].'% vs estimate' : null)
-                    ->color(fn (Order $r) => $r->weight_flag && empty($r->weight_flag['resolution']) ? 'danger' : null),
-                TextColumn::make('unboxing_status')->label('Unboxing')->badge()->placeholder('—')
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        UnboxingService::AWAITING => 'Waiting for customer', UnboxingService::APPROVED => 'Approved',
-                        UnboxingService::AUTO => 'Auto-approved', UnboxingService::PROBLEM => 'Problem reported', default => $state,
-                    })
-                    ->color(fn ($state) => match ($state) {
-                        UnboxingService::AWAITING => 'warning', UnboxingService::PROBLEM => 'danger', default => 'success',
-                    }),
-                TextColumn::make('box')->label('Box')->placeholder('not packed')
-                    ->state(fn (Order $r) => HubBox::query()->where('order_id', $r->id)->latest('id')->value('code')),
-                TextColumn::make('skydrop_consignment_id')->label('Consignment')->placeholder('—')->toggleable(),
+                Split::make([
+                    Stack::make([
+                        TextColumn::make('id')->label('Order')->searchable()->weight('bold')->fontFamily('mono')
+                            ->url(fn (Order $r) => OrderResource::getUrl('view', ['record' => $r])),
+                        TextColumn::make('received')->label('Received')->color('gray')
+                            ->state(fn (Order $r) => 'Received: '.collect(app(HubService::class)->progress($r))->map(fn ($p, $m) => ucfirst($m).' '.$p['received'].'/'.$p['total'])->implode(' · ')),
+                    ])->space(1),
+                    Stack::make([
+                        TextColumn::make('address.district')->label('City')->icon(Heroicon::OutlinedMapPin)->placeholder('—'),
+                        TextColumn::make('actual_weight_kg')->label('Weight')->icon(Heroicon::OutlinedScale)->suffix(' kg')->numeric(2)->placeholder('not weighed')
+                            ->description(fn (Order $r) => $r->weight_flag && empty($r->weight_flag['resolution']) ? '+'.$r->weight_flag['variancePct'].'% vs estimate' : null)
+                            ->color(fn (Order $r) => $r->weight_flag && empty($r->weight_flag['resolution']) ? 'danger' : null),
+                    ])->space(1),
+                    Stack::make([
+                        TextColumn::make('unboxing_status')->label('Unboxing')->badge()->placeholder('No unboxing')
+                            ->formatStateUsing(fn ($state) => match ($state) {
+                                UnboxingService::AWAITING => 'Unboxing: waiting for customer', UnboxingService::APPROVED => 'Unboxing approved',
+                                UnboxingService::AUTO => 'Unboxing auto-approved', UnboxingService::PROBLEM => 'Unboxing problem reported', default => 'Unboxing: '.$state,
+                            })
+                            ->color(fn ($state) => match ($state) {
+                                UnboxingService::AWAITING => 'warning', UnboxingService::PROBLEM => 'danger', default => 'success',
+                            }),
+                        TextColumn::make('box')->label('Box')->icon(Heroicon::OutlinedArchiveBox)->placeholder('not packed')
+                            ->state(fn (Order $r) => HubBox::query()->where('order_id', $r->id)->latest('id')->value('code')),
+                        TextColumn::make('skydrop_consignment_id')->label('Consignment')->icon(Heroicon::OutlinedTruck)->placeholder('no consignment yet')->color('gray'),
+                    ])->space(1),
+                ])->from('md'),
             ])
             ->filters([
                 TernaryFilter::make('weight')->label('Weight flagged')
                     ->queries(true: fn ($q) => $q->whereNotNull('weight_flag'), false: fn ($q) => $q->whereNull('weight_flag')),
             ])
             ->recordActions([
-                Action::make('pack')->label('Pack box')->icon(Heroicon::OutlinedArchiveBox)->color('primary')
+                Action::make('pack')->label('Pack box')->icon(Heroicon::OutlinedArchiveBox)->color('primary')->button() // big tap targets on phones
                     ->visible(fn (Order $r) => $r->status === 'india_hub')
                     ->requiresConfirmation()->modalDescription('Groups every received item of this order into one outbound box and opens the label.')
                     ->action(function (Order $record, $livewire) {
@@ -110,10 +119,10 @@ class HubConsolidation extends Page implements HasTable
                             Notification::make()->title('Could not pack')->body($e->getMessage())->danger()->send();
                         }
                     }),
-                Action::make('label')->label('Label')->icon(Heroicon::OutlinedPrinter)->color('gray')
+                Action::make('label')->label('Label')->icon(Heroicon::OutlinedPrinter)->color('gray')->button()
                     ->visible(fn (Order $r) => HubBox::query()->where('order_id', $r->id)->exists())
                     ->url(fn (Order $r) => route('hub.labels', ['orders' => $r->id]), true),
-                Action::make('weight')->label('Weight')->icon(Heroicon::OutlinedScale)->color('danger')
+                Action::make('weight')->label('Weight')->icon(Heroicon::OutlinedScale)->color('danger')->button()
                     ->visible(fn (Order $r) => $r->weight_flag && empty($r->weight_flag['resolution']))
                     ->modalHeading('Heavier than estimated')
                     ->modalDescription(fn (Order $r) => "Measured {$r->weight_flag['actualKg']} kg vs {$r->weight_flag['estimateKg']} kg estimated (+{$r->weight_flag['variancePct']}%). Extra shipping about ".Admin::bdt($r->weight_flag['extraBdt']).'.')
@@ -123,7 +132,7 @@ class HubConsolidation extends Page implements HasTable
                         app(HubService::class)->resolveWeight($record, $data['resolution']);
                         Notification::make()->title('Weight flag resolved')->success()->send();
                     }),
-                OrderActions::handToSkydrop(),
+                OrderActions::handToSkydrop()->button(),
             ])
             ->toolbarActions([
                 BulkAction::make('labels')->label('Print labels')->icon(Heroicon::OutlinedPrinter)

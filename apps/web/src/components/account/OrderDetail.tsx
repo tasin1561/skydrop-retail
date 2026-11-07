@@ -17,11 +17,13 @@ import { TrackingPanel } from "@/components/fulfilment/TrackingPanel";
 import { OrderCases } from "@/components/fulfilment/OrderCases";
 import { useT } from "@/i18n/client";
 import { bdName } from "@/lib/bd";
+import { apiEnabled } from "@/lib/apiClient";
+import { SignedOut } from "./SignedOut";
 
 const TRACK_URL = "https://track.skydrop.online";
 
 export function OrderDetail({ id }: { id: string }) {
-  const { ready, orders, cancelOrder } = useStore();
+  const { ready, user, orders, cancelOrder } = useStore();
   const toast = useToast();
   const tr = useT();
   const { t, bdt, digits, lang } = tr;
@@ -38,13 +40,20 @@ export function OrderDetail({ id }: { id: string }) {
       </div>
     );
 
+  if (!order && apiEnabled && !user)
+    return (
+      <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
+        <SignedOut next={`/orders/${id}`} title={t("od.signIn")} body={t("od.signInB")} />
+      </div>
+    );
+
   if (!order)
     return (
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
         <PageHead title={t("od.notFound")} icon="receipt" back={{ href: "/orders", label: t("od.allOrders") }} />
         <EmptyState
           title={t("od.cantFind")}
-          body={t("od.cantFindB")}
+          body={t(apiEnabled ? "od.cantFindApi" : "od.cantFindB")}
           action={{ label: t("od.seeYours"), href: "/orders" }}
         />
       </div>
@@ -112,7 +121,7 @@ export function OrderDetail({ id }: { id: string }) {
                   <p className="font-bold">{STORES[m].name}</p>
                   <p className="text-xs text-ink-2">{t("od.boughtFrom", { source: STORES[m].source })}</p>
                 </div>
-                <span className="ac-chip tabular-nums">{String(items.reduce((n, i) => n + i.qty, 0)).padStart(2, "0")} items</span>
+                <span className="ac-chip tabular-nums">{t("cart.items", { count: items.reduce((n, i) => n + i.qty, 0) })}</span>
               </div>
               <ul>
                 {items.map((it) => (
@@ -252,7 +261,7 @@ function Timeline({ order, status }: { order: Order; status: OrderStatus }) {
   const { t } = tr;
   const cur = stageIndex(status);
   return (
-    <ol className="mt-5 flex flex-col lg:flex-row" aria-label={t("od.timeline")} data-reveal="fade">
+    <ol className="mt-5 flex flex-col lg:flex-row" aria-label={t("od.timeline")} data-reveal="fade" suppressHydrationWarning>
       {STAGES.map((st, i) => {
         const state = i < cur || status === "delivered" ? "done" : i === cur ? "now" : "next";
         const last = i === STAGES.length - 1;
@@ -313,11 +322,12 @@ function TrackingCode({ code }: { code: string }) {
       <span className="chip-icon shrink-0">
         <Icon name="truck" size={18} />
       </span>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-[10rem] flex-1">
         <p className="text-xs text-ink-2">{t("od.code")}</p>
-        <p className="truncate font-mono text-sm font-bold tracking-wider">{code}</p>
+        <p className="break-all font-mono text-sm font-bold tracking-wider">{code}</p>
       </div>
-      <div className="flex gap-2">
+      {/* wraps under the code on narrow phones so the code is never cut off */}
+      <div className="flex grow gap-2 sm:grow-0 [&>*]:flex-1 sm:[&>*]:flex-none">
         <button type="button" onClick={copy} className="btn btn-ghost h-11 bg-surface px-4 text-sm" aria-label={t("od.copyCode", { code })}>
           <Icon name={copied === "done" ? "check" : copied === "error" ? "x" : "receipt"} size={16} />
           <span aria-live="polite">{copied === "done" ? t("common.copied") : copied === "error" ? t("common.copyFailed") : t("common.copy")}</span>

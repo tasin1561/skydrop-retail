@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { EmptyState, LoadingBlock, PageHead } from "@/components/account/ui";
+import { SignedOut } from "@/components/account/SignedOut";
 import { ApiError } from "@/lib/apiClient";
 import { REASON_LABELS, apiEnabled, fulfilmentApi, type ProblemReason, type Unboxing } from "@/lib/fulfilment";
 import { useStore } from "@/state/store";
@@ -57,6 +58,12 @@ export function UnboxingReview({ id }: { id: string }) {
           body={t("ur.demoB")}
           action={{ label: t("rw.backOrder"), href: `/orders/${id}` }}
         />
+      </Shell>
+    );
+  if (ready && !user)
+    return (
+      <Shell>
+        <SignedOut next={`/orders/${id}/unboxing`} title={t("od.signIn")} body={t("od.signInB")} />
       </Shell>
     );
   if (error)

@@ -44,8 +44,10 @@ class ListOrders extends ListRecords
     {
         return [
             Action::make('queue')->label('Purchase queue')->icon(Heroicon::OutlinedQueueList)->color('gray')
+                ->visible(fn () => PurchaseQueue::canAccess())
                 ->url(PurchaseQueue::getUrl()),
             Action::make('exportAll')->label('Export CSV')->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
+                ->visible(fn () => Admin::can('orders.export'))
                 ->action(fn () => OrderActions::csv($this->getFilteredSortedTableQuery()->with(['user', 'items'])->limit(5000)->get())),
         ];
     }

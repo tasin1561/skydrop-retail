@@ -237,13 +237,13 @@ export function LoginFlow({ next }: { next: string }) {
             <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-3">
               <span className="h-px flex-1 bg-line" /> {t("lg.or")} <span className="h-px flex-1 bg-line" />
             </div>
-            <button type="button" className="btn btn-ghost w-full" disabled aria-describedby="google-soon">
+            <button type="button" className="btn btn-ghost w-full px-3 text-sm" disabled aria-describedby="google-soon">
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
                 <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
                 <path d="M12 12h8" stroke="currentColor" strokeWidth="2" />
               </svg>
-              {t("lg.google")}
-              <span id="google-soon" className="ac-chip" data-tone="muted">
+              <span className="whitespace-nowrap">{t("lg.google")}</span>
+              <span id="google-soon" className="ac-chip shrink-0 whitespace-nowrap" data-tone="muted">
                 {t("lg.soon")}
               </span>
             </button>

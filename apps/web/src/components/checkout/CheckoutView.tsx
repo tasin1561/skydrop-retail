@@ -67,6 +67,13 @@ export function CheckoutView() {
   const [moneyQ, setMoneyQ] = useState<MoneyQuote | null>(null);
   const [apiPoints, setApiPoints] = useState<number | null>(null);
   const [nudge, setNudge] = useState<{ n: number; msg: string } | null>(null);
+  const nudgeRef = useRef<HTMLParagraphElement>(null);
+  // the hint sits under the step; on a phone the tapped button is in the sticky bar, so bring the hint into view
+  useEffect(() => {
+    if (!nudge) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    nudgeRef.current?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }, [nudge]);
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [checks, setChecks] = useState<CheckState[]>(["wait", "wait", "wait"]);
@@ -332,11 +339,11 @@ export function CheckoutView() {
       <VanButton
         state={van}
         onClick={next}
-        disabled={!!blockedReason || phase === "blocked"}
+        disabled={phase === "blocked"}
         idleLabel={actionLabel}
         busyText={phase === "verifying" ? tr("co.verifying") : tr("van.placing")}
         error={phase === "error"}
-        className={cls}
+        className={cls + (blockedReason ? " opacity-70" : "")}
       />
     );
 
@@ -453,7 +460,7 @@ export function CheckoutView() {
             )}
 
             {nudge && (
-              <p key={nudge.n} role="alert" className="shake mt-3 flex items-center gap-2 rounded-2xl bg-warn/10 p-3 text-sm font-semibold text-warn">
+              <p key={nudge.n} ref={nudgeRef} role="alert" className="shake scroll-mb-48 mt-3 flex items-center gap-2 rounded-2xl bg-warn/10 p-3 text-sm font-semibold text-warn">
                 <Icon name="info" size={16} /> {nudge.msg}
               </p>
             )}

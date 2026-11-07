@@ -43,13 +43,13 @@ class OrderInfolist
                                 TableColumn::make('Status'), TableColumn::make('Ref'), TableColumn::make('Refunded'), TableColumn::make('When'),
                             ])
                             ->schema([
-                                TextEntry::make('gateway')->badge(),
-                                TextEntry::make('kind')->placeholder('full'),
-                                TextEntry::make('amount_bdt')->formatStateUsing(fn ($state) => Admin::bdt($state)),
-                                TextEntry::make('status')->badge()->color(fn ($state) => Admin::PAYMENT_STATUS_COLORS[$state] ?? 'gray'),
-                                TextEntry::make('gateway_ref')->placeholder('—')->copyable(),
-                                TextEntry::make('refunded_bdt')->formatStateUsing(fn ($state) => $state > 0 ? Admin::bdt($state) : '—'),
-                                TextEntry::make('created_at')->since(),
+                                TextEntry::make('gateway')->badge()->label('Gateway'),
+                                TextEntry::make('kind')->label('Kind')->placeholder('full'),
+                                TextEntry::make('amount_bdt')->label('Amount')->formatStateUsing(fn ($state) => Admin::bdt($state)),
+                                TextEntry::make('status')->label('Status')->badge()->color(fn ($state) => Admin::PAYMENT_STATUS_COLORS[$state] ?? 'gray'),
+                                TextEntry::make('gateway_ref')->label('Ref')->placeholder('—')->copyable(),
+                                TextEntry::make('refunded_bdt')->label('Refunded')->formatStateUsing(fn ($state) => $state > 0 ? Admin::bdt($state) : '—'),
+                                TextEntry::make('created_at')->since()->label('When'),
                             ])
                             ->placeholder('No payments yet'),
                     ]),
@@ -60,14 +60,14 @@ class OrderInfolist
                                 TableColumn::make('Deliverable'), TableColumn::make('OK'), TableColumn::make('Provider'), TableColumn::make('When'),
                             ])
                             ->schema([
-                                TextEntry::make('product_id'),
-                                TextEntry::make('seen_bdt')->formatStateUsing(fn ($state) => Admin::bdt($state)),
-                                TextEntry::make('fresh_bdt')->formatStateUsing(fn ($state) => $state !== null ? Admin::bdt($state) : '—')
+                                TextEntry::make('product_id')->label('Product'),
+                                TextEntry::make('seen_bdt')->label('Seen')->formatStateUsing(fn ($state) => Admin::bdt($state)),
+                                TextEntry::make('fresh_bdt')->label('Fresh')->formatStateUsing(fn ($state) => $state !== null ? Admin::bdt($state) : '—')
                                     ->color(fn ($state, $record) => $state !== null && $state > $record->seen_bdt ? 'danger' : null),
-                                IconEntry::make('deliverable')->boolean(),
-                                IconEntry::make('ok')->boolean(),
-                                TextEntry::make('provider')->placeholder('—'),
-                                TextEntry::make('verified_at')->since(),
+                                IconEntry::make('deliverable')->label('Deliverable')->boolean(),
+                                IconEntry::make('ok')->label('OK')->boolean(),
+                                TextEntry::make('provider')->label('Provider')->placeholder('—'),
+                                TextEntry::make('verified_at')->label('When')->since(),
                             ])
                             ->placeholder('No verifications recorded'),
                     ]),

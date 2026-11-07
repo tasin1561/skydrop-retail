@@ -51,6 +51,7 @@ class ReturnActions
                     fn (ReturnRequest $r, array $d, ReturnService $s) => $s->replace($r, $d['note'] ?? null)),
             ])->label('Resolve')->icon(Heroicon::EllipsisVertical)->button()->color('gray'),
             Action::make('staffNotes')->label('Staff notes')->icon(Heroicon::OutlinedPencilSquare)->color('gray')
+                ->visible(fn () => FulfilmentAccess::returns())
                 ->fillForm(fn (ReturnRequest $r) => ['staff_notes' => $r->staff_notes])
                 ->schema([Textarea::make('staff_notes')->label('Internal notes')->rows(5)])
                 ->action(function (ReturnRequest $record, array $data) {

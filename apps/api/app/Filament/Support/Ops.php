@@ -143,8 +143,13 @@ class Ops
             throw new RuntimeException('Skydrop client is not available yet (commerce module).');
         }
 
-        return $order->stageIndex() < $order->stageIndex('india_hub')
-            ? self::transition($order, 'india_hub', 'Handed to Skydrop, consignment '.$order->skydrop_consignment_id)
+        if ($order->stageIndex() < $order->stageIndex('india_hub')) {
+            return self::transition($order, 'india_hub', 'Handed to Skydrop, consignment '.$order->skydrop_consignment_id);
+        }
+
+        // Packed at the Kolkata hub: the box leaves with Skydrop towards the border.
+        return $order->status === 'india_hub'
+            ? self::transition($order, 'in_transit', 'Handed to Skydrop at the Kolkata hub, consignment '.$order->skydrop_consignment_id)
             : $order;
     }
 

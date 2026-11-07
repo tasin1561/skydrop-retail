@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { BundleCard } from "@/components/shopping/ProductBundles";
@@ -32,7 +33,12 @@ export default async function BundlesPage() {
           ))}
         </ul>
       ) : (
-        <p className="card mt-5 p-8 text-center text-sm text-ink-2">{t("bundles.none")}</p>
+        <div className="card mt-5 flex flex-col items-center gap-4 p-8 text-center text-sm text-ink-2">
+          <p>{t("bundles.none")}</p>
+          <Link href="/search" className="btn btn-ghost min-h-11">
+            {t("cart.keepShopping")} <Icon name="arrow" size={16} className="arrow" />
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -31,7 +31,7 @@ export function UnboxingToggle({ checked, onChange, shipments, disabled }: { che
         </span>
       </span>
       <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (checked ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
-        {checked ? "ON" : "OFF"}
+        {checked ? t("f.on") : t("f.off")}
       </span>
     </label>
   );

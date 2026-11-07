@@ -2,6 +2,7 @@
 
 namespace App\Services\Finance;
 
+use App\Support\BizTime;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Support\Knobs;
@@ -22,10 +23,10 @@ class AccountingService
     public function salesJournal(Carbon $from, Carbon $to): array
     {
         $rows = [];
-        $orders = Order::query()->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->orderBy('created_at')->get();
+        $orders = Order::query()->whereBetween('created_at', [BizTime::dayStart($from), BizTime::dayEnd($to)])->orderBy('created_at')->get();
         $paidDigital = fn ($list, string $kind) => round((float) $list->where('kind', $kind)->where('status', '!=', 'cancelled')
             ->whereIn('payment_status', ['paid', 'partial', 'refunded', 'refund_pending'])->sum('total_bdt'), 2);
-        foreach ($orders->groupBy(fn ($o) => $o->created_at->toDateString()) as $day => $all) {
+        foreach ($orders->groupBy(fn ($o) => BizTime::date($o->created_at)) as $day => $all) {
             $list = $all->filter(fn (Order $o) => $o->isGoods());
             $live = $list->where('status', '!=', 'cancelled');
             $fees = $live->sum(fn ($o) => (float) ($o->getAttributes()['unboxing_fee_bdt'] ?? 0) + (float) ($o->getAttributes()['emi_charge_bdt'] ?? 0));
@@ -43,13 +44,13 @@ class AccountingService
     {
         $kinds = [];
         $rows = Payment::query()->whereIn('status', ['paid', 'refunded'])
-            ->whereBetween(DB::raw('COALESCE(paid_at, created_at)'), [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->whereBetween(DB::raw('COALESCE(paid_at, created_at)'), [BizTime::dayStart($from), BizTime::dayEnd($to)])
             ->orderBy('gateway')->orderBy('paid_at')->get()
             ->map(function (Payment $p) use (&$kinds) {
                 $fee = round((float) $p->amount_bdt * $this->profit->feePct($p->gateway, (string) $p->kind) / 100, 2);
                 $kinds[$p->order_id] ??= (string) (Order::query()->whereKey($p->order_id)->value('kind') ?? 'goods');
 
-                return [($p->paid_at ?? $p->created_at)?->toDateTimeString(), $p->gateway, $p->kind, $p->order_id, self::trxId($p),
+                return [BizTime::dateTime($p->paid_at ?? $p->created_at), $p->gateway, $p->kind, $p->order_id, self::trxId($p),
                     (float) $p->amount_bdt, $fee, round((float) $p->amount_bdt - $fee, 2), (float) $p->refunded_bdt, $p->status, $kinds[$p->order_id]];
             })->all();
 
@@ -77,8 +78,8 @@ class AccountingService
             $list = $p->payload['refunds'] ?? [['amount' => $p->refunded_bdt, 'ref' => $p->refund_ref, 'reason' => '', 'at' => $p->updated_at?->toIso8601String()]];
             foreach ($list as $r) {
                 $at = isset($r['at']) ? Carbon::parse($r['at']) : $p->updated_at;
-                if ($at && $at->betweenIncluded($from->copy()->startOfDay(), $to->copy()->endOfDay())) {
-                    $rows[] = [$at->toDateTimeString(), $p->order_id, $p->gateway, self::trxId($p), (float) ($r['amount'] ?? 0), $r['ref'] ?? '', $r['reason'] ?? ''];
+                if ($at && $at->betweenIncluded(BizTime::dayStart($from), BizTime::dayEnd($to))) {
+                    $rows[] = [BizTime::dateTime($at), $p->order_id, $p->gateway, self::trxId($p), (float) ($r['amount'] ?? 0), $r['ref'] ?? '', $r['reason'] ?? ''];
                 }
             }
         });

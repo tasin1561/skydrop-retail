@@ -202,7 +202,7 @@ export function CheckoutMoney({
             </span>
           </span>
           <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (useWallet ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
-            {useWallet ? "ON" : "OFF"}
+            {useWallet ? t("f.on") : t("f.off")}
           </span>
         </label>
       )}

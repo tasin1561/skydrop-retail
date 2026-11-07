@@ -12,9 +12,11 @@ export function RequestHeaderLink() {
   return (
     <Link
       href="/request?from=header"
-      className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink xl:inline-flex"
+      aria-label={t("req.header")}
+      title={t("req.header")}
+      className="hidden h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink xl:inline-flex"
     >
-      <Icon name="help" size={19} /> {t("req.header")}
+      <Icon name="help" size={19} /> <span className="hidden 2xl:inline">{t("req.header")}</span>
     </Link>
   );
 }
@@ -29,12 +31,12 @@ export function RequestCta({ q, count }: { q: string; count: number }) {
       <span className="chip-icon shrink-0">
         <Icon name="search" size={18} />
       </span>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-[12rem] flex-1">
         <p className="text-sm font-bold">{count ? t("req.notQuite") : t("req.cantFind")}</p>
         <p className="text-xs text-ink-2">{t("req.ctaText")}</p>
       </div>
-      <Link href={`/request?from=search&q=${encodeURIComponent(q)}`} className="btn btn-primary min-h-11">
-        {q ? t("req.requestQ", { q: q.length > 24 ? q.slice(0, 22) + "…" : q }) : t("common.requestProduct")}
+      <Link href={`/request?from=search&q=${encodeURIComponent(q)}`} className="btn btn-primary min-h-11 max-w-full grow sm:grow-0">
+        <span className="truncate">{q ? t("req.requestQ", { q: q.length > 24 ? q.slice(0, 22) + "…" : q }) : t("common.requestProduct")}</span>
       </Link>
     </div>
   );

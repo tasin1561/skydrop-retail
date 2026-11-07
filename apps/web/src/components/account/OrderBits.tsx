@@ -24,6 +24,7 @@ export function ProgressBar({ status, label }: { status: OrderStatus; label?: st
   return (
     <div
       data-reveal="fade"
+      suppressHydrationWarning
       className="ac-bar"
       data-tone={status === "cancelled" ? "bad" : status === "delivered" ? "good" : undefined}
       role="progressbar"

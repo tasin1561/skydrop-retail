@@ -160,6 +160,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         role="combobox"
         aria-expanded={open && q.trim().length >= 2 && items.length > 0}
         aria-controls={listId}
+        aria-activedescendant={open && active >= 0 && items[active] ? `${listId}-${active}` : undefined}
         aria-autocomplete="list"
         enterKeyHint="search"
       />
@@ -175,7 +176,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
           className="sb-pop absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl bg-surface p-1.5 shadow-[var(--shadow-2)] ring-1 ring-line"
         >
           {items.map((s, i) => (
-            <li key={s.id} role="option" aria-selected={i === active} style={{ ["--i" as string]: i }}>
+            <li key={s.id} id={`${listId}-${i}`} role="option" aria-selected={i === active} style={{ ["--i" as string]: i }}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}

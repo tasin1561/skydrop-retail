@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AdminSecurity;
 use App\Filament\Concerns\HasPagePermission;
 use App\Models\Setting;
 use App\Services\Fraud\FraudService;
@@ -126,7 +127,7 @@ class FinanceSecuritySettings extends Page
                 Toggle::make(self::f('security.admin.require_2fa'))->label('Require 2FA for admin and manager')->inline(false),
                 TextInput::make(self::f('security.admin.session_timeout_minutes'))->label('Idle session timeout')->numeric()->minValue(5)->maxValue(1440)->suffix('min'),
                 Textarea::make(self::f('security.admin.ip_allowlist'))->label('Admin IP allowlist')->rows(2)
-                    ->helperText('Comma-separated IPs or CIDRs (e.g. 103.10.20.0/24). Empty = any network. Make sure your own IP is included.'),
+                    ->helperText(fn () => 'IPs or CIDRs (e.g. 103.10.20.0/24), separated by commas or one per line. Empty = any network. Your current IP is '.request()->ip().'.'),
                 TextInput::make(self::f('security.activity.retention_days'))->label('Keep activity log for')->numeric()->minValue(30)->suffix('days'),
             ]),
         ]);
@@ -176,7 +177,7 @@ class FinanceSecuritySettings extends Page
         abort_unless(static::canAccess(), 403);
         $state = $this->form->getState();
         $allow = trim((string) ($state[self::f('security.admin.ip_allowlist')] ?? ''));
-        if ($allow !== '' && ! IpUtils::checkIp((string) request()->ip(), array_map('trim', explode(',', $allow)))) {
+        if ($allow !== '' && ! IpUtils::checkIp((string) request()->ip(), AdminSecurity::allowlist($allow))) {
             Notification::make()->title('Your current IP ('.request()->ip().') is not in the allowlist; add it first so you are not locked out.')->danger()->send();
 
             return;

@@ -46,10 +46,16 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [{ features, maintenance }, lang] = await Promise.all([getFeaturesResponse(), getLang()]);
+  const [{ features, maintenance }, lang, { t }] = await Promise.all([getFeaturesResponse(), getLang(), getT()]);
   return (
     <html lang={lang} data-store="all" className={jakarta.variable + " " + bengali.variable} suppressHydrationWarning>
       <body className="min-h-dvh">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
+        >
+          {t("a11y.skip")}
+        </a>
         <svg width="0" height="0" aria-hidden="true" className="absolute">
           <defs>
             <linearGradient id="half">
@@ -68,7 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <StoreTheme />
               <Header />
             </Suspense>
-            <main className="min-h-[60vh]">
+            <main id="main" tabIndex={-1} className="min-h-[60vh] outline-none">
               <PageTransition>{children}</PageTransition>
             </main>
             <RefCapture />

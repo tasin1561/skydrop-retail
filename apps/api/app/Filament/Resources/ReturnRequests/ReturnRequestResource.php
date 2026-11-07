@@ -71,14 +71,14 @@ class ReturnRequestResource extends Resource
                 TextColumn::make('order_id')->label('Order')->fontFamily('mono')->searchable()
                     ->url(fn (ReturnRequest $r) => OrderResource::getUrl('view', ['record' => $r->order_id])),
                 TextColumn::make('user.name')->label('Customer')->description(fn (ReturnRequest $r) => $r->user?->phone)->searchable(),
-                TextColumn::make('stage')->badge()->formatStateUsing(fn ($s) => $s === 'india' ? 'At Kolkata hub' : 'After delivery')
-                    ->color(fn ($s) => $s === 'india' ? 'warning' : 'gray'),
-                TextColumn::make('reason')->formatStateUsing(fn ($s) => ReturnRequest::REASONS[$s] ?? $s),
-                TextColumn::make('resolution')->label('Wants')->formatStateUsing(fn ($s) => ReturnRequest::RESOLUTIONS[$s] ?? $s),
-                TextColumn::make('refund_bdt')->label('Refund')->formatStateUsing(fn ($s) => Admin::bdt($s))->alignEnd()
+                TextColumn::make('stage')->badge()->formatStateUsing(fn ($state) => $state === 'india' ? 'At Kolkata hub' : 'After delivery')
+                    ->color(fn ($state) => $state === 'india' ? 'warning' : 'gray'),
+                TextColumn::make('reason')->formatStateUsing(fn ($state) => ReturnRequest::REASONS[$state] ?? $state),
+                TextColumn::make('resolution')->label('Wants')->formatStateUsing(fn ($state) => ReturnRequest::RESOLUTIONS[$state] ?? $state),
+                TextColumn::make('refund_bdt')->label('Refund')->formatStateUsing(fn ($state) => Admin::bdt($state))->alignEnd()
                     ->description(fn (ReturnRequest $r) => (float) $r->return_fee_bdt > 0 ? 'after ৳'.number_format((float) $r->return_fee_bdt).' return shipping' : null),
-                TextColumn::make('status')->badge()->formatStateUsing(fn ($s) => ReturnRequest::STATUSES[$s] ?? $s)
-                    ->color(fn ($s) => ReturnActions::statusColor($s)),
+                TextColumn::make('status')->badge()->formatStateUsing(fn ($state) => ReturnRequest::STATUSES[$state] ?? $state)
+                    ->color(fn ($state) => ReturnActions::statusColor($state)),
                 TextColumn::make('created_at')->since()->sortable(),
             ])
             ->filters([
@@ -93,11 +93,11 @@ class ReturnRequestResource extends Resource
     {
         return $schema->columns(3)->components([
             Section::make('Case')->columnSpan(2)->columns(3)->schema([
-                TextEntry::make('status')->badge()->formatStateUsing(fn ($s) => ReturnRequest::STATUSES[$s] ?? $s)->color(fn ($s) => ReturnActions::statusColor($s)),
-                TextEntry::make('reason')->formatStateUsing(fn ($s) => ReturnRequest::REASONS[$s] ?? $s),
-                TextEntry::make('resolution')->label('Customer wants')->formatStateUsing(fn ($s) => ReturnRequest::RESOLUTIONS[$s] ?? $s),
+                TextEntry::make('status')->badge()->formatStateUsing(fn ($state) => ReturnRequest::STATUSES[$state] ?? $state)->color(fn ($state) => ReturnActions::statusColor($state)),
+                TextEntry::make('reason')->formatStateUsing(fn ($state) => ReturnRequest::REASONS[$state] ?? $state),
+                TextEntry::make('resolution')->label('Customer wants')->formatStateUsing(fn ($state) => ReturnRequest::RESOLUTIONS[$state] ?? $state),
                 TextEntry::make('order_id')->label('Order')->url(fn (ReturnRequest $r) => OrderResource::getUrl('view', ['record' => $r->order_id])),
-                TextEntry::make('refund_bdt')->label('Value')->formatStateUsing(fn ($s) => Admin::bdt($s)),
+                TextEntry::make('refund_bdt')->label('Value')->formatStateUsing(fn ($state) => Admin::bdt($state)),
                 TextEntry::make('replacement_order_id')->label('Replacement')->placeholder('—')
                     ->url(fn (ReturnRequest $r) => $r->replacement_order_id ? OrderResource::getUrl('view', ['record' => $r->replacement_order_id]) : null),
                 TextEntry::make('items_list')->label('Items')->columnSpanFull()->listWithLineBreaks()

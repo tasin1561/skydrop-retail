@@ -46,7 +46,7 @@ export function PointsView() {
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
       <Link href="/account" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-ink-2 hover:text-accent">
-        <Icon name="left" size={16} /> Account
+        <Icon name="left" size={16} /> {t("nav.account")}
       </Link>
 
       <section
@@ -58,7 +58,7 @@ export function PointsView() {
         <p className="mt-1 text-5xl font-black tracking-tight tabular-nums">{num(data.balance)}</p>
         <p className="mt-1 text-sm text-white/90">{t("pv.worth", { amount: bdt(pointsValueBdt(data.balance)) })}</p>
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-          <span className="rounded-full bg-white/20 px-3 py-1">{data.pending} pending</span>
+          <span className="rounded-full bg-white/20 px-3 py-1">{t("pv.pendingCount", { n: num(data.pending) })}</span>
           <span className="rounded-full bg-white/20 px-3 py-1">{t("pv.next", { count: nextBlock, amount: bdt(POINTS.blockValueBdt) })}</span>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25" aria-hidden>

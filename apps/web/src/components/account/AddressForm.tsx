@@ -88,7 +88,7 @@ export function AddressForm({
         <div className="ac-bar flex-1" data-tone={doneCount === 6 ? "good" : undefined}>
           <span style={{ ["--p" as string]: doneCount / 6 }} />
         </div>
-        <span className="tabular-nums">{String(doneCount).padStart(2, "0")}/06 complete</span>
+        <span className="tabular-nums">{t("af.progress", { n: doneCount, total: 6 })}</span>
       </div>
 
       <TextField id="addr-name" label={t("af.receiver")} icon="user" value={d.name} onChange={(v) => set("name", v)} cls={status("name", !!d.name)} error={tried ? errs.name : ""} autoComplete="name" max={40} />
@@ -151,7 +151,7 @@ export function AddressForm({
           onChange={(e) => set("isDefault", e.target.checked)}
         />
         <span className="ac-chip" data-tone={d.isDefault ? undefined : "muted"} aria-hidden>
-          {d.isDefault ? "ON" : "OFF"}
+          {d.isDefault ? t("f.on") : t("f.off")}
         </span>
       </label>
 

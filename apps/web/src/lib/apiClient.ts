@@ -141,6 +141,7 @@ export const api = {
     ),
   watch: (productId: string, type: "price_drop" | "back_in_stock", targetBdt?: number) =>
     post<unknown>("/watches", { productId, type, targetBdt }),
+  unwatch: (productId: string) => call<unknown>(`/watches/${encodeURIComponent(productId)}`, { method: "DELETE" }),
   requestSupport: (orderId: string, type: string, message: string) =>
     post<unknown>(`/orders/${orderId}/support`, { type, message }),
 

@@ -51,7 +51,11 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
     const type = inStock ? "price_drop" : "back_in_stock";
     setBusy(true);
     try {
-      if (apiEnabled && !watching) await api.watch(id, type, inStock ? priceBdt - 1 : undefined);
+      if (apiEnabled) {
+        // removing must reach the server too, or the SMS alerts keep coming
+        if (watching) await api.unwatch(id);
+        else await api.watch(id, type, inStock ? priceBdt - 1 : undefined);
+      }
       if (!watching) track("Lead", { items: [{ id, price: priceBdt }], value: priceBdt });
       const list = readJson<string[]>(WATCH_KEY, []);
       const next = watching ? list.filter((x) => x !== id) : [...list, id];

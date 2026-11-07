@@ -51,7 +51,7 @@ class OrderActions
             ->label('Verify')
             ->icon(Heroicon::OutlinedShieldCheck)
             ->color('info')
-            ->visible(fn (Order $record) => $record->status === 'placed')
+            ->visible(fn (Order $record) => Admin::can('orders.update') && $record->status === 'placed')
             ->requiresConfirmation()
             ->modalDescription('Confirm the live price and stock were checked with the source stores (see Verifications).')
             ->schema([Textarea::make('note')->rows(2)->placeholder('Optional note for the timeline')])
@@ -87,11 +87,13 @@ class OrderActions
             ->label('Hand to Skydrop')
             ->icon(Heroicon::OutlinedTruck)
             ->color('warning')
-            ->visible(fn (Order $record) => Admin::can('orders.hand_to_skydrop') && ($record->status === 'purchased' || ($record->status === 'india_hub' && ! $record->skydrop_consignment_id))
+            ->visible(fn (Order $record) => Admin::can('orders.hand_to_skydrop') && in_array($record->status, ['purchased', 'india_hub'], true)
                 && ! HubService::holdsShipping($record)) // fulfilment: unboxing approval pending
             ->requiresConfirmation()
-            ->modalDescription('Creates the Skydrop consignment (Kolkata hub → Bangladesh) and assigns a tracking code.')
-            ->action(fn (Order $record) => self::run(fn () => Ops::handToSkydrop($record), 'Consignment created'));
+            ->modalDescription(fn (Order $record) => $record->status === 'india_hub'
+                ? 'The packed box leaves the Kolkata hub with Skydrop; the order moves to "'.Admin::ORDER_STATUS_LABELS['in_transit'].'".'
+                : 'Creates the Skydrop consignment (Kolkata hub → Bangladesh) and assigns a tracking code.')
+            ->action(fn (Order $record) => self::run(fn () => Ops::handToSkydrop($record), $record->status === 'india_hub' ? 'Handed to Skydrop: order is crossing the border' : 'Consignment created'));
     }
 
     public static function advance(): Action
@@ -100,7 +102,7 @@ class OrderActions
             ->label(fn (Order $record) => ($n = Ops::nextStatus($record)) ? 'Move to: '.Admin::ORDER_STATUS_LABELS[$n] : 'Advance')
             ->icon(Heroicon::OutlinedForward)
             ->color('success')
-            ->visible(fn (Order $record) => $record->stageIndex() >= $record->stageIndex('india_hub') && Ops::nextStatus($record) !== null
+            ->visible(fn (Order $record) => Admin::can('orders.set_status') && $record->stageIndex() >= $record->stageIndex('india_hub') && Ops::nextStatus($record) !== null
                 && ! HubService::holdsShipping($record)) // fulfilment: unboxing approval pending
             ->requiresConfirmation()
             ->schema([Textarea::make('note')->rows(2)])
@@ -127,6 +129,7 @@ class OrderActions
         return Action::make('notes')
             ->label('Staff notes')
             ->icon(Heroicon::OutlinedPencilSquare)
+            ->visible(fn () => Admin::can('orders.update'))
             ->fillForm(fn (Order $record) => ['staff_notes' => $record->staff_notes])
             ->schema([Textarea::make('staff_notes')->label('Internal notes (never shown to the customer)')->rows(6)])
             ->action(function (Order $record, array $data) {
@@ -230,9 +233,11 @@ class OrderActions
     {
         return [
             BulkAction::make('bulkVerify')->label('Mark verified')->icon(Heroicon::OutlinedShieldCheck)
+                ->visible(fn () => Admin::can('orders.update'))
                 ->requiresConfirmation()
                 ->action(fn (Collection $records) => self::bulkTransition($records->where('status', 'placed'), 'verified', 'Verified (bulk)')),
             BulkAction::make('bulkPurchased')->label('Mark purchased')->icon(Heroicon::OutlinedShoppingCart)
+                ->visible(fn () => Admin::can('orders.mark_purchased'))
                 ->requiresConfirmation()
                 ->modalDescription('Marks verified orders as bought. Add per-item marketplace refs from the Purchase queue.')
                 ->action(fn (Collection $records) => self::bulkTransition($records->whereIn('status', ['placed', 'verified']), 'purchased', 'Bought from the source stores (bulk)')),

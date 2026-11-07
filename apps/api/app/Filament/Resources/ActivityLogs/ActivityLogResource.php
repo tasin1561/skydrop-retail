@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ActivityLogs;
 
+use Illuminate\Support\Str;
 use App\Filament\Resources\ActivityLogs\Pages\ListActivityLogs;
 use App\Filament\Support\Admin;
 use App\Models\ActivityLog;
@@ -77,7 +78,7 @@ class ActivityLogResource extends Resource
         return $schema->columns(2)->components([
             TextEntry::make('created_at')->dateTime('d M Y, H:i:s', 'Asia/Dhaka'),
             TextEntry::make('user_name')->label('Staff')->placeholder('system / anonymous'),
-            TextEntry::make('action')->badge(),
+            TextEntry::make('action')->badge()->formatStateUsing(fn (string $state) => self::actionLabel($state)),
             TextEntry::make('subject')->state(fn (ActivityLog $r) => $r->subject_type ? class_basename($r->subject_type).' #'.$r->subject_id : '—'),
             TextEntry::make('description')->columnSpanFull()->placeholder('—'),
             TextEntry::make('ip')->label('IP')->placeholder('—'),
@@ -97,7 +98,7 @@ class ActivityLogResource extends Resource
                 TextColumn::make('action')->badge()->color(fn (string $state) => match (true) {
                     str_starts_with($state, 'security.'), $state === 'login_failed', $state === 'deleted' => 'danger',
                     str_starts_with($state, 'action:') => 'info', $state === 'export' => 'warning', default => 'gray',
-                })->searchable(),
+                })->formatStateUsing(fn (string $state) => self::actionLabel($state))->searchable(),
                 TextColumn::make('subject_type')->label('Model')->formatStateUsing(fn ($state) => class_basename((string) $state))->placeholder('—'),
                 TextColumn::make('subject_id')->label('Record')->searchable()->placeholder('—'),
                 TextColumn::make('description')->limit(60)->wrap()->placeholder('—'),
@@ -109,7 +110,7 @@ class ActivityLogResource extends Resource
                 SelectFilter::make('subject_type')->label('Model')
                     ->options(fn () => ActivityLog::query()->whereNotNull('subject_type')->distinct()->pluck('subject_type')
                         ->mapWithKeys(fn ($t) => [$t => class_basename($t)])->all()),
-                SelectFilter::make('action')->options(fn () => ActivityLog::query()->distinct()->orderBy('action')->pluck('action', 'action')->all()),
+                SelectFilter::make('action')->options(fn () => ActivityLog::query()->distinct()->orderBy('action')->pluck('action')->mapWithKeys(fn ($a) => [$a => self::actionLabel($a)])->all()),
                 Filter::make('created_at')->label('Date')
                     ->schema([DatePicker::make('from'), DatePicker::make('until')])
                     ->query(fn (Builder $q, array $data) => $q
@@ -131,5 +132,11 @@ class ActivityLogResource extends Resource
     public static function getPages(): array
     {
         return ['index' => ListActivityLogs::route('/')];
+    }
+
+    /** "action:setUpAppAuthentication" → "Set Up App Authentication"; "login_failed" → "Login Failed". */
+    public static function actionLabel(string $state): string
+    {
+        return Str::headline(str_replace('.', ' ', str_starts_with($state, 'action:') ? substr($state, 7) : $state));
     }
 }

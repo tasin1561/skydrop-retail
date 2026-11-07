@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\BizTime;
 use App\Filament\Concerns\HasPagePermission;
 use App\Services\Audit\ActivityLogger;
 use App\Services\Finance\AccountingService;
@@ -49,14 +50,14 @@ class Accounting extends Page
     public function mount(): void
     {
         $this->form->fill([
-            'from' => now()->startOfMonth()->toDateString(), 'to' => now()->toDateString(),
-            'month' => now()->subMonthNoOverflow()->format('Y-m'),
+            'from' => now(BizTime::TZ)->startOfMonth()->toDateString(), 'to' => now(BizTime::TZ)->toDateString(),
+            'month' => now(BizTime::TZ)->subMonthNoOverflow()->format('Y-m'),
         ]);
     }
 
     public function form(Schema $schema): Schema
     {
-        $months = collect(range(0, 17))->mapWithKeys(fn ($i) => [now()->startOfMonth()->subMonths($i)->format('Y-m') => now()->startOfMonth()->subMonths($i)->format('F Y')])->all();
+        $months = collect(range(0, 17))->mapWithKeys(fn ($i) => [now(BizTime::TZ)->startOfMonth()->subMonths($i)->format('Y-m') => now(BizTime::TZ)->startOfMonth()->subMonths($i)->format('F Y')])->all();
 
         return $schema->statePath('filters')->columns(3)->components([
             DatePicker::make('from')->label('Exports from')->required()->live(),
@@ -67,7 +68,7 @@ class Accounting extends Page
 
     private function range(): array
     {
-        return [Carbon::parse($this->filters['from'] ?? now()->startOfMonth()), Carbon::parse($this->filters['to'] ?? now())];
+        return [Carbon::parse($this->filters['from'] ?? now(BizTime::TZ)->startOfMonth()), Carbon::parse($this->filters['to'] ?? now(BizTime::TZ))];
     }
 
     /** @return array<string, mixed> */
@@ -79,7 +80,7 @@ class Accounting extends Page
         return [
             'gateways' => $svc->paymentsByGateway($from, $to),
             'liabilities' => $svc->liabilities(),
-            'close' => $svc->monthClose((string) ($this->filters['month'] ?? now()->format('Y-m'))),
+            'close' => $svc->monthClose((string) ($this->filters['month'] ?? now(BizTime::TZ)->format('Y-m'))),
             'settlement' => $this->settlement,
             'xlsx' => CsvExport::xlsxAvailable(),
         ];
@@ -132,7 +133,7 @@ class Accounting extends Page
             'gift_cards' => $svc->giftCards(),
             'affiliates' => $svc->affiliatePayable(),
             'vat' => $svc->vatSummary($from, $to),
-            'close' => self::closeRows($svc->monthClose((string) ($this->filters['month'] ?? now()->format('Y-m')))),
+            'close' => self::closeRows($svc->monthClose((string) ($this->filters['month'] ?? now(BizTime::TZ)->format('Y-m')))),
         };
 
         return CsvExport::download('accounting-'.$key, $headers, $rows, $format, ['from' => $from->toDateString(), 'to' => $to->toDateString()]);

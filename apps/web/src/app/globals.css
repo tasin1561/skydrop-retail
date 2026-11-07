@@ -304,6 +304,8 @@ body {
 }
 .snap-x-rail {
   scroll-snap-type: x mandatory;
+  /* rails are padded px-4 on phones: snap the first card to that gutter, not flush to the screen edge */
+  scroll-padding-inline: 1rem;
 }
 .snap-x-rail > * {
   scroll-snap-align: start;

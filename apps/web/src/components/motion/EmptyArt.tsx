@@ -8,6 +8,7 @@ export function EmptyArt({ kind, className }: { kind: EmptyKind; className?: str
   return (
     <svg
       data-loop=""
+      suppressHydrationWarning
       viewBox="0 0 160 128"
       width="160"
       height="128"

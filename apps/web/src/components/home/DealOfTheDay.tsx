@@ -44,8 +44,8 @@ export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) 
   const d = discountPct(p);
 
   return (
-    <section aria-labelledby="dd-h" className="mt-6 px-4 sm:px-0" data-reveal="">
-      <div data-store={p.market} data-loop="" className="dd-card grid gap-4 p-4 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center sm:gap-6 sm:p-6">
+    <section aria-labelledby="dd-h" className="mt-6 px-4 sm:px-0" data-reveal="" suppressHydrationWarning>
+      <div data-store={p.market} data-loop="" suppressHydrationWarning className="dd-card grid gap-4 p-4 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center sm:gap-6 sm:p-6">
         <Link
           href={`/p/${p.id}`}
           prefetch={false}

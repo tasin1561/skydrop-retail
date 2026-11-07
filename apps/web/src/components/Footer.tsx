@@ -31,10 +31,10 @@ export async function Footer() {
         {cols.map((c) => (
           <div key={c.title}>
             <h3 className="text-sm font-bold">{c.title}</h3>
-            <ul className="mt-3 space-y-2 text-sm text-ink-2">
+            <ul className="mt-1 text-sm text-ink-2 md:mt-3 md:space-y-2">
               {c.links.map(([l, h]) => (
                 <li key={l}>
-                  <Link href={h} className="group inline-flex items-center gap-1 transition hover:text-accent">
+                  <Link href={h} className="group inline-flex min-h-11 items-center gap-1 transition hover:text-accent md:min-h-0">
                     {l}
                     <Icon name="right" size={14} className="opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </Link>

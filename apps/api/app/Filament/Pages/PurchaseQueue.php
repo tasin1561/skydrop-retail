@@ -92,7 +92,7 @@ class PurchaseQueue extends Page implements HasTable
             ])
             ->recordActions([
                 Action::make('recheckPrice')->label('Check price')->icon(Heroicon::OutlinedArrowPath)->color('gray') // fulfilment: right before buying
-                    ->visible(fn () => app(PriceAlertService::class)->enabled())
+                    ->visible(fn () => Admin::can('orders.mark_purchased') && app(PriceAlertService::class)->enabled())
                     ->action(function (OrderItem $record) {
                         Ops::refreshProduct($record->product_id);
                         $flagged = app(PriceAlertService::class)->check($record);
@@ -101,6 +101,7 @@ class PurchaseQueue extends Page implements HasTable
                 Action::make('open')->label('Open')->icon(Heroicon::OutlinedArrowTopRightOnSquare)->color('gray')
                     ->url(fn (OrderItem $r) => Admin::sourceUrl($r->market, $r->product_id), true),
                 Action::make('bought')->label('Bought')->icon(Heroicon::OutlinedCheck)->color('success')
+                    ->visible(fn () => Admin::can('orders.mark_purchased'))
                     ->schema([TextInput::make('ref')->label('Marketplace order reference')->required()->maxLength(100),
                         TextInput::make('actual_paid_inr')->label('Actually paid (₹, all units)')->prefix('₹')->numeric()->minValue(0) // profit report
                             ->default(fn (OrderItem $record) => $record->unit_inr * $record->qty)])
@@ -108,6 +109,7 @@ class PurchaseQueue extends Page implements HasTable
             ])
             ->toolbarActions([
                 BulkAction::make('boughtBulk')->label('Mark bought (one marketplace order)')->icon(Heroicon::OutlinedCheck)
+                    ->visible(fn () => Admin::can('orders.mark_purchased'))
                     ->schema([TextInput::make('ref')->label('Marketplace order reference')->required()->maxLength(100),
                         TextInput::make('actual_paid_inr')->label('Actually paid for these items (₹ total)')->prefix('₹')->numeric()->minValue(0)
                             ->helperText('Optional; split across the items by their catalog price (profit report).')])

@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { EmptyState, LoadingBlock, PageHead } from "@/components/account/ui";
+import { SignedOut } from "@/components/account/SignedOut";
 import { ApiError } from "@/lib/apiClient";
 import {
   MAX_UPLOAD_BYTES,
@@ -83,6 +84,9 @@ export function ReturnWizard({ id }: { id: string }) {
 
   if (!on) return shell(<><PageHead title={t("rw.title")} icon="refresh" back={back} /><EmptyState title={t("rw.paused")} body={t("rw.pausedB")} action={{ label: t("rw.backOrder"), href: `/orders/${id}` }} /></>);
   if (error) return shell(<><PageHead title={t("rw.title")} icon="refresh" back={back} /><EmptyState title={t("rw.loadFail")} body={error} action={{ label: t("rw.backOrder"), href: `/orders/${id}` }} /></>);
+  if (ready && apiEnabled && !user) return shell(<SignedOut next={`/orders/${id}/return`} title={t("od.signIn")} body={t("od.signInB")} />);
+  if (ready && !apiEnabled && !order)
+    return shell(<><PageHead title={t("rw.title")} icon="refresh" back={back} /><EmptyState title={t("od.cantFind")} body={t("od.cantFindB")} action={{ label: t("od.seeYours"), href: "/orders" }} /></>);
   if (!elig) return shell(<LoadingBlock rows={3} />);
   if (done)
     return shell(

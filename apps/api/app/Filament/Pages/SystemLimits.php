@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Concerns\HasPagePermission;
+use App\Filament\Support\Admin;
 use App\Models\Address;
 use App\Models\ApiLog;
 use App\Models\Assistant\AssistantMessage;
@@ -83,6 +84,9 @@ class SystemLimits extends Page
         foreach (Limits::groups() as $group => $limits) {
             $fields = [];
             foreach ($limits as $key => $m) {
+                if (! self::editable($key)) {
+                    continue;
+                }
                 $default = $m['default'].($m['unit'] !== '' ? ' '.$m['unit'] : '');
                 $help = trim($m['help'].' Default: '.$default.'. Range '.$m['min'].'–'.$m['max'].'.'.($m['backed'] ? ' (setting "'.$m['backed'].'")' : ''));
                 $fields[] = TextInput::make(self::field($key))
@@ -99,7 +103,9 @@ class SystemLimits extends Page
                         ->tooltip('Reset to default ('.$default.')')
                         ->action(fn () => $this->resetLimit($key)));
             }
-            $sections[] = Section::make($group)->columns(2)->schema($fields)->collapsible();
+            if ($fields) {
+                $sections[] = Section::make($group)->columns(2)->schema($fields)->collapsible();
+            }
         }
 
         return $schema->statePath('data')->components($sections);
@@ -112,6 +118,9 @@ class SystemLimits extends Page
         $before = Limits::all();
         $changes = [];
         foreach (array_keys(Limits::REGISTRY) as $key) {
+            if (! self::editable($key)) {
+                continue;
+            }
             $v = $state[self::field($key)] ?? null;
             if ($v === null || $v === '' || (float) $v == (float) $before[$key]) {
                 continue;
@@ -126,9 +135,18 @@ class SystemLimits extends Page
         Notification::make()->title($changes ? count($changes).' limit'.(count($changes) > 1 ? 's' : '').' saved' : 'Nothing changed')->success()->send();
     }
 
+    /** Security knobs (admin session timeout) are shared with Finance & security; only staff who may open that page change them. */
+    public static function editable(string $key): bool
+    {
+        return ! in_array($key, self::SECURITY_KEYS, true) || Admin::can('page.finance-security-settings');
+    }
+
+    /** @var list<string> */
+    public const SECURITY_KEYS = ['api.admin_session_minutes'];
+
     public function resetLimit(string $key): void
     {
-        abort_unless(static::canAccess() && isset(Limits::REGISTRY[$key]), 403);
+        abort_unless(static::canAccess() && isset(Limits::REGISTRY[$key]) && self::editable($key), 403);
         $old = Limits::get($key);
         Limits::reset($key);
         $new = Limits::get($key);
