@@ -381,6 +381,6 @@
 .co-success-check {
   animation: pop 0.45s 1.25s var(--spring) both;
 }
-.co-success-check.draw-check path {
+.co-success-check .draw-check path {
   animation-delay: 1.45s;
 }

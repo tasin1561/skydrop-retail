@@ -635,3 +635,24 @@ button.ac-row:hover .chip-icon {
 .ac-spin {
   animation: spin 0.8s linear infinite;
 }
+
+/* four tabs at 360px: stack the count under the label */
+@media (max-width: 420px) {
+  .ac-tabs[data-dense="true"] {
+    border-radius: 18px;
+  }
+  .ac-tabs[data-dense="true"] .ac-tab-pill {
+    border-radius: 14px;
+  }
+  .ac-tabs[data-dense="true"] .ac-tab {
+    flex-direction: column;
+    gap: 0.15rem;
+    min-height: 52px;
+    border-radius: 14px;
+    font-size: 0.75rem;
+  }
+}
+
+.ac-check:has(input:focus-visible) {
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1.5px var(--accent);
+}

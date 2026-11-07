@@ -237,10 +237,12 @@ body {
 .field input:focus ~ .field-icon {
   color: var(--accent);
 }
-.field.is-valid input {
+.field.is-valid input,
+.field.is-valid select {
   border-color: color-mix(in srgb, var(--good) 60%, var(--line));
 }
-.field.is-invalid input {
+.field.is-invalid input,
+.field.is-invalid select {
   border-color: color-mix(in srgb, var(--bad) 60%, var(--line));
 }
 
