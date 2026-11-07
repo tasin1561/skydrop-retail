@@ -31,6 +31,9 @@ export default async function PrivacyPage() {
               <li>We do not sell your personal data.</li>
               <li>Your details go to Skydrop (for delivery) and to payment providers (for payment). The Indian stores only see our hub address.</li>
               <li>We use advertising and analytics pixels to measure our ads. You can say no to them.</li>
+              <li>
+                We are <strong>not</strong> an official partner of Amazon, Flipkart or BigBasket, and we do not share your personal details with them.
+              </li>
             </ul>
           ),
         },
@@ -115,6 +118,23 @@ export default async function PrivacyPage() {
                 </tr>
               </tbody>
             </table>
+          ),
+        },
+        {
+          id: "indian-stores",
+          title: "Amazon, Flipkart and BigBasket",
+          body: (
+            <>
+              <p>
+                Skydrop Retail is an independent service. We are <strong>not</strong> owned by, affiliated with or an official partner of Amazon,
+                Flipkart or BigBasket, and this policy is ours alone.
+              </p>
+              <p>
+                We buy your items from those stores using our own accounts and our Kolkata hub address. We do not give them your name, phone number,
+                address or payment details, and their privacy policies do not cover the information you give us. Product details and photos on our
+                site come from their public listings.
+              </p>
+            </>
           ),
         },
         {
@@ -239,6 +259,9 @@ function PrivacyBn() {
               <li>আমরা আপনার ব্যক্তিগত তথ্য বিক্রি করি না।</li>
               <li>আপনার তথ্য যায় Skydrop-এর কাছে (ডেলিভারির জন্য) আর পেমেন্ট প্রোভাইডারের কাছে (পেমেন্টের জন্য)। ইন্ডিয়ান স্টোর শুধু আমাদের হাবের ঠিকানা দেখে।</li>
               <li>বিজ্ঞাপন মাপতে আমরা বিজ্ঞাপন ও অ্যানালিটিক্স পিক্সেল ব্যবহার করি। আপনি না বলতে পারেন।</li>
+              <li>
+                আমরা Amazon, Flipkart বা BigBasket-এর অফিশিয়াল পার্টনার <strong>নই</strong>, আর আপনার ব্যক্তিগত তথ্য তাদের সাথে শেয়ার করি না।
+              </li>
             </ul>
           ),
         },
@@ -323,6 +346,23 @@ function PrivacyBn() {
                 </tr>
               </tbody>
             </table>
+          ),
+        },
+        {
+          id: "indian-stores",
+          title: "Amazon, Flipkart ও BigBasket",
+          body: (
+            <>
+              <p>
+                Skydrop Retail একটি স্বাধীন সেবা। আমরা Amazon, Flipkart বা BigBasket-এর মালিকানাধীন, সহযোগী বা অফিশিয়াল পার্টনার <strong>নই</strong>,
+                আর এই নীতিমালা শুধুই আমাদের।
+              </p>
+              <p>
+                আমরা নিজেদের অ্যাকাউন্ট আর কলকাতা হাবের ঠিকানা দিয়ে ওই স্টোরগুলো থেকে আপনার পণ্য কিনি। আপনার নাম, ফোন নম্বর, ঠিকানা বা পেমেন্টের
+                তথ্য তাদের দিই না, আর আপনি আমাদের যে তথ্য দেন তা তাদের প্রাইভেসি নীতিমালার আওতায় পড়ে না। আমাদের সাইটের পণ্যের বিবরণ ও ছবি তাদের
+                পাবলিক লিস্টিং থেকে নেওয়া।
+              </p>
+            </>
           ),
         },
         {

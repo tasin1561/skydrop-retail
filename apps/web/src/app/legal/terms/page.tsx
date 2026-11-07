@@ -40,6 +40,28 @@ export default async function TermsPage() {
           ),
         },
         {
+          id: "not-affiliated",
+          title: "We are not an official partner of Amazon, Flipkart or BigBasket",
+          body: (
+            <>
+              <p>
+                Skydrop Retail is <strong>not owned by, affiliated with, authorised by, sponsored by or endorsed by</strong> Amazon (amazon.in),
+                Flipkart (flipkart.com), BigBasket (bigbasket.com) or any of their group companies. We are not their official partner, seller,
+                reseller, agent or representative.
+              </p>
+              <p>
+                &quot;Mega Store&quot;, &quot;Style Bazaar&quot; and &quot;Daily Basket&quot; are our own store sections. We mention amazon.in,
+                flipkart.com and bigbasket.com only to tell you which Indian store we buy your item from. Amazon, Flipkart, BigBasket and their logos
+                are trademarks of their respective owners.
+              </p>
+              <p>
+                Your contract is with us, not with those stores. Their customer service, return, warranty and protection programmes do not apply to
+                orders placed through Skydrop Retail; our own policies on this site do. Please contact us, not the Indian store, about your order.
+              </p>
+            </>
+          ),
+        },
+        {
           id: "how-it-works",
           title: "How an order works",
           body: (
@@ -236,6 +258,27 @@ function TermsBn() {
               <p>
                 আমরা একটি স্বাধীন কেনাকাটা ও ডেলিভারি সেবা। আমরা amazon.in, flipkart.com বা bigbasket.com <strong>নই</strong>, তাদের এজেন্ট বা
                 পার্টনারও নই। পণ্যের নাম, ছবি আর ব্র্যান্ড তাদের নিজ নিজ মালিকের।
+              </p>
+            </>
+          ),
+        },
+        {
+          id: "not-affiliated",
+          title: "আমরা Amazon, Flipkart বা BigBasket-এর অফিশিয়াল পার্টনার নই",
+          body: (
+            <>
+              <p>
+                Skydrop Retail, Amazon (amazon.in), Flipkart (flipkart.com), BigBasket (bigbasket.com) বা তাদের কোনো গ্রুপ কোম্পানির <strong>মালিকানাধীন,
+                সহযোগী, অনুমোদিত, স্পনসরকৃত বা সমর্থিত নয়</strong>। আমরা তাদের অফিশিয়াল পার্টনার, বিক্রেতা, রিসেলার, এজেন্ট বা প্রতিনিধি নই।
+              </p>
+              <p>
+                &quot;Mega Store&quot;, &quot;Style Bazaar&quot; আর &quot;Daily Basket&quot; আমাদের নিজস্ব স্টোর সেকশন। আপনার পণ্য কোন ইন্ডিয়ান স্টোর
+                থেকে কিনছি শুধু সেটা জানাতে amazon.in, flipkart.com আর bigbasket.com-এর নাম উল্লেখ করি। Amazon, Flipkart, BigBasket আর তাদের
+                লোগো নিজ নিজ মালিকের ট্রেডমার্ক।
+              </p>
+              <p>
+                আপনার চুক্তি আমাদের সাথে, ওই স্টোরগুলোর সাথে নয়। Skydrop Retail-এর মাধ্যমে দেওয়া অর্ডারে তাদের কাস্টমার সার্ভিস, রিটার্ন, ওয়ারেন্টি
+                বা সুরক্ষা প্রোগ্রাম প্রযোজ্য নয়; এই সাইটে আমাদের নিজস্ব নীতিমালা প্রযোজ্য। অর্ডার নিয়ে ইন্ডিয়ান স্টোরে নয়, আমাদের সাথে যোগাযোগ করুন।
               </p>
             </>
           ),
