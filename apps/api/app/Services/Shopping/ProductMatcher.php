@@ -4,7 +4,6 @@ namespace App\Services\Shopping;
 
 use App\Models\Product;
 use App\Models\ProductMatch;
-use App\Services\PricingService;
 use Illuminate\Support\Collection;
 
 /**
@@ -24,8 +23,6 @@ class ProductMatcher
     private const MODEL_KEYS = '/\b(model\s*(number|no\.?|name)?|item model number|part number|mpn)\b/i';
 
     private const STOP = ['with', 'and', 'for', 'the', 'pack', 'of', 'new', 'latest', 'edition', 'black', 'white', 'blue', 'red', 'green', 'grey', 'gray', 'silver', 'gold', 'pink'];
-
-    public function __construct(private PricingService $pricing) {}
 
     /** Matches every product (grouped by brand). Returns the number of pairs written. */
     public function run(?string $onlyBrand = null, int $maxGroup = 400): int

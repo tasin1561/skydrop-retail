@@ -10,6 +10,7 @@ import { currentStatus, isInProgress } from "@/lib/orderStatus";
 import { ConfirmDialog, LoadingBlock, useNow } from "./ui";
 import { SignedOut } from "./SignedOut";
 import { prettyPhone } from "./phone";
+import { Feature } from "@/components/features/FeaturesProvider";
 
 type Theme = "light" | "dark" | "system";
 const THEMES: { id: Theme; label: string; icon: string }[] = [
@@ -112,6 +113,12 @@ export function AccountDashboard() {
         />
         <Row href="/wishlist" icon="heart" label="Wishlist" sub="Saved for later" badge={wishlist.length} />
         <Row href="/account/points" icon="spark" label="Skydrop Points" sub="Earn on every order, save at checkout" />
+        <Feature name="referral">
+          <Row href="/account/invite" icon="share" label="Invite friends" sub="You both get Skydrop Points" />
+        </Feature>
+        <Feature name="affiliate">
+          <Row href="/account/affiliate" icon="tag" label="Affiliate" sub="Earn commission on orders from your links" />
+        </Feature>
         <Row icon="card" label="Payment methods" sub="bKash, Nagad and cards at checkout" soon />
         <Row icon="info" label="Notifications" sub="SMS delivery updates are on" soon />
         <Row href="/how-it-works" icon="help" label="Help" sub="How it works, shipping, returns" />
