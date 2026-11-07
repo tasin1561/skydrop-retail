@@ -43,15 +43,15 @@ class ApiLogsTable
                 SelectFilter::make('market')->options(Admin::MARKETS),
                 SelectFilter::make('outcome')->label('Status')
                     ->options(['ok' => 'Success (2xx)', 'client' => 'Client error (4xx)', 'error' => 'Failed (5xx / timeout)'])
-                    ->query(fn (Builder $q, array $data) => match ($data['value'] ?? null) {
-                        'ok' => $q->whereBetween('status', [200, 299]),
-                        'client' => $q->whereBetween('status', [400, 499]),
-                        'error' => $q->where(fn ($q) => $q->where('status', '>=', 500)->orWhere('status', 0)),
-                        default => $q,
+                    ->query(fn (Builder $query, array $data) => match ($data['value'] ?? null) {
+                        'ok' => $query->whereBetween('status', [200, 299]),
+                        'client' => $query->whereBetween('status', [400, 499]),
+                        'error' => $query->where(fn ($q) => $q->where('status', '>=', 500)->orWhere('status', 0)),
+                        default => $query,
                     }),
                 Filter::make('created_at')->label('Date')
                     ->schema([DatePicker::make('from')->default(now()->startOfMonth()), DatePicker::make('until')])
-                    ->query(fn (Builder $q, array $data) => $q
+                    ->query(fn (Builder $query, array $data) => $query
                         ->when($data['from'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
                         ->when($data['until'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d)))
                     ->indicateUsing(fn (array $data) => array_filter([

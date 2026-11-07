@@ -80,6 +80,14 @@ class OrderController extends Controller
         return response()->view('commerce.invoice', ['order' => $order])->header('Content-Type', 'text/html; charset=utf-8');
     }
 
+    /** Signed link (invoiceUrl in Order JSON) so a browser tab can open the invoice without a bearer token. */
+    public function signedInvoice(string $id): Response
+    {
+        $order = Order::query()->with(['items', 'user', 'payments'])->findOrFail(strtoupper($id));
+
+        return response()->view('commerce.invoice', ['order' => $order])->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
     public static function allowedReturnUrl(?string $url): bool
     {
         if (! $url) {

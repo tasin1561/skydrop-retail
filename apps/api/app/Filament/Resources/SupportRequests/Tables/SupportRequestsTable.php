@@ -8,6 +8,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -56,7 +57,7 @@ class SupportRequestsTable
             ->label('Change status')
             ->icon(Heroicon::OutlinedArrowPathRoundedSquare)
             ->schema(fn (SupportRequest $record) => [
-                \Filament\Forms\Components\ToggleButtons::make('status')->inline()->required()
+                ToggleButtons::make('status')->inline()->required()
                     ->options(array_intersect_key(self::STATUSES, array_flip(self::FLOW[$record->status] ?? array_keys(self::STATUSES))))
                     ->colors(self::COLORS),
                 Textarea::make('admin_note')->label('Note to customer')->rows(3)->default($record->admin_note),

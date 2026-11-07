@@ -20,7 +20,7 @@ class OrdersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $q) => $q->with(['user', 'items']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['user', 'items']))
             ->defaultSort('created_at', 'desc')
             ->poll('60s')
             ->columns([
@@ -46,12 +46,12 @@ class OrdersTable
             ->filters([
                 SelectFilter::make('status')->multiple()->options(Admin::ORDER_STATUS_LABELS),
                 SelectFilter::make('market')->label('Store')->options(Admin::MARKETS)
-                    ->query(fn (Builder $q, array $data) => $q->when($data['value'] ?? null, fn ($q, $m) => $q->whereHas('items', fn ($i) => $i->where('market', $m)))),
+                    ->query(fn (Builder $query, array $data) => $query->when($data['value'] ?? null, fn ($q, $m) => $q->whereHas('items', fn ($i) => $i->where('market', $m)))),
                 SelectFilter::make('payment_status')->options(array_combine(array_keys(Admin::PAYMENT_STATUS_COLORS), array_map('ucfirst', array_keys(Admin::PAYMENT_STATUS_COLORS)))),
                 SelectFilter::make('payment_method')->options(Order::PAYMENT_LABELS),
                 Filter::make('created_at')->label('Date')
                     ->schema([DatePicker::make('from'), DatePicker::make('until')])
-                    ->query(fn (Builder $q, array $data) => $q
+                    ->query(fn (Builder $query, array $data) => $query
                         ->when($data['from'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
                         ->when($data['until'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d)))
                     ->indicateUsing(fn (array $data) => array_filter([

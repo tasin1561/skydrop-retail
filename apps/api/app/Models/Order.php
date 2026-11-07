@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\URL;
 
 class Order extends Model
 {
@@ -115,6 +116,7 @@ class Order extends Model
             'trackingCode' => (string) $this->tracking_code,
             'canCancel' => $this->canCancel(),
             'deliveredAt' => $this->delivered_at?->toIso8601String(),
+            'invoiceUrl' => URL::temporarySignedRoute('orders.invoice.signed', now()->addDay(), ['id' => $this->id]),
             'timeline' => $this->events->map(fn (OrderEvent $e) => [
                 'status' => $e->status, 'at' => $e->at?->toIso8601String(), 'note' => $e->note,
             ])->values()->all(),

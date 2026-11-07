@@ -4,8 +4,8 @@ namespace App\Filament\Widgets;
 
 use App\Models\ApiLog;
 use App\Models\Product;
-use App\Models\SearchCache;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 
 /**
  * Paid provider calls per day, plus the cache hit rate. The catalog module does not log cache hits to api_logs,
@@ -27,7 +27,7 @@ class ApiCallsChart extends ChartWidget
         return ['7' => 'Last 7 days', '14' => 'Last 14 days', '30' => 'Last 30 days'];
     }
 
-    public function getDescription(): string|\Illuminate\Contracts\Support\Htmlable|null
+    public function getDescription(): string|Htmlable|null
     {
         [$hits, $calls] = self::hitStats((int) $this->filter);
         $total = $hits + $calls;

@@ -19,7 +19,7 @@ class ListSupportRequests extends ListRecords
         $tabs = ['all' => Tab::make('All')];
         foreach (SupportRequestsTable::STATUSES as $k => $label) {
             $tabs[$k] = Tab::make($label)->badge($counts[$k] ?? null)->badgeColor(SupportRequestsTable::COLORS[$k])
-                ->modifyQueryUsing(fn (Builder $q) => $q->where('status', $k));
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', $k));
         }
 
         return $tabs;

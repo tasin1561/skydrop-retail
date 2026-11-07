@@ -17,7 +17,7 @@ return [
     ],
 
     'fallbacks' => [
-        'omkar' => ['key' => env('OMKAR_API_KEY'), 'url' => 'https://amazon-scraper-api.omkar.cloud/amazon'],
+        'omkar' => ['key' => env('OMKAR_API_KEY'), 'url' => env('OMKAR_API_URL', 'https://amazon-scraper-api.omkar.cloud/amazon')],
         'openwebninja' => ['key' => env('RAPIDAPI_KEY'), 'host' => 'real-time-amazon-data.p.rapidapi.com'],
     ],
 
@@ -30,7 +30,25 @@ return [
         'sibling_fresh' => 4320,
         'details_fresh' => 10080,
         'raw_html_days' => 3,
+        'lightning' => 30,       // products whose deal ends within 24 h
+        'api_logs_days' => 90,
     ],
+
+    // Offer / deal ingestion (catalog module)
+    'offers' => [
+        'pass_coupons' => true,  // (admin) price with deal price minus clippable coupon when we can use it
+        'ingest_every_hours' => 6,
+        'ingest_max_products' => (int) env('DEALS_MAX_PRODUCTS', 40), // detail fetches per deals run per market
+    ],
+
+    // Which providers serve each marketplace, in order (catalog ProviderChain). Fallbacks are Amazon only.
+    'sources' => [
+        'amazon' => [App\Sources\OxylabsAmazonSource::class, App\Sources\OmkarAmazonSource::class, App\Sources\OpenWebNinjaAmazonSource::class],
+        'flipkart' => [App\Sources\OxylabsFlipkartSource::class],
+        'bigbasket' => [App\Sources\OxylabsBigBasketSource::class],
+    ],
+
+    'fx_feed_url' => env('FX_FEED_URL'), // optional JSON endpoint returning {"rate": <BDT per INR>}
 
     'variants' => ['mode' => env('VARIANT_MODE', 'eager'), 'max' => (int) env('VARIANT_MAX', 60)],
     'prefetch_top' => (int) env('PREFETCH_TOP', 3),

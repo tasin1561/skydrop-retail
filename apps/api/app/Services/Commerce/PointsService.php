@@ -46,7 +46,7 @@ class PointsService
         $r = $this->rules();
         $block = max(1, (int) $r['redeem_block']);
         $cap = (int) floor($itemSubtotalBdt * $r['redeem_max_ratio'] / $r['redeem_block_bdt']) * $block;
-        $have = $user ? (int) $user->points_balance : 0;
+        $have = $user ? (int) User::query()->whereKey($user->id)->value('points_balance') : 0;
         $max = (int) (floor(min($cap, $have) / $block) * $block);
         if (! $r['enabled'] || $requested <= 0) {
             return ['points' => 0, 'discount' => 0, 'maxPoints' => $r['enabled'] ? $max : 0];
@@ -148,7 +148,7 @@ class PointsService
     public function summary(User $user): array
     {
         $r = $this->rules();
-        $balance = (int) $user->points_balance;
+        $balance = (int) User::query()->whereKey($user->id)->value('points_balance');
         $pending = (int) Order::query()->where('user_id', $user->id)->whereNotIn('status', ['delivered', 'cancelled'])->sum('points_to_earn');
         $history = PointsLedger::query()->where('user_id', $user->id)->latest('id')->limit(100)->get()
             ->map(fn (PointsLedger $p) => ['type' => $p->type === 'signup' ? 'earn' : $p->type, 'points' => $p->points, 'note' => $p->note,

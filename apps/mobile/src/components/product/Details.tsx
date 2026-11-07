@@ -1,8 +1,7 @@
 // Product page sections: price breakdown, delivery route, specs, reviews.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LayoutAnimation, Pressable, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
-import { useEffect } from "react";
 import type { MarketId, Product } from "@/lib/types";
 import { PRICING, buyPriceInr, deliveryWindow, formatBdt, priceBdt } from "@/lib/pricing";
 import { STORES } from "@/lib/markets";

@@ -5,6 +5,7 @@ namespace App\Filament\Support;
 use App\Models\Setting;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\HtmlString;
 use Throwable;
 
 /**
@@ -28,7 +29,7 @@ class Admin
     ];
 
     public const PAYMENT_STATUS_COLORS = [
-        'pending' => 'warning', 'paid' => 'success', 'partial' => 'info', 'failed' => 'danger', 'refunded' => 'gray',
+        'pending' => 'warning', 'paid' => 'success', 'partial' => 'info', 'failed' => 'danger', 'refunded' => 'gray', 'refund_pending' => 'danger',
     ];
 
     /**
@@ -104,6 +105,14 @@ class Admin
     public static function marketLabel(?string $market): string
     {
         return self::MARKETS[$market] ?? (string) $market;
+    }
+
+    /** Pretty, escaped JSON block for infolists (CodeEntry needs phiki/phiki, which is not installed). */
+    public static function jsonHtml(mixed $data): HtmlString
+    {
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+
+        return new HtmlString('<pre style="max-height:32rem;overflow:auto;font-size:.75rem;line-height:1.45;padding:.75rem;border-radius:.5rem;background:rgba(127,127,127,.08);white-space:pre-wrap;word-break:break-word">'.e((string) $json).'</pre>');
     }
 
     public static function bdt(float|int|null $amount): string

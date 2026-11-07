@@ -8,6 +8,7 @@ use App\Models\User;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema as DbSchema;
 
@@ -25,7 +26,7 @@ class UserInfolist
                     TextEntry::make('created_at')->label('Joined')->date(),
                     TextEntry::make('phone_verified_at')->label('Phone verified')->since()->placeholder('no'),
                     TextEntry::make('blocked_at')->label('Account')->badge()
-                        ->state(fn (User $r) => $r->blocked_at ? 'Blocked '.\Illuminate\Support\Carbon::parse($r->blocked_at)->diffForHumans() : 'Active')
+                        ->state(fn (User $r) => $r->blocked_at ? 'Blocked '.Carbon::parse($r->blocked_at)->diffForHumans() : 'Active')
                         ->color(fn (User $r) => $r->blocked_at ? 'danger' : 'success'),
                 ]),
                 Section::make('Value')->columnSpan(2)->columns(3)->schema([

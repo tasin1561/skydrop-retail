@@ -15,7 +15,7 @@ class ProductDetail extends Model
     {
         return [
             'images' => 'array', 'videos' => 'array', 'bullets' => 'array', 'specs' => 'array', 'variants' => 'array',
-            'aplus' => 'array', 'reviews' => 'array', 'star_breakdown' => 'array', 'category_path' => 'array',
+            'aplus' => 'array', 'reviews' => 'array', 'star_breakdown' => 'array', 'category_path' => 'array', 'offers' => 'array',
             'has_videos' => 'boolean',
         ];
     }

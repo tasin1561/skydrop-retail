@@ -5,11 +5,11 @@ namespace App\Filament\Widgets;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Support\Admin;
 use App\Models\Order;
+use App\Models\Product;
 use App\Services\PricingService;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Open orders whose margin dropped below the threshold: what the customer paid for the items vs what the items
@@ -66,7 +66,7 @@ class LowMarginAlerts extends TableWidget
         }
         $pricing = app(PricingService::class);
         $fx = $pricing->fx() * (1 + (float) Admin::setting('pricing.fx_buffer', 0.015));
-        $products = \App\Models\Product::query()->whereIn('id', $o->items->pluck('product_id'))->get()->keyBy('id');
+        $products = Product::query()->whereIn('id', $o->items->pluck('product_id'))->get()->keyBy('id');
         $paid = 0.0;
         $cost = 0.0;
         foreach ($o->items as $i) {

@@ -64,11 +64,11 @@ export function Tap({
       accessibilityRole="button"
       {...rest}
       onPressIn={(e) => {
-        s.value = withSpring(scaleTo, { damping: 20, stiffness: 400 });
+        s.set(withSpring(scaleTo, { damping: 20, stiffness: 400 }));
         rest.onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        s.value = withSpring(1, { damping: 14, stiffness: 300 });
+        s.set(withSpring(1, { damping: 14, stiffness: 300 }));
         rest.onPressOut?.(e);
       }}
       style={[style, a]}

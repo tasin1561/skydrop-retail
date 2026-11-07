@@ -5,13 +5,11 @@ namespace App\Filament\Resources\Products\Schemas;
 use App\Filament\Support\Admin;
 use App\Models\Product;
 use App\Services\PricingService;
-use Filament\Infolists\Components\CodeEntry;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -92,11 +90,11 @@ class ProductInfolist
                             TextEntry::make('details.delivery_text')->label('Delivery to Kolkata')->placeholder('—'),
                         ]),
                         Tab::make('Raw JSON')->schema([
-                            CodeEntry::make('raw')->hiddenLabel()
-                                ->state(fn (Product $r) => [
+                            TextEntry::make('raw')->hiddenLabel()
+                                ->state(fn (Product $r) => Admin::jsonHtml([
                                     'product' => $r->attributesToArray(),
                                     'details' => $r->details?->attributesToArray(),
-                                ]),
+                                ])),
                         ]),
                     ]),
             ]);

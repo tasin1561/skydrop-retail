@@ -144,18 +144,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     else AsyncStorage.removeItem(K.coupon).catch(() => {});
   }, []);
 
-  const wishRef = useRef(wish);
-  wishRef.current = wish;
-  const userRef = useRef(user);
-  userRef.current = user;
-
-  const toggleWish = useCallback((id: string) => {
-    const has = wishRef.current.includes(id);
-    const next = has ? wishRef.current.filter((x) => x !== id) : [id, ...wishRef.current];
-    setWish(next);
-    if (userRef.current) (has ? api.wishRemove(id, next) : api.wishAdd(id, next)).catch(() => {});
-    return !has;
-  }, []);
+  const toggleWish = useCallback(
+    (id: string) => {
+      const has = wish.includes(id);
+      const next = has ? wish.filter((x) => x !== id) : [id, ...wish];
+      setWish(next);
+      if (user) (has ? api.wishRemove(id, next) : api.wishAdd(id, next)).catch(() => {});
+      return !has;
+    },
+    [wish, user],
+  );
 
   const signIn = useCallback((u: User) => {
     setUserState(u);

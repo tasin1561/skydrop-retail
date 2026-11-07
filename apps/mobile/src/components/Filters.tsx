@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import type { SearchParams, Sort } from "@/api/types";
 import type { StoreMode } from "@/lib/types";
@@ -47,9 +47,11 @@ function Chip({ label, on, onPress, mode = "all" }: { label: string; on: boolean
 export function FilterSheet({ open, onClose, value, onApply, stores }: { open: boolean; onClose: () => void; value: Filters; onApply: (f: Filters) => void; stores: StoreMode[] }) {
   const { c } = useTheme();
   const [f, setF] = useState<Filters>(value);
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) setF(value);
-  }, [open, value]);
+  }
   const mode = f.store ?? "all";
   const cats = STORES.all.categories;
 

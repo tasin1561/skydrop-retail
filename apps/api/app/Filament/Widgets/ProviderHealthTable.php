@@ -4,8 +4,8 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\ProviderHealths\Tables\ProviderHealthsTable;
 use App\Models\ProviderHealth;
-use Filament\Widgets\TableWidget;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 
 class ProviderHealthTable extends TableWidget
 {

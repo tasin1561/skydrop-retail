@@ -127,7 +127,7 @@ async function http<T>(method: string, path: string, opts: { query?: Query; body
       },
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
     });
-  } catch (e) {
+  } catch {
     throw new ApiError(0, { message: "Can't reach Skydrop right now. Check your connection." });
   }
   const text = await res.text();

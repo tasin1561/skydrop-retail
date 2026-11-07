@@ -191,9 +191,14 @@ export function SearchBar({ mode, placeholder }: { mode: StoreMode; placeholder?
 export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
   const [state, setState] = useState<{ data: T | null; loading: boolean; error: string | null }>({ data: null, loading: true, error: null });
   const [tick, setTick] = useState(0);
+  const key = JSON.stringify(deps) + ":" + tick;
+  const [loadedKey, setLoadedKey] = useState(key);
+  if (key !== loadedKey) {
+    setLoadedKey(key);
+    setState((s) => ({ ...s, loading: true, error: null }));
+  }
   useEffect(() => {
     let live = true;
-    setState((s) => ({ ...s, loading: true, error: null }));
     fn()
       .then((data) => live && setState({ data, loading: false, error: null }))
       .catch((e: Error) => live && setState({ data: null, loading: false, error: e.message }));

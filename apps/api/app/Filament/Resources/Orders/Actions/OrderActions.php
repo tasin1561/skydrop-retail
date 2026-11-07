@@ -16,6 +16,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
@@ -68,7 +69,7 @@ class OrderActions
                     ->compact()
                     ->schema($items->map(fn ($i) => TextInput::make("refs.{$i->id}")
                         ->label(str($i->title)->limit(70).' × '.$i->qty.($i->variant ? " ({$i->variant})" : ''))
-                        ->helperText(new \Illuminate\Support\HtmlString('<a href="'.e(Admin::sourceUrl($i->market, $i->product_id)).'" target="_blank" rel="noopener" style="color:#0b6bcb">Open '.e($i->product_id).' on source ↗</a>'))
+                        ->helperText(new HtmlString('<a href="'.e(Admin::sourceUrl($i->market, $i->product_id)).'" target="_blank" rel="noopener" style="color:#0b6bcb">Open '.e($i->product_id).' on source ↗</a>'))
                         ->placeholder('e.g. 403-1234567-1234567')
                         ->required())->all()))->values()->all(),
                 Textarea::make('note')->rows(2),
@@ -105,10 +106,11 @@ class OrderActions
         return Action::make('setStatus')
             ->label('Set status…')
             ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
-            ->visible(fn (Order $record) => Admin::canManage() && $record->status !== 'cancelled')
-            ->fillForm(fn (Order $record) => ['status' => $record->status])
+            ->visible(fn (Order $record) => Admin::canManage() && Ops::allowedNext($record) !== [])
             ->schema([
-                Select::make('status')->options(array_diff_key(Admin::ORDER_STATUS_LABELS, ['cancelled' => 1]))->required(),
+                Select::make('status')->required()
+                    ->options(fn (Order $record) => array_intersect_key(Admin::ORDER_STATUS_LABELS, array_flip(Ops::allowedNext($record))))
+                    ->helperText('Forward moves only; use this to skip stages (e.g. a missed hub scan).'),
                 Textarea::make('note')->rows(2)->required()->helperText('Shown on the timeline; explain manual corrections.'),
             ])
             ->action(fn (Order $record, array $data) => self::run(fn () => Ops::transition($record, $data['status'], $data['note']), 'Status updated'));
@@ -168,7 +170,8 @@ class OrderActions
             TextInput::make('amount')->label('Amount')->prefix('৳')->numeric()->minValue(1)->required()
                 ->default($first ? $first->amount_bdt - (float) $first->refunded_bdt : null),
             TextInput::make('reason')->required()->maxLength(200),
-            TextInput::make('ref')->label('Gateway refund reference (if refunded manually)')->maxLength(100),
+            TextInput::make('ref')->label('Already refunded in the merchant portal? Enter its reference')->maxLength(100)
+                ->helperText('Leave blank to refund through the gateway now.'),
         ];
     }
 
@@ -183,18 +186,13 @@ class OrderActions
             ->label('Cancel order')
             ->icon(Heroicon::OutlinedXCircle)
             ->color('danger')
-            ->visible(fn (Order $record) => Admin::canManage() && ! in_array($record->status, ['cancelled', 'delivered'], true))
+            ->visible(fn (Order $record) => Admin::canManage() && $record->canCancel())
             ->requiresConfirmation()
-            ->modalDescription(fn (Order $record) => $record->canCancel()
-                ? 'The order has not been bought yet. Paid amounts should be refunded.'
-                : 'Items are already bought in India. Cancelling now may need a return to the source store.')
-            ->schema([
-                Textarea::make('reason')->required()->rows(2),
-                \Filament\Forms\Components\Toggle::make('refund')->label('Also refund all paid payments')->default(true),
-            ])
+            ->modalDescription('Only possible before the items are bought in India. Online payments and redeemed points are refunded automatically.')
+            ->schema([Textarea::make('reason')->required()->rows(2)])
             ->action(function (Order $record, array $data) {
-                self::run(fn () => Ops::transition($record, 'cancelled', 'Cancelled by staff: '.$data['reason']), 'Order cancelled');
-                if ($data['refund'] ?? false) {
+                self::run(fn () => Ops::cancel($record, $data['reason']), 'Order cancelled');
+                if (! Ops::hasWorkflow()) {
                     foreach ($record->payments()->where('status', 'paid')->get() as $p) {
                         self::run(fn () => Ops::refund($p, $p->amount_bdt - (float) $p->refunded_bdt, 'Order cancelled: '.$data['reason']), 'Refund recorded for payment #'.$p->id);
                     }

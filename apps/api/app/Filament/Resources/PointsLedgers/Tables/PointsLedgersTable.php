@@ -43,11 +43,11 @@ class PointsLedgersTable
                 SelectFilter::make('type')->options(self::TYPES)->multiple(),
                 Filter::make('created_at')->label('Date')
                     ->schema([DatePicker::make('from'), DatePicker::make('until')])
-                    ->query(fn (Builder $q, array $data) => $q
+                    ->query(fn (Builder $query, array $data) => $query
                         ->when($data['from'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
                         ->when($data['until'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))),
                 Filter::make('expiring')->label('Expiring in 30 days')
-                    ->query(fn (Builder $q) => $q->where('points', '>', 0)->whereNull('settled_at')->whereBetween('expires_at', [now(), now()->addDays(30)])),
+                    ->query(fn (Builder $query) => $query->where('points', '>', 0)->whereNull('settled_at')->whereBetween('expires_at', [now(), now()->addDays(30)])),
             ]);
     }
 }

@@ -19,7 +19,7 @@ class UsersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $q) => $q
+            ->modifyQueryUsing(fn (Builder $query) => $query
                 ->withCount('orders')
                 ->withSum(['orders as spent_bdt' => fn ($o) => $o->where('status', '!=', 'cancelled')], 'total_bdt')
                 ->withMax('orders as last_order_at', 'created_at'))
@@ -40,7 +40,7 @@ class UsersTable
             ])
             ->filters([
                 TernaryFilter::make('blocked')->label('Blocked')->nullable()->attribute('blocked_at'),
-                Filter::make('has_orders')->label('Has orders')->query(fn (Builder $q) => $q->has('orders')),
+                Filter::make('has_orders')->label('Has orders')->query(fn (Builder $query) => $query->has('orders')),
             ])
             ->recordActions([
                 ViewAction::make(),

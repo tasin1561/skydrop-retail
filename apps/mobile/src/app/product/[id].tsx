@@ -27,6 +27,10 @@ type Phase = "idle" | "busy" | "done";
 
 export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  return <ProductLoader key={id} id={id} />;
+}
+
+function ProductLoader({ id }: { id: string }) {
   const { c } = useTheme();
   const [p, setP] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +40,6 @@ export default function ProductScreen() {
 
   useEffect(() => {
     let live = true;
-    setP(null);
-    setError(null);
     api
       .product(id)
       .then((r) => {
@@ -122,7 +124,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
   const toast = useToast();
   const { addToCart, wish, toggleWish, totals } = useStore();
   const store = STORES[p.market];
-  const variants = p.variants ?? [];
+  const variants = useMemo(() => p.variants ?? [], [p.variants]);
   const groups = useMemo(() => groupVariants(variants), [variants]);
   const [sel, setSel] = useState<Record<string, string>>(() => initialSelection(p.id, variants));
   const [qty, setQty] = useState(1);

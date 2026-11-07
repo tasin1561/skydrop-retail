@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Pages;
 
+use App\Filament\Pages\PurchaseQueue;
 use App\Filament\Resources\Orders\Actions\OrderActions;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Support\Admin;
@@ -23,12 +24,12 @@ class ListOrders extends ListRecords
         $tabs = ['all' => Tab::make('All')->badge($counts->sum() ?: null)];
         $tabs['action'] = Tab::make('Needs action')->icon(Heroicon::OutlinedBolt)
             ->badge(($counts['placed'] ?? 0) + ($counts['verified'] ?? 0) + ($counts['purchased'] ?? 0) ?: null)->badgeColor('warning')
-            ->modifyQueryUsing(fn (Builder $q) => $q->whereIn('status', ['placed', 'verified', 'purchased']));
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('status', ['placed', 'verified', 'purchased']));
         foreach (Admin::ORDER_STATUS_LABELS as $status => $label) {
             $tabs[$status] = Tab::make($label)
                 ->badge($counts[$status] ?? null)
                 ->badgeColor(Admin::ORDER_STATUS_COLORS[$status])
-                ->modifyQueryUsing(fn (Builder $q) => $q->where('status', $status));
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', $status));
         }
 
         return $tabs;
@@ -43,7 +44,7 @@ class ListOrders extends ListRecords
     {
         return [
             Action::make('queue')->label('Purchase queue')->icon(Heroicon::OutlinedQueueList)->color('gray')
-                ->url(\App\Filament\Pages\PurchaseQueue::getUrl()),
+                ->url(PurchaseQueue::getUrl()),
             Action::make('exportAll')->label('Export CSV')->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
                 ->action(fn () => OrderActions::csv($this->getFilteredSortedTableQuery()->with(['user', 'items'])->limit(5000)->get())),
         ];

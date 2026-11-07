@@ -6,7 +6,6 @@ use App\Filament\Resources\ApiLogs\Pages\ListApiLogs;
 use App\Filament\Resources\ApiLogs\Pages\ViewApiLog;
 use App\Filament\Resources\ApiLogs\Schemas\ApiLogInfolist;
 use App\Filament\Resources\ApiLogs\Tables\ApiLogsTable;
-use App\Filament\Support\Admin;
 use App\Models\ApiLog;
 use BackedEnum;
 use Filament\Resources\Resource;

@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Payments\Schemas;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Support\Admin;
 use App\Models\Payment;
-use Filament\Infolists\Components\CodeEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -29,7 +28,7 @@ class PaymentInfolist
                     TextEntry::make('created_at')->dateTime(),
                 ]),
                 Section::make('Gateway payload')->columnSpanFull()->collapsible()->schema([
-                    CodeEntry::make('payload')->hiddenLabel(),
+                    TextEntry::make('payload_json')->hiddenLabel()->state(fn (Payment $r) => Admin::jsonHtml($r->payload ?? [])),
                 ]),
             ]);
     }

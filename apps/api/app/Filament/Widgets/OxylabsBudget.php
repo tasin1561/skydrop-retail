@@ -13,6 +13,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 /** Provider spend this month vs the monthly budget (Settings → monthly budget), with a straight-line month-end projection. */
 class OxylabsBudget extends StatsOverviewWidget
 {
+    protected static bool $isLazy = false;
+
     protected static ?int $sort = 2;
 
     protected ?string $heading = 'Data provider spend (Oxylabs and fallbacks)';

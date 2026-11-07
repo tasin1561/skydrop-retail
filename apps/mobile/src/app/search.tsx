@@ -28,7 +28,7 @@ export default function Search() {
     category: params.category || undefined,
     sort: (SORTS.find((s) => s.id === params.sort)?.id ?? "relevance") as Sort,
   });
-  const [sugs, setSugs] = useState<Suggestion[]>([]);
+  const [sug, setSug] = useState<{ term: string; items: Suggestion[] }>({ term: "", items: [] });
   const [focused, setFocused] = useState(params.focus === "1");
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -40,26 +40,24 @@ export default function Search() {
   // Debounced suggestions (local DB only on the server).
   useEffect(() => {
     const term = text.trim();
-    if (term.length < 2 || term === q) {
-      setSugs([]);
-      return;
-    }
+    if (term.length < 2 || term === q) return;
     const t = setTimeout(() => {
       api
         .suggest(term, mode)
-        .then(setSugs)
-        .catch(() => setSugs([]));
+        .then((items) => setSug({ term, items }))
+        .catch(() => setSug({ term, items: [] }));
     }, 220);
     return () => clearTimeout(t);
   }, [text, mode, q]);
 
   const submit = (term = text) => {
     Keyboard.dismiss();
-    setSugs([]);
     setQ(term.trim());
     setText(term.trim());
   };
 
+  const term = text.trim();
+  const sugs = term.length >= 2 && term !== q && sug.term === term ? sug.items : [];
   const searchParams = useMemo(() => ({ q, ...f }), [q, f]);
   const nFilters = activeFilterCount(f);
   const catLabel = f.category ? STORES.all.categories.find((x) => x.slug === f.category)?.label : null;

@@ -21,5 +21,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+    
+        // ---- commerce module seeders ----
+        $this->call([CouponSeeder::class, AdminUserSeeder::class]);
+        // ---- end commerce module seeders ----
     }
 }

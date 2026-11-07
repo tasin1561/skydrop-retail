@@ -4,11 +4,9 @@ namespace App\Filament\Resources\ProductWatches;
 
 use App\Filament\Resources\ProductWatches\Pages\ListProductWatches;
 use App\Filament\Resources\ProductWatches\Tables\ProductWatchesTable;
-use App\Filament\Support\Admin;
 use App\Models\ProductWatch;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;

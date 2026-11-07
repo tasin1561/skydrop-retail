@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\PointsLedger;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -27,10 +28,12 @@ class Ops
     public const FETCH_JOB = 'App\\Jobs\\Catalog\\FetchProductJob';
 
     /** Candidate Skydrop clients from the commerce module, first match wins. */
-    public const SKYDROP = ['App\\Services\\Commerce\\SkydropClient', 'App\\Services\\Commerce\\Skydrop', 'App\\Services\\Skydrop\\SkydropClient'];
+    public const SKYDROP = ['App\\Services\\Commerce\\Skydrop\\SkydropClient', 'App\\Services\\Commerce\\SkydropClient'];
 
     /** Candidate payment services that can refund, first match wins. */
-    public const PAYMENTS = ['App\\Services\\Commerce\\PaymentService', 'App\\Services\\Commerce\\Payments', 'App\\Services\\Payments\\PaymentService'];
+    public const PAYMENTS = 'App\\Services\\Commerce\\Payments\\PaymentService';
+
+    public const SMS = 'App\\Services\\Commerce\\Sms\\SmsManager';
 
     public static function transition(Order $order, string $status, ?string $note = null): Order
     {
@@ -58,6 +61,33 @@ class Ops
         return $order->refresh();
     }
 
+    /** Staff cancel. With OrderWorkflow this also refunds online payments and redeemed points. */
+    public static function cancel(Order $order, string $reason): Order
+    {
+        if (class_exists(self::WORKFLOW) && method_exists(self::WORKFLOW, 'cancel')) {
+            return app(self::WORKFLOW)->cancel($order, 'admin', $reason);
+        }
+
+        return self::transition($order, 'cancelled', 'Cancelled by staff: '.$reason);
+    }
+
+    public static function hasWorkflow(): bool
+    {
+        return class_exists(self::WORKFLOW);
+    }
+
+    /** @return array<int, string> statuses the order may move to (forward only, as OrderWorkflow enforces) */
+    public static function allowedNext(Order $order): array
+    {
+        if (class_exists(self::WORKFLOW) && method_exists(self::WORKFLOW, 'allowedNext')) {
+            return array_values(array_diff(app(self::WORKFLOW)->allowedNext($order), ['cancelled']));
+        }
+        $flow = array_values(array_diff(Order::STATUSES, ['cancelled']));
+        $i = array_search($order->status, $flow, true);
+
+        return $i === false ? [] : array_slice($flow, $i + 1);
+    }
+
     /** Next forward status in the fulfilment pipeline, or null at the end. */
     public static function nextStatus(Order $order): ?string
     {
@@ -79,10 +109,6 @@ class Ops
         if ($order->status === 'purchased') {
             return $order;
         }
-        if ($order->status === 'placed') {
-            // Keep the pipeline linear for OrderWorkflow: buying at the live price is the verification.
-            $order = self::transition($order, 'verified', 'Price and stock confirmed at purchase');
-        }
 
         return self::transition($order, 'purchased', $note ?: 'Bought from the source stores');
     }
@@ -91,7 +117,9 @@ class Ops
     public static function handToSkydrop(Order $order): Order
     {
         $client = collect(self::SKYDROP)->first(fn ($c) => class_exists($c));
-        if ($client) {
+        if ($order->skydrop_consignment_id) {
+            // Already booked (OrderWorkflow queues CreateSkydropConsignment when an order is marked purchased).
+        } elseif ($client) {
             $svc = app($client);
             foreach (['createConsignment', 'consign', 'create'] as $method) {
                 if (method_exists($svc, $method)) {
@@ -99,8 +127,8 @@ class Ops
                     $order->refresh();
                     if (is_array($res)) {
                         $order->forceFill(array_filter([
-                            'skydrop_consignment_id' => $order->skydrop_consignment_id ?: ($res['consignment_id'] ?? $res['id'] ?? null),
-                            'tracking_code' => $order->tracking_code ?: ($res['tracking_code'] ?? $res['trackingCode'] ?? null),
+                            'skydrop_consignment_id' => $order->skydrop_consignment_id ?: ($res['consignmentId'] ?? $res['consignment_id'] ?? $res['id'] ?? null),
+                            'tracking_code' => $order->tracking_code ?: ($res['trackingCode'] ?? $res['tracking_code'] ?? null),
                         ]))->save();
                     }
                     break;
@@ -128,16 +156,17 @@ class Ops
             throw new RuntimeException('Nothing left to refund on this payment.');
         }
 
-        $svc = collect(self::PAYMENTS)->first(fn ($c) => class_exists($c) && method_exists($c, 'refund'));
-        if ($svc) {
-            $res = app($svc)->refund($payment, $amount, $reason);
-            $payment->refresh();
-
-            return is_string($res) ? $res : (string) ($payment->refund_ref ?? 'refunded');
+        $gatewayRef = null;
+        if (class_exists(self::PAYMENTS) && method_exists(self::PAYMENTS, 'gateway') && ! $ref) {
+            $result = app(self::PAYMENTS)->gateway($payment->gateway)->refund($payment, $amount, $reason);
+            if (($result->status ?? null) !== 'refunded') {
+                throw new RuntimeException('Gateway did not confirm the refund: '.($result->message ?? $result->status ?? 'unknown').'. Refund in the merchant portal and enter its reference.');
+            }
+            $gatewayRef = $result->ref ?? null;
         }
 
-        // Manual refund (staff sends money back through the gateway's merchant portal and records it here).
-        $ref = $ref ?: 'MANUAL-'.now()->format('ymdHis');
+        // Record it (gateway refund above, or a manual refund made in the merchant portal).
+        $ref = $ref ?: ($gatewayRef ?: 'MANUAL-'.now()->format('ymdHis'));
         DB::transaction(function () use ($payment, $amount, $reason, $ref) {
             $refunded = (float) $payment->refunded_bdt + $amount;
             $payment->remember(['refunds' => [...($payment->payload['refunds'] ?? []), ['amount' => $amount, 'reason' => $reason, 'ref' => $ref, 'at' => now()->toIso8601String()]]]);
@@ -172,19 +201,21 @@ class Ops
         });
     }
 
-    /** Send an SMS / notification through the commerce Notifier. Returns false when no notifier exists yet. */
+    /** Send a custom SMS or email to a customer. Returns false when the channel is not available. */
     public static function notify(User $user, string $message, string $channel = 'sms'): bool
     {
-        if (! class_exists(self::NOTIFIER)) {
-            return false;
-        }
-        $n = app(self::NOTIFIER);
-        foreach ([$channel, 'send', 'notify', 'sms'] as $method) {
-            if (method_exists($n, $method)) {
-                $method === 'sms' ? $n->sms($user->phone ?? $user, $message) : $n->{$method}($user, $message);
+        if (class_exists(self::NOTIFIER) && method_exists(self::NOTIFIER, 'custom')) {
+            app(self::NOTIFIER)->custom($user, $message, $channel);
 
-                return true;
-            }
+            return true;
+        }
+        if ($channel === 'sms' && $user->phone && class_exists(self::SMS)) {
+            return (bool) app(self::SMS)->driver()->send($user->phone, $message);
+        }
+        if ($channel === 'email' && $user->email) {
+            Mail::raw($message, fn ($m) => $m->to($user->email)->subject('Skydrop Retail'));
+
+            return true;
         }
 
         return false;

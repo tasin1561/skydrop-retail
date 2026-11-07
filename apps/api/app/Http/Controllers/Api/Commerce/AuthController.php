@@ -35,7 +35,7 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json(['user' => $request->user()->toApi()]);
+        return response()->json(['user' => $request->user()->refresh()->toApi()]);
     }
 
     public function update(Request $request): JsonResponse

@@ -65,6 +65,7 @@ An **Apple Developer Program account** (paid) is required for device builds, Tes
 
 ```bash
 pnpm typecheck                         # tsc --noEmit
+pnpm lint                              # expo lint (eslint-config-expo, flat config in eslint.config.js)
 pnpm demo-catalog                      # rebuild src/demo/catalog.json from apps/web/src/data/catalog.json
 npx expo export --platform android     # bundle check
 npx expo export --platform ios
@@ -79,12 +80,17 @@ src/app/                 expo-router routes
   product/[id]           gallery + HLS video, variants, buy bar, breakdown, delivery route, specs, reviews
   store/[market]         themed store front with infinite grid
   search                 store selector, debounced suggestions, filters/sort sheets, infinite scroll
-  checkout, success      4-step checkout, live verify, van + parachute animations
+  checkout/index         4-step checkout, live verify, Skydrop Points toggle, payment redirect, van animation
+  checkout/success       payment return deep link (skydropretail://checkout/success?order=<id>)
+  success                parachute success screen
+  deals                  Live deals and offers (store tabs)
+  points                 Skydrop Points balance, rules, history
   order/[id]             tracking timeline
   login, profile, addresses, wishlist
 src/api/                 typed client for docs/API.md; demo fallback
 src/demo/                trimmed catalog + local backend
-src/lib/                 types, markets, pricing (verbatim from web), bd, orderStatus, cart math, phone, variants
+src/lib/                 types, markets, pricing + points (verbatim from web), bd, orderStatus, cart math, phone, variants
+src/components/offers/   offer cards, deal badge, countdown (shared 1 s ticker, paused in background)
 src/components/          UI primitives, sheets, cards, checkout/product parts
 src/state/store.tsx      cart, coupon, wishlist, session, store mode (AsyncStorage; token in SecureStore)
 src/theme/               light/dark/system palettes and store accents (from apps/web globals.css)
@@ -101,3 +107,29 @@ scripts/make-demo-catalog.mjs
   - Android: `softwareKeyboardLayoutMode: resize` and SMS OTP autofill hints.
   - Both: haptics via `expo-haptics`.
 - **Icon.** Original artwork, generated from `assets/icon-src/*.svg` with `rsvg-convert`. The adaptive icon has separate foreground, background and monochrome layers.
+
+## Offers, points, alerts, payments
+
+- **Offers.** Every product offer is shown on the product screen as "Offers on <source>" cards.
+  - Each card is tagged "In your price" (coupons and deal prices we use when buying) or "On the source store" (bank, card and EMI offers in India).
+  - Cards show countdowns and % claimed. Countdowns share one 1 s ticker that pauses while the app is in the background.
+  - Product cards show the deal badge with a countdown, plus "₹X coupon already applied" or "N offers on the source store".
+  - The Live Deals screen is reached from Home (header button and the "Live deals and offers" rail).
+  - It loads `GET /offers?store=&limit=`. Demo: products with offers first, then the deepest discounts.
+- **Skydrop Points.** `src/lib/points.ts` is identical to the web version.
+  - Account > Skydrop Points (`GET /points`; demo ledger built from local orders).
+  - The checkout review step has a "Use N Skydrop Points" ON/OFF toggle (capped by `maxRedeem`) and sends `redeemPoints` in `POST /orders`.
+  - The summary shows the points discount and "You'll earn N points".
+- **Alerts and recently viewed.**
+  - The product screen has an "Earn N Skydrop Points" chip and an "Alert me if the price drops" / "Tell me when it's back" toggle. It calls `POST /watches` live and is stored on the device in demo.
+  - "Recently viewed" on Home holds the last 20 products, stored locally.
+- **Payments.**
+  - `POST /orders` is sent with `returnUrl: "skydropretail://checkout/success"`; the API is expected to append `?order=<id>`.
+  - When the response has `payment.redirectUrl`, the app opens it with `WebBrowser.openAuthSessionAsync`.
+  - On return it refreshes the order and shows success.
+  - On cancel or close it says the order is saved and opens the order page.
+  - The deep-link route `checkout/success` handles returns that arrive outside the auth session.
+- **Pending data.** When `/products/{id}` or `/search` return `status: "pending"` with a `jobId`, the app shows a "Fetching live details from <store>" shimmer.
+  - It polls `GET /jobs/{id}` every 1.5 s for up to about 25 s, and stops when the screen loses focus.
+  - It reloads when the job is done.
+- `/offers`, `/points`, `/watches`, `redeemPoints` and `returnUrl` are not in `docs/API.md` yet. The app follows `apps/web/src/lib/apiClient.ts` for them.

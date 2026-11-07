@@ -53,7 +53,7 @@ export default function Checkout() {
   const [changed, setChanged] = useState<{ item: CartItem; fresh: number }[]>([]);
   const [failed, setFailed] = useState<CartItem[]>([]);
   const [verifyError, setVerifyError] = useState<string | null>(null);
-  const [verified, setVerified] = useState(false);
+  const [verifiedSig, setVerifiedSig] = useState<string | null>(null);
   const scroll = useRef<ScrollViewInstance>(null);
 
   const loadAddresses = useCallback(() => {
@@ -81,7 +81,7 @@ export default function Checkout() {
 
   // Any cart change invalidates a previous verification.
   const cartSig = cart.map((i) => cartKey(i) + i.qty + ":" + i.unitBdt).join(",");
-  useEffect(() => setVerified(false), [cartSig]);
+  const verified = verifiedSig === cartSig;
 
   useEffect(() => {
     scroll.current?.scrollTo({ y: 0, animated: true });
@@ -141,7 +141,9 @@ export default function Checkout() {
         return false;
       }
       haptic.success();
-      setVerified(true);
+      // Signature of the cart after fresh prices are applied, so later edits invalidate it.
+      const fresh = new Map(ch.map((x) => [cartKey(x.item), x.fresh]));
+      setVerifiedSig(cart.map((i) => cartKey(i) + i.qty + ":" + (fresh.get(cartKey(i)) ?? i.unitBdt)).join(","));
       setPhase("idle");
       return ch.length === 0;
     } catch (e) {

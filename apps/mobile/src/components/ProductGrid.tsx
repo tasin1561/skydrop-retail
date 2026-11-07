@@ -24,13 +24,20 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
   const reqId = useRef(0);
   const [job, setJob] = useState<string | null>(null);
   const focused = useIsFocused();
+
   const key = JSON.stringify(params);
+  // New query: show skeletons straight away (adjusting state during render, not in an effect).
+  const [shownKey, setShownKey] = useState(key);
+  if (key !== shownKey) {
+    setShownKey(key);
+    setLoading(true);
+    setJob(null);
+  }
 
   const load = useCallback(
     async (pg: number) => {
+      // Callers set the loading/more flags (keeps this free of synchronous setState for effects).
       const id = ++reqId.current;
-      if (pg === 1) setLoading(true);
-      else setMore(true);
       try {
         const r = await api.search({ ...params, page: pg });
         if (id !== reqId.current) return;
@@ -55,6 +62,8 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
   );
 
   useEffect(() => {
+    // load() only sets state after its first await, so this doesn't cascade renders.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load(1);
   }, [load]);
 
@@ -97,7 +106,10 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
       keyboardShouldPersistTaps="handled"
       onEndReachedThreshold={0.6}
       onEndReached={() => {
-        if (!loading && !more && page < pages) load(page + 1);
+        if (!loading && !more && page < pages) {
+          setMore(true);
+          load(page + 1);
+        }
       }}
       refreshControl={
         <RefreshControl
@@ -122,7 +134,11 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
             ))}
           </View>
         ) : error ? (
-          <Empty icon="wifi-off" title="Couldn't load products" text={error} action="Try again" onAction={() => load(1)} />
+          <Empty icon="wifi-off" title="Couldn't load products" text={error} action="Try again" onAction={() => {
+              setLoading(true);
+              load(1);
+            }}
+          />
         ) : (
           <Empty icon="search" title="No matches" text="Try a shorter search, another store or fewer filters." />
         )

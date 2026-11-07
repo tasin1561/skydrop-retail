@@ -9,6 +9,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Schema;
 
 class PointsRelationManager extends RelationManager
 {
@@ -28,7 +29,7 @@ class PointsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return \Illuminate\Support\Facades\Schema::hasTable('points_ledger');
+        return Schema::hasTable('points_ledger');
     }
 
     public function table(Table $table): Table

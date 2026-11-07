@@ -23,12 +23,12 @@ export function Sheet({
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(open);
+  if (open && !mounted) setMounted(true);
   const y = useSharedValue(height);
   const fade = useSharedValue(0);
 
   useEffect(() => {
     if (open) {
-      setMounted(true);
       y.value = withSpring(0, { damping: 22, stiffness: 220 });
       fade.value = withTiming(1, { duration: 200 });
     } else if (mounted) {

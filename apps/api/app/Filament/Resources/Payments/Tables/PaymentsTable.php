@@ -41,7 +41,7 @@ class PaymentsTable
                 SelectFilter::make('status')->options(array_combine(array_keys(Admin::PAYMENT_STATUS_COLORS), array_map('ucfirst', array_keys(Admin::PAYMENT_STATUS_COLORS)))),
                 Filter::make('created_at')->label('Date')
                     ->schema([DatePicker::make('from'), DatePicker::make('until')])
-                    ->query(fn (Builder $q, array $data) => $q
+                    ->query(fn (Builder $query, array $data) => $query
                         ->when($data['from'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
                         ->when($data['until'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))),
             ])

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Orders\Pages;
 use App\Filament\Resources\Orders\Actions\OrderActions;
 use App\Filament\Resources\Orders\OrderResource;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class ViewOrder extends ViewRecord
 {
@@ -20,7 +21,7 @@ class ViewOrder extends ViewRecord
         return OrderActions::record();
     }
 
-    protected function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    protected function resolveRecord(int|string $key): Model
     {
         return parent::resolveRecord($key)->load(['items', 'events', 'payments', 'user', 'verifications']);
     }

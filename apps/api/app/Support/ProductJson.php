@@ -5,7 +5,6 @@ namespace App\Support;
 use App\Models\Product;
 use App\Services\PricingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 /**
  * Product JSON for commerce endpoints. Uses the catalog module's App\Http\Resources\ProductResource when present,

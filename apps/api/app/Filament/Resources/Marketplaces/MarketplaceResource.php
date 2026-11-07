@@ -6,7 +6,6 @@ use App\Filament\Resources\Marketplaces\Pages\EditMarketplace;
 use App\Filament\Resources\Marketplaces\Pages\ListMarketplaces;
 use App\Filament\Resources\Marketplaces\Schemas\MarketplaceForm;
 use App\Filament\Resources\Marketplaces\Tables\MarketplacesTable;
-use App\Filament\Support\Admin;
 use App\Models\Marketplace;
 use BackedEnum;
 use Filament\Resources\Resource;

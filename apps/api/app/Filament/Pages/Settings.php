@@ -129,7 +129,11 @@ class Settings extends Page
             if (str_starts_with($key, 'ttl.') || str_starts_with($key, 'pricing.shipping.') || in_array($key, $numeric, true)) {
                 $value = $value === null || $value === '' ? null : $value + 0;
             }
-            Setting::put($key, $value);
+            if ($value === null || $value === '') {
+                Setting::query()->whereKey($key)->delete(); // fall back to config/retail.php
+            } else {
+                Setting::put($key, $value);
+            }
             Cache::forget("setting:{$key}");
         }
         Cache::forget('settings:all');
