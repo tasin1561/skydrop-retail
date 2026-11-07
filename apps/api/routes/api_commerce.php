@@ -5,6 +5,7 @@
 use App\Http\Controllers\Api\Commerce\AddressController;
 use App\Http\Controllers\Api\Commerce\AuthController;
 use App\Http\Controllers\Api\Commerce\CheckoutController;
+use App\Http\Controllers\Api\Commerce\CouponController;
 use App\Http\Controllers\Api\Commerce\OrderController;
 use App\Http\Controllers\Api\Commerce\PaymentController;
 use App\Http\Controllers\Api\Commerce\PointsController;
@@ -21,6 +22,8 @@ Route::post('auth/otp/request', [AuthController::class, 'requestOtp'])->middlewa
 Route::post('auth/otp/verify', [AuthController::class, 'verifyOtp'])->middleware('throttle:30,1');
 
 // ---- Public commerce ----
+// Storefront promo coupons (admin "Show as promo"); see docs/API.md "Coupons".
+Route::get('coupons/featured', [CouponController::class, 'featured'])->middleware('throttle:240,1');
 Route::post('checkout/quote', [CheckoutController::class, 'quote'])->middleware([CartLookupGuard::class, 'throttle:120,1']);
 // Live provider calls per item (Oxylabs, not capped by the daily budget): signed clients only (Next.js server / app).
 Route::post('checkout/verify', [CheckoutController::class, 'verify'])->middleware(['catalog.guard', 'throttle:20,1']);

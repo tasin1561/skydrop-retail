@@ -71,3 +71,6 @@ Schedule::job(new MatchProducts)->dailyAt('03:40')->name('shopping:match-product
 Schedule::job(new CheckSupplierPrices)->cron('10 */2 * * *')->name('fulfilment:supplier-prices')->onOneServer();
 Schedule::job(new AutoApproveUnboxing)->hourlyAt(25)->name('fulfilment:unboxing-auto-approve')->onOneServer();
 // ---- end fulfilment module schedule ----
+
+// Remove expired customer sign-in tokens (90-day logins) once a day.
+Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('03:40')->name('auth:prune-tokens')->onOneServer();

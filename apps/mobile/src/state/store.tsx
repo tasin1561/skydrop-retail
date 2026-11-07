@@ -1,7 +1,7 @@
 // App-wide state: cart, coupon, wishlist, session. Persisted with AsyncStorage (token in SecureStore).
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api, isDemo, onModeChange, resolveMode, tokenStore } from "@/api/client";
+import { api, isDemo, onModeChange, onSessionExpired, resolveMode, tokenStore } from "@/api/client";
 import type { CartItem, StoreMode, User } from "@/lib/types";
 import { cartKey, computeTotals, couponFromApi, findCoupon, type Coupon, type Totals } from "@/lib/cart";
 import { messagingApi } from "@/api/messaging";
@@ -104,8 +104,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     })();
     const off = onModeChange((m) => setDemo(m === "demo"));
+    const offSession = onSessionExpired(() => setUserState(null));
     return () => {
       off();
+      offSession();
     };
   }, []);
 

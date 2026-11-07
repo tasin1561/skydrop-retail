@@ -5,14 +5,36 @@ namespace App\Http\Controllers\Api\Catalog;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Services\Catalog\CatalogQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /** Shared helpers for the catalog controllers. */
 abstract class CatalogController extends Controller
 {
     protected const STORES = 'nullable|in:all,amazon,flipkart,bigbasket';
+
+    /** ?brand=a,b: one or more brands, comma-separated (validated as a string first; see brands()). */
+    protected const BRAND = 'nullable|string|max:700';
+
+    /**
+     * Parsed ?brand= list (validated). 422 when there are more than CatalogQuery::MAX_BRANDS names or one is too long.
+     *
+     * @return list<string>
+     */
+    protected function brands(?string $raw): array
+    {
+        $brands = CatalogQuery::parseBrands($raw);
+        if ($brands === null) {
+            throw ValidationException::withMessages(['brand' => [sprintf(
+                'Pick up to %d brands, each at most %d characters.', CatalogQuery::MAX_BRANDS, CatalogQuery::BRAND_MAX_LEN,
+            )]]);
+        }
+
+        return $brands;
+    }
 
     protected function isCrawler(Request $request): bool
     {

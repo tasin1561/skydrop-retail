@@ -53,6 +53,7 @@ class CheckoutService
         return app(RestrictionService::class)->annotate(app(FlashSaleService::class)->lines($lines));
     }
 
+    /** Looks up a code and checks it is active, in its schedule and has uses left (customer/store rules: see quote()). */
     public function coupon(?string $code): ?Coupon
     {
         $code = strtoupper(trim((string) $code));
@@ -63,26 +64,33 @@ class CheckoutService
             throw CommerceException::field('coupon', 'Coupons are not available right now.');
         }
         $c = Coupon::query()->where('code', $code)->first();
-        if (! $c || ! $c->usable()) {
-            throw CommerceException::field('coupon', $c ? 'This coupon has expired.' : 'This coupon code is not valid.');
+        if (! $c) {
+            throw CommerceException::field('coupon', 'This coupon code is not valid.');
         }
+        app(CouponRules::class)->assertAvailable($c);
 
         return $c;
     }
 
+    /** Public coupon shape (quote, featured). Never includes limits, usage or the phone list. */
     public static function couponApi(Coupon $c): array
     {
         $kind = match ($c->type) {
             'free_shipping' => 'freeship', 'percent_items' => 'percent', default => 'fixed',
         };
+        $store = $c->forStore();
+        $where = $store ? ' on '.CouponRules::storeName($store) : '';
         $label = match ($kind) {
-            'freeship' => 'Free Skydrop shipping on every store',
-            'percent' => rtrim(rtrim(number_format($c->value, 2), '0'), '.').'% off items'.($c->max_discount_bdt ? ', up to ৳'.number_format($c->max_discount_bdt) : ''),
-            default => '৳'.number_format($c->value).' off items',
+            'freeship' => $store ? 'Free Skydrop shipping'.$where : 'Free Skydrop shipping on every store',
+            'percent' => rtrim(rtrim(number_format($c->value, 2), '0'), '.').'% off items'.$where.($c->max_discount_bdt ? ', up to ৳'.number_format($c->max_discount_bdt) : ''),
+            default => '৳'.number_format($c->value).' off items'.$where,
         };
 
         return ['code' => $c->code, 'label' => $label, 'kind' => $kind, 'value' => (float) $c->value,
-            'maxDiscountBdt' => $c->max_discount_bdt !== null ? (int) $c->max_discount_bdt : null, 'minSubtotalBdt' => (int) $c->min_subtotal_bdt];
+            'maxDiscountBdt' => $c->max_discount_bdt !== null ? (int) $c->max_discount_bdt : null, 'minSubtotalBdt' => (int) $c->min_subtotal_bdt,
+            'store' => $store ?? 'all', 'firstOrderOnly' => (bool) $c->first_order_only,
+            'promoText' => ['en' => $c->promo_text_en ?: null, 'bn' => $c->promo_text_bn ?: null],
+            'startsAt' => $c->starts_at?->toIso8601String(), 'endsAt' => $c->expires_at?->toIso8601String()];
     }
 
     /**
@@ -114,18 +122,27 @@ class CheckoutService
         $itemDiscount = 0;
         $shipDiscount = 0;
         if ($coupon) {
-            if ($subtotal < (float) $coupon->min_subtotal_bdt) {
-                throw CommerceException::field('coupon', 'Add ৳'.number_format($coupon->min_subtotal_bdt - $subtotal).' more to use this coupon.');
+            // Admin rules: customer (sign in / allowed phones / first order / per-customer), store, minimum subtotal.
+            app(CouponRules::class)->assertCustomer($coupon, $user);
+            $store = $coupon->forStore();
+            $eligible = $store ? array_values(array_filter($groups, fn ($g) => $g['market'] === $store)) : $groups;
+            if ($store && $eligible === []) {
+                throw CommerceException::field('coupon', 'This coupon only works on '.CouponRules::storeName($store).' items.');
+            }
+            $base = array_sum(array_column($eligible, 'subtotal'));
+            if ($base < (float) $coupon->min_subtotal_bdt) {
+                throw CommerceException::field('coupon', 'Add ৳'.number_format($coupon->min_subtotal_bdt - $base).' more'
+                    .($store ? ' from '.CouponRules::storeName($store) : '').' to use this coupon.');
             }
             if ($coupon->type === 'percent_items') {
-                $itemDiscount = (int) round($subtotal * $coupon->value / 100);
+                $itemDiscount = (int) round($base * $coupon->value / 100);
                 if ($coupon->max_discount_bdt !== null) {
                     $itemDiscount = (int) min($itemDiscount, $coupon->max_discount_bdt);
                 }
             } elseif ($coupon->type === 'free_shipping') {
-                $shipDiscount = $shipping;
+                $shipDiscount = array_sum(array_column($eligible, 'shipping'));
             } else {
-                $itemDiscount = (int) min($subtotal, round($coupon->value));
+                $itemDiscount = (int) min($base, round($coupon->value));
             }
         }
 

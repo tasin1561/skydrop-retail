@@ -3,7 +3,6 @@
 namespace App\Services\Commerce;
 
 use App\Models\Address;
-use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderVerification;
@@ -99,7 +98,7 @@ class OrderService
                 'payment_method' => $method, 'payment_via' => $via, 'payment_status' => 'pending',
                 'subtotal_bdt' => $quote['subtotal'], 'shipping_bdt' => $quote['shipping'], 'discount_bdt' => $quote['discount'],
                 'coupon_discount_bdt' => $quote['couponDiscount'], 'total_bdt' => $quote['total'], 'paid_bdt' => 0,
-                'coupon_code' => $coupon?->code, 'address' => $address->snapshot(), 'tracking_code' => $this->newTrackingCode(),
+                'coupon_code' => $coupon?->code, 'coupon_id' => $coupon?->id, 'address' => $address->snapshot(), 'tracking_code' => $this->newTrackingCode(),
                 'fx_rate' => $fx, 'points_redeemed' => $quote['pointsRedeemed'], 'points_discount_bdt' => $quote['pointsDiscount'],
                 'points_to_earn' => $quote['pointsToEarn'], 'return_url' => $data['returnUrl'] ?? null,
                 'attribution' => $data['attribution'] ?? null, // marketing attribution (App\Services\Tracking\Attribution)
@@ -122,9 +121,9 @@ class OrderService
                 ]);
             }
             $this->workflow->event($order, 'placed', 'customer', 'Order placed; prices verified live at '.($check['checkedAt'] ?? now()->toIso8601String()));
-            if ($coupon && ! Coupon::claim($coupon->id)) {
-                // Another order took the last use between the check and now (atomic, so max_uses is never exceeded).
-                throw CommerceException::field('coupon', 'This coupon has just run out.');
+            if ($coupon) {
+                // Row lock + per-customer / first-order re-check + atomic use (max_uses is never exceeded).
+                app(CouponRules::class)->claimFor($coupon, $user, $order);
             }
             $this->points->redeem($user, $order, $quote['pointsRedeemed']);
             app(WalletPayments::class)->payFromWallet($user, $order, (int) ($quote['walletApplied'] ?? 0)); // money: store credit

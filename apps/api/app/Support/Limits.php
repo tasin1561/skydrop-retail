@@ -34,6 +34,8 @@ class Limits
             'At 100% browsing uses fallbacks and cache; Oxylabs is kept for checkout verification. Same value as Settings → Oxylabs budget.'],
         'catalog.oxylabs_daily_usd' => ['Oxylabs daily cap', 'Catalog & data spend', 10, 'USD', 0, 10000,
             'When today\'s spend reaches this, browsing serves cached data only; checkout verification still works. 0 = no daily cap.'],
+        'catalog.verify_daily_usd' => ['Oxylabs price checks per day', 'Catalog & data spend', 3, 'USD', 0, 10000,
+            'Daily ceiling for live price checks at checkout (approximate, from Oxylabs rates). Past it, orders use a price checked in the last 72 hours and are re-checked later. 0 = no ceiling.'],
         'catalog.store_daily_fetches' => ['Live fetches per store per day', 'Catalog & data spend', 5000, 'calls', 0, 1000000,
             'Provider calls per marketplace per day (all providers, checkout verification excluded). 0 = unlimited.'],
         'catalog.max_concurrent_fetches' => ['Max concurrent live fetches', 'Catalog & data spend', 10, 'requests', 1, 50,

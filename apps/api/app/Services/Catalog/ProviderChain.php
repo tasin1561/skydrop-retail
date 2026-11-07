@@ -4,6 +4,7 @@ namespace App\Services\Catalog;
 
 use App\Sources\Exceptions\ProductGoneException;
 use App\Sources\MarketplaceSource;
+use App\Sources\Support\ApiLogger;
 use App\Sources\Support\SearchPage;
 use App\Sources\Support\SourceProduct;
 use Closure;
@@ -119,6 +120,9 @@ class ProviderChain
             try {
                 $result = $call($source);
                 $this->breaker->success($this->key($source));
+                if ($purpose === 'verify' && $source->isMetered() && $result !== null) {
+                    $this->budget->recordVerifySpend(ApiLogger::oxylabsCost($market, false)); // daily price-check ceiling
+                }
 
                 return $result;
             } catch (ProductGoneException $e) {

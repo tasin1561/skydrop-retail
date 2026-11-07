@@ -8,6 +8,7 @@ use App\Filament\Support\Admin;
 use App\Filament\Support\Ops;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Services\Fulfilment\PriceAlertService;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -76,7 +77,7 @@ class PurchaseQueue extends Page implements HasTable
             ->columns([
                 ImageColumn::make('image')->label('')->imageSize(40)->extraImgAttributes(['loading' => 'lazy', 'style' => 'object-fit:contain;background:#fff']),
                 TextColumn::make('title')->limit(70)->wrap()->searchable()
-                    ->description(fn (OrderItem $r) => $r->product_id.($r->variant ? ' · '.$r->variant : ''))
+                    ->description(fn (OrderItem $r) => $r->product_id.($r->variant ? ' · '.$r->variant : '').self::offerHint($r))
                     ->url(fn (OrderItem $r) => Admin::sourceUrl($r->market, $r->product_id), true)
                     ->color('primary'),
                 TextColumn::make('qty')->alignEnd(),
@@ -144,5 +145,31 @@ class PurchaseQueue extends Page implements HasTable
         }
         Notification::make()->title($items->count().' item(s) marked bought')
             ->body($moved ? 'Orders now "Bought in India": '.implode(', ', $moved) : null)->success()->send();
+    }
+
+    /**
+     * Reminder for the buyer: the shopper price was based on the store's coupon / deal price, so apply it when buying
+     * (otherwise we pay more than we charged). Bank / card offers are never priced in, so they are not mentioned.
+     */
+    private static function offerHint(OrderItem $r): string
+    {
+        static $memo = [];
+        $p = $memo[$r->product_id] ??= Product::query()->find($r->product_id, ['id', 'price_inr', 'coupon_inr', 'effective_price_inr', 'deal_badge', 'deal_ends_at']);
+        if (! $p) {
+            return '';
+        }
+        $hints = [];
+        if ((float) $p->coupon_inr > 0) {
+            $hints[] = '✂ Clip the store coupon (₹'.number_format((float) $p->coupon_inr).' off) before buying';
+        }
+        if ($p->deal_badge && (float) $p->effective_price_inr > 0 && (float) $p->effective_price_inr < (float) $p->price_inr) {
+            $ends = $p->deal_ends_at ? ' — ends '.$p->deal_ends_at->timezone('Asia/Dhaka')->format('j M, g:i A') : '';
+            $hints[] = '⚡ Deal price ₹'.number_format((float) $p->effective_price_inr).$ends;
+        }
+        if ((float) $r->unit_inr < (float) $p->price_inr && ! $hints) {
+            $hints[] = 'Priced at ₹'.number_format((float) $r->unit_inr).' (offer at order time): check the offer is still on';
+        }
+
+        return $hints ? ' · '.implode(' · ', $hints) : '';
     }
 }

@@ -16,8 +16,13 @@ class SearchController extends CatalogController
             'q' => 'nullable|string|max:200', 'store' => self::STORES, 'category' => 'nullable|string|max:160',
             'sort' => 'nullable|in:relevance,price_asc,price_desc,rating,discount', 'min' => 'nullable|integer|min:0',
             'max' => 'nullable|integer|min:0', 'rating' => 'nullable|numeric|min:0|max:5', 'fast' => 'nullable|boolean',
-            'page' => 'nullable|integer|min:1|max:200',
+            'page' => 'nullable|integer|min:1|max:200', 'brand' => self::BRAND,
         ]);
+        $brands = $this->brands($v['brand'] ?? null);
+        unset($v['brand']);
+        if ($brands) {
+            $v['brand'] = $brands;
+        }
         try {
             $res = $catalog->search($v + ['fast' => $request->boolean('fast')], $this->isCrawler($request));
         } catch (Throwable $e) {

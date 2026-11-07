@@ -6,7 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Address, CartItem, MarketId, Order, StoreMode, User } from "@/lib/types";
 import { DEFAULT_ENABLED, MARKET_IDS } from "@/lib/markets";
-import { api, apiEnabled, setApiToken } from "@/lib/apiClient";
+import { api, ApiError, apiEnabled, setApiToken } from "@/lib/apiClient";
 import { cartItems, track } from "@/lib/track";
 
 type State = {
@@ -111,7 +111,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     Promise.allSettled([api.me(), api.addresses(), api.orders(), api.wishlist()]).then(([me, addr, ord, wish]) => {
       if (cancelled) return;
       if (me.status === "rejected") {
-        // token expired or revoked: sign out locally
+        // Only an expired/revoked sign-in (401, e.g. after the 90-day limit) signs out; a network blip keeps the session.
+        if (!(me.reason instanceof ApiError && me.reason.status === 401)) return;
         setApiToken(null);
         setState((s) => ({ ...s, token: null, user: null }));
         return;

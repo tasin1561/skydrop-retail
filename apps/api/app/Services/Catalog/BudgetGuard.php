@@ -6,6 +6,7 @@ use App\Models\ApiLog;
 use App\Models\Setting;
 use App\Services\Alerts;
 use App\Support\Limits;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Monthly Oxylabs spend from api_logs. Above 100% of the budget, browsing goes to fallbacks/cache only and
@@ -35,10 +36,52 @@ class BudgetGuard
         return $b > 0 ? $this->spent() / $b : 0.0;
     }
 
-    /** May a metered provider serve this purpose? Checkout verification is always allowed. */
+    /**
+     * May a metered provider serve this purpose? Checkout price checks have their own daily ceiling
+     * (System → Limits "Oxylabs price checks per day"); past it they fall back to recent prices (verify grace).
+     */
     public function allowsMetered(string $purpose): bool
     {
-        return $purpose === 'verify' || ($this->ratio() < 1.0 && ! $this->dailyCapHit());
+        if ($purpose === 'verify') {
+            return ! $this->verifyCapHit();
+        }
+
+        return $this->ratio() < 1.0 && ! $this->dailyCapHit();
+    }
+
+    // ---- Daily ceiling for checkout price checks (approximate USD, counted per successful metered call)
+
+    private function verifyKey(): string
+    {
+        return 'oxylabs:verify-spend:'.now()->toDateString();
+    }
+
+    public function verifyCap(): float
+    {
+        return Limits::float('catalog.verify_daily_usd');
+    }
+
+    public function verifySpentToday(): float
+    {
+        return ((int) Cache::get($this->verifyKey(), 0)) / 1_000_000; // stored in micro-dollars (integer increments are atomic)
+    }
+
+    public function verifyCapHit(): bool
+    {
+        $cap = $this->verifyCap();
+
+        return $cap > 0 && $this->verifySpentToday() >= $cap;
+    }
+
+    public function recordVerifySpend(float $usd): void
+    {
+        $key = $this->verifyKey();
+        Cache::add($key, 0, now()->addDays(2));
+        Cache::increment($key, (int) round($usd * 1_000_000));
+        if ($this->verifyCapHit() && Cache::add($key.':alerted', 1, now()->addDay())) {
+            rescue(fn () => $this->alerts->send(sprintf('Oxylabs price-check ceiling reached: $%.2f today (ceiling $%.2f). Orders now use prices checked in the last 72 hours until midnight. Change it in System → Limits.',
+                $this->verifySpentToday(), $this->verifyCap()), 'warning'), null, false);
+        }
     }
 
     /** Background ingestion (deals, bestsellers) stops earlier to leave room for shoppers. */

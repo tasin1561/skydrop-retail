@@ -152,8 +152,22 @@ async function http<T>(method: string, path: string, opts: { query?: Query; body
     if (!res.ok) throw new ApiError(res.status, { message: res.status >= 500 ? "Skydrop is having a problem. Please try again." : `Request failed (${res.status})` });
     throw new ApiError(res.status, { message: "Unexpected response from Skydrop. Please try again." });
   }
+  if (res.status === 401 && token) {
+    // Sign-in expired (90-day logins) or revoked: forget it so the app shows "Sign in" instead of failing calls.
+    await tokenStore.set(null);
+    sessionListeners.forEach((fn) => fn());
+  }
   if (!res.ok) throw new ApiError(res.status, json as ApiErrorBody | null);
   return json as T;
+}
+
+const sessionListeners = new Set<() => void>();
+/** Called when the API rejects the saved sign-in (expired / revoked). Returns an unsubscribe function. */
+export function onSessionExpired(fn: () => void) {
+  sessionListeners.add(fn);
+  return () => {
+    sessionListeners.delete(fn);
+  };
 }
 
 /** Runs the live call, or the demo implementation when the API isn't available. */

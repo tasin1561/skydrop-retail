@@ -35,9 +35,11 @@ class AuthController extends Controller
         if ($r['isNew'] && ! empty($data['invite'])) {
             rescue(fn () => app(ReferralService::class)->attachInvite($r['user'], $data['invite']), null, true);
         }
-        $token = $r['user']->createToken($data['device'] ?? 'web', ['shopper'])->plainTextToken;
+        // Shopper sign-ins last 90 days (config retail.auth.token_days); after that the app/site asks for a new OTP.
+        $expires = now()->addDays(max(1, (int) config('retail.auth.token_days', 90)));
+        $token = $r['user']->createToken($data['device'] ?? 'web', ['shopper'], $expires)->plainTextToken;
 
-        return response()->json(['token' => $token, 'user' => $r['user']->toApi(), 'isNew' => $r['isNew']]);
+        return response()->json(['token' => $token, 'expiresAt' => $expires->toIso8601String(), 'user' => $r['user']->toApi(), 'isNew' => $r['isNew']]);
     }
 
     public function me(Request $request): JsonResponse

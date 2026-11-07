@@ -3,6 +3,7 @@
 namespace App\Services\Commerce;
 
 use App\Jobs\Commerce\CreateSkydropConsignment;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Services\Fraud\FraudGate;
@@ -153,6 +154,9 @@ class OrderWorkflow
         if ($status === 'cancelled') {
             app(Payments\PaymentService::class)->refundAll($order, 'Order cancelled');
             $this->points->refund($order);
+            if ($order->coupon_id) {
+                Coupon::release((int) $order->coupon_id); // a cancelled order gives its coupon use back (total and per customer)
+            }
             if ($order->tracking_code && $order->skydrop_consignment_id) {
                 rescue(fn () => app(Skydrop\SkydropClient::class)->cancel($order), null, true);
             }

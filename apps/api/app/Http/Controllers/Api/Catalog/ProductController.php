@@ -55,9 +55,10 @@ class ProductController extends CatalogController
 
     public function popular(Request $request, CatalogQuery $query): JsonResponse
     {
-        $v = $request->validate(['store' => self::STORES, 'category' => 'nullable|string|max:40', 'limit' => 'nullable|integer|min:1|max:60']);
+        $v = $request->validate(['store' => self::STORES, 'category' => 'nullable|string|max:40', 'limit' => 'nullable|integer|min:1|max:60', 'brand' => self::BRAND]);
+        $brands = $this->brands($v['brand'] ?? null);
 
-        return response()->json(['items' => $this->cards($query->popular($v['store'] ?? null, (int) ($v['limit'] ?? 12), $v['category'] ?? null), $request)]);
+        return response()->json(['items' => $this->cards($query->popular($v['store'] ?? null, (int) ($v['limit'] ?? 12), $v['category'] ?? null, $brands), $request)]);
     }
 
     public function deals(Request $request, CatalogQuery $query): JsonResponse
