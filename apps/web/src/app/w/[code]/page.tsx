@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { productsByIds } from "@/lib/data";
+import { getFeatures, isOn } from "@/lib/features";
 import { demoWishlistIds, type SharedWishlist } from "@/lib/growth";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/ProductBits";
@@ -46,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SharedWishlistPage({ params }: Props) {
   const { code } = await params;
+  if (!isOn(await getFeatures(), "share")) notFound();
   const w = await load(code);
   if (!w) notFound();
   const title = w.owner ? `${w.owner}'s wishlist` : "A shared wishlist";
