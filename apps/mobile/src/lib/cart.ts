@@ -3,6 +3,7 @@ import type { CartItem, MarketId, Product } from "./types";
 import { MARKET_IDS } from "./markets";
 import { PRICING, groupByMarket, mrpBdt, priceBdt, shippingFor } from "./pricing";
 import { pointsToEarn, pointsValueBdt } from "./points";
+import { fmtDate, type Lang } from "@/i18n/core";
 
 export type Coupon = { code: string; label: string; kind: "percent" | "freeship" };
 
@@ -99,8 +100,8 @@ export function isUnavailableStock(stock?: string) {
   return /out of stock|unavailable/i.test(stock ?? "");
 }
 
-export function addDays(iso: string, days: number) {
+export function addDays(iso: string, days: number, lang: Lang = "en") {
   const d = new Date(iso);
   d.setDate(d.getDate() + days);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return fmtDate(d, lang, { day: "numeric", month: "short" });
 }

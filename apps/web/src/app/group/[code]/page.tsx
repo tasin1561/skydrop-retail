@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GroupView } from "@/components/shopping/GroupView";
 import { getFeatures, isOn } from "@/lib/features";
+import { getT } from "@/i18n/server";
 
 type Props = { params: Promise<{ code: string }> };
 
-export const metadata: Metadata = { title: "Join my group order", description: "Order together from one Indian store and share the shipping on Skydrop Retail." };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getT();
+  return { title: t("gp.joinMeta"), description: t("gp.joinDesc") };
+}
 
 export default async function GroupCodePage({ params }: Props) {
   const { code } = await params;

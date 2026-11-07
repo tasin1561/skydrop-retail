@@ -232,6 +232,7 @@ through the gateway (`paymentStatus: "refunded"` or `"refund_pending"` when manu
 `GET /orders/{id}/invoice` → printable HTML invoice (bearer auth). `Order.invoiceUrl` is a signed link (24 h) that opens without a token.
 `POST /orders/{id}/support { type: "return"|"damaged"|"wrong_item"|"other", message, photos?: url[] }` → `201 { request }`
 (return/damaged/wrong_item only after delivery and within 3 days: `422 { code: "not_delivered"|"window_closed" }`) · `GET /support` → `{ items }`
+(each request carries `priority: true` for Plus members; admin lists sort these first)
 
 `Order`: `{ id ("SR-XXXXXX"), createdAt, items: CartItem[], address, payment (label, e.g. "bKash"), paymentMethod, paymentStatus
 ("pending"|"paid"|"partial"|"failed"|"refunded"|"refund_pending"), paidBdt, dueOnDelivery, subtotal, shipping, discount, couponCode,
@@ -311,7 +312,7 @@ Always re-validated with the gateway (bKash execute/query, Nagad verify, SSLComm
 (cache 60 s). `store=all` returns everything; a marketplace returns its own items plus `store:"all"` ones.
 - `Banner`: `{ id, title, subtitle, image, link, cta, store, placement: "hero"|"strip"|"category", startsAt, endsAt, sort }` — active and inside
   its schedule only. `image` is the uploaded file (public disk) or the image URL.
-- `FlashSale`: `{ id, title, store, status: "live"|"upcoming", startsAt, endsAt, maxQty, items: [{ product: Product, regularBdt, extraOffBdt, flashBdt }] }`
+- `FlashSale`: `{ id, title, store, status: "live"|"upcoming", startsAt, endsAt, maxQty, earlyAccess (true when a Plus member sees it before `startsAt`), items: [{ product: Product, regularBdt, extraOffBdt, flashBdt }] }`
   — live sales plus those starting within 7 days; hidden products are skipped.
 - Flash discount (`flash_sale_items.off_pct` or `off_bdt`) is funded from our margin and **capped at the margin** of that price
   (`FlashSaleService::amount`). Applied in `PricingService::productBdt` while the sale is live and the product's market matches the sale store.
@@ -529,15 +530,15 @@ rider { lat, lng, at } | null (only while out_for_delivery and fresher than 10 m
 autoApproveAt, decidedAt, reasons, items: [{ id, title, variant, qty, image, market, condition, note, photos: url[], video: url|null }] } }`
 `POST /orders/{id}/unboxing/approve` → `{ unboxing, order }` (409 `not_awaiting` unless awaiting approval) ·
 `POST /orders/{id}/unboxing/problem { reason: damaged|wrong_item|not_as_described|size_issue, note? }` → `{ unboxing, return }` (opens an India-stage
-return/replacement case). No answer within 48 h → auto-approved (hourly job). The order cannot leave the hub (Hand to Skydrop / advance hidden)
+return/replacement case). Return fee: settings `returns.shipping_fee_bdt` (default ৳100) and `returns.fee_reasons` (default `size_issue`, `changed_mind`) in Admin → Fulfilment settings; 0 disables it; waived for Plus members. No answer within 48 h → auto-approved (hourly job). The order cannot leave the hub (Hand to Skydrop / advance hidden)
 while awaiting approval or after a problem.
 
 Returns (feature `returns`): `GET /orders/{id}/returns` → `{ eligibility: { eligible, reason: not_delivered|window_closed|already_requested|disabled|null,
-windowDays, windowEndsAt, reasons, resolutions, items: [{ id, productId, title, variant, image, market, qty, returnableQty, unitBdt }] }, items: Return[] }` ·
+windowDays, windowEndsAt, reasons, resolutions, returnFee: { amountBdt, reasons, waived (Plus member) }, items: [{ id, productId, title, variant, image, market, qty, returnableQty, unitBdt }] }, items: Return[] }` ·
 `POST /orders/{id}/returns { items: [{ orderItemId, qty? }], reason: damaged|wrong_item|not_as_described|size_issue|changed_mind (only if allowed),
 note?, photos?: uploadId[] (required for damaged / wrong_item), resolution: refund|replacement|store_credit }` → `201 { return }` (422 with `code`
 when not eligible) · `GET /returns` → `{ items: Return[] }`.
-`Return`: `{ id, orderId, stage: india|delivered, items, reason, reasonLabel, note, photos: signedUrl[], resolution, status, statusLabel, refundBdt,
+`Return`: `{ id, orderId, stage: india|delivered, items, reason, reasonLabel, note, photos: signedUrl[], resolution, status, statusLabel, refundBdt, returnFeeBdt (deducted from the refund), priority (Plus member),
 replacementOrderId, pickupAt, createdAt, timeline: [{ status, at, note }] }`. Status flow: `requested → approved | rejected → pickup_scheduled →
 received → refunded | replaced | credited` (India-stage cases may go from `approved` straight to a resolution). Refunds go back through the payment
 gateway(s); any part a gateway cannot refund goes to the wallet when the `wallet` feature is on. Replacement = new zero-charge order linked by

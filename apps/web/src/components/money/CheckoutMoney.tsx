@@ -5,9 +5,9 @@ import { Icon } from "@/components/Icon";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { apiEnabled } from "@/lib/apiClient";
 import { emiPlan, money, type EmiConfig, type MoneyQuote } from "@/lib/money";
-import { formatBdt } from "@/lib/pricing";
 import type { CartItem } from "@/lib/types";
 import "./money.css";
+import { useT } from "@/i18n/client";
 
 export type EmiChoice = { tenure: number; bank: string };
 
@@ -17,6 +17,8 @@ export type EmiChoice = { tenure: number; bank: string };
  */
 export function EmiOption({ amount, value, onChange }: { amount: number; value: EmiChoice | null; onChange: (v: EmiChoice | null) => void }) {
   const on = useFeature("pay.emi");
+  const tx = useT();
+  const { t: tr, bdt, digits } = tx;
   const [cfg, setCfg] = useState<EmiConfig | null>(null);
   useEffect(() => {
     if (!on) return;
@@ -32,7 +34,7 @@ export function EmiOption({ amount, value, onChange }: { amount: number; value: 
   const tenure = value?.tenure ?? cfg.tenures[Math.min(1, cfg.tenures.length - 1)];
   const banks = cfg.banks.filter((b) => b.rates[String(tenure)] !== undefined);
   const bank = value?.bank && banks.some((b) => b.code === value.bank) ? value.bank : (banks[0]?.code ?? "");
-  const plan = emiPlan(cfg, amount, tenure, bank || null);
+  const plan = emiPlan(cfg, amount, tenure, bank || null, tx);
 
   return (
     <div className={"co-option flex-col items-stretch " + (active ? "is-active" : "")}>
@@ -49,11 +51,11 @@ export function EmiOption({ amount, value, onChange }: { amount: number; value: 
           <Icon name="card" size={18} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold">Card EMI (SSLCommerz)</span>
+          <span className="block text-sm font-bold">{tr("emi.label")}</span>
           <span className="block text-xs text-ink-2">
             {eligible
-              ? `Pay in ${cfg.tenures.join(", ")} monthly instalments on a credit card`
-              : `Available on orders of ${formatBdt(cfg.minOrderBdt)} or more`}
+              ? tr("emi.payIn", { tenures: digits(cfg.tenures.join(", ")) })
+              : tr("emi.availableOn", { amount: bdt(cfg.minOrderBdt) })}
           </span>
         </span>
         <span className="co-radio" aria-hidden />
@@ -61,16 +63,16 @@ export function EmiOption({ amount, value, onChange }: { amount: number; value: 
 
       {active && (
         <div className="money-in mt-3 space-y-3 border-t border-dashed border-line pt-3">
-          <div role="radiogroup" aria-label="EMI tenure" className="flex flex-wrap gap-2">
+          <div role="radiogroup" aria-label={tr("emi.tenure")} className="flex flex-wrap gap-2">
             {cfg.tenures.map((t) => (
               <button key={t} type="button" role="radio" aria-checked={t === tenure} className="money-chip text-sm" onClick={() => onChange({ tenure: t, bank })}>
-                {t} months
+                {tr("emi.months", { count: t })}
               </button>
             ))}
           </div>
           {banks.length > 0 && (
             <label className="block text-xs font-semibold text-ink-2">
-              Card issuing bank
+              {tr("emi.bank")}
               <select
                 value={bank}
                 onChange={(e) => onChange({ tenure, bank: e.target.value })}
@@ -78,7 +80,7 @@ export function EmiOption({ amount, value, onChange }: { amount: number; value: 
               >
                 {banks.map((b) => (
                   <option key={b.code} value={b.code}>
-                    {b.name} · {b.rates[String(tenure)]}% charge
+                    {tr("emi.bankCharge", { bank: b.name, pct: b.rates[String(tenure)] })}
                   </option>
                 ))}
               </select>
@@ -87,25 +89,25 @@ export function EmiOption({ amount, value, onChange }: { amount: number; value: 
           {plan.eligible ? (
             <dl className="grid grid-cols-3 gap-2 rounded-2xl bg-surface-2 p-3 text-center text-xs">
               <div>
-                <dt className="text-ink-3">Monthly</dt>
+                <dt className="text-ink-3">{tr("emi.monthly")}</dt>
                 <dd key={plan.monthlyBdt} className="money-count text-base font-extrabold tabular-nums text-ink">
-                  {formatBdt(plan.monthlyBdt)}
+                  {bdt(plan.monthlyBdt)}
                 </dd>
               </div>
               <div>
-                <dt className="text-ink-3">Bank charge</dt>
-                <dd className="text-base font-extrabold tabular-nums text-ink">{plan.chargeBdt ? formatBdt(plan.chargeBdt) : "0%"}</dd>
+                <dt className="text-ink-3">{tr("emi.bankChargeLabel")}</dt>
+                <dd className="text-base font-extrabold tabular-nums text-ink">{plan.chargeBdt ? bdt(plan.chargeBdt) : digits("0%")}</dd>
               </div>
               <div>
-                <dt className="text-ink-3">Total</dt>
-                <dd className="text-base font-extrabold tabular-nums text-ink">{formatBdt(plan.totalBdt)}</dd>
+                <dt className="text-ink-3">{tr("sum.total")}</dt>
+                <dd className="text-base font-extrabold tabular-nums text-ink">{bdt(plan.totalBdt)}</dd>
               </div>
             </dl>
           ) : (
             <p className="text-xs font-semibold text-warn">{plan.reason}</p>
           )}
           <p className="text-[11px] text-ink-3">
-            The {plan.ratePct}% bank charge is added to your order total. Your bank converts the payment to instalments; the exact schedule is set by the bank.
+            {tr("emi.note", { pct: plan.ratePct })}
           </p>
         </div>
       )}
@@ -139,6 +141,7 @@ export function CheckoutMoney({
   lock?: boolean;
 }) {
   const walletOn = useFeature("wallet");
+  const { t, bdt } = useT();
   const [q, setQ] = useState<MoneyQuote | null>(null);
   const key = items.map((i) => `${i.productId}:${i.variant ?? ""}:${i.qty}:${i.unitBdt}`).join("|") + `|${coupon}|${redeemPoints}|${payment}|${emi?.tenure}|${emi?.bank}|${useWallet}`;
 
@@ -178,8 +181,8 @@ export function CheckoutMoney({
   const balance = q.wallet?.balanceBdt ?? 0;
   const lines = [
     ...(q.membership?.lines ?? []).map((l) => ({ ...l, sign: "−", tone: "text-good", icon: "star" })),
-    ...(q.walletApplied > 0 ? [{ key: "wallet", label: "Skydrop Wallet", amountBdt: q.walletApplied, sign: "−", tone: "text-good", icon: "wallet" }] : []),
-    ...(q.emiCharge > 0 && q.emi ? [{ key: "emi", label: `EMI charge (${q.emi.bankName ?? "bank"}, ${q.emi.ratePct}%)`, amountBdt: q.emiCharge, sign: "+", tone: "", icon: "card" }] : []),
+    ...(q.walletApplied > 0 ? [{ key: "wallet", label: t("wallet.name"), amountBdt: q.walletApplied, sign: "−", tone: "text-good", icon: "wallet" }] : []),
+    ...(q.emiCharge > 0 && q.emi ? [{ key: "emi", label: t("wallet.emiCharge", { bank: q.emi.bankName ?? t("wallet.bank"), pct: q.emi.ratePct }), amountBdt: q.emiCharge, sign: "+", tone: "", icon: "card" }] : []),
   ];
 
   return (
@@ -191,11 +194,11 @@ export function CheckoutMoney({
             <Icon name="wallet" size={18} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold">Use Skydrop Wallet</span>
+            <span className="block text-sm font-bold">{t("wallet.use")}</span>
             <span className="block text-xs text-ink-2">
               {useWallet && q.walletApplied > 0
-                ? `${formatBdt(q.walletApplied)} applied · ${formatBdt(balance - q.walletApplied)} left`
-                : `Balance ${formatBdt(balance)}`}
+                ? t("wallet.applied", { amount: bdt(q.walletApplied), left: bdt(balance - q.walletApplied) })
+: t("wallet.balance", { amount: bdt(balance) })}
             </span>
           </span>
           <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (useWallet ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
@@ -208,7 +211,7 @@ export function CheckoutMoney({
         <dl className="co-card money-in space-y-2 p-4 text-sm">
           {q.membership && (
             <p className="mb-1 flex items-center gap-2 text-xs font-bold text-good">
-              <span className="plus-badge">PLUS</span> Plus saved you {formatBdt(q.membership.savedBdt)}
+              <span className="plus-badge">PLUS</span> {t("plus.saved", { amount: bdt(q.membership.savedBdt) })}
               {q.membership.pointsMultiplier > 1 ? ` · ${q.membership.pointsMultiplier}× points` : ""}
             </p>
           )}
@@ -219,19 +222,19 @@ export function CheckoutMoney({
               </dt>
               <dd className="font-semibold tabular-nums">
                 {l.sign}
-                {formatBdt(l.amountBdt)}
+                {bdt(l.amountBdt)}
               </dd>
             </div>
           ))}
           <div className="flex items-baseline justify-between gap-3 border-t border-dashed border-line pt-2">
-            <dt className="font-bold">Order total</dt>
-            <dd className="font-extrabold tabular-nums">{formatBdt(q.total)}</dd>
+            <dt className="font-bold">{t("money.orderTotal")}</dt>
+            <dd className="font-extrabold tabular-nums">{bdt(q.total)}</dd>
           </div>
           {q.payNow !== q.total && (
             <div className="flex items-baseline justify-between gap-3">
-              <dt className="font-bold">Pay now</dt>
+              <dt className="font-bold">{t("money.payNow")}</dt>
               <dd key={q.payNow} className="co-bump text-lg font-extrabold tabular-nums">
-                {formatBdt(q.payNow)}
+                {bdt(q.payNow)}
               </dd>
             </div>
           )}

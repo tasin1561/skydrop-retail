@@ -9,20 +9,22 @@ import { ApiError, isDemo } from "@/api/client";
 import { moneyApi, RETURN_PLUS, type PlusMembership, type PlusPeriod, type PlusPlan, type PlusSavings } from "@/api/money";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/lib/features";
-import { formatBdt } from "@/lib/pricing";
 import { useTheme } from "@/theme";
 import { Button, Card, Empty, Pill, Skeleton, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n";
+import type { MsgKey } from "@/i18n";
 
-const PERIOD: Record<PlusPeriod, string> = { monthly: "month", quarterly: "3 months", yearly: "year" };
+const PERIOD: Record<PlusPeriod, MsgKey> = { monthly: "period.monthly", quarterly: "period.quarterly", yearly: "period.yearly" };
 const PAY = [
   { id: "bkash", label: "bKash" },
   { id: "nagad", label: "Nagad" },
-  { id: "card", label: "Card" },
+  { id: "card", label: "pay.card" },
 ] as const;
 
 // Skydrop Plus: plans with a period toggle, buy through the payment gateway (manual renewal).
 export default function PlusScreen() {
+  const { t, bdt, date } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useStore();
@@ -49,21 +51,21 @@ export default function PlusScreen() {
     }, [on, load]),
   );
 
-  if (!on) return <Empty icon="star" title="Skydrop Plus" text="Skydrop Plus is not available right now." />;
+  if (!on) return <Empty icon="star" title={t("acc.plus")} text={t("pl.off")} />;
 
   const periods = (["monthly", "quarterly", "yearly"] as PlusPeriod[]).filter((p) => plans?.some((x) => x.period === p));
   const current = me?.membership && me.membership.status !== "expired" ? me.membership : null;
 
   const buy = async (plan: PlusPlan) => {
     if (!user) return router.push({ pathname: "/login", params: { next: "/plus" } });
-    if (isDemo()) return Alert.alert("Preview", "Plus can be bought once the app is connected to the store.");
+    if (isDemo()) return Alert.alert(t("m.preview"), t("m.plusNotConnected"));
     setBusy(plan.slug);
     try {
       const r = await moneyApi.buyPlus(plan.slug, pay);
       if (r.payment.redirectUrl) await WebBrowser.openAuthSessionAsync(r.payment.redirectUrl, RETURN_PLUS);
       await load();
     } catch (e) {
-      Alert.alert("Payment not started", e instanceof ApiError ? e.message : "Please try again.");
+      Alert.alert(t("m.payNotStarted"), e instanceof ApiError ? e.message : t("common.pleaseRetry"));
     } finally {
       setBusy(null);
     }
@@ -73,15 +75,17 @@ export default function PlusScreen() {
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32, gap: 14 }}>
       <LinearGradient colors={["#0b0b0f", "#2a1d8f"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <Pill text="SKYDROP PLUS" icon="star" color="#f5c451" bg="rgba(255,255,255,0.08)" />
-        <T style={{ color: "#fff8e1", fontSize: 28, lineHeight: 34, fontWeight: "900" }}>Free shipping from India on every order</T>
+        <T style={{ color: "#fff8e1", fontSize: 28, lineHeight: 34, fontWeight: "900" }}>{t("m.plusHero")}</T>
         {current ? (
           <T v="small" style={{ color: "rgba(255,255,255,0.8)" }}>
-            You&apos;re on {current.plan?.name}
-            {current.renewsAt ? ` · paid through ${new Date(current.renewsAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+            {t("pl.youreOn", { plan: current.plan?.name ?? "" })}
+            {current.renewsAt ? t("pl.paidThrough", { date: date(current.renewsAt, { day: "numeric", month: "short", year: "numeric" }) }) : ""}
           </T>
         ) : null}
         {current && me && me.savings.totalBdt > 0 ? (
-          <T style={{ color: "#f5c451", fontWeight: "800" }}>Plus saved you {formatBdt(me.savings.totalBdt)}</T>
+          <T style={{ color: "#f5c451", fontWeight: "800" }}>
+            {t("pl.savedYou")} {bdt(me.savings.totalBdt)}
+          </T>
         ) : null}
       </LinearGradient>
 
@@ -95,7 +99,7 @@ export default function PlusScreen() {
               accessibilityState={{ checked: p === period }}
               style={[styles.toggleBtn, p === period && { backgroundColor: c.surface }]}
             >
-              <T style={{ fontWeight: "700", textTransform: "capitalize" }}>{p}</T>
+              <T style={{ fontWeight: "700" }}>{t(`pl.${p}`)}</T>
             </Tap>
           ))}
         </View>
@@ -111,11 +115,11 @@ export default function PlusScreen() {
               <Card style={[{ gap: 8 }, p.highlight && { borderWidth: 2, borderColor: "#f5c451" }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <T v="h3">{p.name}</T>
-                  {p.highlight && <Pill text="Popular" color="#b45309" />}
+                  {p.highlight && <Pill text={t("m.popular")} color="#b45309" />}
                 </View>
                 <T style={{ fontSize: 28, fontWeight: "900", fontVariant: ["tabular-nums"] }}>
-                  {formatBdt(p.priceBdt)}
-                  <T tone="ink2"> / {PERIOD[p.period]}</T>
+                  {bdt(p.priceBdt)}
+                  <T tone="ink2"> / {t(PERIOD[p.period])}</T>
                 </T>
                 {p.benefitList.map((b) => (
                   <View key={b} style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
@@ -132,17 +136,17 @@ export default function PlusScreen() {
                       accessibilityState={{ checked: pay === m.id }}
                       style={[styles.chip, { backgroundColor: pay === m.id ? c.brand : c.surface2 }]}
                     >
-                      <T style={{ fontWeight: "700", color: pay === m.id ? "#fff" : c.ink }}>{m.label}</T>
+                      <T style={{ fontWeight: "700", color: pay === m.id ? "#fff" : c.ink }}>{m.label === "pay.card" ? t(m.label) : m.label}</T>
                     </Tap>
                   ))}
                 </View>
-                <Button label={user ? `Pay ${formatBdt(p.priceBdt)}` : "Sign in to join"} icon="shield" busy={busy === p.slug} onPress={() => buy(p)} />
+                <Button label={user ? t("m.payAmount", { amount: bdt(p.priceBdt) }) : t("pl.signIn")} icon="shield" busy={busy === p.slug} onPress={() => buy(p)} />
               </Card>
             </Animated.View>
           ))
       )}
       <T v="tiny" tone="ink3" style={{ textAlign: "center" }}>
-        Plus does not renew automatically. We&apos;ll text you before it ends with a link to renew.
+        {t("m.noAutoShort")}
       </T>
     </ScrollView>
   );

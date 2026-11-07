@@ -6,6 +6,7 @@ import type { AppNotification } from "@/lib/apiClient";
 import { Icon } from "@/components/Icon";
 import { groupByDay, timeAgo } from "./useNotifications";
 import "./notifications.css";
+import { useT } from "@/i18n/client";
 
 // Icon chip per notification type: [icon, color]
 const CHIP: Record<string, [string, string]> = {
@@ -44,12 +45,13 @@ type Props = {
 };
 
 export function NotificationList({ items, onRead, onRemove, onNavigate, compact }: Props) {
+  const tr = useT();
   if (items.length === 0) return <EmptyState />;
   return (
     <div className="flex flex-col gap-3">
       {groupByDay(items).map((g) => (
-        <section key={g.label} aria-label={g.label}>
-          <h3 className="px-1 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-3">{g.label}</h3>
+        <section key={g.label} aria-label={tr.t(g.label)}>
+          <h3 className="px-1 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-3">{tr.t(g.label)}</h3>
           <ul className="flex flex-col gap-1">
             {g.items.map((n, i) => (
               <Row key={n.id} n={n} index={i} compact={compact} onRead={onRead} onRemove={onRemove} onNavigate={onNavigate} />
@@ -62,6 +64,7 @@ export function NotificationList({ items, onRead, onRemove, onNavigate, compact 
 }
 
 function Row({ n, index, compact, onRead, onRemove, onNavigate }: { n: AppNotification; index: number; compact?: boolean } & Omit<Props, "items" | "compact">) {
+  const tr = useT();
   const [dx, setDx] = useState(0);
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const moved = useRef(false);
@@ -100,9 +103,9 @@ function Row({ n, index, compact, onRead, onRemove, onNavigate }: { n: AppNotifi
       <span className="min-w-0 flex-1">
         <span className={"block text-sm leading-snug " + (n.read ? "font-medium text-ink-2" : "font-bold text-ink")}>{n.title}</span>
         {n.body && <span className={"mt-0.5 block text-[13px] leading-snug text-ink-2 " + (compact ? "line-clamp-2" : "")}>{n.body}</span>}
-        <span className="mt-1 block text-[11px] font-medium text-ink-3">{timeAgo(n.createdAt)}</span>
+        <span className="mt-1 block text-[11px] font-medium text-ink-3">{timeAgo(n.createdAt, tr)}</span>
       </span>
-      {!n.read && <span aria-label="Unread" className="nc-unread-dot mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-accent" />}
+      {!n.read && <span aria-label={tr.t("nt.unread")} className="nc-unread-dot mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-accent" />}
     </>
   );
 
@@ -111,7 +114,7 @@ function Row({ n, index, compact, onRead, onRemove, onNavigate }: { n: AppNotifi
       {/* revealed behind the row while swiping */}
       <div aria-hidden className="absolute inset-0 flex items-center justify-end gap-2 rounded-2xl px-4 text-xs font-bold text-white" style={{ background: dx <= -SWIPE * 1.7 ? "var(--bad)" : "var(--accent)" }}>
         <Icon name={dx <= -SWIPE * 1.7 ? "trash" : "check"} size={16} stroke={2.2} />
-        {dx <= -SWIPE * 1.7 ? "Delete" : "Mark read"}
+        {dx <= -SWIPE * 1.7 ? tr.t("nt.delete") : tr.t("nt.markRead")}
       </div>
       <div
         className={"nc-row-inner group relative flex items-start gap-3 rounded-2xl p-2.5 " + (n.read ? "bg-surface" : "bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))]") + (dx ? " dragging" : "")}
@@ -143,12 +146,12 @@ function Row({ n, index, compact, onRead, onRemove, onNavigate }: { n: AppNotifi
         )}
         <div className="flex shrink-0 flex-col gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
           {!n.read && (
-            <button type="button" aria-label="Mark as read" title="Mark as read" onClick={() => onRead(n.id)}
+            <button type="button" aria-label={tr.t("nt.markAsRead")} title={tr.t("nt.markAsRead")} onClick={() => onRead(n.id)}
               className="grid h-7 w-7 place-items-center rounded-full text-ink-3 transition hover:bg-surface-2 hover:text-ink">
               <Icon name="check" size={15} stroke={2.2} />
             </button>
           )}
-          <button type="button" aria-label="Delete notification" title="Delete" onClick={() => onRemove(n.id)}
+          <button type="button" aria-label={tr.t("nt.deleteN")} title={tr.t("nt.delete")} onClick={() => onRemove(n.id)}
             className="grid h-7 w-7 place-items-center rounded-full text-ink-3 transition hover:bg-surface-2 hover:text-bad">
             <Icon name="x" size={15} stroke={2.2} />
           </button>
@@ -159,6 +162,7 @@ function Row({ n, index, compact, onRead, onRemove, onNavigate }: { n: AppNotifi
 }
 
 export function EmptyState() {
+  const tr = useT();
   return (
     <div className="flex flex-col items-center px-6 py-10 text-center">
       <span className="relative mb-3 grid h-16 w-16 place-items-center rounded-full bg-surface-2 text-ink-3">
@@ -167,8 +171,8 @@ export function EmptyState() {
           <Icon name="check" size={13} stroke={2.6} />
         </span>
       </span>
-      <p className="font-bold text-ink">You are all caught up</p>
-      <p className="mt-1 max-w-[16rem] text-sm text-ink-2">Order updates, price drops and offers will show up here.</p>
+      <p className="font-bold text-ink">{tr.t("nt.caught")}</p>
+      <p className="mt-1 max-w-[16rem] text-sm text-ink-2">{tr.t("nt.caughtB")}</p>
     </div>
   );
 }

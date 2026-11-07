@@ -1,11 +1,14 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
+
 export const STEPS = [
-  { id: "address", label: "Address" },
-  { id: "delivery", label: "Delivery" },
-  { id: "payment", label: "Payment" },
-  { id: "review", label: "Review" },
-] as const;
+  { id: "address", label: "co.step.address" },
+  { id: "delivery", label: "co.step.delivery" },
+  { id: "payment", label: "co.step.payment" },
+  { id: "review", label: "co.step.review" },
+] as const satisfies readonly { id: string; label: MsgKey }[];
 
 function DrawnCheck() {
   return (
@@ -19,8 +22,9 @@ function DrawnCheck() {
 // Mobile: a compact progress pill.
 export function Stepper({ step, reached, onGo }: { step: number; reached: number; onGo: (i: number) => void }) {
   const n = STEPS.length;
+  const { t, digits } = useT();
   return (
-    <nav aria-label="Checkout progress">
+    <nav aria-label={t("co.progress")}>
       {/* compact pill for phones */}
       <div className="sm:hidden">
         <div className="relative flex h-11 items-center justify-between overflow-hidden rounded-full bg-surface px-4 shadow-[var(--shadow-1)]">
@@ -30,11 +34,11 @@ export function Stepper({ step, reached, onGo }: { step: number; reached: number
             style={{ transform: `scaleX(${(step + 1) / n})` }}
           />
           <span className="relative flex items-center gap-2 text-sm font-bold">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs text-white">{step + 1}</span>
-            {STEPS[step].label}
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs text-white">{digits(step + 1)}</span>
+{t(STEPS[step].label)}
           </span>
           <span className="relative text-xs font-semibold text-ink-2" aria-current="step">
-            Step {step + 1} of {n}
+            {t("co.stepOf", { n: step + 1, total: n })}
           </span>
         </div>
         <div className="mt-2 flex gap-1.5 px-1" aria-hidden>
@@ -67,12 +71,12 @@ export function Stepper({ step, reached, onGo }: { step: number; reached: number
                 disabled={!can}
                 onClick={() => onGo(i)}
                 aria-current={i === step ? "step" : undefined}
-                aria-label={`${s.label}, step ${i + 1} of ${n}${state === "done" ? ", completed" : state === "current" ? ", current" : ""}`}
+                aria-label={t("co.stepAria", { label: t(s.label), n: i + 1, total: n }) + (state === "done" ? t("co.completed") : state === "current" ? t("co.current") : "")}
                 className={"co-step-dot " + (state === "current" ? "pulse-dot" : "") + (can ? " cursor-pointer" : "")}
               >
-                {state === "done" ? <DrawnCheck /> : i + 1}
+                {state === "done" ? <DrawnCheck /> : digits(i + 1)}
               </button>
-              <span className={"text-xs font-semibold " + (state === "todo" ? "text-ink-3" : "text-ink")}>{s.label}</span>
+              <span className={"text-xs font-semibold " + (state === "todo" ? "text-ink-3" : "text-ink")}>{t(s.label)}</span>
             </li>
           );
         })}

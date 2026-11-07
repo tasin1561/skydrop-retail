@@ -2,7 +2,6 @@ import "./shopping.css";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import type { CompareResult } from "@/lib/shopping/types";
 import { getT } from "@/i18n/server";
 

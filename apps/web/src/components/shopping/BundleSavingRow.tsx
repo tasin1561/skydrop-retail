@@ -1,7 +1,6 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
-import { formatBdt } from "@/lib/pricing";
 import { bundleOf } from "./useBundleTotals";
 import { useT } from "@/i18n/client";
 

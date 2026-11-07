@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { byMarket, loadProduct, related, usingApi } from "@/lib/data";
 import { getProduct } from "@/lib/data";
 import { STORES } from "@/lib/markets";
-import { formatBdt, priceBdt } from "@/lib/pricing";
+import { priceBdt } from "@/lib/pricing";
 import { Rail } from "@/components/ProductBits";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { isUnavailableStock } from "@/components/product/DeliveryCard";

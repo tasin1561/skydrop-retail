@@ -6,6 +6,8 @@
 // NEXT_PUBLIC_SUPPORT_HOURS      e.g. "Sat-Thu, 10am-8pm"
 // NEXT_PUBLIC_SUPPORT_ADDRESS    registered office address
 
+import type { MsgKey, TFn } from "@/i18n/core";
+
 const env = {
   whatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP?.replace(/\D/g, "") ?? "",
   phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim() ?? "",
@@ -58,3 +60,15 @@ export const SUPPORT = {
     },
   ] as Channel[],
 };
+
+/** Support hours and channel notes in the shopper's language (env values are shown as set). */
+export function localSupport(t: TFn) {
+  return {
+    hours: env.hours || t("support.hours"),
+    channels: SUPPORT.channels.map((c) => ({
+      ...c,
+      label: c.id === "phone" ? t("support.phoneLabel") : c.id === "email" ? t("support.emailLabel") : c.label,
+      note: t(`support.${c.id}` as MsgKey),
+    })),
+  };
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+
 export type VanState = "idle" | "busy" | "done";
 
 // Place-order button: idle label -> the Skydrop van drives in and bobs while the real request runs (busy)
@@ -10,8 +12,8 @@ export function VanButton({
   state,
   onClick,
   idleLabel,
-  doneLabel = "Order placed",
-  busyText = "Placing your order",
+  doneLabel: doneProp,
+  busyText: busyProp,
   error,
   disabled,
   className,
@@ -25,6 +27,9 @@ export function VanButton({
   disabled?: boolean;
   className?: string;
 }) {
+  const { t } = useT();
+  const doneLabel = doneProp ?? t("van.placed");
+  const busyText = busyProp ?? t("van.placing");
   return (
     <>
       <button

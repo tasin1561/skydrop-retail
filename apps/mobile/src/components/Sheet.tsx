@@ -5,6 +5,7 @@ import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withSpring
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme";
 import { T, IconButton } from "./ui";
+import { useT } from "@/i18n";
 
 export function Sheet({
   open,
@@ -19,6 +20,7 @@ export function Sheet({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const { t } = useT();
   const { c } = useTheme();
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -47,7 +49,7 @@ export function Sheet({
   return (
     <Modal transparent visible statusBarTranslucent navigationBarTranslucent onRequestClose={onClose} animationType="none">
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: c.overlay }, backdrop]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t("common.close")} />
       </Animated.View>
       <Animated.View
         style={[styles.sheet, { backgroundColor: c.surface, maxHeight: height * 0.88, paddingBottom: insets.bottom + 12 }, sheet]}
@@ -58,7 +60,7 @@ export function Sheet({
           <T v="h2" accessibilityRole="header">
             {title}
           </T>
-          <IconButton icon="x" label="Close" onPress={onClose} bg={c.surface2} size={40} />
+          <IconButton icon="x" label={t("common.close")} onPress={onClose} bg={c.surface2} size={40} />
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
           {children}

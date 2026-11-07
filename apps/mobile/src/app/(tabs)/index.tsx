@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { api } from "@/api/client";
 import { useStore } from "@/state/store";
-import { STORES } from "@/lib/markets";
+import { STORES , storeText } from "@/lib/markets";
 import { ACCENTS, radius, useTheme } from "@/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/components/Icon";
@@ -14,8 +14,10 @@ import { IconButton, Pill, T, Tap } from "@/components/ui";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useNotifications } from "@/lib/notifications";
 import { AskAiButton } from "@/components/AskAiButton";
+import { useT } from "@/i18n";
 
 export default function Home() {
+  const { t } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { mode, setMode, enabled, demo, totals, recent } = useStore();
@@ -49,25 +51,23 @@ export default function Home() {
     >
       <View style={styles.top}>
         <View style={{ flex: 1 }}>
-          <T v="label" tone="ink3">
-            Shop India · Delivered by Skydrop
-          </T>
+          <T v="label" tone="ink3">{t("m.tagline")}</T>
           <T v="h1" accessibilityRole="header">
             Skydrop Retail
           </T>
         </View>
-        {demo && <Pill text="Demo data" icon="info" />}
+        {demo && <Pill text={t("m.demoData")} icon="info" />}
         <AskAiButton />
-        <IconButton icon="zap" label="Live deals and offers" tint={c.coral} onPress={() => router.push({ pathname: "/deals", params: { store: mode } })} />
+        <IconButton icon="zap" label={t("home.liveDeals")} tint={c.coral} onPress={() => router.push({ pathname: "/deals", params: { store: mode } })} />
         {notes.enabled && (
           <IconButton
             icon="bell"
-            label={notes.unread > 0 ? `Notifications, ${notes.unread} unread` : "Notifications"}
+            label={notes.unread > 0 ? t("nt.unreadAria", { count: notes.unread }) : t("meta.notifications")}
             badge={notes.unread}
             onPress={() => router.push("/notifications")}
           />
         )}
-        <IconButton icon="shopping-cart" label={`Cart, ${totals.count} items`} badge={totals.count} onPress={() => router.navigate("/cart")} />
+        <IconButton icon="shopping-cart" label={t("nav.cartCount", { count: totals.count })} badge={totals.count} onPress={() => router.navigate("/cart")} />
       </View>
 
       <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
@@ -82,9 +82,7 @@ export default function Home() {
 
       {mode === "all" && markets.length > 0 && (
         <View style={{ marginTop: 20, paddingHorizontal: 16, gap: 10 }}>
-          <T v="h2" accessibilityRole="header">
-            Stores
-          </T>
+          <T v="h2" accessibilityRole="header">{t("deals.stores")}</T>
           <View style={{ flexDirection: "row", gap: 10 }}>
             {markets.map((m) => (
               <StoreTile key={m} m={m} />
@@ -94,21 +92,21 @@ export default function Home() {
       )}
 
       <Rail
-        title="Live deals and offers"
+        title={t("home.liveDeals")}
         items={live.data ?? []}
         loading={live.loading}
         onMore={() => router.push({ pathname: "/deals", params: { store: mode } })}
       />
       <Rail
-        title={mode === "all" ? "Popular across India" : `Popular on ${STORES[mode].name}`}
+        title={mode === "all" ? t("m.popularAll") : t("m.popularOn", { store: STORES[mode].name })}
         items={popular.data ?? []}
         loading={popular.loading}
         onMore={() => router.push({ pathname: "/search", params: { store: mode } })}
       />
-      <Rail title="Biggest savings" items={deals.data ?? []} loading={deals.loading} onMore={() => router.push({ pathname: "/search", params: { store: mode, sort: "discount" } })} />
+      <Rail title={t("m.biggestSavings")} items={deals.data ?? []} loading={deals.loading} onMore={() => router.push({ pathname: "/search", params: { store: mode, sort: "discount" } })} />
       {firstCat && (
         <Rail
-          title={STORES[mode].categories[0].label}
+          title={storeText(mode, t).categories[0].label}
           items={catRail.data ?? []}
           loading={catRail.loading}
           onMore={() => router.push({ pathname: "/search", params: { store: mode, category: firstCat } })}
@@ -116,7 +114,7 @@ export default function Home() {
       )}
       {recent.length > 0 && (
         <Rail
-          title="Recently viewed"
+          title={t("home.recent")}
           // keep the viewing order and the current store filter
           items={recent
             .map((id) => viewed.data?.find((p) => p.id === id))
@@ -131,10 +129,11 @@ export default function Home() {
 
 
 function StoreTile({ m }: { m: MarketId }) {
+  const { t } = useT();
   const a = ACCENTS[m];
   const s = STORES[m];
   return (
-    <Tap style={{ flex: 1 }} onPress={() => router.push(`/store/${m}`)} accessibilityLabel={`${s.name}, products from ${s.source}`}>
+    <Tap style={{ flex: 1 }} onPress={() => router.push(`/store/${m}`)} accessibilityLabel={t("m.storeTileA11y", { name: s.name, source: s.source })}>
       <LinearGradient colors={[a.heroA, a.heroB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tile}>
         <Icon name={s.icon} size={20} color="#fff" />
         <T v="h3" tone="white" style={{ fontSize: 14, marginTop: 8 }} numberOfLines={1}>

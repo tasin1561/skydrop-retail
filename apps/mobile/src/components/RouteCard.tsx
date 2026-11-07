@@ -5,6 +5,8 @@ import Animated, { Easing, useAnimatedProps, useReducedMotion, useSharedValue, w
 import type { Tracking } from "@/api/fulfilment";
 import { useTheme, withAlpha } from "@/theme";
 import { Card, T } from "./ui";
+import { fmtDate, type Lang } from "@/i18n/core";
+import { useT } from "@/i18n";
 
 // Same stylised map as the web (apps/web/src/components/fulfilment/RouteMap.tsx): original artwork, no tiles.
 const W = 360;
@@ -71,11 +73,12 @@ function Pulse({ x, y, color }: { x: number; y: number; color: string }) {
   );
 }
 
-const fmtDay = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+const fmtDay = (d: string, lang: Lang) => fmtDate(d + "T00:00:00", lang, { day: "numeric", month: "short" });
 
 /** Order screen: stylised route Kolkata → Benapole → Dhaka hub → customer district, legs, ETA and last event. */
 export function RouteCard({ tracking }: { tracking: Tracking }) {
   const { c } = useTheme();
+  const { t, lang, dateTime } = useT();
   const pts = tracking.points.map((p) => ({ ...p, ...px(p.lng, p.lat) }));
   const legs = pts.slice(0, -1).map((a, i) => {
     const b = pts[i + 1];
@@ -92,11 +95,11 @@ export function RouteCard({ tracking }: { tracking: Tracking }) {
   return (
     <Card style={{ gap: 12 }}>
       <T v="h2" accessibilityRole="header">
-        Route to {pts[3]?.short}
+        {t("tp.routeTo", { place: pts[3]?.short ?? "" })}
       </T>
       <View
         accessible
-        accessibilityLabel={`Route from Kolkata through Benapole and Dhaka hub to ${pts[3]?.short}, ${Math.round(tracking.progress * 100)} percent of the way`}
+        accessibilityLabel={t("m.routeA11y", { place: pts[3]?.short ?? "", pct: Math.round(tracking.progress * 100) })}
         style={{ borderRadius: 16, overflow: "hidden", backgroundColor: withAlpha(c.ink, 0.04), aspectRatio: W / H, maxHeight: 360, alignSelf: "center", width: "100%" }}
       >
         <Svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%">
@@ -127,7 +130,7 @@ export function RouteCard({ tracking }: { tracking: Tracking }) {
 
       {tracking.eta && (
         <T v="small" style={{ fontWeight: "700" }}>
-          Estimated delivery {tracking.eta.from === tracking.eta.to ? fmtDay(tracking.eta.from) : `${fmtDay(tracking.eta.from)} – ${fmtDay(tracking.eta.to)}`}
+          {t("tp.eta")} {tracking.eta.from === tracking.eta.to ? fmtDay(tracking.eta.from, lang) : `${fmtDay(tracking.eta.from, lang)} – ${fmtDay(tracking.eta.to, lang)}`}
         </T>
       )}
       <View style={{ gap: 8 }}>
@@ -144,7 +147,7 @@ export function RouteCard({ tracking }: { tracking: Tracking }) {
               {l.label}
             </T>
             <T v="tiny" tone="ink3">
-              {l.state === "done" ? "DONE" : l.state === "current" ? "ON THE WAY" : ""}
+              {l.state === "done" ? t("tp.done") : l.state === "current" ? t("tp.onWay") : ""}
             </T>
           </View>
         ))}
@@ -152,19 +155,17 @@ export function RouteCard({ tracking }: { tracking: Tracking }) {
       {tracking.lastEvent && (
         <View>
           <T v="tiny" tone="ink3">
-            Last update · {new Date(tracking.lastEvent.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+            {t("tp.lastUpdate", { when: dateTime(tracking.lastEvent.at) })}
           </T>
           <T v="small">{tracking.lastEvent.note ?? tracking.lastEvent.status}</T>
         </View>
       )}
       {tracking.unboxingHold && (
-        <T v="small" style={{ color: c.warn, fontWeight: "700" }}>
-          Waiting at the Kolkata hub for your unboxing approval. Open the order on the website to see the photos.
-        </T>
+        <T v="small" style={{ color: c.warn, fontWeight: "700" }}>{t("m.awaitingWeb")}</T>
       )}
       {tracking.pod?.receivedBy && (
         <T v="small" tone="ink2">
-          Proof of delivery: received by {tracking.pod.receivedBy}
+          {t("m.podBy", { name: tracking.pod.receivedBy })}
         </T>
       )}
     </Card>

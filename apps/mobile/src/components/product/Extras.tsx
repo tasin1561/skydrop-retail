@@ -8,7 +8,6 @@ import { router } from "expo-router";
 import { api, isDemo } from "@/api/client";
 import { useStore } from "@/state/store";
 import { pointsToEarn } from "@/lib/points";
-import { formatBdt } from "@/lib/pricing";
 import type { MarketId } from "@/lib/types";
 import { STORES } from "@/lib/markets";
 import { useAccent, useTheme } from "@/theme";
@@ -16,8 +15,10 @@ import { haptic } from "@/lib/haptics";
 import { Icon } from "../Icon";
 import { T, Tap } from "../ui";
 import { useToast } from "../Toast";
+import { useT } from "@/i18n";
 
 export function ProductExtras({ id, market, priceBdt, inStock }: { id: string; market: MarketId; priceBdt: number; inStock: boolean }) {
+  const { t, bdt } = useT();
   const { c } = useTheme();
   const a = useAccent(market);
   const toast = useToast();
@@ -39,12 +40,12 @@ export function ProductExtras({ id, market, priceBdt, inStock }: { id: string; m
       haptic.success();
       toast({
         kind: watching ? "info" : "success",
-        title: watching ? "Alert removed" : inStock ? "We'll tell you when the price drops" : "We'll tell you when it's back",
-        body: watching ? undefined : "You'll get an SMS as soon as it happens.",
+        title: watching ? t("px.alertRemoved") : inStock ? t("px.tellDrop") : t("px.tellBack"),
+        body: watching ? undefined : t("px.sms"),
       });
     } catch {
       haptic.error();
-      toast({ kind: "error", title: "Couldn't set the alert", body: "Please try again." });
+      toast({ kind: "error", title: t("px.alertFailed"), body: t("common.pleaseRetry") });
     } finally {
       setBusy(false);
     }
@@ -53,10 +54,10 @@ export function ProductExtras({ id, market, priceBdt, inStock }: { id: string; m
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
       {earn > 0 && (
-        <View style={[styles.chip, { backgroundColor: a.soft }]} accessibilityLabel={`Earn ${earn} Skydrop Points`}>
+        <View style={[styles.chip, { backgroundColor: a.soft }]} accessibilityLabel={t("px.earn", { count: earn })}>
           <Icon name="star" size={14} color={a.ink} />
           <T v="tiny" style={{ color: a.ink, fontWeight: "800" }}>
-            Earn {earn} Skydrop Points
+            {t("px.earn", { count: earn })}
           </T>
         </View>
       )}
@@ -65,12 +66,12 @@ export function ProductExtras({ id, market, priceBdt, inStock }: { id: string; m
         disabled={busy}
         accessibilityRole="switch"
         accessibilityState={{ checked: watching, busy }}
-        accessibilityLabel={inStock ? "Alert me if the price drops" : "Tell me when it's back"}
+        accessibilityLabel={inStock ? t("px.alertDrop") : t("px.tellMe")}
         style={[styles.chip, { backgroundColor: watching ? a.accent : c.surface2, minHeight: 44 }]}
       >
         <Icon name={watching ? "check" : "bell"} size={14} color={watching ? "#fff" : c.ink2} />
         <T v="tiny" style={{ color: watching ? "#fff" : c.ink2, fontWeight: "800" }}>
-          {watching ? (inStock ? `Watching price (${formatBdt(priceBdt)})` : "Back-in-stock alert on") : inStock ? "Alert me if the price drops" : "Tell me when it's back"}
+          {watching ? (inStock ? t("px.watching", { price: bdt(priceBdt) }) : t("px.backOn")) : inStock ? t("px.alertDrop") : t("px.tellMe")}
         </T>
       </Tap>
     </View>
@@ -79,6 +80,7 @@ export function ProductExtras({ id, market, priceBdt, inStock }: { id: string; m
 
 /** Shimmer bar shown while the API refreshes a listing from the Indian store. */
 export function FetchingLive({ market }: { market: MarketId }) {
+  const { t } = useT();
   const a = useAccent(market);
   const [w, setW] = useState(0);
   const x = useSharedValue(0);
@@ -93,7 +95,7 @@ export function FetchingLive({ market }: { market: MarketId }) {
       </Animated.View>
       <Icon name="refresh-cw" size={14} color={a.ink} />
       <T v="tiny" style={{ color: a.ink, fontWeight: "800" }}>
-        Fetching live details from {STORES[market].source}
+        {t("m.fetchingFrom", { source: STORES[market].source })}
       </T>
     </View>
   );

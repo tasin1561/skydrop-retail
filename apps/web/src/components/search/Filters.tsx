@@ -5,30 +5,32 @@ import { useEffect, useState } from "react";
 import { STORES, STORE_MODES } from "@/lib/markets";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
 
-const SORTS = [
-  ["relevance", "Best match"],
-  ["discount", "Biggest discount"],
-  ["price_asc", "Price: low to high"],
-  ["price_desc", "Price: high to low"],
-  ["rating", "Top rated"],
-] as const;
+const SORTS: [string, MsgKey][] = [
+  ["relevance", "f.best"],
+  ["discount", "f.discount"],
+  ["price_asc", "f.priceAsc"],
+  ["price_desc", "f.priceDesc"],
+  ["rating", "f.rating"],
+];
 
-const CATS = [
-  ["", "All categories"],
-  ["electronics", "Electronics"],
-  ["fashion", "Fashion"],
-  ["beauty", "Beauty"],
-  ["grocery", "Grocery"],
-  ["home", "Home"],
-] as const;
+const CATS: [string, MsgKey][] = [
+  ["", "cat.allCategories"],
+  ["electronics", "store.cat.electronics"],
+  ["fashion", "store.cat.fashion"],
+  ["beauty", "store.cat.beauty"],
+  ["grocery", "store.cat.grocery"],
+  ["home", "store.cat.home"],
+];
 
 const PRICES = [
-  ["", "", "Any price"],
-  ["", "1000", "Under ৳1,000"],
-  ["1000", "3000", "৳1,000 - ৳3,000"],
-  ["3000", "10000", "৳3,000 - ৳10,000"],
-  ["10000", "", "Over ৳10,000"],
+  ["", ""],
+  ["", "1000"],
+  ["1000", "3000"],
+  ["3000", "10000"],
+  ["10000", ""],
 ] as const;
 
 function useParamsUpdater() {
@@ -52,6 +54,9 @@ function FilterBody({ hideCategory = false }: { hideCategory?: boolean }) {
   const sp = useSearchParams();
   const set = useParamsUpdater();
   const { enabled } = useStore();
+  const { t, bdt } = useT();
+  const priceLabel = (a: string, b: string) =>
+    !a && !b ? t("f.anyPrice") : !a ? t("f.under", { amount: bdt(+b) }) : !b ? t("f.over", { amount: bdt(+a) }) : t("f.range", { a: bdt(+a), b: bdt(+b) });
   const store = sp.get("store") ?? "all";
   const cat = sp.get("category") ?? "";
   const min = sp.get("min") ?? "";
@@ -79,41 +84,41 @@ function FilterBody({ hideCategory = false }: { hideCategory?: boolean }) {
   return (
     <div className="space-y-6">
       <fieldset>
-        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Store</legend>
+        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">{t("f.store")}</legend>
         {STORE_MODES.filter((m) => m === "all" || enabled[m]).map((m) => (
           <Opt key={m} on={store === m} onClick={() => set({ store: m })}>
-            {m === "all" ? "All stores" : `${STORES[m].name} (${STORES[m].source})`}
+            {m === "all" ? t("search.allStores") : `${STORES[m].name} (${STORES[m].source})`}
           </Opt>
         ))}
       </fieldset>
       {!hideCategory && (
         <fieldset>
-          <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Category</legend>
+          <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">{t("f.category")}</legend>
           {CATS.map(([v, l]) => (
-            <Opt key={v} on={cat === v} onClick={() => set({ category: v })}>
-              {l}
+<Opt key={v} on={cat === v} onClick={() => set({ category: v })}>
+{t(l)}
             </Opt>
           ))}
         </fieldset>
       )}
       <fieldset>
-        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Price</legend>
-        {PRICES.map(([a, b, l]) => (
-          <Opt key={l} on={min === a && max === b} onClick={() => set({ min: a, max: b })}>
-            {l}
+        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">{t("f.price")}</legend>
+        {PRICES.map(([a, b]) => (
+<Opt key={a + "-" + b} on={min === a && max === b} onClick={() => set({ min: a, max: b })}>
+{priceLabel(a, b)}
           </Opt>
         ))}
       </fieldset>
       <fieldset>
-        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Rating</legend>
-        {[["", "Any rating"], ["4", "4 stars and up"], ["3", "3 stars and up"]].map(([v, l]) => (
+        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">{t("f.ratingLegend")}</legend>
+        {[["", t("f.anyRating")], ["4", t("f.4up")], ["3", t("f.3up")]].map(([v, l]) => (
           <Opt key={l} on={rating === v} onClick={() => set({ rating: v })}>
             {l}
           </Opt>
         ))}
       </fieldset>
       <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-xl bg-surface-2 px-3">
-        <span className="text-sm font-semibold">Fast delivery to our Kolkata hub</span>
+        <span className="text-sm font-semibold">{t("f.fast")}</span>
         <button
           type="button"
           role="switch"
@@ -122,7 +127,7 @@ function FilterBody({ hideCategory = false }: { hideCategory?: boolean }) {
           className={"relative h-7 w-14 rounded-full text-[10px] font-bold transition " + (fast ? "bg-accent text-white" : "bg-line text-ink-2")}
         >
           <span className={"absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform " + (fast ? "translate-x-8" : "translate-x-1")} />
-          <span className={"absolute top-1.5 " + (fast ? "left-2" : "right-2")}>{fast ? "ON" : "OFF"}</span>
+          <span className={"absolute top-1.5 " + (fast ? "left-2" : "right-2")}>{fast ? t("f.on") : t("f.off")}</span>
         </button>
       </label>
     </div>
@@ -141,6 +146,7 @@ export function SortAndFilterBar({ total, hideCategory }: { total: number; hideC
   const sp = useSearchParams();
   const set = useParamsUpdater();
   const [open, setOpen] = useState(false);
+  const { t, digits } = useT();
   const sort = sp.get("sort") ?? "relevance";
   const active = ["category", "min", "max", "rating", "fast"].filter((k) => sp.get(k)).length;
 
@@ -158,19 +164,19 @@ export function SortAndFilterBar({ total, hideCategory }: { total: number; hideC
   return (
     <div className="flex items-center gap-2">
       <button type="button" onClick={() => setOpen(true)} className="btn btn-ghost min-h-10 px-4 text-sm lg:hidden">
-        <Icon name="filter" size={16} /> Filters
-        {active > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] text-white">{active}</span>}
+        <Icon name="filter" size={16} /> {t("f.filters")}
+        {active > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] text-white">{digits(active)}</span>}
       </button>
       <label className="relative ml-auto">
-        <span className="sr-only">Sort by</span>
+        <span className="sr-only">{t("f.sortBy")}</span>
         <select
           value={sort}
           onChange={(e) => set({ sort: e.target.value === "relevance" ? null : e.target.value })}
           className="min-h-10 appearance-none rounded-full bg-surface-2 py-2 pl-9 pr-8 text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-accent"
         >
           {SORTS.map(([v, l]) => (
-            <option key={v} value={v}>
-              {l}
+<option key={v} value={v}>
+{t(l)}
             </option>
           ))}
         </select>
@@ -179,19 +185,19 @@ export function SortAndFilterBar({ total, hideCategory }: { total: number; hideC
       </label>
 
       {open && (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
-          <button aria-label="Close filters" className="fade-in absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label={t("f.filters")}>
+          <button aria-label={t("f.close")} className="fade-in absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="sheet-enter absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[28px] bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-line" />
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-extrabold">Filters</h2>
-              <button className="grid h-11 w-11 place-items-center rounded-full hover:bg-surface-2" onClick={() => setOpen(false)} aria-label="Close">
+              <h2 className="text-lg font-extrabold">{t("f.filters")}</h2>
+              <button className="grid h-11 w-11 place-items-center rounded-full hover:bg-surface-2" onClick={() => setOpen(false)} aria-label={t("common.close")}>
                 <Icon name="x" />
               </button>
             </div>
             <FilterBody hideCategory={hideCategory} />
             <button className="btn btn-primary mt-6 w-full" onClick={() => setOpen(false)}>
-              Show {total} results
+              {t("f.show", { count: total })}
             </button>
           </div>
         </div>

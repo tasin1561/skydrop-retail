@@ -1,6 +1,6 @@
 // Offers from the Indian stores (ported from apps/web/src/components/offers/*).
-// Shoppers must never miss an offer: every product offer is shown, tagged "In your price"
-// (we use it when we buy) or "On the source store" (bank/card/EMI offers in India).
+// Shoppers must never miss an offer: every product offer is shown, tagged t("offer.inPrice")
+// (we use it when we buy) or t("offer.onSource") (bank/card/EMI offers in India).
 import { useEffect, useState } from "react";
 import { AppState, FlatList, StyleSheet, View } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
@@ -9,26 +9,29 @@ import { STORES } from "@/lib/markets";
 import { useAccent, useTheme, withAlpha } from "@/theme";
 import { Icon } from "../Icon";
 import { IconChip, T } from "../ui";
+import { useT } from "@/i18n";
+import { makeT, translate, type MsgKey, type TFn, type Translator } from "@/i18n/core";
 
-export const OFFER_META: Record<OfferType, { icon: string; label: string }> = {
-  coupon: { icon: "tag", label: "Coupon" },
-  deal: { icon: "zap", label: "Deal" },
-  lightning: { icon: "zap", label: "Lightning deal" },
-  bank: { icon: "credit-card", label: "Bank offer" },
-  cashback: { icon: "dollar-sign", label: "Cashback" },
-  emi: { icon: "clock", label: "No Cost EMI" },
-  partner: { icon: "award", label: "Partner offer" },
-  combo: { icon: "package", label: "Combo" },
-  special_price: { icon: "star", label: "Special price" },
-  subscribe: { icon: "refresh-cw", label: "Subscribe & save" },
-  exchange: { icon: "repeat", label: "Exchange" },
-  other: { icon: "info", label: "Offer" },
+/** label is a dictionary key. */
+export const OFFER_META: Record<OfferType, { icon: string; label: MsgKey }> = {
+  coupon: { icon: "tag", label: "offer.coupon" },
+  deal: { icon: "zap", label: "offer.deal" },
+  lightning: { icon: "zap", label: "offer.lightning" },
+  bank: { icon: "credit-card", label: "offer.bank" },
+  cashback: { icon: "dollar-sign", label: "offer.cashback" },
+  emi: { icon: "clock", label: "offer.emi" },
+  partner: { icon: "award", label: "offer.partner" },
+  combo: { icon: "package", label: "offer.combo" },
+  special_price: { icon: "star", label: "offer.special" },
+  subscribe: { icon: "refresh-cw", label: "offer.subscribe" },
+  exchange: { icon: "repeat", label: "offer.exchange" },
+  other: { icon: "info", label: "offer.other" },
 };
 
 /** The single most important deal signal for a product card, if any. */
-export function headlineDeal(p: Product): { label: string; endsAt?: string } | null {
+export function headlineDeal(p: Product, t: TFn = (k) => translate("en", k)): { label: string; endsAt?: string } | null {
   const live = (p.offers ?? []).find((o) => (o.type === "lightning" || o.type === "deal") && (!o.endsAt || Date.parse(o.endsAt) > Date.now()));
-  if (live) return { label: live.type === "lightning" ? "Lightning deal" : live.title || "Limited time deal", endsAt: live.endsAt ?? p.dealEndsAt ?? undefined };
+  if (live) return { label: live.type === "lightning" ? t("offer.lightning") : live.title || t("offer.limited"), endsAt: live.endsAt ?? p.dealEndsAt ?? undefined };
   if (p.dealBadge) return { label: p.dealBadge, endsAt: p.dealEndsAt ?? undefined };
   return null;
 }
@@ -67,26 +70,28 @@ function useTick() {
   }, []);
 }
 
-export function countdownText(endsAt: string) {
+export function countdownText(endsAt: string, tr: Translator = makeT("en")) {
+  const { t, digits } = tr;
   const ms = Math.max(0, Date.parse(endsAt) - Date.now());
-  if (!Number.isFinite(ms) || ms === 0) return { text: "Deal ended", ended: true, label: "Deal ended" };
+  if (!Number.isFinite(ms) || ms === 0) return { text: t("cd.ended"), ended: true, label: t("cd.ended") };
   const h = Math.floor(ms / 3.6e6);
   const m = Math.floor((ms % 3.6e6) / 6e4);
   const s = Math.floor((ms % 6e4) / 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
   return {
-    text: h >= 48 ? `${Math.floor(h / 24)} days` : `${pad(h)}:${pad(m)}:${pad(s)}`,
+    text: h >= 48 ? t("cd.days", { count: Math.floor(h / 24) }) : digits(`${pad(h)}:${pad(m)}:${pad(s)}`),
     ended: false,
-    label: `Ends in ${h} hours ${m} minutes`,
+    label: t("cd.endsInAria", { h, m }),
   };
 }
 
 export function Countdown({ endsAt, compact, color, size = "tiny" }: { endsAt: string; compact?: boolean; color?: string; size?: "tiny" | "small" }) {
   useTick();
-  const c = countdownText(endsAt);
+  const tr = useT();
+  const c = countdownText(endsAt, tr);
   return (
     <T v={size} accessibilityLabel={c.label} style={{ color, fontWeight: "800", fontVariant: ["tabular-nums"] }}>
-      {c.ended || compact ? c.text : `Ends in ${c.text}`}
+      {c.ended || compact ? c.text : tr.t("cd.endsIn", { time: c.text })}
     </T>
   );
 }
@@ -94,7 +99,8 @@ export function Countdown({ endsAt, compact, color, size = "tiny" }: { endsAt: s
 // ---------- product card deal line ----------
 export function DealBadge({ p }: { p: Product }) {
   const { c } = useTheme();
-  const deal = headlineDeal(p);
+  const { t } = useT();
+  const deal = headlineDeal(p, t);
   if (!deal) return null;
   return (
     <View style={[styles.deal, { backgroundColor: c.bad }]} accessibilityLabel={deal.label}>
@@ -115,13 +121,14 @@ export function DealBadge({ p }: { p: Product }) {
 }
 
 export function OfferHint({ p }: { p: Product }) {
+  const { t, inr } = useT();
   const { c } = useTheme();
   const a = useAccent(p.market);
   const n = p.offers?.length ?? 0;
   if (p.couponInr)
     return (
       <T v="tiny" style={{ color: c.good, fontWeight: "800" }} numberOfLines={1}>
-        ₹{Math.round(p.couponInr)} coupon already applied
+        {t("card.couponApplied", { amount: inr(p.couponInr) })}
       </T>
     );
   if (n > 0)
@@ -129,7 +136,7 @@ export function OfferHint({ p }: { p: Product }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
         <Icon name="tag" size={11} color={a.ink} />
         <T v="tiny" style={{ color: a.ink, fontWeight: "800" }} numberOfLines={1}>
-          {n} {n === 1 ? "offer" : "offers"} on the source store
+          {t("card.offers", { count: n })}
         </T>
       </View>
     );
@@ -138,6 +145,7 @@ export function OfferHint({ p }: { p: Product }) {
 
 // ---------- product screen section ----------
 function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
+  const { t } = useT();
   const { c } = useTheme();
   const meta = OFFER_META[o.type] ?? OFFER_META.other;
   return (
@@ -145,12 +153,12 @@ function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <IconChip icon={meta.icon} size={32} mode={p.market} color={o.appliesToOurPrice ? c.good : undefined} />
         <T v="small" numberOfLines={1} style={{ flex: 1, fontWeight: "800" }}>
-          {o.title || meta.label}
+          {o.title || t(meta.label)}
         </T>
         {o.count && o.count > 1 ? (
           <View style={[styles.tag, { backgroundColor: c.surface2 }]}>
             <T v="tiny" tone="ink2" style={{ fontWeight: "700" }}>
-              {o.count} offers
+              {t("offer.count", { count: o.count })}
             </T>
           </View>
         ) : null}
@@ -165,16 +173,12 @@ function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
         {o.appliesToOurPrice ? (
           <View style={[styles.tag, { backgroundColor: withAlpha(c.good, 0.14) }]}>
             <Icon name="check" size={11} color={c.good} />
-            <T v="tiny" style={{ color: c.good, fontWeight: "800" }}>
-              In your price
-            </T>
+            <T v="tiny" style={{ color: c.good, fontWeight: "800" }}>{t("offer.inPrice")}</T>
           </View>
         ) : (
           <View style={[styles.tag, { backgroundColor: c.surface2 }]}>
             <Icon name="info" size={11} color={c.ink2} />
-            <T v="tiny" tone="ink2" style={{ fontWeight: "800" }}>
-              On the source store
-            </T>
+            <T v="tiny" tone="ink2" style={{ fontWeight: "800" }}>{t("offer.onSource")}</T>
           </View>
         )}
         {o.endsAt && (
@@ -186,7 +190,7 @@ function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
         {typeof o.claimedPct === "number" && (
           <View style={[styles.tag, { backgroundColor: withAlpha(c.warn, 0.14) }]}>
             <T v="tiny" style={{ color: c.warn, fontWeight: "800" }}>
-              {Math.round(o.claimedPct)}% claimed
+              {t("offer.claimed", { pct: Math.round(o.claimedPct) })}
             </T>
           </View>
         )}
@@ -196,6 +200,7 @@ function OfferCard({ o, i, p }: { o: Offer; i: number; p: Product }) {
 }
 
 export function OffersSection({ p }: { p: Product }) {
+  const { t, digits } = useT();
   const a = useAccent(p.market);
   const offers = [...(p.offers ?? [])].sort((x, y) => Number(y.appliesToOurPrice) - Number(x.appliesToOurPrice));
   if (!offers.length) return null;
@@ -206,11 +211,11 @@ export function OffersSection({ p }: { p: Product }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16 }}>
         <Icon name="tag" size={18} color={a.ink} />
         <T v="h3" accessibilityRole="header">
-          Offers on {source}
+          {t("offer.title", { source })}
         </T>
         <View style={[styles.count, { backgroundColor: a.accent }]}>
           <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
-            {offers.length}
+            {digits(offers.length)}
           </T>
         </View>
       </View>
@@ -225,8 +230,8 @@ export function OffersSection({ p }: { p: Product }) {
         decelerationRate="fast"
       />
       <T v="tiny" tone="ink3" style={{ paddingHorizontal: 16 }}>
-        {applied > 0 ? "Coupons and deal prices we can use are already in your price. " : ""}
-        Bank, card and EMI offers apply when paying on {source} in India; we show them so you see the full deal.
+        {applied > 0 ? t("offer.applied") : ""}
+        {t("offer.bankNote", { source })}
       </T>
     </View>
   );

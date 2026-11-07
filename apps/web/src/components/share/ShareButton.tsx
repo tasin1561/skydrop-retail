@@ -9,6 +9,7 @@ import { withCode } from "@/lib/growth";
 import { useShareCodes } from "./useShareCodes";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { API_URL, apiEnabled } from "@/lib/apiClient";
+import { useT } from "@/i18n/client";
 
 type Props = {
   title: string;
@@ -54,9 +55,11 @@ async function copyText(text: string) {
  * Uses the native share sheet when the browser has one; otherwise a bottom sheet (dialog on desktop) with
  * WhatsApp, Messenger, Facebook, Telegram, copy link and an optional QR code.
  */
-export function ShareButton({ title, text, path, resolvePath, variant = "icon", label = "Share", qr = false, className = "" }: Props) {
+export function ShareButton({ title, text, path, resolvePath, variant = "icon", label: labelProp, qr = false, className = "" }: Props) {
   const codes = useShareCodes();
   const toast = useToast();
+  const { t } = useT();
+  const label = labelProp ?? t("sh.share");
   const [open, setOpen] = useState<string | null>(null); // url shown in the sheet
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
@@ -72,14 +75,14 @@ export function ShareButton({ title, text, path, resolvePath, variant = "icon", 
         if (!r) return;
         p = r;
       } catch {
-        toast({ kind: "error", title: "Couldn't create the link", body: "Check your connection and try again." });
+        toast({ kind: "error", title: t("sh.linkFailed"), body: t("wl.checkConn") });
         return;
       } finally {
         setBusy(false);
       }
     }
     const url = withCode(new URL(p, window.location.origin).toString(), codes);
-    const message = text ?? `${title} on Skydrop Retail`;
+    const message = text ?? t("sh.onSkydrop", { title });
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ title, text: message, url });
@@ -114,14 +117,14 @@ export function ShareButton({ title, text, path, resolvePath, variant = "icon", 
 
   return (
     <>
-      <button type="button" onClick={share} aria-label={variant === "icon" ? `Share ${title}` : undefined} aria-busy={busy} className={`${cls} ${className}`}>
+      <button type="button" onClick={share} aria-label={variant === "icon" ? t("sh.shareTitle", { title }) : undefined} aria-busy={busy} className={`${cls} ${className}`}>
         {content}
       </button>
       {open && (
         <ShareSheet
           url={open}
           title={title}
-          message={text ?? `${title} on Skydrop Retail`}
+          message={text ?? t("sh.onSkydrop", { title })}
           qr={qr}
           coded={codes.ref ? "ref" : codes.invite ? "invite" : null}
           onCopied={() => {
@@ -191,6 +194,7 @@ function ShareSheet({
   onClose: () => void;
 }) {
   const toast = useToast();
+  const { t } = useT();
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -203,12 +207,12 @@ function ShareSheet({
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 2000);
     } else {
-      toast({ kind: "error", title: "Couldn't copy the link", body: url });
+      toast({ kind: "error", title: t("sh.copyFailed"), body: url });
     }
   }
 
   return (
-    <Sheet title="Share" description={title.length > 80 ? title.slice(0, 77) + "..." : title} icon="share" size="sm" onClose={onClose}>
+    <Sheet title={t("sh.share")} description={title.length > 80 ? title.slice(0, 77) + "..." : title} icon="share" size="sm" onClose={onClose}>
       {() => (
         <div className="space-y-4">
           <div className="sh-targets" role="list">
@@ -239,10 +243,10 @@ function ShareSheet({
             </span>
             <button type="button" onClick={copy} className="sh-copy btn btn-ghost min-h-11 px-3 text-sm" data-done={copied} aria-live="polite">
               <span className="sh-copy-face" data-face="idle" aria-hidden={copied}>
-                <Icon name="receipt" size={15} /> Copy
+                <Icon name="receipt" size={15} /> {t("common.copy")}
               </span>
               <span className="sh-copy-face" data-face="done" aria-hidden={!copied}>
-                <Icon name="check" size={15} stroke={2.6} /> Copied
+                <Icon name="check" size={15} stroke={2.6} /> {t("common.copied")}
               </span>
             </button>
           </div>
@@ -251,8 +255,8 @@ function ShareSheet({
             <p className="flex items-start gap-2 text-xs text-ink-2">
               <Icon name="spark" size={14} className="mt-px shrink-0 text-accent" />
               {coded === "ref"
-                ? "Your affiliate code is in this link. You earn commission when friends order."
-                : "Your invite code is in this link. You both get Skydrop Points after their first delivery."}
+                ? t("sh.affNote")
+: t("sh.refNote")}
             </p>
           )}
 
@@ -264,7 +268,7 @@ function ShareSheet({
                 aria-expanded={showQr}
                 onClick={() => setShowQr((s) => !s)}
               >
-                <Icon name="grid" size={16} /> {showQr ? "Hide QR code" : "Show QR code"}
+                <Icon name="grid" size={16} /> {showQr ? t("sh.hideQr") : t("sh.showQr")}
               </button>
               {showQr && (
                 <div className="sh-qr mt-2 flex flex-col items-center gap-2 rounded-2xl border border-line bg-white p-4">
@@ -275,12 +279,12 @@ function ShareSheet({
                         ? `${API_URL}/qr?text=${encodeURIComponent(url)}` // our own QR endpoint (GET /qr, own-site links only)
                         : `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=0&data=${encodeURIComponent(url)}`
                     }
-                    alt={`QR code for ${url}`}
+                    alt={t("sh.qrFor", { url })}
                     width={180}
                     height={180}
                     className="h-[180px] w-[180px]"
                   />
-                  <span className="text-xs font-semibold text-slate-600">Scan with a phone camera</span>
+                  <span className="text-xs font-semibold text-slate-600">{t("sh.scan")}</span>
                 </div>
               )}
             </div>

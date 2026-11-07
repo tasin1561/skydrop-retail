@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { getT } from "@/i18n/server";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const { t } = await getT();
   return (
     <div className="mx-auto max-w-md px-4 py-20 text-center">
       <div className="parachute mx-auto w-fit text-accent">
@@ -12,10 +14,10 @@ export default function NotFound() {
           <rect x="36" y="62" width="24" height="20" rx="4" fill="var(--brand-2)" />
         </svg>
       </div>
-      <h1 className="mt-4 text-2xl font-extrabold">This page drifted off</h1>
-      <p className="mt-2 text-sm text-ink-2">The link may be old, or the product is no longer sold in India.</p>
+      <h1 className="mt-4 text-2xl font-extrabold">{t("nf.title")}</h1>
+      <p className="mt-2 text-sm text-ink-2">{t("nf.body")}</p>
       <Link href="/" className="btn btn-primary mt-6">
-        Back to shopping <Icon name="arrow" size={18} className="arrow" />
+        {t("nf.back")} <Icon name="arrow" size={18} className="arrow" />
       </Link>
     </div>
   );

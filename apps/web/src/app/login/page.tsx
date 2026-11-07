@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { LoginFlow } from "@/components/account/LoginFlow";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in to Skydrop Retail with your Bangladesh mobile number.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getT();
+  return { title: t("meta.signIn"), description: t("meta.signInDesc") };
+}
 
 function safeNext(v: string | string[] | undefined) {
   const s = Array.isArray(v) ? v[0] : v;

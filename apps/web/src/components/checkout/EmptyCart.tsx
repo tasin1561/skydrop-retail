@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 
 // Empty state: a parcel swaying under a parachute, clouds drifting by. CSS only.
 export function EmptyCart() {
+  const { t } = useT();
   return (
     <section className="fade-in mx-auto flex max-w-md flex-col items-center px-4 py-12 text-center sm:py-20">
       <div className="relative h-48 w-56" aria-hidden="true">
@@ -26,13 +30,12 @@ export function EmptyCart() {
           </g>
         </svg>
       </div>
-      <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Your cart is waiting for its first parcel</h1>
+      <h1 className="mt-2 text-2xl font-extrabold tracking-tight">{t("empty.title")}</h1>
       <p className="mt-2 text-sm leading-relaxed text-ink-2">
-        Add products from amazon.in, flipkart.com or bigbasket.com. We buy them in India and Skydrop drops them at your door in
-        Bangladesh, priced in taka.
+        {t("empty.body")}
       </p>
       <Link href="/" className="btn btn-primary mt-6 px-6">
-        Start shopping <Icon name="arrow" size={18} className="arrow" />
+        {t("hero.start")} <Icon name="arrow" size={18} className="arrow" />
       </Link>
     </section>
   );

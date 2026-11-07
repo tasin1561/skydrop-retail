@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { Easing, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import type { Order, OrderStatus } from "@/lib/types";
-import { STAGES, progressOf, stageIndex, stageLabel, statusIcon, statusText } from "@/lib/orderStatus";
+import { STAGES, progressOf, stageDetail, stageIndex, stageLabel, statusIcon, statusText } from "@/lib/orderStatus";
 import { useTheme, withAlpha } from "@/theme";
 import { Icon } from "./Icon";
 import { Pill, T } from "./ui";
+import { useT } from "@/i18n";
 
 /** Re-renders every 15 s so simulated demo progress shows up without a refresh. */
 export function useNow(ms = 15000) {
@@ -19,8 +20,9 @@ export function useNow(ms = 15000) {
 
 export function StatusPill({ status }: { status: OrderStatus }) {
   const { c } = useTheme();
+  const tr = useT();
   const color = status === "cancelled" ? c.bad : status === "delivered" ? c.good : c.brand;
-  return <Pill text={statusText(status)} icon={statusIcon(status)} color={color} bg={withAlpha(color, 0.12)} />;
+  return <Pill text={statusText(status, tr)} icon={statusIcon(status)} color={color} bg={withAlpha(color, 0.12)} />;
 }
 
 /** Thin progress line with a travelling parcel dot. */
@@ -49,6 +51,8 @@ export function TrackBar({ status }: { status: OrderStatus }) {
 
 export function Timeline({ order }: { order: Order }) {
   const { c } = useTheme();
+  const tr = useT();
+  const { t } = tr;
   const cur = stageIndex(order.status);
   const at = new Map((order.timeline ?? []).map((t) => [t.status, t.at]));
   const pulse = useSharedValue(1);
@@ -61,9 +65,7 @@ export function Timeline({ order }: { order: Order }) {
     return (
       <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
         <Icon name="x-circle" size={20} color={c.bad} />
-        <T v="body" tone="bad" style={{ fontWeight: "700" }}>
-          This order was cancelled before we bought it.
-        </T>
+        <T v="body" tone="bad" style={{ fontWeight: "700" }}>{t("m.cancelledBefore")}</T>
       </View>
     );
 
@@ -75,7 +77,7 @@ export function Timeline({ order }: { order: Order }) {
         const future = i > cur;
         const time = at.get(s.status);
         return (
-          <Animated.View key={s.status} entering={FadeInDown.delay(i * 50)} style={{ flexDirection: "row", gap: 12 }} accessibilityLabel={`${stageLabel(s, order)}${done ? ", done" : active ? ", current" : ""}`}>
+          <Animated.View key={s.status} entering={FadeInDown.delay(i * 50)} style={{ flexDirection: "row", gap: 12 }} accessibilityLabel={done ? t("m.stageDone", { label: stageLabel(s, order, tr) }) : active ? t("m.stageCurrent", { label: stageLabel(s, order, tr) }) : stageLabel(s, order, tr)}>
             <View style={{ alignItems: "center", width: 30 }}>
               <View>
                 {active && <Animated.View style={[styles.ring, { backgroundColor: withAlpha(c.brand, 0.35) }, ring]} />}
@@ -87,14 +89,14 @@ export function Timeline({ order }: { order: Order }) {
             </View>
             <View style={{ flex: 1, paddingBottom: 16 }}>
               <T v="h3" style={{ fontSize: 14, color: future ? c.ink3 : c.ink }}>
-                {stageLabel(s, order)}
+                {stageLabel(s, order, tr)}
               </T>
               <T v="tiny" tone={future ? "ink3" : "ink2"}>
-                {s.detail}
+                {stageDetail(s, tr)}
               </T>
               {time && !future && (
                 <T v="tiny" tone="ink3" style={{ marginTop: 2 }}>
-                  {new Date(time).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  {tr.dateTime(time)}
                 </T>
               )}
             </View>

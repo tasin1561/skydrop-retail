@@ -254,7 +254,7 @@ export const api = {
       () => http<{ user: User }>("GET", "/me").then((r) => r.user),
       () => demo.me(),
     ),
-  updateMe: (patch: { name?: string; email?: string }) =>
+  updateMe: (patch: { name?: string; email?: string; locale?: "en" | "bn" }) =>
     either(
       () => http<{ user: User }>("PATCH", "/me", { body: patch }).then((r) => r.user),
       () => demo.updateMe(patch),

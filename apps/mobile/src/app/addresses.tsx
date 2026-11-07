@@ -12,8 +12,11 @@ import { haptic } from "@/lib/haptics";
 import { AddressForm, AddressSaveButton, emptyAddress, type AddressDraft } from "@/components/AddressForm";
 import { Button, Card, Empty, IconButton, IconChip, Pill, Skeleton, T } from "@/components/ui";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/i18n";
+import { bdName } from "@/lib/bd";
 
 export default function Addresses() {
+  const { t, lang } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useStore();
@@ -38,9 +41,9 @@ export default function Addresses() {
       haptic.success();
       setDraft(null);
       load();
-      toast({ kind: "success", title: "Address saved" });
+      toast({ kind: "success", title: t("ab.saved") });
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't save", body: (e as Error).message });
+      toast({ kind: "error", title: t("m.cantSave"), body: (e as Error).message });
     } finally {
       setBusy(false);
     }
@@ -51,17 +54,17 @@ export default function Addresses() {
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32, gap: 12 }} keyboardShouldPersistTaps="handled">
         {draft ? (
           <Card style={{ gap: 16 }}>
-            <T v="h2">{draft.id ? "Edit address" : "New address"}</T>
+            <T v="h2">{draft.id ? t("ab.editTitle") : t("ab.new")}</T>
             <AddressForm value={draft} onChange={setDraft} />
             <AddressSaveButton value={draft} onSave={save} busy={busy} />
-            <Button label="Cancel" kind="ghost" onPress={() => setDraft(null)} />
+            <Button label={t("common.cancel")} kind="ghost" onPress={() => setDraft(null)} />
           </Card>
         ) : (
           <>
             {list === null ? (
               <Skeleton h={110} r={20} />
             ) : list.length === 0 ? (
-              <Empty icon="map-pin" title="No addresses yet" text="Add where Skydrop should deliver your parcels." />
+              <Empty icon="map-pin" title={t("m.noAddresses")} text={t("m.noAddressesB")} />
             ) : (
               list.map((a, i) => (
                 <Animated.View key={a.id} entering={FadeInDown.delay(i * 40)} exiting={FadeOut} layout={LinearTransition}>
@@ -72,28 +75,28 @@ export default function Addresses() {
                         <T v="h3" style={{ fontSize: 15 }}>
                           {a.name}
                         </T>
-                        {a.isDefault && <Pill text="Default" color={c.brand} />}
+                        {a.isDefault && <Pill text={t("addr.default")} color={c.brand} />}
                       </View>
                       <T v="small" tone="ink2">
                         {prettyPhone(a.phone)}
                       </T>
                       <T v="small" tone="ink2">
-                        {a.line}, {a.area}, {a.district}, {a.division}
+                        {a.line}, {a.area}, {bdName(a.district, lang)}, {bdName(a.division, lang)}
                       </T>
                     </View>
                     <View style={{ gap: 4 }}>
-                      <IconButton icon="edit-2" label={`Edit address for ${a.name}`} size={40} bg={c.surface2} onPress={() => setDraft(a)} />
+                      <IconButton icon="edit-2" label={t("m.editFor", { name: a.name })} size={40} bg={c.surface2} onPress={() => setDraft(a)} />
                       <IconButton
                         icon="trash-2"
-                        label={`Delete address for ${a.name}`}
+                        label={t("m.deleteFor", { name: a.name })}
                         size={40}
                         bg={c.surface2}
                         tint={c.bad}
                         onPress={() =>
-                          Alert.alert("Delete this address?", undefined, [
-                            { text: "Cancel", style: "cancel" },
+                          Alert.alert(t("ab.deleteQ"), undefined, [
+                            { text: t("common.cancel"), style: "cancel" },
                             {
-                              text: "Delete",
+                              text: t("ab.delete"),
                               style: "destructive",
                               onPress: async () => {
                                 await api.deleteAddress(a.id).catch(() => {});
@@ -109,7 +112,7 @@ export default function Addresses() {
                 </Animated.View>
               ))
             )}
-            <Button label="Add address" icon="plus" onPress={() => setDraft(emptyAddress(user?.name, user?.phone))} />
+            <Button label={t("ab.add")} icon="plus" onPress={() => setDraft(emptyAddress(user?.name, user?.phone))} />
           </>
         )}
       </ScrollView>

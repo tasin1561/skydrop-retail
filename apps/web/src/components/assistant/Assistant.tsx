@@ -7,6 +7,7 @@ import { OPEN_EVENT, type OpenAssistantDetail } from "@/lib/assistant/client";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { AssistantPanel } from "./AssistantPanel";
 import { AiGlyph } from "./AiGlyph";
+import { useT } from "@/i18n/client";
 
 /**
  * Floating "Ask Skydrop AI" launcher + chat panel (feature switch "ai_assistant").
@@ -16,6 +17,7 @@ import { AiGlyph } from "./AiGlyph";
 export function Assistant() {
   const on = useFeature("ai_assistant");
   const support = useFeature("support_chat");
+  const { t } = useT();
   const path = usePathname() ?? "";
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -68,8 +70,8 @@ export function Assistant() {
           onClick={() => show()}
         >
           <AiGlyph size={22} />
-          <span className="ai-launch-label">Ask Skydrop AI</span>
-          <span className="sr-only md:hidden">Ask Skydrop AI</span>
+          <span className="ai-launch-label">{t("ai.ask")}</span>
+          <span className="sr-only md:hidden">{t("ai.ask")}</span>
         </button>
       )}
       {open && <div className="ai-scrim" aria-hidden onClick={close} />}

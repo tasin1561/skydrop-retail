@@ -7,14 +7,18 @@ import type { Address } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { formatPhone, phoneDigits, phoneValid } from "./cart-math";
 import { PhoneField, SelectField, TextField } from "./Fields";
+import { useT } from "@/i18n/client";
+import { bdName } from "@/lib/bd";
+import type { Lang } from "@/i18n/core";
 
-export function addressText(a: Address) {
-  return [a.line, a.area, a.district, a.division].filter(Boolean).join(", ");
+export function addressText(a: Address, lang: Lang = "en") {
+  return [a.line, a.area, a.district && bdName(a.district, lang), a.division && bdName(a.division, lang)].filter(Boolean).join(", ");
 }
 
 // Saved addresses as radio cards + an animated "add new" form.
 export function AddressStep({ selected, onSelect }: { selected: string | null; onSelect: (id: string) => void }) {
   const { addresses, user } = useStore();
+  const { t, lang } = useT();
   const [adding, setAdding] = useState(addresses.length === 0);
   const sorted = [...addresses].sort((a, b) => Number(!!b.isDefault) - Number(!!a.isDefault));
 
@@ -22,8 +26,8 @@ export function AddressStep({ selected, onSelect }: { selected: string | null; o
     <div className="space-y-4">
       {sorted.length > 0 && (
         <fieldset>
-          <legend className="mb-3 text-sm font-bold">Deliver to</legend>
-          <div className="grid gap-3" role="radiogroup" aria-label="Saved addresses">
+          <legend className="mb-3 text-sm font-bold">{t("addr.deliverTo")}</legend>
+          <div className="grid gap-3" role="radiogroup" aria-label={t("addr.saved")}>
             {sorted.map((a) => {
               const on = a.id === selected;
               return (
@@ -43,12 +47,12 @@ export function AddressStep({ selected, onSelect }: { selected: string | null; o
                       {a.name}
                       {a.isDefault && (
                         <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                          Default
-                        </span>
+{t("addr.default")}
+</span>
                       )}
                     </span>
                     <span className="mt-0.5 block text-xs text-ink-2">{a.phone}</span>
-                    <span className="mt-1 block text-xs leading-relaxed text-ink-2">{addressText(a)}</span>
+                    <span className="mt-1 block text-xs leading-relaxed text-ink-2">{addressText(a, lang)}</span>
                   </span>
                   <span className="co-radio mt-1" aria-hidden />
                 </label>
@@ -70,7 +74,7 @@ export function AddressStep({ selected, onSelect }: { selected: string | null; o
             <span className={"chip-icon shrink-0 " + (adding ? "is-active" : "")}>
               <Icon name="plus" size={18} />
             </span>
-            <span className="flex-1">Add a new address</span>
+            <span className="flex-1">{t("addr.addNew")}</span>
             <Icon name="chevron" size={18} className="acc-chev text-ink-3" />
           </button>
         )}
@@ -106,6 +110,7 @@ function NewAddressForm({
   onSaved: (id: string) => void;
 }) {
   const { saveAddress } = useStore();
+  const { t, lang } = useT();
   const [f, setF] = useState({ name: defaultName, division: "", district: "", area: "", line: "" });
   const [digits, setDigits] = useState(phoneDigits(defaultPhone));
   const [isDefault, setIsDefault] = useState(first);
@@ -129,7 +134,7 @@ function NewAddressForm({
       noValidate
       key={shake}
       className={"co-card mt-3 grid gap-3 p-4 sm:grid-cols-2 sm:p-5 " + (shake ? "shake" : "")}
-      aria-label="New delivery address"
+      aria-label={t("addr.newForm")}
       onSubmit={(e) => {
         e.preventDefault();
         if (!ok) {
@@ -151,48 +156,50 @@ function NewAddressForm({
         onSaved(id);
       }}
     >
-      <TextField id="na-name" label="Full name" icon="user" autoComplete="name" value={f.name} onChange={set("name")} state={st("name", !!f.name)} msg={touched && !v.name ? "Enter the receiver's name" : undefined} />
+      <TextField id="na-name" label={t("addr.fullName")} icon="user" autoComplete="name" value={f.name} onChange={set("name")} state={st("name", !!f.name)} msg={touched && !v.name ? t("addr.errName") : undefined} />
       <PhoneField id="na-phone" digits={digits} onDigits={setDigits} touched={touched} />
       <SelectField
         id="na-division"
-        label="Division"
-        icon="globe"
-        placeholder="Choose division"
+        label={t("addr.division")}
+icon="globe"
+placeholder={t("addr.chooseDivision")}
+optionLabel={(o) => bdName(o, lang)}
         value={f.division}
         onChange={(d) => setF((s) => ({ ...s, division: d, district: "" }))}
         options={Object.keys(BD_DIVISIONS)}
         state={v.division ? "valid" : touched ? "invalid" : "idle"}
-        msg={touched && !v.division ? "Choose a division" : undefined}
+        msg={touched && !v.division ? t("addr.errDivision") : undefined}
       />
       <SelectField
         id="na-district"
-        label="District"
-        icon="pin"
-        placeholder={f.division ? "Choose district" : "Choose a division first"}
+        label={t("addr.district")}
+icon="pin"
+placeholder={f.division ? t("addr.chooseDistrict") : t("addr.divisionFirst")}
+optionLabel={(o) => bdName(o, lang)}
         value={f.district}
         onChange={set("district")}
         options={f.division ? BD_DIVISIONS[f.division] : []}
         disabled={!f.division}
         state={v.district ? "valid" : touched ? "invalid" : "idle"}
-        msg={touched && !v.district ? "Choose a district" : undefined}
+        msg={touched && !v.district ? t("addr.errDistrict") : undefined}
       />
-      <TextField id="na-area" label="Area / thana" icon="grid" autoComplete="address-level3" value={f.area} onChange={set("area")} state={st("area", !!f.area)} msg={touched && !v.area ? "Enter your area or thana" : undefined} />
+      <TextField id="na-area" label={t("addr.area")} icon="grid" autoComplete="address-level3" value={f.area} onChange={set("area")} state={st("area", !!f.area)} msg={touched && !v.area ? t("addr.errArea") : undefined} />
       <TextField
         id="na-line"
-        label="House, road, landmark"
+        label={t("addr.line")}
         icon="home"
         autoComplete="street-address"
         value={f.line}
         onChange={set("line")}
         state={st("line", !!f.line)}
-        msg={touched && !v.line ? "Add house and road so the rider can find you" : undefined}
+        msg={touched && !v.line ? t("addr.errLine") : undefined}
       />
       <label className="flex min-h-11 cursor-pointer items-center gap-3 sm:col-span-2">
         <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="h-5 w-5 accent-[var(--accent)]" />
-        <span className="text-sm">Set as my default address</span>
+        <span className="text-sm">{t("addr.setDefault")}</span>
       </label>
       <button type="submit" className="btn btn-primary sm:col-span-2">
-        <Icon name="check" size={18} stroke={2.4} /> Save and deliver here
+        <Icon name="check" size={18} stroke={2.4} /> {t("addr.saveHere")}
       </button>
     </form>
   );

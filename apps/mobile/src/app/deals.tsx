@@ -13,8 +13,10 @@ import { StoreSwitcher } from "@/components/StoreSwitcher";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { Empty, IconButton, T } from "@/components/ui";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n";
 
 export default function Deals() {
+  const { t } = useT();
   const params = useLocalSearchParams<{ store?: string }>();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -37,10 +39,8 @@ export default function Deals() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + 6 }}>
       <View style={styles.top}>
-        <IconButton icon="arrow-left" label="Back" onPress={() => router.back()} bg={c.surface2} />
-        <T v="h2" accessibilityRole="header" style={{ flex: 1 }}>
-          Live deals and offers
-        </T>
+        <IconButton icon="arrow-left" label={t("common.back")} onPress={() => router.back()} bg={c.surface2} />
+        <T v="h2" accessibilityRole="header" style={{ flex: 1 }}>{t("home.liveDeals")}</T>
       </View>
       <View style={{ paddingHorizontal: 16, marginBottom: 10 }}>
         <StoreSwitcher value={store} onChange={setStore} modes={enabled} compact />
@@ -58,10 +58,10 @@ export default function Deals() {
             <Icon name="zap" size={22} color="#fff" />
             <View style={{ flex: 1 }}>
               <T v="h3" tone="white">
-                {store === "all" ? "Every connected store" : `${STORES[store].name} · ${STORES[store].source}`}
+                {store === "all" ? t("m.everyConnected") : `${STORES[store].name} · ${STORES[store].source}`}
               </T>
               <T v="tiny" style={{ color: "rgba(255,255,255,0.9)" }}>
-                {feed.loading ? "Loading offers…" : `${withOffers} with store offers, plus the biggest discounts. Coupons we can use are already in your price.`}
+                {feed.loading ? t("m.loadingOffers") : t("m.dealsLine", { count: withOffers })}
               </T>
             </View>
           </LinearGradient>
@@ -77,9 +77,9 @@ export default function Deals() {
               ))}
             </View>
           ) : feed.error ? (
-            <Empty icon="wifi-off" title="Couldn't load deals" text={feed.error} action="Try again" onAction={feed.reload} />
+            <Empty icon="wifi-off" title={t("m.dealsFail")} text={feed.error} action={t("maint.retry")} onAction={feed.reload} />
           ) : (
-            <Empty icon="tag" title="No live deals right now" text="Check back soon, offers change through the day." />
+            <Empty icon="tag" title={t("m.noDeals")} text={t("m.noDealsB")} />
           )
         }
         initialNumToRender={6}

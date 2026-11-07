@@ -6,13 +6,19 @@ import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { checkPhone, formatPhone, phoneDigits } from "./phone";
 import "./account.css";
+import { useT } from "@/i18n/client";
 
 /* ---------------- Phone field (+880, live validation) ---------------- */
+
+// For labels inside small shared pieces (Sheet, dialogs, toasts): reads the current language via a hook.
+function useCommon() {
+  return useT().t;
+}
 
 export function PhoneField({
   digits,
   onChange,
-  label = "Mobile number",
+  label: labelProp,
   id,
   autoFocus,
   showErrors,
@@ -26,10 +32,12 @@ export function PhoneField({
 }) {
   const auto = useId();
   const fid = id ?? auto;
-  const c = checkPhone(digits);
+  const { t } = useT();
+  const label = labelProp ?? t("phone.label");
+  const c = checkPhone(digits, t);
   // An incomplete number is only "warn" while typing; after a submit attempt it is an error.
   const tone = showErrors && c.tone === "warn" ? "bad" : showErrors && c.tone === "idle" ? "bad" : c.tone;
-  const message = showErrors && c.tone === "idle" ? "Enter your mobile number" : c.message;
+  const message = showErrors && c.tone === "idle" ? t("ui.enterPhone") : c.message;
   return (
     <div>
       <div
@@ -99,6 +107,7 @@ export function Sheet({
   size?: "sm";
   tone?: "bad";
 }) {
+  const tCommon = useCommon();
   const { closing, close } = useClosable(onClose);
   const ref = useRef<HTMLDivElement>(null);
   const tid = useId();
@@ -168,7 +177,7 @@ export function Sheet({
           <button
             type="button"
             onClick={close}
-            aria-label="Close"
+            aria-label={tCommon("common.close")}
             className="-mr-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-2 transition hover:bg-surface-2"
           >
             <Icon name="x" size={18} />
@@ -198,12 +207,13 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const tCommon = useCommon();
   return (
     <Sheet title={title} description={body} icon={icon} onClose={onClose} size="sm" tone={danger ? "bad" : undefined}>
       {(close) => (
         <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" className="btn btn-ghost" onClick={close} data-autofocus>
-            Keep it
+            {tCommon("ui.keep")}
           </button>
           <button
             type="button"
@@ -227,6 +237,7 @@ export function ConfirmDialog({
 export type UndoToastState = { id: number; title: string; body?: string; undo: () => void } | null;
 
 export function UndoToast({ toast, onDone, ms = 5000 }: { toast: UndoToastState; onDone: () => void; ms?: number }) {
+  const tCommon = useCommon();
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(onDone, ms);
@@ -256,11 +267,11 @@ export function UndoToast({ toast, onDone, ms = 5000 }: { toast: UndoToastState;
                 onDone();
               }}
             >
-              <Icon name="refresh" size={15} /> Undo
+              <Icon name="refresh" size={15} /> {tCommon("ui.undo")}
             </button>
             <button
               type="button"
-              aria-label="Dismiss"
+              aria-label={tCommon("toast.dismiss")}
               className="grid h-11 w-9 place-items-center rounded-full text-ink-3 hover:bg-surface-2"
               onClick={onDone}
             >
@@ -425,8 +436,9 @@ export function useNow(intervalMs: number) {
 }
 
 export function LoadingBlock({ rows = 3 }: { rows?: number }) {
+  const tCommon = useCommon();
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Loading">
+    <div className="space-y-3" aria-busy="true" aria-label={tCommon("skel.loading")}>
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="skeleton h-24 rounded-2xl" />
       ))}

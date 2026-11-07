@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import { setConsent, type Consent } from "@/lib/track/consent";
+import { useT } from "@/i18n/client";
 
 /** Small floating cookie card. Non-modal: the shop stays usable while it is open. */
 export function ConsentBanner({ current, onDone }: { current: Consent | null; onDone: () => void }) {
+  const { t } = useT();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     // when reopened from the footer, move focus to the card
@@ -37,20 +39,19 @@ export function ConsentBanner({ current, onDone }: { current: Consent | null; on
         </span>
         <div className="min-w-0">
           <h2 id="consent-h" className="text-sm font-extrabold">
-            Cookies, your choice
+            {t("cs.title")}
           </h2>
           <p id="consent-d" className="mt-1 text-xs leading-relaxed text-ink-2">
-            We use essential storage for your cart and sign-in. With your OK we also use analytics and ad cookies (Meta, Google, TikTok) to
-            measure and improve our ads. You can change this any time from &ldquo;Cookie settings&rdquo; in the footer.
+            {t("cs.body")}
           </p>
         </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button type="button" onClick={() => choose("essential")} className={"btn btn-ghost min-h-10 px-3 text-sm " + (current === "essential" ? "ring-2 ring-accent/40" : "")}>
-          Essential only
+          {t("cs.essential")}
         </button>
         <button type="button" onClick={() => choose("all")} className="btn btn-primary min-h-10 px-3 text-sm">
-          Accept all
+          {t("cs.accept")}
         </button>
       </div>
     </div>

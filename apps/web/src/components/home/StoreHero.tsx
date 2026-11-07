@@ -135,7 +135,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
               }
             >
               <Icon name={STORES[s.mode].icon} size={14} stroke={2} />
-              {STORES[s.mode].name}
+              {s.mode === "all" ? t("store.all.name") : STORES[s.mode].name}
             </button>
           ))}
         </div>

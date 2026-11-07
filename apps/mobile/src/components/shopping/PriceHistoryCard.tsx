@@ -5,20 +5,22 @@ import Svg, { Defs, LinearGradient, Line, Path, Stop } from "react-native-svg";
 import { Card, Skeleton, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useFeature } from "@/lib/features";
-import { formatBdt } from "@/lib/pricing";
 import { PERIODS, shopping, type PriceHistory } from "@/lib/shopping";
 import type { Product } from "@/lib/types";
 import { useAccent, useTheme, withAlpha } from "@/theme";
+import { useT, type MsgKey } from "@/i18n";
+import { fmtDate, type Lang } from "@/i18n/core";
 
 const H = 150;
-const LABEL: Record<number, string> = { 30: "30D", 90: "90D", 365: "1Y" };
+const LABEL: Record<number, MsgKey> = { 30: "ph.30", 90: "ph.90", 365: "ph.365" };
 
-const fmt = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const fmt = (iso: string, lang: Lang) => fmtDate(iso + "T00:00:00Z", lang, { day: "numeric", month: "short", timeZone: "UTC" });
 
 /** Price history (react-native-svg): period tabs with a sliding indicator, touch crosshair, wipe-in reveal. */
 export function PriceHistoryCard({ p }: { p: Product }) {
   const on = useFeature("price_history");
   const { c } = useTheme();
+  const { t, bdt, inr, lang } = useT();
   const a = useAccent(p.market);
   const reduce = useReducedMotion();
   const [days, setDays] = useState<number>(30);
@@ -84,7 +86,7 @@ export function PriceHistoryCard({ p }: { p: Product }) {
   return (
     <Card>
       <View style={styles.head}>
-        <T v="h3">Price history</T>
+        <T v="h3">{t("ph.title")}</T>
         <View style={[styles.tabs, { backgroundColor: c.surface2 }]} onLayout={(e: LayoutChangeEvent) => setTabW((e.nativeEvent.layout.width - 8) / PERIODS.length)}>
           <Animated.View style={[styles.ind, { width: tabW, backgroundColor: c.surface }, indStyle]} />
           {PERIODS.map((d) => (
@@ -100,7 +102,7 @@ export function PriceHistoryCard({ p }: { p: Product }) {
               style={styles.tab}
             >
               <T v="small" style={{ fontWeight: "800", color: d === days ? c.ink : c.ink2 }}>
-                {LABEL[d]}
+                {t(LABEL[d])}
               </T>
             </Tap>
           ))}
@@ -113,7 +115,7 @@ export function PriceHistoryCard({ p }: { p: Product }) {
             <View key={b.type} style={[styles.badge, { backgroundColor: withAlpha(b.type === "lowest" ? c.good : a.accent, 0.12) }]}>
               <Icon name={b.type === "lowest" ? "check-circle" : "tag"} size={13} color={b.type === "lowest" ? c.good : a.ink} />
               <T v="small" style={{ fontWeight: "800", color: b.type === "lowest" ? c.good : a.ink }}>
-                {b.label}
+                {b.type === "lowest" ? t("ph.badgeLowest") : t("ph.badgeDrop", { amount: bdt(b.dropBdt ?? 0) })}
               </T>
             </View>
           ))}
@@ -122,10 +124,10 @@ export function PriceHistoryCard({ p }: { p: Product }) {
 
       <View style={{ marginTop: 10 }} accessibilityLiveRegion="polite">
         <T v="h2" style={{ fontVariant: ["tabular-nums"] }}>
-          {pt ? formatBdt(pt.bdt) : "…"}
+          {pt ? bdt(pt.bdt) : "…"}
         </T>
         <T v="small" tone="ink2">
-          {pt ? (hover === null ? "Today" : `${fmt(pt.date)} · ₹${Math.round(pt.inr).toLocaleString("en-IN")} on the store`) : "Loading"}
+          {pt ? (hover === null ? t("ph.today") : `${fmt(pt.date, lang)} · ${t("ph.onStore", { amount: inr(pt.inr) })}`) : t("ph.loading")}
         </T>
       </View>
 
@@ -140,7 +142,7 @@ export function PriceHistoryCard({ p }: { p: Product }) {
         onResponderTerminationRequest={() => true}
         accessible
         accessibilityRole="image"
-        accessibilityLabel={data ? `Price over ${days} days: lowest ${formatBdt(data.lowestBdt)}, average ${formatBdt(data.averageBdt)}, highest ${formatBdt(data.highestBdt)}.` : "Price history loading"}
+        accessibilityLabel={data ? t("m.priceA11y", { days, low: bdt(data.lowestBdt), avg: bdt(data.averageBdt), high: bdt(data.highestBdt) }) : t("ph.ariaLoading")}
       >
         {geo && data ? (
           <View style={{ overflow: "hidden", flex: 1 }}>
@@ -162,7 +164,7 @@ export function PriceHistoryCard({ p }: { p: Product }) {
         ) : failed ? (
           <View style={[styles.center, { backgroundColor: c.surface2 }]}>
             <T v="small" tone="ink2">
-              Price history isn&apos;t available right now.
+              {t("ph.unavailable")}
             </T>
           </View>
         ) : (
@@ -173,23 +175,24 @@ export function PriceHistoryCard({ p }: { p: Product }) {
       {data && (
         <View style={[styles.stats, { backgroundColor: c.surface2 }]}>
           {[
-            ["Lowest", data.lowestBdt, c.good],
-            ["Average", data.averageBdt, c.ink],
-            ["Highest", data.highestBdt, c.ink],
+            [t("ph.statLowest"), data.lowestBdt, c.good],
+            [t("ph.statAverage"), data.averageBdt, c.ink],
+            [t("ph.statHighest"), data.highestBdt, c.ink],
           ].map(([k, v, col]) => (
             <View key={k as string} style={{ flex: 1, alignItems: "center" }}>
               <T v="small" tone="ink2" style={{ fontWeight: "700" }}>
                 {k as string}
               </T>
               <T v="body" style={{ fontWeight: "800", color: col as string }}>
-                {formatBdt(v as number)}
+                {bdt(v as number)}
               </T>
             </View>
           ))}
         </View>
       )}
       <T v="small" tone="ink3" style={{ marginTop: 8 }}>
-        Past store prices at today&apos;s exchange rate.{data?.demo ? " Demo history for this sample listing." : ""}
+        {t("m.notePast")}
+        {data?.demo ? t("ph.demo") : ""}
       </T>
     </Card>
   );

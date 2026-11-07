@@ -64,7 +64,7 @@ export function StoreSwitcher({ className }: { className?: string }) {
             }
           >
             <Icon name={STORES[m].icon} size={15} stroke={2} />
-            {STORES[m].name}
+            {m === "all" ? t("store.all.name") : STORES[m].name}
           </Link>
         );
       })}
@@ -75,7 +75,7 @@ export function StoreSwitcher({ className }: { className?: string }) {
 export function Header() {
   const { cartCount, user, theme, setTheme } = useStore();
   const path = usePathname();
-  const { t } = useT();
+  const { t, digits } = useT();
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -147,7 +147,7 @@ export function Header() {
             <Icon name="cart" size={19} /> {t("nav.cart")}
             {cartCount > 0 && (
               <span key={cartCount} className="mo-badge pop grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-[11px] font-bold text-accent">
-                {cartCount}
+                {digits(cartCount)}
               </span>
             )}
           </Link>

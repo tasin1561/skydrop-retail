@@ -7,7 +7,7 @@ import { api, waitForJob } from "@/api/client";
 import { useStore } from "@/state/store";
 import type { Product } from "@/lib/types";
 import { STORES } from "@/lib/markets";
-import { discountPct, formatBdt, weightKg } from "@/lib/pricing";
+import { discountPct, weightKg } from "@/lib/pricing";
 import { isUnavailableStock, unitMrp, unitPrice } from "@/lib/cart";
 import { comboExists, groupVariants, initialSelection, pickVariant } from "@/lib/variants";
 import { useAccent, useTheme } from "@/theme";
@@ -25,6 +25,7 @@ import { DeliveryRoute, PriceBreakdown, Reviews, Specs } from "@/components/prod
 import { FetchingLive, ProductExtras } from "@/components/product/Extras";
 import { OffersSection, Countdown, headlineDeal } from "@/components/offers/offers";
 import { ShoppingSections } from "@/components/shopping/ShoppingSections";
+import { useT } from "@/i18n";
 
 type Phase = "idle" | "busy" | "done";
 
@@ -39,6 +40,7 @@ export default function ProductScreen() {
 }
 
 function ProductLoader({ id }: { id: string }) {
+  const { t } = useT();
   const { c } = useTheme();
   const [p, setP] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -92,11 +94,11 @@ function ProductLoader({ id }: { id: string }) {
   if (error)
     return (
       <View style={{ flex: 1, backgroundColor: c.bg, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 }}>
-        <T v="h2">Product not available</T>
+        <T v="h2">{t("m.productNA")}</T>
         <T v="body" tone="ink2" style={{ textAlign: "center" }}>
           {error}
         </T>
-        <Button label="Go back" onPress={() => router.back()} />
+        <Button label={t("m.goBack")} onPress={() => router.back()} />
       </View>
     );
   if (!p) return <ProductSkeleton />;
@@ -104,6 +106,7 @@ function ProductLoader({ id }: { id: string }) {
 }
 
 function ProductSkeleton() {
+  const { t } = useT();
   const { width } = useWindowDimensions();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -118,13 +121,14 @@ function ProductSkeleton() {
         <Skeleton h={120} r={20} style={{ marginTop: 12 }} />
       </View>
       <View style={{ position: "absolute", top: insets.top + 8, left: 12 }}>
-        <IconButton icon="arrow-left" label="Back" onPress={() => router.back()} />
+        <IconButton icon="arrow-left" label={t("common.back")} onPress={() => router.back()} />
       </View>
     </View>
   );
 }
 
 function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onSwap: (p: Product) => void }) {
+  const { t, bdt, inr } = useT();
   const { c } = useTheme();
   const a = useAccent(p.market);
   const insets = useSafeAreaInsets();
@@ -159,7 +163,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
   const current = variants.find((v) => Object.entries(sel).every(([k, val]) => v.dimensions[k] === val));
   const variantLabel = current?.label ?? (Object.values(sel).length ? Object.values(sel).join(" / ") : undefined);
   const wished = wish.includes(p.id);
-  const deal = headlineDeal(p);
+  const deal = headlineDeal(p, t);
 
   const pick = useCallback(
     async (key: string, value: string) => {
@@ -205,7 +209,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
         put();
         haptic.success();
         setAdd("done");
-        toast({ kind: "success", title: `Added ${qty} to cart`, body: variantLabel ? `${variantLabel} · ${formatBdt(price * qty)}` : formatBdt(price * qty), action: { label: "View cart", href: "/cart" } });
+        toast({ kind: "success", title: t("buy.added", { count: qty }), body: variantLabel ? `${variantLabel} · ${bdt(price * qty)}` : bdt(price * qty), action: { label: t("buy.viewCart"), href: "/cart" } });
         timers.current.push(setTimeout(() => setAdd("idle"), 1600));
       }, 500),
     );
@@ -240,10 +244,10 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
 
         <Animated.View entering={FadeIn.duration(250)} style={{ padding: 16, gap: 10 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-            <Pill text={`From ${store.source}`} icon="globe" color={a.ink} bg={a.soft} />
+            <Pill text={t("m.fromSource", { source: store.source })} icon="globe" color={a.ink} bg={a.soft} />
             <Pill text={store.name} />
-            {p.bestSeller && <Pill text="Best seller" icon="star" />}
-            {p.demo && <Pill text="Demo product" icon="info" />}
+            {p.bestSeller && <Pill text={t("card.bestSeller")} icon="star" />}
+            {p.demo && <Pill text={t("m.demoProduct")} icon="info" />}
           </View>
           {pending && <FetchingLive market={p.market} />}
           {!!p.brand && (
@@ -258,17 +262,17 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
 
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
             <T v="h1" style={{ fontSize: 30, lineHeight: 36 }}>
-              {formatBdt(price)}
+              {bdt(price)}
             </T>
             {mrp > price && (
               <T v="body" tone="ink3" style={{ textDecorationLine: "line-through" }}>
-                {formatBdt(mrp)}
+                {bdt(mrp)}
               </T>
             )}
             {off > 0 && (
               <View style={[styles.off, { backgroundColor: c.coral }]}>
                 <T v="small" tone="white" style={{ fontWeight: "800" }}>
-                  {off}% off
+                  {t("card.off", { pct: off })}
                 </T>
               </View>
             )}
@@ -284,16 +288,14 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           )}
           {!!p.couponInr && (
             <T v="small" style={{ color: c.good, fontWeight: "800" }}>
-              ₹{Math.round(p.couponInr)} coupon from {store.source} already applied
+              {t("m.couponFrom", { amount: inr(p.couponInr), source: store.source })}
             </T>
           )}
-          <T v="tiny" tone="ink2">
-            Import duty and Skydrop service included. Shipping added per store in your cart.
-          </T>
+          <T v="tiny" tone="ink2">{t("m.dutyShip")}</T>
           <ProductExtras id={p.id} market={p.market} priceBdt={price} inStock={available} />
           {!available && (
             <T v="small" tone="bad" style={{ fontWeight: "700" }}>
-              Currently unavailable on {store.source}
+              {t("m.unavailOn", { source: store.source })}
             </T>
           )}
         </Animated.View>
@@ -316,7 +318,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <ActivityIndicator size="small" color={a.accent} />
                 <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
-                  Opening {swapping}
+                  {t("var.opening", { value: swapping })}
                 </T>
               </View>
             )}
@@ -326,7 +328,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
         <View style={{ paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <QtyStepper value={qty} onChange={setQty} />
           <T v="small" tone="ink2">
-            {qty > 1 ? `${formatBdt(price * qty)} for ${qty}` : "Up to 10 per order"}
+            {qty > 1 ? t("buy.forQty", { amount: bdt(price * qty), count: qty }) : t("buy.upTo10")}
           </T>
         </View>
 
@@ -338,13 +340,13 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           <ShoppingSections p={p} inStock={available} />
         </View>
 
-        <Rail title={`More from ${store.name}`} items={related.data ?? []} loading={related.loading} />
+        <Rail title={t("m.moreFrom", { name: store.name })} items={related.data ?? []} loading={related.loading} />
       </Animated.ScrollView>
 
       {/* floating header */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]} pointerEvents="box-none">
         <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: c.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.line }, headerBg]} />
-        <IconButton icon="arrow-left" label="Back" onPress={() => router.back()} />
+        <IconButton icon="arrow-left" label={t("common.back")} onPress={() => router.back()} />
         <Animated.View style={[{ flex: 1, paddingHorizontal: 8 }, headerBg]}>
           <T v="small" numberOfLines={1} style={{ fontWeight: "800" }}>
             {p.title}
@@ -353,27 +355,27 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
         <AskAiButton productId={p.id} spaced />
         <IconButton
           icon="share-2"
-          label="Share this product"
+          label={t("m.shareProduct")}
           onPress={() => {
             haptic.light();
             sharePage({ path: `/p/${encodeURIComponent(p.id)}`, title: p.title, user }).catch(() =>
-              toast({ kind: "error", title: "Couldn't open sharing" }),
+              toast({ kind: "error", title: t("m.shareFailed") }),
             );
           }}
         />
         <View style={{ width: 8 }} />
         <IconButton
           icon="heart"
-          label={wished ? "Remove from wishlist" : "Save to wishlist"}
+          label={wished ? t("wish.remove") : t("wish.save")}
           tint={wished ? c.coral : c.ink}
           onPress={() => {
             haptic.light();
             const on = toggleWish(p.id);
-            toast({ kind: "info", title: on ? "Saved to wishlist" : "Removed from wishlist" });
+            toast({ kind: "info", title: on ? t("wish.saved") : t("wish.removed") });
           }}
         />
         <View style={{ width: 8 }} />
-        <IconButton icon="shopping-cart" label={`Cart, ${totals.count} items`} badge={totals.count} onPress={() => router.navigate("/cart")} />
+        <IconButton icon="shopping-cart" label={t("nav.cartCount", { count: totals.count })} badge={totals.count} onPress={() => router.navigate("/cart")} />
       </View>
 
       {/* sticky buy bar */}
@@ -381,18 +383,18 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
         <Tap
           onPress={onAdd}
           disabled={!available}
-          accessibilityLabel={add === "done" ? "Added to cart" : "Add to cart"}
+          accessibilityLabel={add === "done" ? t("ai.added") : t("buy.addToCart")}
           accessibilityState={{ busy: add === "busy", disabled: !available }}
           style={[styles.addBtn, { backgroundColor: a.soft, opacity: available ? 1 : 0.5 }]}
         >
           <Animated.View key={add} entering={FadeIn.duration(160)} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             {add === "busy" ? <ActivityIndicator size="small" color={a.ink} /> : <Icon name={add === "done" ? "check" : "shopping-cart"} size={18} color={a.ink} />}
             <T v="h3" style={{ color: a.ink, fontSize: 15 }}>
-              {add === "busy" ? "Adding" : add === "done" ? "Added" : "Add to cart"}
+              {add === "busy" ? t("buy.adding") : add === "done" ? t("buy.addedShort") : t("buy.addToCart")}
             </T>
           </Animated.View>
         </Tap>
-        <Button label="Buy now" mode={p.market} onPress={onBuy} busy={buy === "busy"} disabled={!available} style={{ flex: 1 }} />
+        <Button label={t("buy.buyNow")} mode={p.market} onPress={onBuy} busy={buy === "busy"} disabled={!available} style={{ flex: 1 }} />
       </View>
     </View>
   );

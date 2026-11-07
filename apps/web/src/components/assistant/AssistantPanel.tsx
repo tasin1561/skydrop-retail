@@ -9,17 +9,19 @@ import { Icon } from "@/components/Icon";
 import { AssistantCard } from "./AssistantCards";
 import { useAssistantChat, type ChatMessage } from "./useAssistantChat";
 import { AiGlyph } from "./AiGlyph";
+import { useLang, useT } from "@/i18n/client";
+import { translate, type MsgKey } from "@/i18n/core";
 
-const TOOL_LABEL: Record<string, string> = {
-  search_products: "Searching the catalog",
-  get_product: "Reading product details",
-  compare_products: "Comparing",
-  get_price_history: "Checking price history",
-  delivery_estimate: "Checking delivery dates",
-  get_my_orders: "Looking up your orders",
-  track_order: "Tracking your order",
-  add_to_cart_suggestion: "Preparing your cart button",
-  create_product_request: "Sending your request",
+const TOOL_LABEL: Record<string, MsgKey> = {
+  search_products: "ai.tool.search",
+  get_product: "ai.tool.product",
+  compare_products: "ai.tool.compare",
+  get_price_history: "ai.tool.history",
+  delivery_estimate: "ai.tool.delivery",
+  get_my_orders: "ai.tool.orders",
+  track_order: "ai.tool.track",
+  add_to_cart_suggestion: "ai.tool.cart",
+  create_product_request: "ai.tool.request",
 };
 
 /** Tiny, safe formatter: paragraphs, "- " bullets and **bold** (no HTML injection). */
@@ -61,7 +63,11 @@ export function AssistantPanel({
   const bangla = useFeature("bangla");
   const chat = useAssistantChat(token);
   const [config, setConfig] = useState<AssistantConfig | null>(null);
-  const [lang, setLang] = useState<"en" | "bn">("en");
+  const site = useLang().lang;
+  const { t } = useT();
+  // Suggestion chips follow the site language until the shopper picks one here.
+  const [picked, setLang] = useState<"en" | "bn" | null>(null);
+  const lang = picked ?? site;
   const [draft, setDraft] = useState("");
   const panel = useRef<HTMLElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -133,7 +139,7 @@ export function AssistantPanel({
     }
   };
 
-  const greeting = config?.greeting?.[lang] || (lang === "bn" ? "হ্যালো! কী খুঁজছেন বলুন।" : "Hi! Tell me what you're looking for and your budget in taka.");
+  const greeting = config?.greeting?.[lang] || translate(lang, "ai.greeting");
   const prompts = (config?.prompts?.[lang] ?? []).slice(0, 6);
   const remaining = chat.remaining ?? config?.remaining ?? null;
   const out = remaining === 0;
@@ -160,15 +166,15 @@ export function AssistantPanel({
             Skydrop AI
           </h2>
           <p className="truncate text-[11px] text-ink-2">
-            {config?.demo ? "Demo mode · answers from the sample catalog" : config?.basic ? "Basic mode · showing search results" : "Shopping help · prices in BDT, all-inclusive"}
+            {config?.demo ? t("ai.demo") : config?.basic ? t("ai.basic") : t("ai.help")}
           </p>
         </div>
         {chat.messages.length > 0 && (
-          <button type="button" className="ai-icon-btn" onClick={chat.clear} aria-label="Clear conversation" title="Clear conversation">
+          <button type="button" className="ai-icon-btn" onClick={chat.clear} aria-label={t("ai.clear")} title={t("ai.clear")}>
             <Icon name="trash" size={18} />
           </button>
         )}
-        <button type="button" className="ai-icon-btn" onClick={onClose} aria-label="Close Skydrop AI">
+        <button type="button" className="ai-icon-btn" onClick={onClose} aria-label={t("ai.close")}>
           <Icon name="x" size={20} />
         </button>
       </header>
@@ -178,7 +184,7 @@ export function AssistantPanel({
         className="ai-log"
         role="log"
         aria-live="off"
-        aria-label="Conversation"
+        aria-label={t("ai.conversation")}
         tabIndex={0}
         onScroll={(e) => {
           const el = e.currentTarget;
@@ -192,7 +198,7 @@ export function AssistantPanel({
             </span>
             <p className="max-w-[30ch] text-center text-[15px] font-semibold leading-snug">{greeting}</p>
             {bangla && (
-              <div className="ai-lang" role="group" aria-label="Suggestion language">
+              <div className="ai-lang" role="group" aria-label={t("ai.suggestLang")}>
                 {(["en", "bn"] as const).map((l) => (
                   <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)}>
                     {l === "en" ? "English" : "বাংলা"}
@@ -225,10 +231,10 @@ export function AssistantPanel({
           submit(draft);
         }}
       >
-        {out && <p className="ai-limit">Daily AI limit reached.{token ? " Try again tomorrow." : " Sign in for more messages."}</p>}
+        {out && <p className="ai-limit">{t("ai.limit")}{token ? t("ai.tomorrow") : t("ai.signInMore")}</p>}
         <div className="ai-input">
           <label htmlFor="ai-msg" className="sr-only">
-            Message Skydrop AI
+            {t("ai.message")}
           </label>
           <textarea
             id="ai-msg"
@@ -247,25 +253,25 @@ export function AssistantPanel({
             }}
           />
           {chat.busy ? (
-            <button type="button" className="ai-send ai-stop" onClick={chat.stop} aria-label="Stop generating">
+            <button type="button" className="ai-send ai-stop" onClick={chat.stop} aria-label={t("ai.stop")}>
               <span className="ai-stop-sq" aria-hidden />
             </button>
           ) : (
-            <button type="submit" className="ai-send" disabled={!draft.trim() || out} aria-label="Send message">
+            <button type="submit" className="ai-send" disabled={!draft.trim() || out} aria-label={t("ai.send")}>
               <Icon name="arrow" size={18} stroke={2.4} className="-rotate-90" />
             </button>
           )}
         </div>
         <p className="ai-foot">
-          AI can make mistakes. Prices and stock are re-checked at checkout.
-          {remaining !== null && remaining <= 5 && remaining > 0 ? ` ${remaining} messages left today.` : ""}
+          {t("ai.foot")}
+          {remaining !== null && remaining <= 5 && remaining > 0 ? t("ai.left", { count: remaining }) : ""}
         </p>
       </form>
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">
         {chat.announce}
       </p>
-      {last?.status === "streaming" && <span className="sr-only">Skydrop AI is replying</span>}
+      {last?.status === "streaming" && <span className="sr-only">{t("ai.replying")}</span>}
     </section>
   );
 }
@@ -285,10 +291,11 @@ function Bubble({
   onRate: (key: string, r: "up" | "down") => void;
   onRegenerate: () => void;
 }) {
+  const { t } = useT();
   if (m.role === "user") {
     return (
       <div className="ai-msg ai-user">
-        <span className="sr-only">You said: </span>
+        <span className="sr-only">{t("ai.youSaid")}</span>
         {m.text}
       </div>
     );
@@ -296,7 +303,7 @@ function Bubble({
   const streaming = m.status === "streaming";
   return (
     <div className="ai-msg ai-bot" aria-busy={streaming}>
-      <span className="sr-only">Skydrop AI: </span>
+      <span className="sr-only">{t("ai.aiSaid")}</span>
       {m.text ? (
         <div className="ai-text">
           <Rich text={m.text} />
@@ -311,7 +318,7 @@ function Bubble({
       ) : null}
       {streaming && m.tool && (
         <p className="ai-tool">
-          <span className="ai-spin" aria-hidden /> {TOOL_LABEL[m.tool] ?? "Working"}…
+          <span className="ai-spin" aria-hidden /> {t(TOOL_LABEL[m.tool] ?? "ai.tool.working")}…
         </p>
       )}
       {m.cards.map((c, i) => (
@@ -324,21 +331,21 @@ function Bubble({
           {m.error}
         </p>
       )}
-      {m.status === "stopped" && <p className="ai-tool">Stopped.</p>}
+      {m.status === "stopped" && <p className="ai-tool">{t("ai.stopped")}</p>}
       {!streaming && (
         <div className="ai-actions">
           {m.status === "done" && m.serverId !== undefined && (
             <>
-              <button type="button" className="ai-icon-btn sm" aria-pressed={m.feedback === "up"} aria-label="Helpful" onClick={() => onRate(m.key, "up")}>
+              <button type="button" className="ai-icon-btn sm" aria-pressed={m.feedback === "up"} aria-label={t("ai.helpful")} onClick={() => onRate(m.key, "up")}>
                 <Thumb up />
               </button>
-              <button type="button" className="ai-icon-btn sm" aria-pressed={m.feedback === "down"} aria-label="Not helpful" onClick={() => onRate(m.key, "down")}>
+              <button type="button" className="ai-icon-btn sm" aria-pressed={m.feedback === "down"} aria-label={t("ai.notHelpful")} onClick={() => onRate(m.key, "down")}>
                 <Thumb />
               </button>
             </>
           )}
           {isLast && !busy && (
-            <button type="button" className="ai-icon-btn sm" aria-label="Regenerate answer" title="Regenerate" onClick={onRegenerate}>
+            <button type="button" className="ai-icon-btn sm" aria-label={t("ai.regenerate")} title={t("ai.regen")} onClick={onRegenerate}>
               <Icon name="refresh" size={16} />
             </button>
           )}

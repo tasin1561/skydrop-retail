@@ -8,29 +8,32 @@ import { ACCENTS, useTheme } from "@/theme";
 import { Icon } from "@/components/Icon";
 import { T } from "@/components/ui";
 import { haptic } from "@/lib/haptics";
+import { useT, type MsgKey } from "@/i18n";
 
-const TABS: Record<string, { label: string; icon: string }> = {
-  index: { label: "Home", icon: "home" },
-  categories: { label: "Categories", icon: "grid" },
-  cart: { label: "Cart", icon: "shopping-cart" },
-  orders: { label: "Orders", icon: "package" },
-  account: { label: "Account", icon: "user" },
+const TABS: Record<string, { label: MsgKey; icon: string }> = {
+  index: { label: "nav.home", icon: "home" },
+  categories: { label: "nav.categories", icon: "grid" },
+  cart: { label: "nav.cart", icon: "shopping-cart" },
+  orders: { label: "nav.orders", icon: "package" },
+  account: { label: "nav.account", icon: "user" },
 };
 
 export default function TabLayout() {
+  const { t } = useT();
   return (
     <Tabs screenOptions={{ headerShown: false }} tabBar={(p) => <TabBar {...p} />}>
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="categories" options={{ title: "Categories" }} />
-      <Tabs.Screen name="cart" options={{ title: "Cart" }} />
-      <Tabs.Screen name="orders" options={{ title: "Orders" }} />
-      <Tabs.Screen name="account" options={{ title: "Account" }} />
+      <Tabs.Screen name="index" options={{ title: t("nav.home") }} />
+      <Tabs.Screen name="categories" options={{ title: t("nav.categories") }} />
+      <Tabs.Screen name="cart" options={{ title: t("nav.cart") }} />
+      <Tabs.Screen name="orders" options={{ title: t("nav.orders") }} />
+      <Tabs.Screen name="account" options={{ title: t("nav.account") }} />
     </Tabs>
   );
 }
 
 // Custom tab bar: a travelling dot follows the active tab; cart shows a count badge.
 function TabBar({ state, navigateToTab }: BottomTabBarProps) {
+  const { t } = useT();
   const { c } = useTheme();
   const { mode, totals } = useStore();
   const insets = useSafeAreaInsets();
@@ -58,7 +61,8 @@ function TabBar({ state, navigateToTab }: BottomTabBarProps) {
     >
       <Animated.View style={[styles.dot, { backgroundColor: accent }, dot]} />
       {state.routes.map((route, i) => {
-        const meta = TABS[route.name] ?? { label: route.name, icon: "circle" };
+        const m = TABS[route.name];
+        const meta = { label: m ? t(m.label) : route.name, icon: m?.icon ?? "circle" };
         const focused = state.index === i;
         const badge = route.name === "cart" ? totals.count : 0;
         return (
@@ -66,7 +70,7 @@ function TabBar({ state, navigateToTab }: BottomTabBarProps) {
             key={route.key}
             accessibilityRole="tab"
             accessibilityState={{ selected: focused }}
-            accessibilityLabel={badge ? `${meta.label}, ${badge} items` : meta.label}
+            accessibilityLabel={badge ? t("nav.cartCount", { count: badge }) : meta.label}
             onPress={() => {
               if (!focused) {
                 haptic.tap();

@@ -67,6 +67,7 @@ An **Apple Developer Program account** (paid) is required for device builds, Tes
 pnpm typecheck                         # tsc --noEmit
 pnpm lint                              # expo lint (eslint-config-expo, flat config in eslint.config.js)
 pnpm demo-catalog                      # rebuild src/demo/catalog.json from apps/web/src/data/catalog.json
+pnpm i18n                              # copy the en/bn dictionaries and i18n core from apps/web/src/i18n
 npx expo export --platform android     # bundle check
 npx expo export --platform ios
 npx expo-doctor
@@ -100,6 +101,7 @@ scripts/make-demo-catalog.mjs
 
 ## Notes
 
+- **Language (EN | বাংলা).** English is the default. The switch is on the Account tab (shown while the `bangla` feature switch is on). The choice is kept in AsyncStorage and, for signed-in shoppers, saved to the profile with `PATCH /me { locale }`. `src/i18n/en.ts`, `bn.ts` and `core.ts` are generated copies of `apps/web/src/i18n/`: edit the web files, then run `pnpm i18n` (`scripts/sync-i18n.mjs`). Screens use `const { t, bdt } = useT()` from `@/i18n`; `bdt()` prints taka with Bangla digits in Bangla mode (one switch, `BANGLA_DIGITS` in `core.ts`). In Bangla mode the `T` text component uses Noto Sans Bengali (`@expo-google-fonts/noto-sans-bengali`, wired in `src/theme/fonts.ts`) with a little more line height. Store names, brand names and product data stay in English.
 - **Pricing.** `src/lib/pricing.ts` is a verbatim copy of `apps/web/src/lib/pricing.ts`; keep them in sync. When the API returns `priceBdt`/`mrpBdt`, the app shows the server figures.
 - **Video.** Product videos use `expo-video`: AVPlayer on iOS, ExoPlayer on Android. They play HLS natively, with `contentType: "hls"` set for iOS.
 - **Platform details.**

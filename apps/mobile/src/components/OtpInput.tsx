@@ -5,8 +5,10 @@ import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputInstanc
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { radius, useTheme } from "@/theme";
 import { T } from "./ui";
+import { useT } from "@/i18n";
 
 export function OtpInput({ value, onChange, error, autoFocus = true }: { value: string; onChange: (v: string) => void; error?: boolean; autoFocus?: boolean }) {
+  const { t } = useT();
   const { c } = useTheme();
   const ref = useRef<TextInputInstance>(null);
   const [focused, setFocused] = useState(false);
@@ -24,7 +26,7 @@ export function OtpInput({ value, onChange, error, autoFocus = true }: { value: 
   const caretStyle = useAnimatedStyle(() => ({ opacity: caret.value }));
 
   return (
-    <Pressable onPress={() => ref.current?.focus()} accessibilityLabel={`Verification code, ${value.length} of 6 digits entered`}>
+    <Pressable onPress={() => ref.current?.focus()} accessibilityLabel={t("m.otpA11y", { count: value.length })}>
       <Animated.View style={[styles.row, shakeStyle]}>
         {Array.from({ length: 6 }, (_, i) => {
           const ch = value[i];
@@ -65,7 +67,7 @@ export function OtpInput({ value, onChange, error, autoFocus = true }: { value: 
         onBlur={() => setFocused(false)}
         caretHidden
         style={styles.hidden}
-        accessibilityLabel="Verification code"
+        accessibilityLabel={t("m.otpLabel")}
       />
     </Pressable>
   );

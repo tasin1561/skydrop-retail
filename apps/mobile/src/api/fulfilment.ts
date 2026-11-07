@@ -2,6 +2,7 @@
 // Demo mode computes the route locally from the order status.
 import { http, isDemo } from "@/api/client";
 import type { Order, OrderStatus } from "@/lib/types";
+import type { MsgKey } from "@/i18n/core";
 
 export type GeoPoint = { id: string; label: string; short: string; lat: number; lng: number };
 export type Leg = { id: string; label: string; state: "done" | "current" | "next" };
@@ -40,14 +41,15 @@ export type Eligibility = {
   items: { id: number; title: string; variant: string | null; qty: number; returnableQty: number; unitBdt: number }[];
 };
 
-export const REASON_LABELS: Record<ReturnReason, string> = {
-  damaged: "Damaged",
-  wrong_item: "Wrong item",
-  not_as_described: "Not as described",
-  size_issue: "Size issue",
-  changed_mind: "Changed my mind",
+/** Dictionary keys: show them with t(). */
+export const REASON_LABELS: Record<ReturnReason, MsgKey> = {
+  damaged: "rr.damaged",
+  wrong_item: "rr.wrong_item",
+  not_as_described: "rr.not_as_described",
+  size_issue: "rr.size_issue",
+  changed_mind: "rr.changed_mind",
 };
-export const RESOLUTION_LABELS: Record<Resolution, string> = { refund: "Refund", replacement: "Replacement", store_credit: "Store credit" };
+export const RESOLUTION_LABELS: Record<Resolution, MsgKey> = { refund: "rs.refund", replacement: "rs.replacement", store_credit: "rs.store_credit" };
 
 const HUBS: GeoPoint[] = [
   { id: "kolkata", label: "Skydrop Kolkata hub", short: "Kolkata", lat: 22.5726, lng: 88.3639 },

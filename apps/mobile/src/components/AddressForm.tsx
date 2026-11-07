@@ -1,7 +1,7 @@
 // Address form with cascading Bangladesh division -> district pickers (data from lib/bd.ts).
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { BD_DIVISIONS } from "@/lib/bd";
+import { bdName, BD_DIVISIONS } from "@/lib/bd";
 import type { Address } from "@/lib/types";
 import { checkPhone, formatPhone, phoneDigits, toE164 } from "@/lib/phone";
 import { radius, useTheme } from "@/theme";
@@ -9,6 +9,7 @@ import { haptic } from "@/lib/haptics";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 import { Button, T, Tap } from "./ui";
+import { useT } from "@/i18n";
 
 export type AddressDraft = Omit<Address, "id"> & { id?: string };
 
@@ -22,12 +23,13 @@ export function addressValid(a: AddressDraft) {
 
 export function AddressForm({ value, onChange }: { value: AddressDraft; onChange: (a: AddressDraft) => void }) {
   const { c } = useTheme();
+  const { t, lang } = useT();
   const [picker, setPicker] = useState<"division" | "district" | null>(null);
   const digits = phoneDigits(value.phone);
-  const phoneCheck = checkPhone(digits);
+  const phoneCheck = checkPhone(digits, t);
   const set = (patch: Partial<AddressDraft>) => onChange({ ...value, ...patch });
 
-  const field = (label: string, v: string, onText: (t: string) => void, extra: Partial<React.ComponentProps<typeof TextInput>> = {}) => (
+  const field = (label: string, v: string, onText: (s: string) => void, extra: Partial<React.ComponentProps<typeof TextInput>> = {}) => (
     <View style={{ gap: 6 }}>
       <T v="small" style={{ fontWeight: "700" }}>
         {label}
@@ -51,12 +53,12 @@ export function AddressForm({ value, onChange }: { value: AddressDraft; onChange
       <Tap
         onPress={onPress}
         disabled={disabled}
-        accessibilityLabel={`${label}: ${v || "not chosen"}`}
+        accessibilityLabel={`${label}: ${v ? bdName(v, lang) : t("m.notChosen")}`}
         scaleTo={0.98}
         style={[styles.input, styles.select, { backgroundColor: c.surface, borderColor: c.line, opacity: disabled ? 0.5 : 1 }]}
       >
         <T v="body" tone={v ? "ink" : "ink3"} numberOfLines={1} style={{ flex: 1 }}>
-          {v || placeholder}
+          {v ? bdName(v, lang) : placeholder}
         </T>
         <Icon name="chevron-down" size={18} color={c.ink3} />
       </Tap>
@@ -68,23 +70,21 @@ export function AddressForm({ value, onChange }: { value: AddressDraft; onChange
 
   return (
     <View style={{ gap: 14 }}>
-      {field("Full name", value.name, (t) => set({ name: t }), { placeholder: "Who receives the parcel", textContentType: "name", autoComplete: "name" })}
+      {field(t("addr.fullName"), value.name, (s) => set({ name: s }), { placeholder: t("m.receiverPh"), textContentType: "name", autoComplete: "name" })}
       <View style={{ gap: 6 }}>
-        <T v="small" style={{ fontWeight: "700" }}>
-          Mobile number
-        </T>
+        <T v="small" style={{ fontWeight: "700" }}>{t("phone.label")}</T>
         <View style={[styles.input, styles.select, { backgroundColor: c.surface, borderColor: digits && phoneCheck.tone === "bad" ? c.bad : c.line }]}>
           <T v="body" style={{ fontWeight: "700" }}>
             +880
           </T>
           <TextInput
             value={formatPhone(digits)}
-            onChangeText={(t) => set({ phone: toE164(phoneDigits(t)) })}
+            onChangeText={(s) => set({ phone: toE164(phoneDigits(s)) })}
             placeholder="1712-345678"
             placeholderTextColor={c.ink3}
             keyboardType="phone-pad"
             maxLength={11}
-            accessibilityLabel="Mobile number after +880"
+            accessibilityLabel={t("m.phoneAfter")}
             style={{ flex: 1, color: c.ink, fontSize: 16, minHeight: 48 }}
           />
         </View>
@@ -95,13 +95,13 @@ export function AddressForm({ value, onChange }: { value: AddressDraft; onChange
         )}
       </View>
       <View style={{ flexDirection: "row", gap: 10 }}>
-        {select("Division", value.division, "Choose", () => setPicker("division"))}
-        {select("District", value.district, value.division ? "Choose" : "Division first", () => setPicker("district"), !value.division)}
+        {select(t("addr.division"), value.division, t("m.choose"), () => setPicker("division"))}
+        {select(t("addr.district"), value.district, value.division ? t("m.choose") : t("addr.divisionFirst"), () => setPicker("district"), !value.division)}
       </View>
-      {field("Area / Thana", value.area, (t) => set({ area: t }), { placeholder: "e.g. Dhanmondi" })}
-      {field("House, road, landmark", value.line, (t) => set({ line: t }), { placeholder: "House 12, Road 5, near the mosque", multiline: true, textContentType: "fullStreetAddress" })}
+      {field(t("addr.area"), value.area, (s) => set({ area: s }), { placeholder: t("m.areaPh") })}
+      {field(t("addr.line"), value.line, (s) => set({ line: s }), { placeholder: t("m.linePh"), multiline: true, textContentType: "fullStreetAddress" })}
 
-      <Sheet open={!!picker} onClose={() => setPicker(null)} title={picker === "division" ? "Choose division" : `Districts in ${value.division}`}>
+      <Sheet open={!!picker} onClose={() => setPicker(null)} title={picker === "division" ? t("addr.chooseDivision") : t("m.districtsIn", { division: bdName(value.division, lang) })}>
         <View style={{ gap: 6 }}>
           {options.map((o) => {
             const on = o === current;
@@ -116,12 +116,12 @@ export function AddressForm({ value, onChange }: { value: AddressDraft; onChange
                 }}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: on }}
-                accessibilityLabel={o}
+                accessibilityLabel={bdName(o, lang)}
                 scaleTo={0.98}
                 style={[styles.option, { backgroundColor: on ? c.surface2 : "transparent" }]}
               >
                 <T v="body" style={{ flex: 1, fontWeight: on ? "800" : "500" }}>
-                  {o}
+                  {bdName(o, lang)}
                 </T>
                 {on && <Icon name="check" size={18} color={c.brand} />}
               </Tap>
@@ -134,7 +134,8 @@ export function AddressForm({ value, onChange }: { value: AddressDraft; onChange
 }
 
 export function AddressSaveButton({ value, onSave, busy }: { value: AddressDraft; onSave: () => void; busy?: boolean }) {
-  return <Button label="Save address" icon="check" onPress={onSave} busy={busy} disabled={!addressValid(value)} />;
+  const { t } = useT();
+  return <Button label={t("af.save")} icon="check" onPress={onSave} busy={busy} disabled={!addressValid(value)} />;
 }
 
 const styles = StyleSheet.create({

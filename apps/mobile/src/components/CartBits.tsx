@@ -2,14 +2,15 @@ import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { couponHint, findCoupon, type Totals } from "@/lib/cart";
-import { formatBdt } from "@/lib/pricing";
 import { useStore } from "@/state/store";
 import { radius, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Icon } from "./Icon";
 import { Button, Card, Divider, T } from "./ui";
+import { useT } from "@/i18n";
 
 export function CouponField() {
+  const { t } = useT();
   const { c } = useTheme();
   const { coupon, setCoupon } = useStore();
   const [text, setText] = useState("");
@@ -22,13 +23,13 @@ export function CouponField() {
         <Icon name="tag" size={18} color={c.good} />
         <View style={{ flex: 1 }}>
           <T v="h3" style={{ fontSize: 14, color: c.good }}>
-            {coupon.code} applied
+            {t("coupon.applied", { code: coupon.code })}
           </T>
           <T v="tiny" tone="ink2">
-            {coupon.label}
+            {coupon.code === "SKYDROP10" || coupon.code === "FREESHIP" ? t(`coupon.${coupon.code}`) : coupon.label}
           </T>
         </View>
-        <Button label="Remove" kind="ghost" onPress={() => setCoupon("")} style={{ minHeight: 44, paddingHorizontal: 12 }} />
+        <Button label={t("cart.remove")} kind="ghost" onPress={() => setCoupon("")} style={{ minHeight: 44, paddingHorizontal: 12 }} />
       </Animated.View>
     );
 
@@ -36,7 +37,7 @@ export function CouponField() {
     const found = findCoupon(text);
     if (!found) {
       haptic.error();
-      setErr("That code isn't valid. Try SKYDROP10 or FREESHIP");
+      setErr(t("m.couponInvalid"));
       return;
     }
     haptic.success();
@@ -50,33 +51,34 @@ export function CouponField() {
       <View style={{ flexDirection: "row", gap: 8 }}>
         <TextInput
           value={text}
-          onChangeText={(t) => {
-            setText(t.toUpperCase());
+          onChangeText={(v) => {
+            setText(v.toUpperCase());
             setErr(null);
           }}
-          placeholder="Coupon code"
+          placeholder={t("coupon.label")}
           placeholderTextColor={c.ink3}
           autoCapitalize="characters"
           autoCorrect={false}
           returnKeyType="done"
           onSubmitEditing={apply}
-          accessibilityLabel="Coupon code"
+          accessibilityLabel={t("coupon.label")}
           style={[
             styles.input,
             { color: c.ink, backgroundColor: c.surface2, borderColor: hint === "match" ? c.good : hint === "unknown" ? c.bad : "transparent" },
           ]}
         />
-        <Button label="Apply" kind="soft" onPress={apply} disabled={!text.trim()} style={{ paddingHorizontal: 18 }} />
+        <Button label={t("coupon.apply")} kind="soft" onPress={apply} disabled={!text.trim()} style={{ paddingHorizontal: 18 }} />
       </View>
       <T v="tiny" tone={err ? "bad" : "ink3"} style={{ marginTop: 6 }}>
-        {err ?? "Try SKYDROP10 or FREESHIP"}
+        {err ?? t("coupon.try")}
       </T>
     </View>
   );
 }
 
-export function SummaryLines({ t }: { t: Totals }) {
+export function SummaryLines({ t: tot }: { t: Totals }) {
   const { c } = useTheme();
+  const { t, bdt } = useT();
   const row = (label: string, value: string, tone?: string, bold?: boolean) => (
     <View style={styles.row}>
       <T v={bold ? "h3" : "small"} tone={bold ? "ink" : "ink2"}>
@@ -89,24 +91,22 @@ export function SummaryLines({ t }: { t: Totals }) {
   );
   return (
     <Card style={{ gap: 8 }}>
-      {row(`Items (${t.count})`, formatBdt(t.subtotal))}
-      {row(`Skydrop shipping (${t.groups.length} ${t.groups.length === 1 ? "store" : "stores"})`, t.shipping ? formatBdt(t.shipping) : "Free")}
-      {t.itemDiscount > 0 && row("Coupon discount", "-" + formatBdt(t.itemDiscount), c.good)}
-      {t.shipDiscount > 0 && row("Free shipping coupon", "-" + formatBdt(t.shipDiscount), c.good)}
-      {t.pointsDiscount > 0 && row(`${t.pointsRedeemed} Skydrop Points`, "-" + formatBdt(t.pointsDiscount), c.good)}
+      {row(t("sum.items", { count: tot.count }), bdt(tot.subtotal))}
+      {row(t("m.shipStores", { count: tot.groups.length }), tot.shipping ? bdt(tot.shipping) : t("common.free"))}
+      {tot.itemDiscount > 0 && row(t("m.couponDiscount"), "-" + bdt(tot.itemDiscount), c.good)}
+      {tot.shipDiscount > 0 && row(t("m.freeShipCoupon"), "-" + bdt(tot.shipDiscount), c.good)}
+      {tot.pointsDiscount > 0 && row(t("sum.points", { count: tot.pointsRedeemed }), "-" + bdt(tot.pointsDiscount), c.good)}
       <Divider style={{ marginVertical: 4 }} />
-      {row("Total", formatBdt(t.total), undefined, true)}
-      {t.pointsToEarn > 0 && (
+      {row(t("sum.total"), bdt(tot.total), undefined, true)}
+      {tot.pointsToEarn > 0 && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Icon name="star" size={13} color={c.brand} />
           <T v="tiny" style={{ color: c.brand, fontWeight: "800" }}>
-            You'll earn {t.pointsToEarn} Skydrop Points when it's delivered
+            {t("sum.earn", { count: tot.pointsToEarn })}
           </T>
         </View>
       )}
-      <T v="tiny" tone="ink3">
-        Import duty included. Prices are verified live with the Indian stores at checkout.
-      </T>
+      <T v="tiny" tone="ink3">{t("m.dutyIncluded")}</T>
     </Card>
   );
 }

@@ -6,16 +6,17 @@ import { api, ApiError, isDemo } from "@/api/client";
 import { Button, Card, T } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/lib/features";
-import { formatBdt } from "@/lib/pricing";
 import { shopping, type PreorderInfo } from "@/lib/shopping";
 import type { Product } from "@/lib/types";
 import { useStore } from "@/state/store";
+import { useT } from "@/i18n";
 
 /**
  * Out of stock: restock waitlist count (the "Tell me when it's back" alert above adds you) and, when the admin
  * allows it, a pre-order with a deposit now and the balance when stock returns.
  */
 export function WaitlistCard({ p, inStock }: { p: Product; inStock: boolean }) {
+  const { t, bdt, lang } = useT();
   const waitlistOn = useFeature("waitlist");
   const preordersOn = useFeature("preorders");
   const { user } = useStore();
@@ -42,7 +43,7 @@ export function WaitlistCard({ p, inStock }: { p: Product; inStock: boolean }) {
 
   async function preorder() {
     if (isDemo()) {
-      toast({ kind: "info", title: "Demo store", body: "Pre-orders are taken once the live store is connected." });
+      toast({ kind: "info", title: t("po.demo"), body: t("po.demoBody") });
       return;
     }
     if (!user) {
@@ -54,7 +55,7 @@ export function WaitlistCard({ p, inStock }: { p: Product; inStock: boolean }) {
       const addresses = await api.addresses();
       const a = addresses.find((x) => x.isDefault) ?? addresses[0];
       if (!a) {
-        toast({ kind: "info", title: "Add a delivery address first" });
+        toast({ kind: "info", title: t("po.addAddress") });
         router.push("/addresses");
         return;
       }
@@ -63,7 +64,7 @@ export function WaitlistCard({ p, inStock }: { p: Product; inStock: boolean }) {
       if (r.payment.redirectUrl) await WebBrowser.openAuthSessionAsync(r.payment.redirectUrl, returnUrl);
       router.push(`/order/${r.order.id}`);
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't place the pre-order", body: e instanceof ApiError ? e.message : undefined });
+      toast({ kind: "error", title: t("po.failed"), body: e instanceof ApiError ? e.message : undefined });
     } finally {
       setBusy(false);
     }
@@ -71,18 +72,21 @@ export function WaitlistCard({ p, inStock }: { p: Product; inStock: boolean }) {
 
   return (
     <Card>
-      <T v="h3">{canPreorder ? "Pre-order it now" : "Waiting for a restock"}</T>
+      <T v="h3">{canPreorder ? t("po.now") : t("po.waitingRestock")}</T>
       {waiting > 0 && (
         <T v="small" tone="ink2" style={{ marginTop: 4 }}>
-          {waiting} {waiting === 1 ? "shopper is" : "shoppers are"} waiting for this item{info.watching ? ", including you" : ""}.
+          {t("po.waiting", { count: waiting })}
+          {info.watching ? t("po.includingYou") : ""}{lang === "bn" ? "।" : "."}
         </T>
       )}
       {canPreorder && (
         <View style={{ marginTop: 8, gap: 12 }}>
           <T v="small" tone="ink2">
-            Pay a {info.depositPct}% deposit of {formatBdt(info.depositBdt!)} now and the rest when it&apos;s back{info.etaDays ? ` (about ${info.etaDays} days)` : ""}.
+            {t("po.deposit", { pct: info.depositPct ?? 0, amount: bdt(info.depositBdt!) })}
+            {info.etaDays ? t("po.eta", { days: info.etaDays }) : ""}
+            {t("po.cancel")}
           </T>
-          <Button label={`Pre-order · ${formatBdt(info.depositBdt!)} deposit`} onPress={preorder} busy={busy} mode={p.market} />
+          <Button label={t("po.with", { amount: bdt(info.depositBdt!) })} onPress={preorder} busy={busy} mode={p.market} />
         </View>
       )}
     </Card>

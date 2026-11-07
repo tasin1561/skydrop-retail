@@ -6,6 +6,7 @@ import { STORES } from "@/lib/markets";
 import type { StoreMode } from "@/lib/types";
 import { useJob } from "./useJob";
 import { WaitStory } from "./WaitStory";
+import { useT } from "@/i18n/client";
 
 /**
  * Live store search in progress. Results we already have stay on screen; this banner shows the live
@@ -13,6 +14,7 @@ import { WaitStory } from "./WaitStory";
  */
 export function LiveSearch({ jobId, q, store, empty }: { jobId: string; q: string; store: StoreMode; empty: boolean }) {
   const router = useRouter();
+  const { t } = useT();
   const [outcome, setOutcome] = useState<"live" | "done" | "failed">("live");
   const { elapsed } = useJob(jobId, {
     maxMs: 60_000,
@@ -21,7 +23,7 @@ export function LiveSearch({ jobId, q, store, empty }: { jobId: string; q: strin
       if (s === "done") router.refresh();
     },
   });
-  const where = store === "all" ? "amazon.in, Flipkart and BigBasket" : STORES[store].source;
+  const where = store === "all" ? t("ls.where") : STORES[store].source;
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,23 +35,23 @@ export function LiveSearch({ jobId, q, store, empty }: { jobId: string; q: strin
           {outcome === "live" && (
             <>
               <p className="font-bold">
-                Searching {where} live for &ldquo;{q}&rdquo;
+                {t("ls.searching", { where, q })}
               </p>
               <p className="text-xs text-ink-2">
-                {empty ? "First results usually arrive in 5 to 15 seconds." : "New results will appear here automatically."} · {elapsed}s
+                {empty ? t("ls.first") : t("ls.auto")} · {t("lf.secs", { n: elapsed })}
               </p>
             </>
           )}
-          {outcome === "done" && <p className="font-bold">Live results added</p>}
+          {outcome === "done" && <p className="font-bold">{t("ls.added")}</p>}
           {outcome === "failed" && (
             <p className="text-ink-2">
-              The store is slow right now. {empty ? "Try a broader word, or try again in a minute." : "Showing what we already have."}
+              {t("ls.slow")}{empty ? t("ls.broader") : t("ls.have")}
             </p>
           )}
         </div>
         {outcome === "failed" && (
           <button type="button" className="btn btn-ghost min-h-11 px-3" onClick={() => window.location.reload()}>
-            Retry
+            {t("err.retry")}
           </button>
         )}
       </div>

@@ -93,6 +93,8 @@ export function storeText(m: StoreMode, t: TFn): StoreInfo {
   const s = STORES[m];
   return {
     ...s,
+    name: m === "all" ? t("store.all.name") : s.name,
+    short: m === "all" ? t("store.all.short") : s.short,
     source: m === "all" ? t("store.all.source") : s.source,
     tagline: t(`store.${m}.tagline` as MsgKey),
     heroTitle: t(`store.${m}.heroTitle` as MsgKey),

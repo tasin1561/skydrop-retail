@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fulfilmentApi, type Tracking } from "@/lib/fulfilment";
 import "./fulfilment.css";
+import { useT } from "@/i18n/client";
 
 // Leaflet is not a dependency: it is loaded from cdnjs (pinned 1.9.4) only when the shopper taps "Show live map".
 const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4";
@@ -44,6 +45,7 @@ function loadLeaflet(): Promise<L> {
 
 /** OpenStreetMap with the rider's live position; polls GET /orders/{id}/tracking every 20 s while open. */
 export function LiveMap({ tracking, onUpdate }: { tracking: Tracking; onUpdate?: (t: Tracking) => void }) {
+  const tr = useT();
   const el = useRef<HTMLDivElement>(null);
   const rider = useRef<LMarker | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -65,10 +67,10 @@ export function LiveMap({ tracking, onUpdate }: { tracking: Tracking; onUpdate?:
         }).addTo(map);
         const icon = L.divIcon({ className: "ff-rider-icon", iconSize: [18, 18] });
         const m = L.marker([start.lat, start.lng], { icon, keyboard: false }).addTo(map);
-        m.bindTooltip("Your Skydrop rider");
+        m.bindTooltip(tr.t("lm.rider"));
         rider.current = m;
         if (hub) L.circleMarker([hub.lat, hub.lng], { radius: 6, color: "#5b3df5" }).addTo(map).bindTooltip(hub.label);
-        L.circleMarker([dest.lat, dest.lng], { radius: 7, color: "#16a34a" }).addTo(map).bindTooltip(`Delivery area: ${dest.label}`);
+        L.circleMarker([dest.lat, dest.lng], { radius: 7, color: "#16a34a" }).addTo(map).bindTooltip(tr.t("lm.area", { label: dest.label }));
         map.fitBounds([[start.lat, start.lng], [dest.lat, dest.lng]], { padding: [32, 32], maxZoom: 14 });
       })
       .catch((e: Error) => !dead && setError(e.message));
@@ -99,10 +101,10 @@ export function LiveMap({ tracking, onUpdate }: { tracking: Tracking; onUpdate?:
 
   return (
     <div>
-      <div ref={el} className="ff-live" role="region" aria-label="Live map with your rider's position" />
+      <div ref={el} className="ff-live" role="region" aria-label={tr.t("lm.region")} />
       <p className="mt-1.5 text-[11px] text-ink-3" aria-live="polite">
         {error ??
-          (at ? `Rider position updated ${new Date(at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}. Refreshes every 20 seconds.` : "Waiting for the rider's position…")}
+          (at ? tr.t("lm.updated", { time: tr.time(at) }) : tr.t("lm.waiting"))}
       </p>
     </div>
   );

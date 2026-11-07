@@ -10,6 +10,7 @@ import { useAccent, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Icon } from "../Icon";
 import { T, Tap } from "../ui";
+import { useT } from "@/i18n";
 
 export const VariantGroup = memo(function VariantGroup({
   group,
@@ -24,6 +25,7 @@ export const VariantGroup = memo(function VariantGroup({
   onPick: (value: string) => void;
   market: MarketId;
 }) {
+  const { t } = useT();
   const { c } = useTheme();
   const a = useAccent(market);
   const swatches = group.values.some((v) => v.swatch);
@@ -39,7 +41,7 @@ export const VariantGroup = memo(function VariantGroup({
           {group.key}:{" "}
         </T>
         <T v="small" style={{ fontWeight: "800" }}>
-          {selected ?? "Choose one"}
+          {selected ?? t("var.choose")}
         </T>
       </T>
       <View style={styles.wrap} accessibilityRole="radiogroup" accessibilityLabel={group.key}>
@@ -51,7 +53,7 @@ export const VariantGroup = memo(function VariantGroup({
             haptic.tap();
             onPick(v.value);
           };
-          const label = `${group.key} ${v.value}${!combo ? ", other options change" : ""}`;
+          const label = `${group.key} ${v.value}${!combo ? t("var.otherChange") : ""}`;
           if (swatches)
             return (
               <Tap key={v.value} onPress={press} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label} style={{ width: 72, alignItems: "center", gap: 4 }}>
@@ -90,9 +92,9 @@ export const VariantGroup = memo(function VariantGroup({
           );
         })}
         {group.values.length > shown.length && (
-          <Tap onPress={() => setExpanded(true)} accessibilityLabel={`Show ${group.values.length - shown.length} more`} style={[styles.chip, { backgroundColor: "transparent", borderColor: c.line }]}>
+          <Tap onPress={() => setExpanded(true)} accessibilityLabel={t("m.showMore", { count: group.values.length - shown.length })} style={[styles.chip, { backgroundColor: "transparent", borderColor: c.line }]}>
             <T v="small" style={{ fontWeight: "700", color: a.ink }}>
-              +{group.values.length - shown.length} more
+              {t("var.more", { count: group.values.length - shown.length })}
             </T>
           </Tap>
         )}

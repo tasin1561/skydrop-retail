@@ -6,8 +6,10 @@ import { useStore } from "@/state/store";
 import { useAsync } from "@/components/Shop";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { Empty } from "@/components/ui";
+import { useT } from "@/i18n";
 
 export default function Wishlist() {
+  const { t } = useT();
   const { wish } = useStore();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -16,7 +18,7 @@ export default function Wishlist() {
   const { data, loading } = useAsync(() => api.products(wish), [key]);
   const items = (data ?? []).filter((p) => wish.includes(p.id));
 
-  if (!wish.length) return <Empty icon="heart" title="Nothing saved yet" text="Tap the heart on any product to keep it here." action="Browse products" onAction={() => router.navigate("/")} />;
+  if (!wish.length) return <Empty icon="heart" title={t("m.nothingSaved")} text={t("m.nothingSavedB")} action={t("m.browse")} onAction={() => router.navigate("/")} />;
 
   return (
     <FlatList

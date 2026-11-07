@@ -6,14 +6,15 @@ import { Icon } from "@/components/Icon";
 import { OriginTag, ProductImage } from "@/components/ProductBits";
 import { AddBundleButton } from "@/components/shopping/AddBundleButton";
 import { getFeatures, isOn } from "@/lib/features";
-import { formatBdt, priceBdt } from "@/lib/pricing";
+import { priceBdt } from "@/lib/pricing";
 import { getBundle } from "@/lib/shopping/server";
+import { getT } from "@/i18n/server";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const b = await getBundle((await params).slug).catch(() => null);
-  return b ? { title: `${b.title} bundle`, description: `${b.count} items for ${formatBdt(b.totalBdt)}, save ${formatBdt(b.discountBdt)}.` } : { title: "Bundle not found" };
+  const [b, { t, bdt }] = await Promise.all([getBundle((await params).slug).catch(() => null), getT()]);
+  return b ? { title: t("bundle.metaTitle", { title: b.title }), description: t("bundle.metaDesc", { count: b.count, total: bdt(b.totalBdt), save: bdt(b.discountBdt) }) } : { title: t("bundle.notFound") };
 }
 
 export default async function BundlePage({ params }: Props) {
@@ -22,29 +23,30 @@ export default async function BundlePage({ params }: Props) {
   const b = await getBundle(slug).catch(() => null);
   if (!b) notFound();
   const items = b.items ?? [];
+  const { t, bdt } = await getT();
 
   return (
     <div className="mx-auto max-w-4xl px-4 pb-24 pt-4 sm:px-6 md:pb-10">
       <nav className="mb-3 text-xs text-ink-2">
         <Link href="/bundles" className="inline-flex min-h-8 items-center gap-1 hover:text-accent">
-          <Icon name="left" size={14} /> All bundles
+          <Icon name="left" size={14} /> {t("bundle.all")}
         </Link>
       </nav>
       <header className="card overflow-hidden">
         <div className="bg-[linear-gradient(135deg,var(--hero-a),var(--hero-b))] px-5 py-6 text-white sm:px-8 sm:py-8">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
-            <Icon name="package" size={14} /> Bundle · {b.count} items
+            <Icon name="package" size={14} /> {t("bundle.badge", { count: b.count })}
           </p>
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">{b.title}</h1>
           {b.description && <p className="mt-1 max-w-xl text-sm text-white/85">{b.description}</p>}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:px-8">
           <div>
-            <p className="text-3xl font-extrabold tracking-tight tabular-nums">{formatBdt(b.totalBdt)}</p>
+            <p className="text-3xl font-extrabold tracking-tight tabular-nums">{bdt(b.totalBdt)}</p>
             <p className="text-sm text-ink-2">
-              <s className="tabular-nums">{formatBdt(b.regularBdt)}</s> ·{" "}
+              <s className="tabular-nums">{bdt(b.regularBdt)}</s> ·{" "}
               <span className="font-bold text-good">
-                save {formatBdt(b.discountBdt)} ({b.discountPct}% extra)
+                {t("bundle.saveExtra", { amount: bdt(b.discountBdt), pct: b.discountPct })}
               </span>
             </p>
           </div>
@@ -62,15 +64,15 @@ export default async function BundlePage({ params }: Props) {
               <span className="min-w-0 flex-1">
                 <OriginTag market={p.market} compact />
                 <span className="mt-1 line-clamp-2 block text-sm font-medium text-ink">{p.title}</span>
-                {qty > 1 && <span className="text-xs text-ink-2">Qty {qty}</span>}
+                {qty > 1 && <span className="text-xs text-ink-2">{t("bundle.qty", { qty })}</span>}
               </span>
-              <span className="shrink-0 text-right font-bold tabular-nums">{formatBdt(priceBdt(p) * qty)}</span>
+              <span className="shrink-0 text-right font-bold tabular-nums">{bdt(priceBdt(p) * qty)}</span>
             </Link>
           </li>
         ))}
       </ol>
       <p className="mt-4 flex items-start gap-2 text-xs text-ink-2">
-        <Icon name="info" size={15} className="mt-px shrink-0" /> The bundle saving applies automatically in your cart while every item of the bundle is in it.
+        <Icon name="info" size={15} className="mt-px shrink-0" /> {t("bundle.note")}
       </p>
     </div>
   );

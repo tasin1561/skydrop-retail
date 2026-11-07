@@ -2,9 +2,9 @@
 
 import { Icon } from "@/components/Icon";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { formatBdt } from "@/lib/pricing";
 import { UNBOXING_FEE_BDT } from "@/lib/fulfilment";
 import "./fulfilment.css";
+import { useT } from "@/i18n/client";
 
 /** Client estimate of the paid-unboxing fee (default ৳150 per store shipment). The API quote/order is authoritative. */
 export function unboxingFeeFor(selected: boolean, shipments: number) {
@@ -14,6 +14,7 @@ export function unboxingFeeFor(selected: boolean, shipments: number) {
 /** Checkout option: "Unboxing check at our Kolkata hub". Hidden when the "unboxing" feature is off. */
 export function UnboxingToggle({ checked, onChange, shipments, disabled }: { checked: boolean; onChange: (v: boolean) => void; shipments: number; disabled?: boolean }) {
   const on = useFeature("unboxing");
+  const { t, bdt } = useT();
   if (!on) return null;
   const fee = unboxingFeeFor(true, shipments);
   return (
@@ -23,10 +24,10 @@ export function UnboxingToggle({ checked, onChange, shipments, disabled }: { che
         <Icon name="package" size={18} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold">Unboxing check at our Kolkata hub</span>
+        <span className="block text-sm font-bold">{t("ub.title")}</span>
         <span className="block text-xs text-ink-2">
-          We open it, photograph/video it and you approve before it ships. {formatBdt(fee)}
-          {shipments > 1 ? ` (${formatBdt(UNBOXING_FEE_BDT)} × ${shipments} store shipments)` : ""}
+          {t("ub.desc", { fee: bdt(fee) })}
+{shipments > 1 ? t("ub.perStore", { fee: bdt(UNBOXING_FEE_BDT), count: shipments }) : ""}
         </span>
       </span>
       <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (checked ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>

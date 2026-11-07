@@ -12,7 +12,7 @@ const AUTOPLAY_MS = 6000;
 // Banner carousel: CSS scroll-snap does the swiping; autoplay pauses when off-screen, when the tab is hidden,
 // on hover/focus, after the shopper swipes, and entirely under reduced motion. The dot bead tracks the scroll.
 export function HeroCarousel({ banners, label: labelProp }: { banners: Banner[]; label?: string }) {
-  const { t, digits } = useT();
+  const { t } = useT();
   const label = labelProp ?? t("hc.featured");
   const track = useRef<HTMLDivElement>(null);
   const dots = useRef<HTMLDivElement>(null);

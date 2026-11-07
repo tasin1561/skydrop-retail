@@ -2,21 +2,24 @@ import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import type { SearchParams, Sort } from "@/api/types";
 import type { StoreMode } from "@/lib/types";
-import { STORES } from "@/lib/markets";
+import { STORES , storeText } from "@/lib/markets";
 import { radius, useAccent, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Sheet } from "./Sheet";
 import { Button, T, Tap } from "./ui";
 import { Icon } from "./Icon";
+import { useT } from "@/i18n";
+import type { MsgKey } from "@/i18n";
 
 export type Filters = Pick<SearchParams, "store" | "category" | "min" | "max" | "rating" | "sort">;
 
-export const SORTS: { id: Sort; label: string }[] = [
-  { id: "relevance", label: "Relevance" },
-  { id: "price_asc", label: "Price: low to high" },
-  { id: "price_desc", label: "Price: high to low" },
-  { id: "rating", label: "Top rated" },
-  { id: "discount", label: "Biggest discount" },
+/** label is a dictionary key: show it with t(). */
+export const SORTS: { id: Sort; label: MsgKey }[] = [
+  { id: "relevance", label: "m.relevance" },
+  { id: "price_asc", label: "f.priceAsc" },
+  { id: "price_desc", label: "f.priceDesc" },
+  { id: "rating", label: "f.rating" },
+  { id: "discount", label: "f.discount" },
 ];
 
 export function activeFilterCount(f: Filters) {
@@ -45,6 +48,7 @@ function Chip({ label, on, onPress, mode = "all" }: { label: string; on: boolean
 }
 
 export function FilterSheet({ open, onClose, value, onApply, stores }: { open: boolean; onClose: () => void; value: Filters; onApply: (f: Filters) => void; stores: StoreMode[] }) {
+  const { t, bdt } = useT();
   const { c } = useTheme();
   const [f, setF] = useState<Filters>(value);
   const [wasOpen, setWasOpen] = useState(open);
@@ -53,7 +57,7 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
     if (open) setF(value);
   }
   const mode = f.store ?? "all";
-  const cats = STORES.all.categories;
+  const cats = storeText("all", t).categories;
 
   const section = (title: string, children: React.ReactNode) => (
     <View style={{ gap: 10, marginBottom: 18 }}>
@@ -64,7 +68,7 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
     </View>
   );
 
-  const num = (v: string) => {
+  const toNum = (v: string) => {
     const n = parseInt(v.replace(/\D/g, ""), 10);
     return Number.isFinite(n) && n > 0 ? n : undefined;
   };
@@ -73,12 +77,12 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
     <Sheet
       open={open}
       onClose={onClose}
-      title="Filters"
+      title={t("f.filters")}
       footer={
         <View style={{ flexDirection: "row", gap: 10 }}>
-          <Button label="Reset" kind="ghost" onPress={() => setF({ store: f.store, sort: f.sort })} style={{ flex: 1 }} />
+          <Button label={t("m.reset")} kind="ghost" onPress={() => setF({ store: f.store, sort: f.sort })} style={{ flex: 1 }} />
           <Button
-            label="Show results"
+            label={t("m.showResults")}
             mode={mode}
             onPress={() => {
               haptic.light();
@@ -91,27 +95,25 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
       }
     >
       {section(
-        "Store",
-        stores.map((s) => <Chip key={s} mode={s} label={s === "all" ? "All stores" : `${STORES[s].name} (${STORES[s].source})`} on={mode === s} onPress={() => setF({ ...f, store: s })} />),
+        t("f.store"),
+        stores.map((s) => <Chip key={s} mode={s} label={s === "all" ? t("footer.allStores") : `${STORES[s].name} (${STORES[s].source})`} on={mode === s} onPress={() => setF({ ...f, store: s })} />),
       )}
-      {section("Category", [
-        <Chip key="any" label="Any" mode={mode} on={!f.category} onPress={() => setF({ ...f, category: undefined })} />,
+      {section(t("f.category"), [
+        <Chip key="any" label={t("m.any")} mode={mode} on={!f.category} onPress={() => setF({ ...f, category: undefined })} />,
         ...cats.map((cat) => <Chip key={cat.slug} mode={mode} label={cat.label} on={f.category === cat.slug} onPress={() => setF({ ...f, category: cat.slug })} />),
       ])}
       <View style={{ gap: 10, marginBottom: 18 }}>
-        <T v="label" tone="ink3">
-          Price (BDT)
-        </T>
+        <T v="label" tone="ink3">{t("m.priceBdt")}</T>
         <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
           {(["min", "max"] as const).map((k) => (
             <TextInput
               key={k}
               value={f[k] ? String(f[k]) : ""}
-              onChangeText={(t) => setF({ ...f, [k]: num(t) })}
-              placeholder={k === "min" ? "Min ৳" : "Max ৳"}
+              onChangeText={(v) => setF({ ...f, [k]: toNum(v) })}
+              placeholder={k === "min" ? t("m.minPh") : t("m.maxPh")}
               placeholderTextColor={c.ink3}
               keyboardType="number-pad"
-              accessibilityLabel={k === "min" ? "Minimum price in taka" : "Maximum price in taka"}
+              accessibilityLabel={k === "min" ? t("m.minA11y") : t("m.maxA11y")}
               style={[styles.input, { color: c.ink, backgroundColor: c.surface2 }]}
             />
           ))}
@@ -126,7 +128,7 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
             <Chip
               key={`${lo}-${hi}`}
               mode={mode}
-              label={lo && hi ? `৳${lo.toLocaleString()}-${hi.toLocaleString()}` : lo ? `Over ৳${lo.toLocaleString()}` : `Under ৳${hi!.toLocaleString()}`}
+              label={lo && hi ? t("f.range", { a: bdt(lo), b: bdt(hi) }) : lo ? t("f.over", { amount: bdt(lo) }) : t("f.under", { amount: bdt(hi!) })}
               on={f.min === lo && f.max === hi}
               onPress={() => setF({ ...f, min: lo, max: hi })}
             />
@@ -134,22 +136,23 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
         </View>
       </View>
       {section(
-        "Rating",
-        [undefined, 3, 4, 4.5].map((r) => <Chip key={String(r)} mode={mode} label={r ? `${r}★ & up` : "Any"} on={f.rating === r} onPress={() => setF({ ...f, rating: r })} />),
+        t("f.ratingLegend"),
+        [undefined, 3, 4, 4.5].map((r) => <Chip key={String(r)} mode={mode} label={r ? t("m.starsUp", { rating: r }) : t("m.any")} on={f.rating === r} onPress={() => setF({ ...f, rating: r })} />),
       )}
       {section(
-        "Sort by",
-        SORTS.map((s) => <Chip key={s.id} mode={mode} label={s.label} on={(f.sort ?? "relevance") === s.id} onPress={() => setF({ ...f, sort: s.id })} />),
+        t("f.sortBy"),
+        SORTS.map((s) => <Chip key={s.id} mode={mode} label={t(s.label)} on={(f.sort ?? "relevance") === s.id} onPress={() => setF({ ...f, sort: s.id })} />),
       )}
     </Sheet>
   );
 }
 
 export function SortSheet({ open, onClose, value, onPick, mode }: { open: boolean; onClose: () => void; value: Sort; onPick: (s: Sort) => void; mode: StoreMode }) {
+  const { t } = useT();
   const { c } = useTheme();
   const a = useAccent(mode);
   return (
-    <Sheet open={open} onClose={onClose} title="Sort by">
+    <Sheet open={open} onClose={onClose} title={t("f.sortBy")}>
       {SORTS.map((s) => {
         const on = value === s.id;
         return (
@@ -162,12 +165,12 @@ export function SortSheet({ open, onClose, value, onPick, mode }: { open: boolea
             }}
             accessibilityRole="radio"
             accessibilityState={{ checked: on }}
-            accessibilityLabel={s.label}
+            accessibilityLabel={t(s.label)}
             scaleTo={0.98}
             style={[styles.row, on && { backgroundColor: c.surface2 }]}
           >
             <T v="body" style={{ flex: 1, fontWeight: on ? "800" : "500" }}>
-              {s.label}
+              {t(s.label)}
             </T>
             {on && <Icon name="check" size={18} color={a.accent} />}
           </Tap>

@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
-import { formatBdt } from "@/lib/pricing";
 import { cartLine } from "@/lib/shopping/cart";
 import type { Bundle } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";

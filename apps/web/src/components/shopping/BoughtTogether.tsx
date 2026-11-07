@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
 import { useToast } from "@/components/Toast";
-import { formatBdt, priceBdt } from "@/lib/pricing";
+import { priceBdt } from "@/lib/pricing";
 import { cartLine } from "@/lib/shopping/cart";
 import type { BoughtTogether as Data } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";

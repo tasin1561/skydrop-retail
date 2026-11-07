@@ -24,6 +24,9 @@ export type CatNode = {
   children: CatNode[];
 };
 
+/** Category name in the shopper's language (nameBn in Bangla mode). Shared by server and client. */
+export const catLabel = (n: { name: string; nameBn?: string | null }, bn: boolean) => (bn && n.nameBn ? n.nameBn : n.name);
+
 export type CatCrumb = { path: string; name: string; nameBn?: string | null };
 
 export type CategoryPageData = {

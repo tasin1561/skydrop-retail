@@ -6,11 +6,14 @@ import type { Order } from "@/lib/types";
 import { api, ApiError, apiEnabled } from "@/lib/apiClient";
 import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
-import { deliveryWindow, formatBdt, groupByMarket } from "@/lib/pricing";
+import { deliveryWindow, groupByMarket } from "@/lib/pricing";
 import type { MarketId } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { addDays } from "./cart-math";
 import { TellAFriend } from "@/components/share/TellAFriend";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
+import { bdName } from "@/lib/bd";
 
 const CONFETTI = [
   [-90, -60, "var(--brand-2)"],
@@ -25,6 +28,7 @@ const CONFETTI = [
 
 export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatus?: "paid" | "failed" | "cancelled" }) {
   const { orders, ready, user } = useStore();
+  const { t, bdt, lang } = useT();
   const [retrying, setRetrying] = useState(false);
   // After a gateway redirect the local order list can be stale (or the order was placed on another device):
   // fetch it from the server so the shopper always sees their order.
@@ -49,7 +53,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
 
   if (!ready || lookup === "loading") {
     return (
-      <div className="mx-auto max-w-xl px-4 pt-10" aria-busy="true" aria-label="Loading your order">
+      <div className="mx-auto max-w-xl px-4 pt-10" aria-busy="true" aria-label={t("os.loading")}>
         <div className="skeleton mx-auto h-44 w-44 rounded-full" />
         <div className="skeleton mx-auto mt-6 h-8 w-64 rounded-xl" />
         <div className="skeleton mt-8 h-40 rounded-[20px]" />
@@ -67,18 +71,17 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
           <Icon name="check" size={26} />
         </span>
         <h1 id="pd-h" className="mt-4 text-2xl font-extrabold tracking-tight">
-          Payment received
+          {t("os.paidTitle")}
         </h1>
         <p className="mt-2 text-sm text-ink-2">
-          Thank you! Order <b className="text-ink">{orderId}</b> is confirmed. We&apos;ve sent the details by SMS. Sign in with the same phone number
-          to track it.
+          {rich(t("os.paidBody"), { id: <b className="text-ink">{orderId}</b> })}
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link href={`/login?next=${encodeURIComponent(`/orders/${orderId}`)}`} className="btn btn-primary">
-            <Icon name="receipt" size={18} /> Sign in to track
+            <Icon name="receipt" size={18} /> {t("os.signInTrack")}
           </Link>
           <Link href="/" className="btn btn-ghost">
-            Continue shopping
+            {t("os.continue")}
           </Link>
         </div>
       </section>
@@ -92,24 +95,23 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
           <Icon name="receipt" size={26} />
         </span>
         <h1 id="nf-h" className="mt-4 text-2xl font-extrabold tracking-tight">
-          We couldn&apos;t find that order
+          {t("os.nfTitle")}
         </h1>
         <p className="mt-2 text-sm text-ink-2">
           {orderId ? (
             <>
-              No order <b className="text-ink">{orderId}</b> is saved in this browser. If you placed it on another device, sign in there or check
-              your orders list.
+              {rich(t("os.nfBody"), { id: <b className="text-ink">{orderId}</b> })}
             </>
           ) : (
-            "This link doesn't include an order number."
+            t("os.noId")
           )}
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link href="/orders" className="btn btn-primary">
-            <Icon name="receipt" size={18} /> My orders
+            <Icon name="receipt" size={18} /> {t("os.myOrders")}
           </Link>
           <Link href="/" className="btn btn-ghost">
-            Continue shopping
+            {t("os.continue")}
           </Link>
         </div>
       </section>
@@ -125,7 +127,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
         if (res.payment.redirectUrl) window.location.assign(res.payment.redirectUrl);
         else window.location.assign(`/checkout/success?order=${order.id}&status=paid`);
       } catch (e) {
-        setRetryError(e instanceof ApiError ? e.message : "Couldn't reach the payment gateway. Please try again.");
+        setRetryError(e instanceof ApiError ? e.message : t("os.gateway"));
         setRetrying(false);
       }
     };
@@ -135,21 +137,20 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
           <Icon name="wallet" size={26} />
         </span>
         <h1 id="pay-h" className="mt-4 text-2xl font-extrabold tracking-tight">
-          Payment {payStatus === "cancelled" ? "cancelled" : "not completed"}
+          {payStatus === "cancelled" ? t("os.payCancelled") : t("os.payIncomplete")}
         </h1>
         <p className="mt-2 text-sm text-ink-2">
-          Order <b className="text-ink">{order.id}</b> is saved, but nothing was charged. We will start buying your items in India as soon as the
-          payment goes through.
+          {rich(t("os.savedNothing"), { id: <b className="text-ink">{order.id}</b> })}
         </p>
         <p role="status" aria-live="polite" className="mt-3 min-h-5 text-sm font-semibold text-bad">
           {retryError}
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <button type="button" className="btn btn-primary" onClick={retry} disabled={retrying} aria-busy={retrying}>
-            <Icon name="wallet" size={18} /> {retrying ? "Opening payment..." : "Try payment again"}
+            <Icon name="wallet" size={18} /> {retrying ? t("os.opening") : t("os.retryPay")}
           </button>
           <Link href={`/orders/${order.id}`} className="btn btn-ghost">
-            View order
+            {t("os.viewOrder")}
           </Link>
         </div>
       </section>
@@ -189,21 +190,21 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
 
         <div role="status" aria-live="polite">
           <h1 id="ok-h" className="rise mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl" style={{ ["--i" as string]: 4 }}>
-            Order placed, {order.address.name.split(" ")[0]}!
+            {t("os.placed", { name: order.address.name.split(" ")[0] })}
           </h1>
           <p className="rise mt-2 text-sm text-ink-2" style={{ ["--i" as string]: 6 }}>
-            Order <b className="font-mono text-ink">{order.id}</b> · {count} item{count === 1 ? "" : "s"} · {formatBdt(order.total)}
+            {rich(t("os.line", { items: t("cart.items", { count }), total: bdt(order.total) }), { id: <b className="font-mono text-ink">{order.id}</b> })}
           </p>
         </div>
       </section>
 
-      <section className="co-card rise mt-6 overflow-hidden" style={{ ["--i" as string]: 8 }} aria-label="Order details">
+      <section className="co-card rise mt-6 overflow-hidden" style={{ ["--i" as string]: 8 }} aria-label={t("os.details")}>
         <div className="grid grid-cols-2 gap-px bg-surface-2">
           {[
-            ["receipt", "Total", formatBdt(order.total)],
-            ["clock", "Arrives", `${addDays(order.createdAt, w.min)} – ${addDays(order.createdAt, w.max)}`],
-            ["wallet", "Payment", order.payment],
-            ["truck", "Tracking", order.trackingCode],
+            ["receipt", t("os.total"), bdt(order.total)],
+["clock", t("os.arrives"), `${addDays(order.createdAt, w.min, lang)} – ${addDays(order.createdAt, w.max, lang)}`],
+["wallet", t("os.payment"), order.payment],
+["truck", t("os.tracking"), order.trackingCode],
           ].map(([i, k, v]) => (
             <div key={k} className="flex items-start gap-2.5 bg-surface p-3.5">
               <span className="chip-icon h-8 w-8 shrink-0 rounded-lg">
@@ -220,13 +221,13 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
           <p className="flex items-start gap-2">
             <Icon name="pin" size={15} className="mt-px shrink-0 text-accent" />
             <span>
-              Delivering to <b className="text-ink">{order.address.name}</b>, {[order.address.line, order.address.area, order.address.district].join(", ")}
+              {rich(t("os.deliveringTo", { address: [order.address.line, order.address.area, bdName(order.address.district, lang)].join(", ") }), { name: <b className="text-ink">{order.address.name}</b> })}
             </span>
           </p>
           {markets.map((m) => (
             <p key={m} data-store={m} className="flex items-center gap-2">
               <span className="ml-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
-              {groups[m]!.reduce((n, i) => n + i.qty, 0)} item(s) bought from {STORES[m].source}, India
+              {t("os.boughtFrom", { count: groups[m]!.reduce((n, i) => n + i.qty, 0), source: STORES[m].source })}
             </p>
           ))}
         </div>
@@ -234,13 +235,13 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
 
       <section className="co-card rise mt-4 p-4" style={{ ["--i" as string]: 10 }} aria-labelledby="next-h">
         <h2 id="next-h" className="text-sm font-extrabold">
-          What happens next
+          {t("os.next")}
         </h2>
         <ol className="mt-3 space-y-3">
           {[
-            ["shield", "We buy your items in India", "Our team purchases from the store within 24 hours and sends you an SMS."],
-            ["plane", "Skydrop carries it across", "From the Kolkata hub to Bangladesh, cleared through customs."],
-            ["home", "Delivered to your door", `Expected in ${w.min}-${w.max} days. The rider calls before arriving.`],
+            ["shield", t("os.n1"), t("os.n1b")],
+["plane", t("os.n2"), t("os.n2b")],
+["home", t("os.n3"), t("os.n3b", { min: w.min, max: w.max })],
           ].map(([i, a, b], n) => (
             <li key={a} className="flex gap-3">
               <span className={"chip-icon shrink-0 " + (n === 0 ? "is-active" : "")}>
@@ -248,7 +249,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
               </span>
               <span>
                 <span className="block text-sm font-bold">
-                  {a} {n === 0 && <span className="ml-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase text-accent">Up next</span>}
+                  {a} {n === 0 && <span className="ml-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase text-accent">{t("os.upNext")}</span>}
                 </span>
                 <span className="block text-xs text-ink-2">{b}</span>
               </span>
@@ -261,10 +262,10 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
 
       <div className="rise mt-6 flex flex-col gap-2 sm:flex-row" style={{ ["--i" as string]: 12 }}>
         <Link href={`/orders/${order.id}`} className="btn btn-primary flex-1">
-          <Icon name="truck" size={18} /> Track order
+          <Icon name="truck" size={18} /> {t("os.track")}
         </Link>
         <Link href="/" className="btn btn-ghost flex-1">
-          Continue shopping <Icon name="arrow" size={18} className="arrow" />
+          {t("os.continue")} <Icon name="arrow" size={18} className="arrow" />
         </Link>
       </div>
     </div>

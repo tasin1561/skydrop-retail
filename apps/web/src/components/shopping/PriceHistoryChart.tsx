@@ -3,31 +3,34 @@
 import "./shopping.css";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { formatBdt } from "@/lib/pricing";
 import { fetchPriceHistory, type HistoryInput } from "@/lib/shopping/client";
 import { PERIODS, type Period } from "@/lib/shopping/history";
 import type { PriceHistory } from "@/lib/shopping/types";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
 
 const W = 600;
 const H = 180;
 const PAD_T = 14;
 const PAD_B = 10;
 
-const LABEL: Record<Period, string> = { 30: "30D", 90: "90D", 365: "1Y" };
-const VERDICT: Record<PriceHistory["positionLabel"], { text: string; tone: string }> = {
-  lowest: { text: "Lowest price right now", tone: "text-good" },
-  low: { text: "Good time to buy", tone: "text-good" },
-  typical: { text: "Typical price", tone: "text-ink-2" },
-  high: { text: "Higher than usual", tone: "text-warn" },
-  steady: { text: "Price has been steady", tone: "text-ink-2" },
+const LABEL: Record<Period, MsgKey> = { 30: "ph.30", 90: "ph.90", 365: "ph.365" };
+const IN_PERIOD: Record<Period, MsgKey> = { 30: "ph.in30", 90: "ph.in90", 365: "ph.in365" };
+const VERDICT: Record<PriceHistory["positionLabel"], { text: MsgKey; tone: string }> = {
+  lowest: { text: "ph.lowest", tone: "text-good" },
+  low: { text: "ph.low", tone: "text-good" },
+  typical: { text: "ph.typical", tone: "text-ink-2" },
+  high: { text: "ph.high", tone: "text-warn" },
+  steady: { text: "ph.steady", tone: "text-ink-2" },
 };
 
-const fmtDate = (iso: string, long = false) =>
-  new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(long ? { year: "numeric" } : {}), timeZone: "UTC" });
 
 /** Price history (BDT at today's rates) with period tabs, crosshair tooltip and a draw-in on view. */
 export function PriceHistoryChart({ p }: { p: HistoryInput }) {
   const [days, setDays] = useState<Period>(30);
+  const { t, bdt, inr, date } = useT();
+  const formatBdt = bdt;
+  const fmtDate = (iso: string, long = false) => date(iso + "T00:00:00Z", { day: "numeric", month: "short", ...(long ? { year: "numeric" } : {}), timeZone: "UTC" });
   const [cache, setCache] = useState<Partial<Record<Period, PriceHistory>>>({});
   const [failed, setFailed] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
@@ -114,9 +117,9 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
           <span className="chip-icon">
             <Icon name="sort" size={18} />
           </span>
-          Price history
+          {t("ph.title")}
         </h2>
-        <div className="sh-tabs" role="tablist" aria-label="Period">
+        <div className="sh-tabs" role="tablist" aria-label={t("ph.period")}>
           <span className="sh-tabs__ind" aria-hidden style={{ width: `calc((100% - 8px) / ${PERIODS.length})`, transform: `translateX(${ti * 100}%)` }} />
           {PERIODS.map((d) => (
             <button
@@ -130,7 +133,7 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
                 setDays(d);
               }}
             >
-              {LABEL[d]}
+              {t(LABEL[d])}
             </button>
           ))}
         </div>
@@ -146,7 +149,7 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
                 (b.type === "lowest" ? "bg-[color-mix(in_srgb,var(--good)_14%,transparent)] text-good" : "bg-[var(--accent-soft)] text-accent")
               }
             >
-              <Icon name={b.type === "lowest" ? "verified" : "tag"} size={14} stroke={2.2} /> {b.label}
+              <Icon name={b.type === "lowest" ? "verified" : "tag"} size={14} stroke={2.2} /> {b.type === "lowest" ? t("ph.badgeLowest") : b.dropBdt ? t("ph.badgeDrop", { amount: bdt(b.dropBdt) }) : b.label}
             </span>
           ))}
         </div>
@@ -157,13 +160,13 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
         <div>
           <p className="text-2xl font-extrabold tracking-tight tabular-nums">{pt ? formatBdt(pt.bdt) : "…"}</p>
           <p className="text-xs text-ink-2">
-            {pt ? (hover === null ? "Today" : fmtDate(pt.date, true)) : "Loading"}
-            {pt && !pt.inStock && " · out of stock"}
+            {pt ? (hover === null ? t("ph.today") : fmtDate(pt.date, true)) : t("ph.loading")}
+            {pt && !pt.inStock && t("ph.oos")}
           </p>
         </div>
         {shown && hover === null && change !== 0 && (
           <p className={"text-sm font-bold tabular-nums " + (change < 0 ? "text-good" : "text-warn")}>
-            {change < 0 ? "▼" : "▲"} {formatBdt(Math.abs(change))} in {LABEL[days].toLowerCase().replace("d", " days").replace("1y", "a year")}
+            {change < 0 ? "▼" : "▲"} {formatBdt(Math.abs(change))} {t(IN_PERIOD[days])}
           </p>
         )}
       </div>
@@ -175,8 +178,8 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
         role="img"
         aria-label={
           shown
-            ? `Price over the last ${days} days: lowest ${formatBdt(shown.lowestBdt)}, average ${formatBdt(shown.averageBdt)}, highest ${formatBdt(shown.highestBdt)}, now ${formatBdt(shown.currentBdt)}. Use the arrow keys to move through the dates.`
-            : "Price history loading"
+            ? t("ph.aria", { days, low: formatBdt(shown.lowestBdt), avg: formatBdt(shown.averageBdt), high: formatBdt(shown.highestBdt), now: formatBdt(shown.currentBdt) })
+            : t("ph.ariaLoading")
         }
         onKeyDown={onKey}
         onPointerMove={(e) => pick(e.clientX)}
@@ -211,9 +214,9 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
         ) : failed ? (
           <div className="grid h-[180px] place-items-center rounded-xl bg-surface-2 text-center text-sm text-ink-2">
             <div>
-              <p>Price history isn&apos;t available right now.</p>
+              <p>{t("ph.unavailable")}</p>
               <button type="button" className="mt-2 min-h-11 rounded-full px-4 font-bold text-accent" onClick={() => setFailed(false)}>
-                Try again
+                {t("common.tryAgain")}
               </button>
             </div>
           </div>
@@ -230,7 +233,7 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
                 <span key={idx} className="sh-tip" style={{ ["--tx" as string]: pct < 18 ? "0%" : pct > 82 ? "-100%" : "-50%", transform: `translateX(var(--tx))` }}>
                   <b className="tabular-nums">{formatBdt(pt.bdt)}</b>
                   <span className="opacity-70"> · {fmtDate(pt.date)}</span>
-                  <span className="block text-[11px] opacity-70">₹{Math.round(pt.inr).toLocaleString("en-IN")} on the store</span>
+                  <span className="block text-[11px] opacity-70">{t("ph.onStore", { amount: inr(pt.inr) })}</span>
                 </span>
               )}
             </div>
@@ -241,8 +244,8 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
       {geo && (
         <div className="mt-1 flex justify-between text-[11px] text-ink-3" aria-hidden>
           <span>{fmtDate(geo.pts[0].date)}</span>
-          <span>Avg {formatBdt(shown!.averageBdt)}</span>
-          <span>Today</span>
+          <span>{t("ph.avg", { amount: formatBdt(shown!.averageBdt) })}</span>
+          <span>{t("ph.today")}</span>
         </div>
       )}
 
@@ -250,9 +253,9 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
         <div className="mt-4 rounded-2xl bg-surface-2 p-3">
           <dl className="grid grid-cols-3 gap-2 text-center">
             {[
-              ["Lowest", shown.lowestBdt, "text-good"],
-              ["Average", shown.averageBdt, "text-ink"],
-              ["Highest", shown.highestBdt, "text-ink"],
+              [t("ph.statLowest"), shown.lowestBdt, "text-good"],
+              [t("ph.statAverage"), shown.averageBdt, "text-ink"],
+              [t("ph.statHighest"), shown.highestBdt, "text-ink"],
             ].map(([k, v, tone]) => (
               <div key={k as string}>
                 <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-2">{k}</dt>
@@ -262,17 +265,17 @@ export function PriceHistoryChart({ p }: { p: HistoryInput }) {
           </dl>
           {shown.positionLabel !== "steady" && (
             <div className="mt-3">
-              <div className="sh-meter" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(shown.position * 100)} aria-label="Where today's price sits between the lowest and highest">
+              <div className="sh-meter" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(shown.position * 100)} aria-label={t("ph.where")}>
                 <span className="sh-meter__pos" style={{ transform: `translateX(${shown.position * 100}%)` }} />
               </div>
             </div>
           )}
-          {verdict && <p className={"mt-2.5 text-center text-xs font-bold " + verdict.tone}>{verdict.text}</p>}
+          {verdict && <p className={"mt-2.5 text-center text-xs font-bold " + verdict.tone}>{t(verdict.text)}</p>}
         </div>
       )}
       <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
-        Past store prices converted at today&apos;s exchange rate and pricing, so you compare like with like.
-        {shown?.demo ? " Demo history for this sample listing." : ""}
+        {t("ph.note")}
+        {shown?.demo ? t("ph.demo") : ""}
       </p>
     </section>
   );

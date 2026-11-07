@@ -7,6 +7,7 @@ import { demoWishlistIds, type SharedWishlist } from "@/lib/growth";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/ProductBits";
 import { Icon } from "@/components/Icon";
+import { getT } from "@/i18n/server";
 
 type Props = { params: Promise<{ code: string }> };
 
@@ -31,10 +32,10 @@ async function load(code: string): Promise<{ owner: string | null; items: Produc
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
-  const w = await load(code);
-  if (!w) return { title: "Wishlist not found", robots: { index: false } };
-  const title = w.owner ? `${w.owner}'s wishlist` : "A shared wishlist";
-  const description = `${w.items.length} product${w.items.length === 1 ? "" : "s"} from Indian stores, priced in taka and delivered to Bangladesh by Skydrop.`;
+  const [w, { t }] = await Promise.all([load(code), getT()]);
+  if (!w) return { title: t("w.notFound"), robots: { index: false } };
+  const title = w.owner ? t("w.owners", { owner: w.owner }) : t("w.shared");
+  const description = t("w.metaDesc", { count: w.items.length });
   const image = w.items.find((p) => p.image)?.image;
   return {
     title,
@@ -50,7 +51,8 @@ export default async function SharedWishlistPage({ params }: Props) {
   if (!isOn(await getFeatures(), "share")) notFound();
   const w = await load(code);
   if (!w) notFound();
-  const title = w.owner ? `${w.owner}'s wishlist` : "A shared wishlist";
+  const { t, digits } = await getT();
+  const title = w.owner ? t("w.owners", { owner: w.owner }) : t("w.shared");
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 md:pb-12">
@@ -66,7 +68,7 @@ export default async function SharedWishlistPage({ params }: Props) {
           <div className="min-w-0">
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
             <p className="text-sm text-white/85">
-              {String(w.items.length).padStart(2, "0")} saved item{w.items.length === 1 ? "" : "s"} · prices in taka, delivered by Skydrop
+              {t("w.saved", { count: w.items.length, n: digits(String(w.items.length).padStart(2, "0")) })}
             </p>
           </div>
         </div>
@@ -74,10 +76,10 @@ export default async function SharedWishlistPage({ params }: Props) {
 
       {w.items.length === 0 ? (
         <div className="card mx-auto flex max-w-md flex-col items-center p-8 text-center">
-          <p className="font-bold">This wishlist is empty right now</p>
-          <p className="mt-1 text-sm text-ink-2">The items may have been bought already.</p>
+          <p className="font-bold">{t("w.empty")}</p>
+          <p className="mt-1 text-sm text-ink-2">{t("w.emptyBody")}</p>
           <Link href="/" className="btn btn-primary mt-4">
-            Browse the store <Icon name="arrow" size={18} className="arrow" />
+            {t("w.browse")} <Icon name="arrow" size={18} className="arrow" />
           </Link>
         </div>
       ) : (
@@ -89,7 +91,7 @@ export default async function SharedWishlistPage({ params }: Props) {
       )}
 
       <p className="mt-6 flex items-center gap-2 text-xs text-ink-2">
-        <Icon name="shield" size={14} className="text-good" /> Prices are checked live with the Indian store before you pay.
+        <Icon name="shield" size={14} className="text-good" /> {t("w.checked")}
       </p>
     </div>
   );

@@ -5,15 +5,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { router } from "expo-router";
 import type { Product, StoreMode } from "@/lib/types";
-import { STORES } from "@/lib/markets";
+import { STORES , storeText } from "@/lib/markets";
 import { ACCENTS, radius, useAccent, useTheme } from "@/theme";
 import { Icon } from "./Icon";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { Card, IconChip, SectionTitle, T, Tap } from "./ui";
 import { haptic } from "@/lib/haptics";
+import { useT } from "@/i18n";
+import type { MsgKey } from "@/i18n";
 
 export function StoreHero({ mode }: { mode: StoreMode }) {
-  const s = STORES[mode];
+  const { t } = useT();
+  const s = storeText(mode, t);
   const a = ACCENTS[mode];
   const float = useSharedValue(0);
   useEffect(() => {
@@ -30,7 +33,7 @@ export function StoreHero({ mode }: { mode: StoreMode }) {
           <View style={styles.heroTag}>
             <Icon name={s.icon} size={12} color="#fff" />
             <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
-              {mode === "all" ? "ALL STORES" : `${s.name.toUpperCase()} · ${s.source}`}
+              {mode === "all" ? t("m.allStoresCaps") : `${s.name.toUpperCase()} · ${s.source}`}
             </T>
           </View>
           <T v="h2" tone="white" style={{ fontSize: 21, lineHeight: 26 }}>
@@ -41,12 +44,12 @@ export function StoreHero({ mode }: { mode: StoreMode }) {
           </T>
           <Tap
             onPress={() => router.push({ pathname: "/search", params: { store: mode } })}
-            accessibilityLabel={`Search ${s.name}`}
+            accessibilityLabel={t("m.searchIn", { name: s.name })}
             style={styles.heroBtn}
           >
             <Icon name="search" size={16} color={a.accent} />
             <T v="small" style={{ color: a.accent, fontWeight: "800" }}>
-              Search {mode === "all" ? "all stores" : s.name}
+              {mode === "all" ? t("m.searchAllStores") : t("m.searchIn", { name: s.name })}
             </T>
           </Tap>
         </View>
@@ -59,12 +62,13 @@ export function StoreHero({ mode }: { mode: StoreMode }) {
 }
 
 export function CategoryChips({ mode, onPick }: { mode: StoreMode; onPick?: (slug: string) => void }) {
+  const { t } = useT();
   const { c } = useTheme();
   const a = useAccent(mode);
   return (
     <FlatList
       horizontal
-      data={STORES[mode].categories}
+      data={storeText(mode, t).categories}
       keyExtractor={(x) => x.slug + x.label}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
@@ -76,7 +80,7 @@ export function CategoryChips({ mode, onPick }: { mode: StoreMode; onPick?: (slu
               if (onPick) onPick(item.slug);
               else router.push({ pathname: "/search", params: { store: mode, category: item.slug } });
             }}
-            accessibilityLabel={`${item.label} in ${STORES[mode].name}`}
+            accessibilityLabel={t("m.catIn", { cat: item.label, store: STORES[mode].name })}
             style={[styles.chip, { backgroundColor: c.surface, borderColor: c.line }]}
           >
             <View style={[styles.chipIcon, { backgroundColor: a.soft }]}>
@@ -103,11 +107,12 @@ export function Rail({
   loading?: boolean;
   onMore?: () => void;
 }) {
+  const { t } = useT();
   const W = 156;
   if (!loading && !items.length) return null;
   return (
     <View style={{ marginTop: 24 }}>
-      <SectionTitle title={title} action={onMore ? "See all" : undefined} onAction={onMore} />
+      <SectionTitle title={title} action={onMore ? t("cat.seeAll") : undefined} onAction={onMore} />
       {loading ? (
         <View style={{ flexDirection: "row", gap: 12, paddingHorizontal: 16 }}>
           {[0, 1, 2].map((i) => (
@@ -131,21 +136,20 @@ export function Rail({
   );
 }
 
-const STEPS = [
-  { icon: "search", title: "Pick from Indian stores", text: "Search amazon.in, flipkart.com and bigbasket.com products, priced in taka." },
-  { icon: "shield", title: "We verify and buy", text: "Live price and stock check at checkout, then we buy it in India for you." },
-  { icon: "package", title: "Skydrop hub in Kolkata", text: "Your parcel is received, checked and packed for the border." },
-  { icon: "truck", title: "Delivered to your door", text: "Cleared and delivered anywhere in Bangladesh in 7-12 days." },
+const STEPS: { icon: string; title: MsgKey; text: MsgKey }[] = [
+  { icon: "search", title: "how.s1.title", text: "how.s1.text" },
+  { icon: "shield", title: "how.s2.title", text: "how.s2.text" },
+  { icon: "package", title: "how.s3.title", text: "how.s3.text" },
+  { icon: "truck", title: "how.s4.title", text: "how.s4.text" },
 ];
 
 export function HowItWorks({ mode }: { mode: StoreMode }) {
+  const { t, digits } = useT();
   const { c } = useTheme();
   const a = useAccent(mode);
   return (
     <View style={{ marginTop: 28, paddingHorizontal: 16 }}>
-      <T v="h2" accessibilityRole="header" style={{ marginBottom: 10 }}>
-        How it works
-      </T>
+      <T v="h2" accessibilityRole="header" style={{ marginBottom: 10 }}>{t("footer.howItWorks")}</T>
       <Card pad={14} style={{ gap: 2 }}>
         {STEPS.map((s, i) => (
           <View key={s.title} style={{ flexDirection: "row", gap: 12 }}>
@@ -155,34 +159,33 @@ export function HowItWorks({ mode }: { mode: StoreMode }) {
             </View>
             <View style={{ flex: 1, paddingBottom: 12 }}>
               <T v="h3" style={{ fontSize: 15 }}>
-                {i + 1}. {s.title}
+                {digits(i + 1)}. {t(s.title)}
               </T>
               <T v="small" tone="ink2">
-                {s.text}
+                {t(s.text)}
               </T>
             </View>
           </View>
         ))}
-        <T v="tiny" style={{ color: c.ink3 }}>
-          Products are sold by the Indian stores named on each item. Skydrop Retail buys on your behalf and is not affiliated with them.
-        </T>
+        <T v="tiny" style={{ color: c.ink3 }}>{t("m.soldBy")}</T>
       </Card>
     </View>
   );
 }
 
 export function SearchBar({ mode, placeholder }: { mode: StoreMode; placeholder?: string }) {
+  const { t } = useT();
   const { c } = useTheme();
   return (
     <Pressable
       onPress={() => router.push({ pathname: "/search", params: { store: mode, focus: "1" } })}
       accessibilityRole="search"
-      accessibilityLabel="Search products"
+      accessibilityLabel={t("cat.searchProducts")}
       style={[styles.search, { backgroundColor: c.surface, borderColor: c.line }]}
     >
       <Icon name="search" size={18} color={c.ink3} />
       <T v="body" tone="ink3" numberOfLines={1} style={{ flex: 1 }}>
-        {placeholder ?? `Search ${mode === "all" ? "every Indian store" : STORES[mode].source}`}
+        {placeholder ?? (mode === "all" ? t("m.searchEvery") : t("m.searchIn", { name: STORES[mode].source }))}
       </T>
     </Pressable>
   );

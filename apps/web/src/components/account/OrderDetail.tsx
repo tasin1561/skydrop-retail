@@ -7,20 +7,24 @@ import { useStore } from "@/state/store";
 import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
-import { formatBdt, groupByMarket } from "@/lib/pricing";
-import { STAGES, canCancel, currentStatus, etaRange, isInProgress, stageIndex, stageLabel } from "@/lib/orderStatus";
+import { groupByMarket } from "@/lib/pricing";
+import { STAGES, canCancel, currentStatus, etaRange, isInProgress, stageDetail, stageIndex, stageLabel } from "@/lib/orderStatus";
 import { ConfirmDialog, EmptyState, LoadingBlock, PageHead, useNow } from "./ui";
 import { ProgressBar, StatusChip, Thumb, orderDate, shortId } from "./OrderBits";
 import { prettyPhone } from "./phone";
 import { SafeSection } from "@/components/resilience/SafeSection";
 import { TrackingPanel } from "@/components/fulfilment/TrackingPanel";
 import { OrderCases } from "@/components/fulfilment/OrderCases";
+import { useT } from "@/i18n/client";
+import { bdName } from "@/lib/bd";
 
 const TRACK_URL = "https://track.skydrop.online";
 
 export function OrderDetail({ id }: { id: string }) {
   const { ready, orders, cancelOrder } = useStore();
   const toast = useToast();
+  const tr = useT();
+  const { t, bdt, digits, lang } = tr;
   // Re-render every 30 s so the simulated (demo) status moves along.
   const now = useNow(30_000);
   const [confirm, setConfirm] = useState(false);
@@ -37,11 +41,11 @@ export function OrderDetail({ id }: { id: string }) {
   if (!order)
     return (
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
-        <PageHead title="Order not found" icon="receipt" back={{ href: "/orders", label: "All orders" }} />
+        <PageHead title={t("od.notFound")} icon="receipt" back={{ href: "/orders", label: t("od.allOrders") }} />
         <EmptyState
-          title="We couldn't find this order"
-          body="It may have been placed on another device or browser. Orders in this demo are stored on the device you used."
-          action={{ label: "See your orders", href: "/orders" }}
+          title={t("od.cantFind")}
+          body={t("od.cantFindB")}
+          action={{ label: t("od.seeYours"), href: "/orders" }}
         />
       </div>
     );
@@ -51,18 +55,18 @@ export function OrderDetail({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 md:pb-12">
-      <PageHead title={`Order ${shortId(order.id)}`} sub={`Placed ${orderDate(order.createdAt)}`} icon="receipt" back={{ href: "/orders", label: "All orders" }} />
+      <PageHead title={t("od.title", { id: shortId(order.id) })} sub={t("od.placed", { date: orderDate(order.createdAt, lang) })} icon="receipt" back={{ href: "/orders", label: t("od.allOrders") }} />
 
       {/* summary + tracking */}
       <section className="card rise p-4 sm:p-5" aria-labelledby="track-h">
         <div className="flex flex-wrap items-center gap-2">
           <h2 id="track-h" className="mr-auto text-lg font-extrabold tracking-tight">
-            Tracking
+            {t("od.tracking")}
           </h2>
           <StatusChip status={s} />
           {isInProgress(s) && (
             <span className="ac-chip" data-tone="muted">
-              <Icon name="clock" size={12} /> ETA {etaRange(order)}
+              <Icon name="clock" size={12} /> {t("od.eta", { range: etaRange(order, tr) })}
             </span>
           )}
         </div>
@@ -70,10 +74,10 @@ export function OrderDetail({ id }: { id: string }) {
           <ProgressBar status={s} />
           <p className="mt-1.5 text-xs text-ink-2" aria-live="polite">
             {s === "cancelled"
-              ? "This order was cancelled. Any payment is refunded to the original method."
+              ? t("od.cancelledMsg")
               : s === "delivered"
-                ? "Delivered. Thank you for shopping with Skydrop Retail."
-                : `Step ${String(stageIndex(s) + 1).padStart(2, "0")} of ${String(STAGES.length).padStart(2, "0")}: ${stageLabel(STAGES[stageIndex(s)], order)}`}
+                ? t("od.deliveredMsg")
+                : t("od.stepMsg", { n: digits(String(stageIndex(s) + 1).padStart(2, "0")), total: digits(String(STAGES.length).padStart(2, "0")), label: stageLabel(STAGES[stageIndex(s)], order, tr) })}
           </p>
         </div>
 
@@ -81,14 +85,14 @@ export function OrderDetail({ id }: { id: string }) {
 
         {/* tracking code */}
         <TrackingCode code={order.trackingCode} />
-        <p className="mt-2 text-[11px] text-ink-3">Demo: tracking moves forward on its own every few minutes. Live orders update from Skydrop hub scans.</p>
+        <p className="mt-2 text-[11px] text-ink-3">{t("od.demo")}</p>
       </section>
 
       {/* fulfilment: route map + live rider, unboxing approval, returns */}
-      <SafeSection label="Route map" quiet>
+      <SafeSection label={t("od.routeMap")} quiet>
         <TrackingPanel order={order} status={s} now={now} />
       </SafeSection>
-      <SafeSection label="Unboxing and returns">
+      <SafeSection label={t("od.unboxReturns")}>
         <OrderCases order={order} status={s} />
       </SafeSection>
 
@@ -96,7 +100,7 @@ export function OrderDetail({ id }: { id: string }) {
         {/* items by store */}
         <section aria-labelledby="items-h" className="space-y-3">
           <h2 id="items-h" className="sr-only">
-            Items
+            {t("od.items")}
           </h2>
           {(Object.entries(groupByMarket(order.items)) as [MarketId, Order["items"]][]).map(([m, items], gi) => (
             <div key={m} data-store={m} className="card rise overflow-hidden" style={{ ["--i" as string]: gi + 1 }}>
@@ -106,7 +110,7 @@ export function OrderDetail({ id }: { id: string }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-bold">{STORES[m].name}</p>
-                  <p className="text-xs text-ink-2">Bought from {STORES[m].source}, India</p>
+                  <p className="text-xs text-ink-2">{t("od.boughtFrom", { source: STORES[m].source })}</p>
                 </div>
                 <span className="ac-chip tabular-nums">{String(items.reduce((n, i) => n + i.qty, 0)).padStart(2, "0")} items</span>
               </div>
@@ -119,10 +123,10 @@ export function OrderDetail({ id }: { id: string }) {
                         {it.title}
                       </Link>
                       <p className="text-xs text-ink-2">
-                        {it.variant ? it.variant + " · " : ""}Qty {it.qty} × {formatBdt(it.unitBdt)}
+                        {it.variant ? it.variant + " · " : ""}{t("od.qtyLine", { qty: it.qty, price: bdt(it.unitBdt) })}
                       </p>
                     </div>
-                    <span className="shrink-0 font-bold tabular-nums">{formatBdt(it.unitBdt * it.qty)}</span>
+                    <span className="shrink-0 font-bold tabular-nums">{bdt(it.unitBdt * it.qty)}</span>
                   </li>
                 ))}
               </ul>
@@ -138,12 +142,12 @@ export function OrderDetail({ id }: { id: string }) {
               </span>
               <div className="min-w-0">
                 <h2 id="addr-h" className="text-sm font-bold">
-                  Delivery address
+                  {t("od.address")}
                 </h2>
                 <p className="mt-1 text-sm font-semibold">{order.address.name}</p>
                 <p className="text-sm tabular-nums text-ink-2">{prettyPhone(order.address.phone)}</p>
                 <p className="text-sm text-ink-2">
-                  {order.address.line}, {order.address.area}, {order.address.district}, {order.address.division}
+                  {order.address.line}, {order.address.area}, {bdName(order.address.district, lang)}, {bdName(order.address.division, lang)}
                 </p>
               </div>
             </div>
@@ -152,7 +156,7 @@ export function OrderDetail({ id }: { id: string }) {
                 <Icon name="wallet" size={18} />
               </span>
               <div>
-                <h2 className="text-sm font-bold">Payment</h2>
+                <h2 className="text-sm font-bold">{t("od.payment")}</h2>
                 <p className="text-sm text-ink-2">{order.payment}</p>
               </div>
             </div>
@@ -160,18 +164,18 @@ export function OrderDetail({ id }: { id: string }) {
 
           <section className="card rise p-4" aria-labelledby="tot-h" style={{ ["--i" as string]: 3 }}>
             <h2 id="tot-h" className="mb-2 text-sm font-bold">
-              Order total
+              {t("od.total")}
             </h2>
             <dl className="space-y-1.5 text-sm">
-              <Line k="Items" v={formatBdt(order.subtotal)} />
-              <Line k="Skydrop delivery" v={order.shipping ? formatBdt(order.shipping) : "Free"} />
-              {order.discount > 0 && <Line k="Discount" v={"-" + formatBdt(order.discount)} good />}
+              <Line k={t("od.items")} v={bdt(order.subtotal)} />
+              <Line k={t("od.delivery")} v={order.shipping ? bdt(order.shipping) : t("common.free")} />
+              {order.discount > 0 && <Line k={t("od.discount")} v={"-" + bdt(order.discount)} good />}
               <div className="flex items-center justify-between pt-2 text-base font-extrabold" style={{ boxShadow: "inset 0 1px 0 var(--line)" }}>
-                <dt>Total</dt>
-                <dd className="tabular-nums">{formatBdt(order.total)}</dd>
+                <dt>{t("sum.total")}</dt>
+                <dd className="tabular-nums">{bdt(order.total)}</dd>
               </div>
             </dl>
-            <p className="mt-2 text-[11px] text-ink-3">Includes import duties and taxes. No extra charges at delivery.</p>
+            <p className="mt-2 text-[11px] text-ink-3">{t("od.includes")}</p>
           </section>
 
           <section className="card rise overflow-hidden" style={{ ["--i" as string]: 4 }}>
@@ -181,8 +185,8 @@ export function OrderDetail({ id }: { id: string }) {
                   <Icon name="x" size={18} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-bad">Cancel order</span>
-                  <span className="block text-xs text-ink-2">Free until we buy your items in India</span>
+                  <span className="block font-semibold text-bad">{t("od.cancel")}</span>
+                  <span className="block text-xs text-ink-2">{t("od.cancelFree")}</span>
                 </span>
                 <Icon name="right" size={18} className="ac-chev" />
               </button>
@@ -193,7 +197,7 @@ export function OrderDetail({ id }: { id: string }) {
                   <Icon name="info" size={18} />
                 </span>
                 <span className="min-w-0 flex-1 text-xs text-ink-2">
-                  Already bought in India, so this order can no longer be cancelled. Returns are covered after delivery.
+                  {t("od.cantCancel")}
                 </span>
               </div>
             )}
@@ -202,8 +206,8 @@ export function OrderDetail({ id }: { id: string }) {
                 <Icon name="help" size={18} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold">Need help?</span>
-                <span className="block text-xs text-ink-2">Delivery, returns and refunds</span>
+                <span className="block font-semibold">{t("od.needHelp")}</span>
+                <span className="block text-xs text-ink-2">{t("od.needHelpSub")}</span>
               </span>
               <Icon name="right" size={18} className="ac-chev" />
             </Link>
@@ -213,20 +217,20 @@ export function OrderDetail({ id }: { id: string }) {
 
       {confirm && (
         <ConfirmDialog
-          title="Cancel this order?"
-          body="We have not bought your items yet, so there is no charge. Any payment goes back to the original method."
-          confirmLabel="Cancel order"
+          title={t("od.cancelQ")}
+          body={t("od.cancelBody")}
+          confirmLabel={t("od.cancel")}
           icon="x"
           danger
           onClose={() => setConfirm(false)}
           onConfirm={() => {
             // Re-check at confirm time: the demo status may have moved past "verified".
             if (!canCancel(currentStatus(order, Date.now()))) {
-              toast({ kind: "error", title: "Too late to cancel", body: "Your items were just bought in India." });
+              toast({ kind: "error", title: t("od.tooLate"), body: t("od.tooLateB") });
               return;
             }
             cancelOrder(order.id);
-            toast({ kind: "info", title: "Order cancelled", body: `${shortId(order.id)} will not be bought.` });
+            toast({ kind: "info", title: t("od.cancelledT"), body: t("od.cancelledB", { id: shortId(order.id) }) });
           }}
         />
       )}
@@ -244,9 +248,11 @@ function Line({ k, v, good }: { k: string; v: string; good?: boolean }) {
 }
 
 function Timeline({ order, status }: { order: Order; status: OrderStatus }) {
+  const tr = useT();
+  const { t } = tr;
   const cur = stageIndex(status);
   return (
-    <ol className="mt-5 flex flex-col lg:flex-row" aria-label="Tracking timeline" data-reveal="fade">
+    <ol className="mt-5 flex flex-col lg:flex-row" aria-label={t("od.timeline")} data-reveal="fade">
       {STAGES.map((st, i) => {
         const state = i < cur || status === "delivered" ? "done" : i === cur ? "now" : "next";
         const last = i === STAGES.length - 1;
@@ -272,14 +278,14 @@ function Timeline({ order, status }: { order: Order; status: OrderStatus }) {
             </span>
             <div className="min-w-0 pt-1 lg:px-1 lg:pt-0">
               <p className={"text-sm font-semibold lg:text-xs " + (state === "next" ? "text-ink-3" : "text-ink")}>
-                {stageLabel(st, order)}
-                <span className="sr-only">{state === "done" ? " (done)" : state === "now" ? " (current)" : " (upcoming)"}</span>
+                {stageLabel(st, order, tr)}
+                <span className="sr-only">{state === "done" ? t("lg.done") : state === "now" ? t("lg.current") : t("od.upcoming")}</span>
               </p>
               {state === "now" ? (
-                <p className="text-xs text-ink-2 lg:hidden">{st.detail}</p>
+                <p className="text-xs text-ink-2 lg:hidden">{stageDetail(st, tr)}</p>
               ) : null}
               {state === "now" && (
-                <span className="ac-chip mt-1 h-5 text-[10px] lg:mt-1.5">Now</span>
+                <span className="ac-chip mt-1 h-5 text-[10px] lg:mt-1.5">{t("od.now")}</span>
               )}
             </div>
           </li>
@@ -290,6 +296,8 @@ function Timeline({ order, status }: { order: Order; status: OrderStatus }) {
 }
 
 function TrackingCode({ code }: { code: string }) {
+  const tr = useT();
+  const { t } = tr;
   const [copied, setCopied] = useState<"idle" | "done" | "error">("idle");
   async function copy() {
     try {
@@ -306,13 +314,13 @@ function TrackingCode({ code }: { code: string }) {
         <Icon name="truck" size={18} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-ink-2">Skydrop tracking code</p>
+        <p className="text-xs text-ink-2">{t("od.code")}</p>
         <p className="truncate font-mono text-sm font-bold tracking-wider">{code}</p>
       </div>
       <div className="flex gap-2">
-        <button type="button" onClick={copy} className="btn btn-ghost h-11 bg-surface px-4 text-sm" aria-label={`Copy tracking code ${code}`}>
+        <button type="button" onClick={copy} className="btn btn-ghost h-11 bg-surface px-4 text-sm" aria-label={t("od.copyCode", { code })}>
           <Icon name={copied === "done" ? "check" : copied === "error" ? "x" : "receipt"} size={16} />
-          <span aria-live="polite">{copied === "done" ? "Copied" : copied === "error" ? "Copy failed" : "Copy"}</span>
+          <span aria-live="polite">{copied === "done" ? t("common.copied") : copied === "error" ? t("common.copyFailed") : t("common.copy")}</span>
         </button>
         <a
           href={TRACK_URL}
@@ -320,8 +328,8 @@ function TrackingCode({ code }: { code: string }) {
           rel="noopener noreferrer"
           className="btn btn-primary h-11 px-4 text-sm"
         >
-          Track <Icon name="arrow" size={16} className="arrow" />
-          <span className="sr-only"> on track.skydrop.online, paste the code there (opens in a new tab)</span>
+          {t("od.track")} <Icon name="arrow" size={16} className="arrow" />
+          <span className="sr-only">{t("od.trackSr")}</span>
         </a>
       </div>
     </div>

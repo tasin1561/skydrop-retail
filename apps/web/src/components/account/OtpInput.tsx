@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useShake } from "./ui";
+import { useT } from "@/i18n/client";
 
 const LEN = 6;
 
@@ -15,6 +16,7 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
   const [vals, setVals] = useState<string[]>(Array(LEN).fill(""));
   const [state, setState] = useState<"idle" | "link" | "merge">("idle");
   const [warn, setWarn] = useState("");
+  const { t, digits: dg } = useT();
   const { shakeClass, shake, onAnimationEnd } = useShake();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -55,7 +57,7 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
     if (state !== "idle") return;
     const d = raw.replace(/\D/g, "");
     if (!d) {
-      if (raw) fail("Numbers only, please");
+      if (raw) fail(t("otp.numbersOnly"));
       const next = [...vals];
       next[i] = "";
       setVals(next);
@@ -81,7 +83,7 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
       focus(i + 1);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (!vals.every(Boolean)) fail(`Enter all 6 digits (${vals.filter(Boolean).length}/6)`);
+      if (!vals.every(Boolean)) fail(t("otp.enterAll", { n: vals.filter(Boolean).length }));
     }
   }
 
@@ -90,7 +92,7 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
     if (state !== "idle") return;
     const text = e.clipboardData.getData("text");
     const d = text.replace(/\D/g, "");
-    if (!d) return fail("That paste had no digits");
+    if (!d) return fail(t("otp.noDigits"));
     fill(d.length >= LEN ? 0 : i, d.slice(0, LEN));
   }
 
@@ -101,7 +103,7 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
     <div>
       <div
         role="group"
-        aria-label="6 digit verification code"
+        aria-label={t("otp.label")}
         aria-describedby="otp-help"
         className={"ac-otp " + shakeClass}
         onAnimationEnd={(e) => e.target === e.currentTarget && onAnimationEnd()}
@@ -123,7 +125,7 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
             pattern="[0-9]*"
             autoComplete={i === 0 ? "one-time-code" : "off"}
             maxLength={i === 0 ? LEN : 2}
-            aria-label={`Digit ${i + 1} of ${LEN}`}
+            aria-label={t("otp.digit", { n: i + 1, total: LEN })}
             autoFocus={i === 0}
             disabled={disabled && state === "idle"}
             readOnly={state !== "idle"}
@@ -149,14 +151,14 @@ export function OtpInput({ onComplete, disabled }: { onComplete: (code: string) 
       <p id="otp-help" className="ac-help mt-3 justify-center" data-tone={tone} aria-live="polite">
         {state !== "idle" ? (
           <>
-            <Icon name="check" size={14} stroke={2.6} /> Code verified. Your account is secure.
+            <Icon name="check" size={14} stroke={2.6} /> {t("otp.secure")}
           </>
         ) : warn ? (
           <>
             <Icon name="info" size={14} /> {warn}
           </>
         ) : (
-          <span className="tabular-nums">{String(filled).padStart(2, "0")}/06 digits</span>
+          <span className="tabular-nums">{t("otp.count", { n: dg(String(filled).padStart(2, "0")) })}</span>
         )}
       </p>
     </div>

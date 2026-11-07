@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AssistantHttpError, clearConversation, sendFeedback, streamChat } from "@/lib/assistant/client";
 import { CARD_TYPES, isBangla, type AssistantEvent, type CardEvent, type ChatRequest } from "@/lib/assistant/types";
+import { useT } from "@/i18n/client";
+import { translate } from "@/i18n/core";
 
 export type ChatMessage = {
   key: string;
@@ -43,6 +45,7 @@ export function useAssistantChat(token: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { t } = useT();
   const [announce, setAnnounce] = useState("");
   const [remaining, setRemaining] = useState<number | null>(null);
   const abort = useRef<AbortController | null>(null);
@@ -100,7 +103,7 @@ export function useAssistantChat(token: string | null) {
               patch(replyKey, (m) => ({ ...m, tool: e.data.name }));
               if (!announced.has(e.data.name) && e.data.name === "search_products") {
                 announced.add(e.data.name);
-                setAnnounce(isBangla(req.message) ? "পণ্য খোঁজা হচ্ছে" : "Searching products");
+                setAnnounce(isBangla(req.message) ? translate("bn", "ai.searching") : t("ai.searching"));
               }
               break;
             case "done":
@@ -119,13 +122,13 @@ export function useAssistantChat(token: string | null) {
         });
         patch(replyKey, (m) => (m.status === "streaming" ? { ...m, status: "done", tool: null } : m));
         const summary = text.replace(/[*_`#]/g, "").slice(0, 160);
-        setAnnounce(`Skydrop AI: ${summary}${text.length > 160 ? "…" : ""}${cards ? ` ${cards} result card${cards > 1 ? "s" : ""} shown.` : ""}`);
+        setAnnounce(`Skydrop AI: ${summary}${text.length > 160 ? "…" : ""}${cards ? t("ai.cards", { count: cards }) : ""}`);
       } catch (err) {
         if (ctrl.signal.aborted) {
           patch(replyKey, (m) => ({ ...m, status: "stopped", tool: null }));
-          setAnnounce("Stopped");
+          setAnnounce(t("ai.stoppedA"));
         } else {
-          const msg = err instanceof AssistantHttpError ? err.message : "Connection lost. Please try again.";
+          const msg = err instanceof AssistantHttpError ? err.message : t("ai.lost");
           if (err instanceof AssistantHttpError && err.code === "rate_limited") setRemaining(0);
           patch(replyKey, (m) => ({ ...m, status: "error", error: msg, tool: null }));
           setAnnounce(msg);
@@ -135,7 +138,7 @@ export function useAssistantChat(token: string | null) {
         setBusy(false);
       }
     },
-    [patch, token],
+    [patch, token, t],
   );
 
   const send = useCallback(
@@ -167,9 +170,9 @@ export function useAssistantChat(token: string | null) {
       if (!m) return;
       patch(key, (x) => ({ ...x, feedback: rating }));
       if (m.serverId) void sendFeedback(m.serverId, rating, token);
-      setAnnounce(rating === "up" ? "Thanks for the feedback" : "Thanks, we'll use this to improve");
+      setAnnounce(rating === "up" ? t("ai.thanks") : t("ai.thanksDown"));
     },
-    [messages, patch, token],
+    [messages, patch, token, t],
   );
 
   const clear = useCallback(() => {
@@ -178,8 +181,8 @@ export function useAssistantChat(token: string | null) {
     convRef.current = null;
     setConversationId(null);
     setMessages([]);
-    setAnnounce("Conversation cleared");
-  }, [token]);
+    setAnnounce(t("ai.cleared"));
+  }, [token, t]);
 
   return { messages, busy, send, stop, regenerate, rate, clear, announce, remaining, conversationId };
 }

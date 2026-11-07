@@ -10,7 +10,6 @@ import { CopyButton } from "@/components/share/CopyButton";
 import { useToast } from "@/components/Toast";
 import { apiEnabled, ApiError } from "@/lib/apiClient";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import { groups } from "@/lib/shopping/client";
 import type { Group } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";

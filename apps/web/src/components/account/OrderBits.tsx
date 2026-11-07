@@ -3,18 +3,22 @@
 import type { CartItem, OrderStatus } from "@/lib/types";
 import { Icon } from "@/components/Icon";
 import { progressOf, statusIcon, statusText } from "@/lib/orderStatus";
+import { useT } from "@/i18n/client";
+import { fmtDate, type Lang } from "@/i18n/core";
 
 export function StatusChip({ status }: { status: OrderStatus }) {
+  const tr = useT();
   const tone = status === "cancelled" ? "bad" : status === "delivered" ? "good" : undefined;
   return (
     <span className="ac-chip" data-tone={tone}>
       <Icon name={statusIcon(status)} size={12} stroke={2.4} />
-      {statusText(status)}
+      {statusText(status, tr)}
     </span>
   );
 }
 
 export function ProgressBar({ status, label }: { status: OrderStatus; label?: string }) {
+  const tr = useT();
   const p = status === "cancelled" ? 1 : Math.max(0.04, progressOf(status));
   const pct = status === "cancelled" ? 0 : Math.round(progressOf(status) * 100);
   return (
@@ -23,11 +27,11 @@ export function ProgressBar({ status, label }: { status: OrderStatus; label?: st
       className="ac-bar"
       data-tone={status === "cancelled" ? "bad" : status === "delivered" ? "good" : undefined}
       role="progressbar"
-      aria-label={label ?? "Delivery progress"}
+      aria-label={label ?? tr.t("ob.progress")}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={pct}
-      aria-valuetext={status === "cancelled" ? "Cancelled" : `${pct}%, ${statusText(status)}`}
+      aria-valuetext={status === "cancelled" ? statusText(status, tr) : `${tr.digits(pct)}%, ${statusText(status, tr)}`}
     >
       <span style={{ ["--p" as string]: p, opacity: status === "cancelled" ? 0.35 : 1 }} />
     </div>
@@ -57,9 +61,9 @@ export function Thumb({ item, size = 44 }: { item: Pick<CartItem, "image" | "tit
   );
 }
 
-export function orderDate(iso: string) {
+export function orderDate(iso: string, lang: Lang = "en") {
   const d = new Date(iso);
-  return isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return isNaN(d.getTime()) ? "" : fmtDate(d, lang, { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function shortId(id: string) {

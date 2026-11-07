@@ -25,6 +25,7 @@ import { Image } from "expo-image";
 import { radius, shadow, useAccent, useTheme, withAlpha } from "@/theme";
 import { Icon } from "./Icon";
 import type { StoreMode } from "@/lib/types";
+import { useLang, useT } from "@/i18n";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -47,9 +48,12 @@ export function T({
   ...rest
 }: TextProps & { v?: Variant; tone?: "ink" | "ink2" | "ink3" | "good" | "bad" | "warn" | "white" | "brand" | string }) {
   const { c } = useTheme();
+  const { lang } = useLang(); // re-render on language change (font family follows the language)
   const map: Record<string, string> = { ink: c.ink, ink2: c.ink2, ink3: c.ink3, good: c.good, bad: c.bad, warn: c.warn, white: "#fff", brand: c.brand };
   const flat = StyleSheet.flatten([SIZES[v], style]) ?? {};
-  return <RNText {...rest} style={[SIZES[v], { color: map[tone] ?? tone }, style, brandFont(flat.fontWeight)]} />;
+  // Bangla: a little more line height for matras and conjuncts, and never tightened letter spacing.
+  const bn = lang === "bn" ? { letterSpacing: 0, ...(flat.lineHeight ? { lineHeight: Math.round(flat.lineHeight * 1.18) } : {}) } : null;
+  return <RNText {...rest} style={[SIZES[v], { color: map[tone] ?? tone }, style, brandFont(flat.fontWeight), bn]} />;
 }
 
 // ---------- pressable with spring scale ----------
@@ -287,15 +291,16 @@ export function ProductImage({
 // ---------- stars ----------
 export function Stars({ rating, count, size = 12 }: { rating: number; count?: number; size?: number }) {
   const { c } = useTheme();
+  const { t, digits, num } = useT();
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }} accessibilityLabel={`Rated ${rating} out of 5${count ? `, ${count} reviews` : ""}`}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }} accessibilityLabel={t("m.rated", { rating: digits(rating) }) + (count ? ", " + t("m.reviewsN", { count }) : "")}>
       <Icon name="star" size={size} color="#f59e0b" />
       <T v="tiny" style={{ fontWeight: "700", color: c.ink }}>
-        {rating.toFixed(1)}
+        {digits(rating.toFixed(1))}
       </T>
       {count !== undefined && (
         <T v="tiny" tone="ink3">
-          ({count >= 1000 ? (count / 1000).toFixed(1) + "k" : count})
+          ({count >= 1000 ? digits((count / 1000).toFixed(1)) + "k" : num(count)})
         </T>
       )}
     </View>

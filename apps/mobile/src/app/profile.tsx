@@ -8,8 +8,10 @@ import { radius, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Button, Card, T } from "@/components/ui";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/i18n";
 
 export default function Profile() {
+  const { t } = useT();
   const { c } = useTheme();
   const { user, setUser } = useStore();
   const toast = useToast();
@@ -24,10 +26,10 @@ export default function Profile() {
       const u = await api.updateMe({ name: name.trim(), email: email.trim() || undefined });
       setUser({ ...user!, ...u });
       haptic.success();
-      toast({ kind: "success", title: "Profile saved" });
+      toast({ kind: "success", title: t("m.profileSaved") });
       router.back();
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't save", body: (e as Error).message });
+      toast({ kind: "error", title: t("m.cantSave"), body: (e as Error).message });
     } finally {
       setBusy(false);
     }
@@ -39,34 +41,28 @@ export default function Profile() {
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }} keyboardShouldPersistTaps="handled">
         <Card style={{ gap: 14 }}>
           <View style={{ gap: 6 }}>
-            <T v="small" style={{ fontWeight: "700" }}>
-              Mobile number
-            </T>
+            <T v="small" style={{ fontWeight: "700" }}>{t("rf.mobile")}</T>
             <T v="body" tone="ink2">
               {user ? prettyPhone(user.phone) : "-"}
             </T>
           </View>
           <View style={{ gap: 6 }}>
-            <T v="small" style={{ fontWeight: "700" }}>
-              Name
-            </T>
-            <TextInput value={name} onChangeText={setName} accessibilityLabel="Name" autoComplete="name" style={[styles.input, input]} />
+            <T v="small" style={{ fontWeight: "700" }}>{t("lg.step.name")}</T>
+            <TextInput value={name} onChangeText={setName} accessibilityLabel={t("lg.step.name")} autoComplete="name" style={[styles.input, input]} />
           </View>
           <View style={{ gap: 6 }}>
-            <T v="small" style={{ fontWeight: "700" }}>
-              Email (optional)
-            </T>
+            <T v="small" style={{ fontWeight: "700" }}>{t("m.emailOpt")}</T>
             <TextInput
               value={email}
               onChangeText={setEmail}
-              accessibilityLabel="Email"
+              accessibilityLabel={t("support.emailLabel")}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
               style={[styles.input, input, !emailOk && { borderColor: c.bad }]}
             />
           </View>
-          <Button label="Save" onPress={save} busy={busy} disabled={!name.trim() || !emailOk} />
+          <Button label={t("pv.save")} onPress={save} busy={busy} disabled={!name.trim() || !emailOk} />
         </Card>
       </ScrollView>
     </KeyboardAvoidingView>

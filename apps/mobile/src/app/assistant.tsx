@@ -17,12 +17,15 @@ import * as ai from "@/api/assistant";
 import type { AiCard, AiEvent, AiOrder, AiProduct } from "@/api/assistant";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/lib/features";
-import { formatBdt } from "@/lib/pricing";
 import { haptic } from "@/lib/haptics";
 import { radius, shadow, useTheme, withAlpha } from "@/theme";
 import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
 import { Empty, IconButton, ProductImage, Stars, T, Tap } from "@/components/ui";
+import { useT } from "@/i18n";
+import type { MsgKey } from "@/i18n";
+import { statusText, STAGES } from "@/lib/orderStatus";
+import type { OrderStatus } from "@/lib/types";
 
 type Msg = {
   key: string;
@@ -43,6 +46,7 @@ const key = () => `m${Date.now()}${n++}`;
 export default function AssistantScreen() {
   const on = useFeature("ai_assistant");
   const { c } = useTheme();
+  const { t, lang: appLang } = useT();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ productId?: string; prompt?: string }>();
   const { cart, mode, user } = useStore();
@@ -50,7 +54,8 @@ export default function AssistantScreen() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState(params.prompt ?? "");
   const [busy, setBusy] = useState(false);
-  const [lang, setLang] = useState<"en" | "bn">("en");
+  // Reply/suggestion language: starts in the app language, the shopper can switch it here.
+  const [lang, setLang] = useState<"en" | "bn">(appLang);
   const [remaining, setRemaining] = useState<number | null>(null);
   const conv = useRef<string | null>(null);
   const abort = useRef<AbortController | null>(null);
@@ -83,11 +88,11 @@ export default function AssistantScreen() {
           else if (ai.CARD_TYPES.has(e.type)) patch(replyKey, (m) => ({ ...m, cards: [...m.cards, e as AiCard] }));
         }, ctrl.signal);
         patch(replyKey, (m) => (m.status === "streaming" ? { ...m, status: "done", tool: null } : m));
-        AccessibilityInfo.announceForAccessibility(`Skydrop AI: ${text.slice(0, 160)}`);
+        AccessibilityInfo.announceForAccessibility(t("ai.aiSaid") + text.slice(0, 160));
       } catch (err) {
         if (ctrl.signal.aborted) patch(replyKey, (m) => ({ ...m, status: "stopped", tool: null }));
         else {
-          const message = err instanceof ai.AiError ? err.message : "Connection lost. Please try again.";
+          const message = err instanceof ai.AiError ? err.message : t("ai.lost");
           if (err instanceof ai.AiError && err.code === "rate_limited") setRemaining(0);
           patch(replyKey, (m) => ({ ...m, status: "error", error: message, tool: null }));
           AccessibilityInfo.announceForAccessibility(message);
@@ -97,7 +102,7 @@ export default function AssistantScreen() {
         setBusy(false);
       }
     },
-    [patch],
+    [patch, t],
   );
 
   const send = useCallback(
@@ -144,7 +149,7 @@ export default function AssistantScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg, justifyContent: "center" }}>
         <Stack.Screen options={{ title: "Skydrop AI" }} />
-        <Empty icon="message-circle" title="Not available" text="The AI assistant is turned off right now." action="Go back" onAction={() => router.back()} />
+        <Empty icon="message-circle" title={t("rq.notAvail")} text={t("m.aiOff")} action={t("m.goBack")} onAction={() => router.back()} />
       </View>
     );
   }
@@ -158,13 +163,13 @@ export default function AssistantScreen() {
       <Stack.Screen
         options={{
           title: "Skydrop AI",
-          headerRight: () => (msgs.length ? <IconButton icon="trash-2" label="Clear conversation" size={36} onPress={clear} /> : null),
+          headerRight: () => (msgs.length ? <IconButton icon="trash-2" label={t("ai.clear")} size={36} onPress={clear} /> : null),
         }}
       />
       {config?.basic || config?.demo ? (
         <View style={[styles.banner, { backgroundColor: c.surface2 }]}>
           <T v="tiny" tone="ink2">
-            {config.demo ? "Demo mode · answers from the sample catalog" : "Basic mode · showing search results"}
+            {config.demo ? t("ai.demo") : t("ai.basic")}
           </T>
         </View>
       ) : null}
@@ -175,7 +180,7 @@ export default function AssistantScreen() {
             <Icon name="star" size={28} color="#fff" />
           </Animated.View>
           <T v="h3" style={{ textAlign: "center", maxWidth: 300 }}>
-            {config?.greeting?.[lang] ?? "Hi! Tell me what you're looking for and your budget in taka."}
+            {config?.greeting?.[lang] ?? t("ai.greeting")}
           </T>
           <View style={[styles.seg, { backgroundColor: c.surface2 }]} accessibilityRole="radiogroup">
             {(["en", "bn"] as const).map((l) => (
@@ -194,7 +199,7 @@ export default function AssistantScreen() {
           </View>
           <View style={styles.chips}>
             {params.productId && (
-              <Chip label={lang === "bn" ? "এই পণ্য সম্পর্কে জানতে চাই" : "Ask about this product"} onPress={() => send(lang === "bn" ? "এই পণ্যটি কেমন? কবে পাব?" : "Is this product worth it, and when would it arrive?")} />
+              <Chip label={lang === "bn" ? "এই পণ্য সম্পর্কে জানতে চাই" : t("m.askThis")} onPress={() => send(lang === "bn" ? "এই পণ্যটি কেমন? কবে পাব?" : "Is this product worth it, and when would it arrive?")} />
             )}
             {prompts.map((p, i) => (
               <Animated.View key={p} entering={FadeInDown.delay(80 + i * 50).springify().damping(18)}>
@@ -218,7 +223,8 @@ export default function AssistantScreen() {
       <View style={[styles.compose, { backgroundColor: c.surface, borderTopColor: c.line, paddingBottom: Math.max(insets.bottom, 10) }]}>
         {out && (
           <T v="small" tone="warn" style={{ textAlign: "center", marginBottom: 6, fontWeight: "600" }}>
-            Daily AI limit reached.{user ? " Try again tomorrow." : " Sign in for more messages."}
+            {t("ai.limit")}
+            {user ? t("ai.tomorrow") : t("ai.signInMore")}
           </T>
         )}
         <View style={[styles.input, { borderColor: c.line, backgroundColor: c.bg }]}>
@@ -231,20 +237,18 @@ export default function AssistantScreen() {
             multiline
             maxLength={2000}
             editable={!out}
-            accessibilityLabel="Message Skydrop AI"
+            accessibilityLabel={t("ai.message")}
             onSubmitEditing={() => send(draft)}
             submitBehavior="submit"
             returnKeyType="send"
           />
           {busy ? (
-            <IconButton icon="square" label="Stop generating" size={44} bg={c.ink} tint={c.bg} onPress={() => abort.current?.abort()} />
+            <IconButton icon="square" label={t("ai.stop")} size={44} bg={c.ink} tint={c.bg} onPress={() => abort.current?.abort()} />
           ) : (
-            <IconButton icon="arrow-up" label="Send message" size={44} bg={draft.trim() && !out ? c.brand : withAlpha(c.brand, 0.35)} tint="#fff" onPress={() => send(draft)} />
+            <IconButton icon="arrow-up" label={t("ai.send")} size={44} bg={draft.trim() && !out ? c.brand : withAlpha(c.brand, 0.35)} tint="#fff" onPress={() => send(draft)} />
           )}
         </View>
-        <T v="tiny" tone="ink3" style={{ textAlign: "center", marginTop: 6 }}>
-          AI can make mistakes. Prices are re-checked at checkout.
-        </T>
+        <T v="tiny" tone="ink3" style={{ textAlign: "center", marginTop: 6 }}>{t("ai.foot")}</T>
       </View>
     </KeyboardAvoidingView>
   );
@@ -271,20 +275,21 @@ function Caret() {
   return <Animated.View style={[{ width: 2, height: 16, backgroundColor: c.brand, marginLeft: 2 }, s]} />;
 }
 
-const TOOL: Record<string, string> = {
-  search_products: "Searching the catalog",
-  get_product: "Reading product details",
-  compare_products: "Comparing",
-  delivery_estimate: "Checking delivery dates",
-  get_my_orders: "Looking up your orders",
-  track_order: "Tracking your order",
+const TOOL: Record<string, MsgKey> = {
+  search_products: "ai.tool.search",
+  get_product: "ai.tool.product",
+  compare_products: "ai.tool.compare",
+  delivery_estimate: "ai.tool.delivery",
+  get_my_orders: "ai.tool.orders",
+  track_order: "ai.tool.track",
 };
 
 function Bubble({ m, last, busy, onRate, onRegenerate }: { m: Msg; last: boolean; busy: boolean; onRate: (m: Msg, r: "up" | "down") => void; onRegenerate: () => void }) {
+  const { t } = useT();
   const { c } = useTheme();
   if (m.role === "user") {
     return (
-      <Animated.View entering={FadeInDown.duration(220)} style={[styles.user, { backgroundColor: c.brand }]} accessibilityLabel={`You said: ${m.text}`}>
+      <Animated.View entering={FadeInDown.duration(220)} style={[styles.user, { backgroundColor: c.brand }]} accessibilityLabel={t("ai.youSaid") + m.text}>
         <T tone="white">{m.text}</T>
       </Animated.View>
     );
@@ -293,7 +298,7 @@ function Bubble({ m, last, busy, onRate, onRegenerate }: { m: Msg; last: boolean
   return (
     <Animated.View entering={FadeInDown.duration(220)} style={{ gap: 8 }}>
       {(m.text || streaming) && (
-        <View style={[styles.bot, { backgroundColor: c.surface }, shadow(c)]} accessibilityLabel={m.text ? `Skydrop AI: ${m.text.replace(/\*\*/g, "")}` : "Skydrop AI is replying"}>
+        <View style={[styles.bot, { backgroundColor: c.surface }, shadow(c)]} accessibilityLabel={m.text ? t("ai.aiSaid") + m.text.replace(/\*\*/g, "") : t("ai.replying")}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end" }}>
             <T>{m.text.replace(/\*\*/g, "")}</T>
             {streaming && <Caret />}
@@ -302,7 +307,7 @@ function Bubble({ m, last, busy, onRate, onRegenerate }: { m: Msg; last: boolean
       )}
       {streaming && m.tool && (
         <T v="tiny" tone="ink2">
-          {TOOL[m.tool] ?? "Working"}…
+          {t(TOOL[m.tool] ?? "ai.tool.working")}…
         </T>
       )}
       {m.cards.map((card, i) => (
@@ -316,19 +321,17 @@ function Bubble({ m, last, busy, onRate, onRegenerate }: { m: Msg; last: boolean
         </T>
       )}
       {m.status === "stopped" && (
-        <T v="tiny" tone="ink3">
-          Stopped.
-        </T>
+        <T v="tiny" tone="ink3">{t("ai.stopped")}</T>
       )}
       {!streaming && (
         <View style={{ flexDirection: "row", gap: 6 }}>
           {m.status === "done" && (
             <>
-              <IconButton icon="thumbs-up" label="Helpful" size={36} tint={m.feedback === "up" ? c.brand : c.ink3} bg="transparent" onPress={() => onRate(m, "up")} />
-              <IconButton icon="thumbs-down" label="Not helpful" size={36} tint={m.feedback === "down" ? c.bad : c.ink3} bg="transparent" onPress={() => onRate(m, "down")} />
+              <IconButton icon="thumbs-up" label={t("ai.helpful")} size={36} tint={m.feedback === "up" ? c.brand : c.ink3} bg="transparent" onPress={() => onRate(m, "up")} />
+              <IconButton icon="thumbs-down" label={t("ai.notHelpful")} size={36} tint={m.feedback === "down" ? c.bad : c.ink3} bg="transparent" onPress={() => onRate(m, "down")} />
             </>
           )}
-          {last && !busy && <IconButton icon="refresh-cw" label="Regenerate answer" size={36} tint={c.ink3} bg="transparent" onPress={onRegenerate} />}
+          {last && !busy && <IconButton icon="refresh-cw" label={t("ai.regenerate")} size={36} tint={c.ink3} bg="transparent" onPress={onRegenerate} />}
         </View>
       )}
     </Animated.View>
@@ -336,16 +339,18 @@ function Bubble({ m, last, busy, onRate, onRegenerate }: { m: Msg; last: boolean
 }
 
 function useAdd() {
+  const { t } = useT();
   const { addToCart } = useStore();
   const toast = useToast();
   return (p: AiProduct, qty = 1, variant?: string | null) => {
     haptic.success();
     addToCart({ productId: p.id, market: p.market, title: p.title, image: p.image, placeholder: p.placeholder ?? undefined, variant: variant ?? undefined, unitBdt: p.priceBdt, weightKg: p.weightKg, qty });
-    toast({ kind: "success", title: "Added to cart", body: p.title.slice(0, 80), action: { label: "View cart", href: "/cart" } });
+    toast({ kind: "success", title: t("ai.added"), body: p.title.slice(0, 80), action: { label: t("buy.viewCart"), href: "/cart" } });
   };
 }
 
 function AddBtn({ p, qty, variant }: { p: AiProduct; qty?: number; variant?: string | null }) {
+  const { t } = useT();
   const { c } = useTheme();
   const add = useAdd();
   const [done, setDone] = useState(false);
@@ -357,29 +362,30 @@ function AddBtn({ p, qty, variant }: { p: AiProduct; qty?: number; variant?: str
         add(p, qty, variant);
         setDone(true);
       }}
-      accessibilityLabel={blocked ? "Not available" : `Add ${p.title} to cart`}
+      accessibilityLabel={blocked ? t("rq.notAvail") : t("ai.addTitle", { title: p.title })}
       style={[styles.add, { backgroundColor: blocked ? c.surface2 : c.brand }]}
     >
       <Icon name={done ? "check" : "shopping-cart"} size={14} color={blocked ? c.ink3 : "#fff"} />
       <T v="small" tone={blocked ? "ink3" : "white"} style={{ fontWeight: "700" }}>
-        {blocked ? (p.inStock ? "Can't ship" : "Out of stock") : done ? "Added" : "Add to cart"}
+        {blocked ? (p.inStock ? t("m.cantShip") : t("stock.out")) : done ? t("buy.addedShort") : t("buy.addToCart")}
       </T>
     </Tap>
   );
 }
 
 function ProductTile({ p }: { p: AiProduct }) {
+  const { bdt } = useT();
   const { c } = useTheme();
   return (
     <View style={[styles.tile, { backgroundColor: c.surface }, shadow(c)]}>
-      <Tap onPress={() => router.push({ pathname: "/product/[id]", params: { id: p.id } })} accessibilityLabel={`${p.title}, ${formatBdt(p.priceBdt)}`} style={{ flex: 1 }}>
+      <Tap onPress={() => router.push({ pathname: "/product/[id]", params: { id: p.id } })} accessibilityLabel={`${p.title}, ${bdt(p.priceBdt)}`} style={{ flex: 1 }}>
         <ProductImage uri={p.image} placeholder={p.placeholder ?? undefined} style={{ height: 120, borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md }} />
         <View style={{ padding: 8, gap: 3, flex: 1 }}>
           <T v="tiny" numberOfLines={2} style={{ fontWeight: "600", color: c.ink }}>
             {p.title}
           </T>
           {p.rating > 0 && <Stars rating={p.rating} count={p.reviews} />}
-          <T v="h3">{formatBdt(p.priceBdt)}</T>
+          <T v="h3">{bdt(p.priceBdt)}</T>
         </View>
       </Tap>
       <View style={{ paddingHorizontal: 8, paddingBottom: 8 }}>
@@ -389,27 +395,32 @@ function ProductTile({ p }: { p: AiProduct }) {
   );
 }
 
+const ST = Object.fromEntries([...STAGES.map((s) => [s.status, 1]), ["cancelled", 1]]);
+
 function OrderRow({ o }: { o: AiOrder }) {
+  const tr = useT();
+  const { t, bdt } = tr;
   const { c } = useTheme();
   return (
-    <Tap onPress={() => router.push({ pathname: "/order/[id]", params: { id: o.id } })} style={[styles.card, { backgroundColor: c.surface }, shadow(c)]} accessibilityLabel={`Order ${o.id}, ${o.status}`}>
+    <Tap onPress={() => router.push({ pathname: "/order/[id]", params: { id: o.id } })} style={[styles.card, { backgroundColor: c.surface }, shadow(c)]} accessibilityLabel={t("m.orderA11yStatus", { id: o.id, status: o.status in ST ? statusText(o.status as OrderStatus, tr) : o.status.replace(/_/g, " ") })}>
       <T v="h3">
-        {o.id} · {o.status.replace(/_/g, " ")}
+        {o.id} · {o.status in ST ? statusText(o.status as OrderStatus, tr) : o.status.replace(/_/g, " ")}
       </T>
       <T v="small" tone="ink2">
-        {o.itemCount} items · {formatBdt(o.total)}
-        {o.expectedBy ? ` · expected by ${o.expectedBy}` : ""}
+        {t("ai.orderLine", { items: t("cart.items", { count: o.itemCount }), total: bdt(o.total) })}
+        {o.expectedBy ? t("ai.expectedBy", { date: o.expectedBy }) : ""}
       </T>
     </Tap>
   );
 }
 
 function Card({ card }: { card: AiCard }) {
+  const { t, bdt } = useT();
   const { c } = useTheme();
   switch (card.type) {
     case "products":
       return (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 14 }} accessibilityLabel={`${card.data.items.length} products`}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 14 }} accessibilityLabel={t("ai.products", { count: card.data.items.length })}>
           {card.data.items.map((p) => (
             <ProductTile key={p.id} p={p} />
           ))}
@@ -461,7 +472,7 @@ function Card({ card }: { card: AiCard }) {
               {card.data.product.title}
             </T>
             <T v="tiny" tone="ink2">
-              {formatBdt(card.data.product.priceBdt)}
+              {bdt(card.data.product.priceBdt)}
               {card.data.variant ? ` · ${card.data.variant}` : ""}
             </T>
           </View>
@@ -472,40 +483,38 @@ function Card({ card }: { card: AiCard }) {
       return (
         <View style={[styles.card, { backgroundColor: c.surface }, shadow(c)]}>
           <T v="h3">
-            {card.data.minDays}-{card.data.maxDays} days to your door
+            {t("ai.daysDoor", { min: card.data.minDays, max: card.data.maxDays })}
           </T>
           <T v="small" tone="ink2">
-            Order today: arrives {card.data.earliest} to {card.data.latest}
+            {t("ai.orderToday", { from: card.data.earliest, to: card.data.latest })}
           </T>
           {card.data.cutoffs.map((x) => (
             <T key={x.name} v="small" tone={x.status === "on_time" ? "good" : x.status === "maybe" ? "warn" : "bad"}>
-              {x.name}: {x.status === "on_time" ? `order by ${x.orderBy}` : x.status === "maybe" ? "may arrive late" : "too late"}
+              {x.name}: {x.status === "on_time" ? t("m.orderBy", { time: x.orderBy }) : x.status === "maybe" ? t("m.mayLate") : t("m.tooLate")}
             </T>
           ))}
         </View>
       );
     case "login":
       return (
-        <Tap onPress={() => router.push("/login")} style={[styles.card, { backgroundColor: c.surface }, shadow(c)]} accessibilityLabel="Sign in to see your orders">
-          <T v="h3">Sign in to see your orders</T>
-          <T v="small" tone="ink2">
-            Phone number and one-time code
-          </T>
+        <Tap onPress={() => router.push("/login")} style={[styles.card, { backgroundColor: c.surface }, shadow(c)]} accessibilityLabel={t("ai.signInOrders")}>
+          <T v="h3">{t("ai.signInOrders")}</T>
+          <T v="small" tone="ink2">{t("ai.otpLine")}</T>
         </Tap>
       );
     case "priceHistory":
       return (
         <View style={[styles.card, { backgroundColor: c.surface }, shadow(c)]}>
           <T v="small">
-            Now {formatBdt(card.data.currentBdt)} · low {formatBdt(Math.min(...card.data.points.map((p) => p.bdt)))} · high{" "}
-            {formatBdt(Math.max(...card.data.points.map((p) => p.bdt)))}
+            {t("ai.now", { amount: bdt(card.data.currentBdt) })} · {t("ai.low", { amount: bdt(Math.min(...card.data.points.map((p) => p.bdt))) })} ·{" "}
+            {t("ai.high", { amount: bdt(Math.max(...card.data.points.map((p) => p.bdt))) })}
           </T>
         </View>
       );
     case "request":
       return (
         <View style={[styles.card, { backgroundColor: c.surface }, shadow(c)]}>
-          <T v="small">Request sent: {card.data.title}</T>
+          <T v="small">{t("m.reqSentShort", { title: card.data.title })}</T>
         </View>
       );
   }

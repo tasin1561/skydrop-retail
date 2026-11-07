@@ -9,9 +9,11 @@ import { useAccent, useTheme } from "@/theme";
 import { IconButton, IconChip, Skeleton, T, Tap } from "@/components/ui";
 import { ProductGrid } from "@/components/ProductGrid";
 import { CategoryRows, openCategory, useCategoryTree } from "@/components/CategoryRows";
+import { useT } from "@/i18n";
 
 /** Category drill-down: breadcrumbs, child categories, then the products of the whole subtree (search ?category=). */
 export default function CategoryScreen() {
+  const { t, lang } = useT();
   const params = useLocalSearchParams<{ path: string | string[]; store?: string }>();
   const { mode } = useStore();
   const store = isStoreMode(params.store) ? params.store : mode;
@@ -23,19 +25,20 @@ export default function CategoryScreen() {
   const trail = useMemo(() => (tree ? findTrail(tree, path) : []), [tree, path]);
   const node = trail[trail.length - 1];
   const searchParams = useMemo(() => ({ store, category: path }), [store, path]);
+  const nm = (n: { name: string; nameBn?: string | null }) => (lang === "bn" && n.nameBn ? n.nameBn : n.name);
 
   const header = (
     <View style={{ gap: 12, paddingBottom: 12 }}>
       <View style={styles.crumbs}>
-        <Tap onPress={() => router.navigate("/categories")} accessibilityLabel="All categories" style={[styles.crumb, { backgroundColor: c.surface2 }]}>
+        <Tap onPress={() => router.navigate("/categories")} accessibilityLabel={t("cat.allCategories")} style={[styles.crumb, { backgroundColor: c.surface2 }]}>
           <T v="tiny" style={{ fontWeight: "700" }}>
-            {store === "all" ? "All" : STORES[store].name}
+            {store === "all" ? t("common.all") : STORES[store].name}
           </T>
         </Tap>
         {trail.slice(0, -1).map((n) => (
-          <Tap key={n.path} onPress={() => openCategory(n.path, store)} accessibilityLabel={n.name} style={[styles.crumb, { backgroundColor: c.surface2 }]}>
+          <Tap key={n.path} onPress={() => openCategory(n.path, store)} accessibilityLabel={nm(n)} style={[styles.crumb, { backgroundColor: c.surface2 }]}>
             <T v="tiny" style={{ fontWeight: "700" }} numberOfLines={1}>
-              {n.name}
+              {nm(n)}
             </T>
           </Tap>
         ))}
@@ -45,24 +48,24 @@ export default function CategoryScreen() {
           <IconChip icon={node.icon} mode={store} size={48} />
           <View style={{ flex: 1 }}>
             <T v="h1" accessibilityRole="header" numberOfLines={2}>
-              {node.name}
+              {nm(node)}
             </T>
             {!!node.nameBn && (
               <T v="small" tone="ink3">
-                {node.nameBn}
+                {lang === "bn" ? node.name : node.nameBn}
               </T>
             )}
           </View>
         </View>
       ) : tree ? (
-        <T v="h2">Category not found</T>
+        <T v="h2">{t("c.notFound")}</T>
       ) : (
         <Skeleton h={48} />
       )}
       {!!node?.children.length && <CategoryRows nodes={node.children} store={store} />}
       {node && (
         <T v="label" tone="ink3" style={{ marginTop: 4 }}>
-          {node.children.length ? `Everything in ${node.name}` : "Products"}
+          {node.children.length ? t("m.everythingIn", { name: nm(node) }) : t("m.productsH")}
         </T>
       )}
     </View>
@@ -71,11 +74,11 @@ export default function CategoryScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + 6 }}>
       <View style={styles.top}>
-        <IconButton icon="arrow-left" label="Back" onPress={() => router.back()} bg={c.surface2} />
+        <IconButton icon="arrow-left" label={t("common.back")} onPress={() => router.back()} bg={c.surface2} />
         <T v="h3" numberOfLines={1} style={{ flex: 1 }}>
-          {node?.name ?? "Categories"}
+          {node ? nm(node) : t("nav.categories")}
         </T>
-        <IconButton icon="search" label="Search" onPress={() => router.push({ pathname: "/search", params: { store, category: path, focus: "1" } })} bg={a.soft} tint={a.ink} />
+        <IconButton icon="search" label={t("search.submit")} onPress={() => router.push({ pathname: "/search", params: { store, category: path, focus: "1" } })} bg={a.soft} tint={a.ink} />
       </View>
       {node ? (
         <ProductGrid params={searchParams} header={header} />

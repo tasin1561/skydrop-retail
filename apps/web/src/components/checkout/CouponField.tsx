@@ -5,7 +5,8 @@ import { Icon } from "@/components/Icon";
 import { API_URL, apiEnabled } from "@/lib/apiClient";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { couponHint, findCoupon, useCoupon, type Coupon } from "./cart-math";
+import { couponHint, couponLabel, findCoupon, useCoupon, type Coupon } from "./cart-math";
+import { useT } from "@/i18n/client";
 
 type QuoteError = { message?: string; errors?: Record<string, string[]> };
 
@@ -42,6 +43,7 @@ function CouponFieldInner() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { cart, token } = useStore();
+  const { t } = useT();
   const id = useId();
   const rawHint = couponHint(value);
   // With the API any code may exist, so an unknown code is not "invalid" until the server says so.
@@ -56,14 +58,14 @@ function CouponFieldInner() {
           </svg>
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-extrabold tracking-wide">{coupon.code} applied</p>
-          <p className="text-xs text-ink-2">{coupon.label}</p>
+          <p className="text-sm font-extrabold tracking-wide">{t("coupon.applied", { code: coupon.code })}</p>
+          <p className="text-xs text-ink-2">{couponLabel(coupon, t)}</p>
         </div>
         <button
           type="button"
           onClick={() => setCoupon("")}
           className="grid h-11 w-11 place-items-center rounded-full text-ink-2 hover:bg-surface"
-          aria-label={`Remove coupon ${coupon.code}`}
+          aria-label={t("coupon.remove", { code: coupon.code })}
         >
           <Icon name="x" size={16} />
         </button>
@@ -78,7 +80,7 @@ function CouponFieldInner() {
 
   const apply = async () => {
     const code = value.trim().toUpperCase();
-    if (!code) return fail("Enter a coupon code");
+    if (!code) return fail(t("coupon.enter"));
     if (busy) return;
     if (apiEnabled && cart.length) {
       setBusy(true);
@@ -98,7 +100,7 @@ function CouponFieldInner() {
       setValue("");
       setError("");
     } else {
-      fail(`"${code}" isn't a valid code`);
+      fail(t("coupon.invalid", { code }));
     }
   };
 
@@ -106,12 +108,12 @@ function CouponFieldInner() {
   const msg =
     error ||
     (hint === "match"
-      ? `Code found: ${findCoupon(value)?.label}. Tap Apply.`
+      ? t("coupon.found", { label: couponLabel(findCoupon(value)!, t) })
       : hint === "unknown"
-        ? "No coupon matches this code"
+        ? t("coupon.noMatch")
         : apiEnabled && value
-          ? "Tap Apply to check this code"
-          : "Try SKYDROP10 or FREESHIP");
+          ? t("coupon.tapCheck")
+          : t("coupon.try"));
 
   return (
     <form
@@ -138,7 +140,7 @@ function CouponFieldInner() {
             aria-invalid={state === "invalid"}
             className="uppercase tracking-wider"
           />
-          <label htmlFor={id}>Coupon code</label>
+          <label htmlFor={id}>{t("coupon.label")}</label>
           <Icon name="tag" size={18} className="field-icon" />
           <span className="co-status">
             {state === "valid" && <Icon key="v" name="check" size={18} stroke={2.6} className="text-good" />}
@@ -146,7 +148,7 @@ function CouponFieldInner() {
           </span>
         </div>
         <button type="submit" disabled={busy} aria-busy={busy} className="btn btn-ghost h-[52px] shrink-0 rounded-2xl px-4">
-          {busy ? "Checking…" : "Apply"}
+          {busy ? t("coupon.checking") : t("coupon.apply")}
         </button>
       </div>
       <p

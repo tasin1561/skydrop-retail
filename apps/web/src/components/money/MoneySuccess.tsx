@@ -3,22 +3,25 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import "./money.css";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
 
 const COPY = {
   gift: {
-    ok: ["Gift card sent", "We've sent the code by SMS / email. You can see it any time under Gift cards."],
-    fail: ["Payment not completed", "Nothing was charged. You can try again with another method."],
-    back: { href: "/gift-cards", label: "Back to gift cards" },
+    ok: ["ms.giftOk", "ms.giftOkB"] as MsgKey[],
+    fail: ["ms.fail", "ms.giftFailB"] as MsgKey[],
+    back: { href: "/gift-cards", label: "ms.backGift" as MsgKey },
   },
   plus: {
-    ok: ["Welcome to Skydrop Plus", "Your benefits are active now. Free shipping and member prices apply at checkout."],
-    fail: ["Payment not completed", "Nothing was charged, and your plan has not changed."],
-    back: { href: "/plus", label: "Back to Plus" },
+    ok: ["ms.plusOk", "ms.plusOkB"] as MsgKey[],
+    fail: ["ms.fail", "ms.plusFailB"] as MsgKey[],
+    back: { href: "/plus", label: "ms.backPlus" as MsgKey },
   },
 } as const;
 
 export function MoneySuccess({ kind, status, orderId }: { kind: "gift" | "plus"; status?: string; orderId?: string }) {
   const ok = status === "paid";
+  const { t } = useT();
   const c = COPY[kind];
   const [title, body] = ok ? c.ok : c.fail;
   return (
@@ -29,15 +32,15 @@ export function MoneySuccess({ kind, status, orderId }: { kind: "gift" | "plus";
       >
         <Icon name={ok ? (kind === "plus" ? "star" : "check") : "info"} size={30} stroke={2.6} />
       </span>
-      <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{title}</h1>
-      <p className="mt-2 text-sm text-ink-2">{body}</p>
-      {orderId && <p className="mt-1 text-xs tabular-nums text-ink-3">Reference {orderId}</p>}
+      <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{t(title)}</h1>
+      <p className="mt-2 text-sm text-ink-2">{t(body)}</p>
+      {orderId && <p className="mt-1 text-xs tabular-nums text-ink-3">{t("ms.ref", { id: orderId })}</p>}
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
         <Link href={ok ? (kind === "plus" ? "/" : "/account/wallet") : c.back.href} className="btn btn-primary min-h-11">
-          {ok ? (kind === "plus" ? "Start shopping" : "Open my wallet") : "Try again"}
+          {ok ? (kind === "plus" ? t("hero.start") : t("ms.openWallet")) : t("common.tryAgain")}
         </Link>
         <Link href={c.back.href} className="btn btn-ghost min-h-11">
-          {c.back.label}
+          {t(c.back.label)}
         </Link>
       </div>
     </div>

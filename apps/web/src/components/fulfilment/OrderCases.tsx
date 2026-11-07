@@ -16,12 +16,14 @@ import {
 } from "@/lib/fulfilment";
 import type { OrderStatus } from "@/lib/types";
 import "./fulfilment.css";
+import { useT } from "@/i18n/client";
+import { hasKey, type MsgKey } from "@/i18n/core";
 
-const when = (d: string) => new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 /** Unboxing approval banner + returns entry point and case timeline on the order page. */
 export function OrderCases({ order, status }: { order: FulfilmentOrder; status: OrderStatus }) {
   const unboxingOn = useFeature("unboxing");
+  const { t, date } = useT();
   const returnsOn = useFeature("returns");
   const [cases, setCases] = useState<ReturnCase[]>([]);
   const [elig, setElig] = useState<Eligibility | null>(null);
@@ -52,8 +54,8 @@ export function OrderCases({ order, status }: { order: FulfilmentOrder; status: 
             <Icon name="package" size={18} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-bold">We opened your parcel in Kolkata. Please check the photos</span>
-            <span className="block text-xs text-ink-2">Approve to ship it, or tell us if something is wrong. It ships automatically after 48 hours.</span>
+            <span className="block font-bold">{t("oc.opened")}</span>
+            <span className="block text-xs text-ink-2">{t("oc.approve")}</span>
           </span>
           <Icon name="right" size={18} className="shrink-0 transition-transform group-hover:translate-x-0.5" />
         </Link>
@@ -63,12 +65,12 @@ export function OrderCases({ order, status }: { order: FulfilmentOrder; status: 
         <Link href={`/orders/${order.id}/unboxing`} className="card flex min-h-11 items-center gap-3 p-3 text-sm">
           <Icon name="verified" size={18} className="text-accent" />
           <span className="flex-1">
-            Unboxing check:{" "}
+            {t("oc.unboxing")}{" "}
             <strong>
               {order.unboxingStatus === "problem" ? "problem reported" : order.unboxingStatus === "auto_approved" ? "approved automatically" : "approved by you"}
             </strong>
           </span>
-          <span className="text-accent">See photos</span>
+          <span className="text-accent">{t("oc.seePhotos")}</span>
         </Link>
       )}
 
@@ -78,10 +80,10 @@ export function OrderCases({ order, status }: { order: FulfilmentOrder; status: 
             <Icon name="refresh" size={18} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-semibold">Return or replace an item</span>
+            <span className="block font-semibold">{t("oc.return")}</span>
             <span className="block text-xs text-ink-2">
-              Within {elig?.windowDays ?? RETURN_WINDOW_DAYS} days of delivery
-              {elig?.windowEndsAt ? `, until ${new Date(elig.windowEndsAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
+              {t("oc.within", { count: elig?.windowDays ?? RETURN_WINDOW_DAYS })}
+{elig?.windowEndsAt ? t("oc.until", { date: date(elig.windowEndsAt) }) : ""}
             </span>
           </span>
           <Icon name="right" size={18} className="ac-chev" />
@@ -96,27 +98,29 @@ export function OrderCases({ order, status }: { order: FulfilmentOrder; status: 
 }
 
 export function ReturnTimeline({ c }: { c: ReturnCase }) {
+  const { t, dateTime } = useT();
+  const when = (d: string) => dateTime(d);
   return (
-    <section className="card p-4" aria-label={`Return ${c.id}`}>
+    <section className="card p-4" aria-label={t("oc.returnAria", { id: c.id })}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h3 className="mr-auto text-sm font-bold">
-          {c.stage === "india" ? "Unboxing case" : "Return"} #{c.id} · {c.reasonLabel}
+          {c.stage === "india" ? t("oc.unboxCase") : t("oc.returnWord")} #{c.id} · {hasKey("rr." + c.reason) ? t(("rr." + c.reason) as MsgKey) : c.reasonLabel}
         </h3>
         <span className="ac-chip" data-tone={c.status === "rejected" ? "bad" : undefined}>
-          {RETURN_STATUS_LABELS[c.status]}
+          {RETURN_STATUS_LABELS[c.status] ? t(RETURN_STATUS_LABELS[c.status]) : c.statusLabel}
         </span>
       </div>
       <ol className="ff-tl text-sm">
         {c.timeline.map((e, i) => (
           <li key={i} data-tone={e.status === "rejected" ? "bad" : undefined} className="ff-fade" style={{ ["--d" as string]: `${i * 0.06}s` }}>
-            <p className="font-semibold">{RETURN_STATUS_LABELS[e.status] ?? e.status}</p>
+            <p className="font-semibold">{RETURN_STATUS_LABELS[e.status as keyof typeof RETURN_STATUS_LABELS] ? t(RETURN_STATUS_LABELS[e.status as keyof typeof RETURN_STATUS_LABELS]) : e.status}</p>
             {e.note && <p className="text-ink-2">{e.note}</p>}
             <p className="text-[11px] text-ink-3">{when(e.at)}</p>
           </li>
         ))}
       </ol>
       <p className="mt-3 text-xs text-ink-2">
-        You asked for: {RESOLUTION_LABELS[c.resolution].label}
+        {t("oc.askedFor", { what: t(RESOLUTION_LABELS[c.resolution].label) })}
         {c.replacementOrderId && (
           <>
             {" · "}

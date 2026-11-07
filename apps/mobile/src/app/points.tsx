@@ -8,12 +8,13 @@ import { api, isDemo } from "@/api/client";
 import type { PointsResponse } from "@/api/types";
 import { useStore } from "@/state/store";
 import { POINTS, pointsValueBdt } from "@/lib/points";
-import { formatBdt } from "@/lib/pricing";
 import { BRAND, useTheme } from "@/theme";
 import { Card, Divider, Empty, IconChip, Progress, Skeleton, T } from "@/components/ui";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n";
 
 export default function Points() {
+  const { t, bdt, num, digits, date: fmt } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useStore();
@@ -22,13 +23,23 @@ export default function Points() {
   const [refreshing, setRefreshing] = useState(false);
 
   const TONE: Record<string, { icon: string; color: string; label: string }> = {
-    earn: { icon: "plus", color: c.good, label: "Earned" },
-    bonus: { icon: "star", color: c.good, label: "Bonus" },
-    refund: { icon: "refresh-cw", color: c.good, label: "Returned" },
-    pending: { icon: "clock", color: c.warn, label: "Pending" },
-    redeem: { icon: "tag", color: c.brand, label: "Used" },
-    expire: { icon: "x", color: c.bad, label: "Expired" },
-    adjust: { icon: "settings", color: c.ink2, label: "Adjusted" },
+    earn: { icon: "plus", color: c.good, label: t("pv.earned") },
+    bonus: { icon: "star", color: c.good, label: t("pv.bonus") },
+    refund: { icon: "refresh-cw", color: c.good, label: t("pv.returned") },
+    pending: { icon: "clock", color: c.warn, label: t("pv.pending") },
+    redeem: { icon: "tag", color: c.brand, label: t("pv.used") },
+    expire: { icon: "x", color: c.bad, label: t("pv.expired") },
+    adjust: { icon: "settings", color: c.ink2, label: t("pv.adjusted") },
+  };
+  // Ledger notes arrive in English (API and demo ledger); the known patterns are shown in the shopper's language.
+  const noteText = (n: string) => {
+    let m: RegExpExecArray | null;
+    if (n === "Welcome bonus") return t("pt.welcome");
+    if ((m = /^Used on order (.+)$/.exec(n))) return t("pt.used", { id: m[1] });
+    if ((m = /^Returned from cancelled order (.+)$/.exec(n))) return t("pt.returned", { id: m[1] });
+    if ((m = /^Earned on order (.+)$/.exec(n))) return t("pt.earned", { id: m[1] });
+    if ((m = /^Pending until order (.+) is delivered$/.exec(n))) return t("pt.pending", { id: m[1] });
+    return n;
   };
 
   const load = useCallback(async () => {
@@ -46,8 +57,8 @@ export default function Points() {
   );
 
   if (!user)
-    return <Empty icon="star" title="Sign in to see your points" text="Earn Skydrop Points on every order and save at checkout." action="Sign in" onAction={() => router.push({ pathname: "/login", params: { next: "/points" } })} />;
-  if (error && !data) return <Empty icon="wifi-off" title="Couldn't load points" text={error} action="Try again" onAction={load} />;
+    return <Empty icon="star" title={t("pv.signIn")} text={t("pv.signInB")} action={t("nav.signIn")} onAction={() => router.push({ pathname: "/login", params: { next: "/points" } })} />;
+  if (error && !data) return <Empty icon="wifi-off" title={t("m.pointsLoadFail")} text={error} action={t("maint.retry")} onAction={load} />;
 
   const balance = data?.balance ?? 0;
   const toNext = POINTS.blockPoints - (balance % POINTS.blockPoints);
@@ -70,28 +81,26 @@ export default function Points() {
     >
       <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={styles.blob} />
-        <T v="small" style={{ color: "rgba(255,255,255,0.85)", fontWeight: "700" }}>
-          Skydrop Points
-        </T>
+        <T v="small" style={{ color: "rgba(255,255,255,0.85)", fontWeight: "700" }}>{t("acc.points")}</T>
         {data ? (
-          <T style={{ color: "#fff", fontSize: 46, lineHeight: 52, fontWeight: "900", fontVariant: ["tabular-nums"] }} accessibilityLabel={`${balance} points`}>
-            {balance.toLocaleString("en-IN")}
+          <T style={{ color: "#fff", fontSize: 46, lineHeight: 52, fontWeight: "900", fontVariant: ["tabular-nums"] }} accessibilityLabel={t("m.pointsN", { count: balance })}>
+            {num(balance)}
           </T>
         ) : (
           <Skeleton w={120} h={48} style={{ opacity: 0.4 }} />
         )}
         <T v="small" tone="white">
-          Worth {formatBdt(pointsValueBdt(balance))} off your next order
+          {t("pv.worth", { amount: bdt(pointsValueBdt(balance)) })}
         </T>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
           <View style={styles.tag}>
             <T v="tiny" tone="white" style={{ fontWeight: "700" }}>
-              {data?.pending ?? 0} pending
+              {t("m.pendingN", { count: data?.pending ?? 0 })}
             </T>
           </View>
           <View style={styles.tag}>
             <T v="tiny" tone="white" style={{ fontWeight: "700" }}>
-              {toNext} more to the next {formatBdt(POINTS.blockValueBdt)}
+              {t("pv.next", { count: toNext, amount: bdt(POINTS.blockValueBdt) })}
             </T>
           </View>
         </View>
@@ -101,9 +110,9 @@ export default function Points() {
       </LinearGradient>
 
       {[
-        ["file-text", "Earn", `1 point for every ${formatBdt(POINTS.earnPerBdt)} of items, added when your order is delivered.`],
-        ["tag", "Save", `${POINTS.blockPoints} points = ${formatBdt(POINTS.blockValueBdt)} off, up to ${POINTS.maxRedeemPct * 100}% of your items.`],
-        ["clock", "Keep", `Points last ${POINTS.expiryMonths} months. Cancelled orders return the points you used.`],
+        ["file-text", t("pv.earn"), t("pv.earnT", { amount: bdt(POINTS.earnPerBdt) })],
+        ["tag", t("pv.save"), t("pv.saveT", { count: POINTS.blockPoints, amount: bdt(POINTS.blockValueBdt), pct: POINTS.maxRedeemPct * 100 })],
+        ["clock", t("pv.keep"), t("pv.keepT", { count: POINTS.expiryMonths })],
       ].map(([icon, title, text], i) => (
         <Animated.View key={title} entering={FadeInDown.delay(i * 60).springify().damping(18)}>
           <Card style={{ flexDirection: "row", gap: 12 }}>
@@ -121,32 +130,28 @@ export default function Points() {
       ))}
 
       <Card pad={6}>
-        <T v="h2" accessibilityRole="header" style={{ padding: 10 }}>
-          History
-        </T>
+        <T v="h2" accessibilityRole="header" style={{ padding: 10 }}>{t("pv.history")}</T>
         {!data ? (
           <View style={{ padding: 10, gap: 10 }}>
             <Skeleton h={40} />
             <Skeleton h={40} />
           </View>
         ) : data.history.length === 0 ? (
-          <T v="small" tone="ink2" style={{ padding: 10 }}>
-            No points yet. Your first order earns points once it is delivered.
-          </T>
+          <T v="small" tone="ink2" style={{ padding: 10 }}>{t("pv.none")}</T>
         ) : (
           data.history.map((h, i) => {
             const tone = TONE[h.type] ?? TONE.adjust;
-            const date = h.at && !h.at.startsWith("1970") ? ` · ${new Date(h.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : "";
+            const date = h.at && !h.at.startsWith("1970") ? ` · ${fmt(h.at, { day: "numeric", month: "short" })}` : "";
             return (
               <View key={i}>
                 {i > 0 && <Divider style={{ marginLeft: 56 }} />}
-                <View style={styles.row} accessibilityLabel={`${h.note}, ${h.points > 0 ? "+" : ""}${h.points} points`}>
+                <View style={styles.row} accessibilityLabel={`${noteText(h.note)}, ${h.points > 0 ? "+" : ""}${t("m.pointsN", { count: h.points })}`}>
                   <View style={[styles.icon, { backgroundColor: tone.color }]}>
                     <Icon name={tone.icon} size={16} color="#fff" />
                   </View>
                   <View style={{ flex: 1 }}>
                     <T v="small" numberOfLines={1} style={{ fontWeight: "600" }}>
-                      {h.note}
+                      {noteText(h.note)}
                     </T>
                     <T v="tiny" tone="ink3">
                       {tone.label}
@@ -155,7 +160,7 @@ export default function Points() {
                   </View>
                   <T v="h3" style={{ color: tone.color, fontWeight: "800", fontVariant: ["tabular-nums"] }}>
                     {h.points > 0 ? "+" : ""}
-                    {h.points}
+                    {digits(h.points)}
                   </T>
                 </View>
               </View>

@@ -5,13 +5,14 @@ import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { ApiError, apiEnabled } from "@/lib/apiClient";
 import { formatGiftCode, money } from "@/lib/money";
-import { formatBdt } from "@/lib/pricing";
 import "./money.css";
+import { useT } from "@/i18n/client";
 
 /** Redeem a gift card code into the Skydrop Wallet (POST /gift-cards/redeem). */
 export function RedeemGiftCard({ onRedeemed, autoFocus }: { onRedeemed?: (balanceBdt: number) => void; autoFocus?: boolean }) {
   const id = useId();
   const toast = useToast();
+  const { t, bdt } = useT();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,18 +22,18 @@ export function RedeemGiftCard({ onRedeemed, autoFocus }: { onRedeemed?: (balanc
     e.preventDefault();
     if (!ready || busy) return;
     if (!apiEnabled) {
-      setError("Gift cards can be redeemed once the store is connected to its API.");
+      setError(t("rg.notConnected"));
       return;
     }
     setBusy(true);
     setError(null);
     try {
       const r = await money.redeemGiftCard(code);
-      toast({ kind: "success", title: `${formatBdt(r.amountBdt)} added to your wallet`, body: `New balance ${formatBdt(r.balanceBdt)}` });
+      toast({ kind: "success", title: t("rg.added", { amount: bdt(r.amountBdt) }), body: t("rg.newBalance", { amount: bdt(r.balanceBdt) }) });
       setCode("");
       onRedeemed?.(r.balanceBdt);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not redeem the card. Please try again.");
+      setError(err instanceof ApiError ? err.message : t("rg.failed"));
     } finally {
       setBusy(false);
     }
@@ -41,7 +42,7 @@ export function RedeemGiftCard({ onRedeemed, autoFocus }: { onRedeemed?: (balanc
   return (
     <form onSubmit={submit} className="space-y-2" noValidate>
       <label htmlFor={id} className="block text-sm font-bold">
-        Redeem a gift card
+        {t("rg.label")}
       </label>
       <div className="flex gap-2">
         <input
@@ -62,11 +63,11 @@ export function RedeemGiftCard({ onRedeemed, autoFocus }: { onRedeemed?: (balanc
           className="min-h-11 min-w-0 flex-1 rounded-2xl border border-line bg-surface px-3 font-mono text-[15px] tracking-wider outline-none focus:border-accent"
         />
         <button type="submit" disabled={!ready || busy} className="btn btn-primary min-h-11 shrink-0 px-4">
-          {busy ? <Icon name="refresh" size={16} className="animate-spin" /> : <Icon name="check" size={16} />} Redeem
+          {busy ? <Icon name="refresh" size={16} className="animate-spin" /> : <Icon name="check" size={16} />} {t("rg.redeem")}
         </button>
       </div>
       <p id={id + "-msg"} aria-live="polite" className={"min-h-4 text-xs " + (error ? "font-semibold text-bad" : "text-ink-3")}>
-        {error ?? "The full value moves into your Skydrop Wallet instantly."}
+        {error ?? t("rg.hint")}
       </p>
     </form>
   );

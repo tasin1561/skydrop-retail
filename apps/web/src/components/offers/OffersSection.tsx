@@ -9,7 +9,7 @@ import { useT } from "@/i18n/client";
 
 function OfferCard({ o, i }: { o: Offer; i: number }) {
   const meta = OFFER_META[o.type] ?? OFFER_META.other;
-  const { t, digits } = useT();
+  const { t } = useT();
   return (
     <li
       className="relative flex w-[240px] shrink-0 flex-col gap-2 rounded-2xl bg-surface p-3.5 shadow-[var(--shadow-1)] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[260px]"
@@ -49,9 +49,9 @@ function OfferCard({ o, i }: { o: Offer; i: number }) {
 /** Every offer shown on the Indian store, so shoppers never miss one. */
 export function OffersSection({ p }: { p: Product }) {
   const offers = [...(p.offers ?? [])].sort((a, b) => Number(b.appliesToOurPrice) - Number(a.appliesToOurPrice));
+  const { t, digits } = useT();
   if (!offers.length) return null;
   const applied = offers.filter((o) => o.appliesToOurPrice).length;
-  const { t, digits } = useT();
   return (
     <section aria-labelledby="offers-h" className="mt-5">
       <div className="mb-2 flex items-end justify-between gap-2">

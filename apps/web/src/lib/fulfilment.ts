@@ -2,6 +2,7 @@
 // With the API off (demo mode) the tracking route is computed locally from the order status.
 import { API_URL, apiEnabled, apiRequest, getApiToken, ApiError } from "./apiClient";
 import type { Order, OrderStatus } from "./types";
+import type { MsgKey } from "@/i18n/core";
 
 /* ---------------- types ---------------- */
 
@@ -115,28 +116,29 @@ export type FulfilmentOrder = Order & {
   deliveredAt?: string | null;
 };
 
-export const REASON_LABELS: Record<ReturnReason, string> = {
-  damaged: "Damaged",
-  wrong_item: "Wrong item",
-  not_as_described: "Not as described",
-  size_issue: "Size issue",
-  changed_mind: "Changed my mind",
+// Labels are dictionary keys (show them with t()).
+export const REASON_LABELS: Record<ReturnReason, MsgKey> = {
+  damaged: "rr.damaged",
+  wrong_item: "rr.wrong_item",
+  not_as_described: "rr.not_as_described",
+  size_issue: "rr.size_issue",
+  changed_mind: "rr.changed_mind",
 };
-export const RESOLUTION_LABELS: Record<Resolution, { label: string; detail: string }> = {
-  refund: { label: "Refund", detail: "Back to your bKash, Nagad or card" },
-  replacement: { label: "Replacement", detail: "We buy the same item again, free" },
-  store_credit: { label: "Store credit", detail: "Instant credit in your Skydrop wallet" },
+export const RESOLUTION_LABELS: Record<Resolution, { label: MsgKey; detail: MsgKey }> = {
+  refund: { label: "rs.refund", detail: "rs.refundD" },
+  replacement: { label: "rs.replacement", detail: "rs.replacementD" },
+  store_credit: { label: "rs.store_credit", detail: "rs.store_creditD" },
 };
 export const RETURN_STEPS: ReturnStatus[] = ["requested", "approved", "pickup_scheduled", "received"];
-export const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
-  requested: "Requested",
-  approved: "Approved",
-  rejected: "Rejected",
-  pickup_scheduled: "Pickup scheduled",
-  received: "Received back",
-  refunded: "Refunded",
-  replaced: "Replacement sent",
-  credited: "Store credit added",
+export const RETURN_STATUS_LABELS: Record<ReturnStatus, MsgKey> = {
+  requested: "rst.requested",
+  approved: "rst.approved",
+  rejected: "rst.rejected",
+  pickup_scheduled: "rst.pickup_scheduled",
+  received: "rst.received",
+  refunded: "rst.refunded",
+  replaced: "rst.replaced",
+  credited: "rst.credited",
 };
 
 /** Default paid-unboxing fee per store shipment (server setting; the quote from the API is authoritative). */

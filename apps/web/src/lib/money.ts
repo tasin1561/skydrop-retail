@@ -2,6 +2,8 @@
 // Every call needs NEXT_PUBLIC_API_URL; without it the pages show demo data so the storefront still works offline.
 import { apiEnabled, apiRequest } from "./apiClient";
 import type { CartItem } from "./types";
+import type { MsgKey } from "@/i18n/core";
+import { makeT, type Translator } from "@/i18n/core";
 
 const { call, post } = apiRequest;
 
@@ -118,10 +120,10 @@ export const DEMO_GIFT_CONFIG: GiftCardConfig = {
   maxBdt: 50000,
   expiryMonths: 12,
   designs: [
-    { key: "classic", label: "Skydrop classic" },
-    { key: "eid", label: "Eid Mubarak" },
-    { key: "birthday", label: "Happy birthday" },
-    { key: "thanks", label: "Thank you" },
+    { key: "classic", label: "gc.d.classic" },
+    { key: "eid", label: "gc.d.eid" },
+    { key: "birthday", label: "gc.d.birthday" },
+    { key: "thanks", label: "gc.d.thanks" },
     { key: "wedding", label: "Wedding" },
   ],
 };
@@ -173,15 +175,16 @@ export const DEMO_EMI: EmiConfig = {
 
 /* ---------------- EMI maths (same as App\Services\Money\EmiService) ---------------- */
 
-export function emiPlan(cfg: EmiConfig, amount: number, tenure: number, bank?: string | null): EmiPlan {
+export function emiPlan(cfg: EmiConfig, amount: number, tenure: number, bank?: string | null, tr: Translator = makeT("en")): EmiPlan {
+  const t = tr.t;
   const base: EmiPlan = { eligible: false, reason: null, tenure, bank: bank ?? null, bankName: null, ratePct: 0, chargeBdt: 0, totalBdt: Math.round(amount), monthlyBdt: 0 };
-  if (!cfg.enabled) return { ...base, reason: "EMI is not available right now." };
-  if (amount < cfg.minOrderBdt) return { ...base, reason: `EMI is available on orders of ৳${cfg.minOrderBdt.toLocaleString("en-IN")} or more.` };
-  if (!cfg.tenures.includes(tenure)) return { ...base, reason: "Choose one of the available EMI tenures." };
+  if (!cfg.enabled) return { ...base, reason: t("emi.off") };
+  if (amount < cfg.minOrderBdt) return { ...base, reason: t("emi.min", { amount: tr.bdt(cfg.minOrderBdt) }) };
+  if (!cfg.tenures.includes(tenure)) return { ...base, reason: t("emi.chooseTenure") };
   const offering = cfg.banks.filter((b) => b.rates[String(tenure)] !== undefined);
   const b = bank ? cfg.banks.find((x) => x.code === bank) : [...offering].sort((x, y) => x.rates[String(tenure)] - y.rates[String(tenure)])[0];
   const rate = b ? b.rates[String(tenure)] : 0;
-  if (b && rate === undefined) return { ...base, reason: `${b.name} does not offer a ${tenure}-month EMI.` };
+  if (b && rate === undefined) return { ...base, reason: t("emi.noTenure", { bank: b.name, count: tenure }) };
   const charge = Math.ceil((amount * rate) / 100);
   const total = Math.round(amount) + charge;
   return { eligible: true, reason: null, tenure, bank: b?.code ?? null, bankName: b?.name ?? null, ratePct: rate, chargeBdt: charge, totalBdt: total, monthlyBdt: Math.ceil(total / tenure) };
@@ -209,7 +212,7 @@ export function formatGiftCode(raw: string) {
     .replace(/(.{4})(?=.)/g, "$1-");
 }
 
-export const PERIOD_LABEL: Record<PlusPeriod, string> = { monthly: "month", quarterly: "3 months", yearly: "year" };
+export const PERIOD_LABEL: Record<PlusPeriod, MsgKey> = { monthly: "period.monthly", quarterly: "period.quarterly", yearly: "period.yearly" };
 
 const items = (cart: CartItem[]) => cart.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt }));
 

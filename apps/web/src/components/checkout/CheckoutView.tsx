@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import type { CartItem, Order } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { api, apiEnabled, ApiError, type PriceChange } from "@/lib/apiClient";
@@ -28,6 +27,8 @@ import { useFeature } from "@/components/features/FeaturesProvider";
 import { useBundleTotals } from "@/components/shopping/useBundleTotals";
 import { CheckoutMoney, EmiOption, type EmiChoice } from "@/components/money/CheckoutMoney";
 import type { MoneyQuote } from "@/lib/money";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
 
 const ALNUM = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function rand(n: number, chars: string) {
@@ -46,6 +47,8 @@ type Phase = "idle" | "verifying" | "confirm" | "blocked" | "error" | "placing" 
 
 export function CheckoutView() {
   const store = useStore();
+  const tx = useT();
+  const { t: tr, bdt, lang } = tx;
   const { ready, user, addresses, cart, placeOrder } = store;
   const router = useRouter();
   const [coupon, setCoupon] = useCoupon();
@@ -119,13 +122,13 @@ export function CheckoutView() {
   };
 
   const blockedReason = !user
-    ? "Sign in above to continue"
+    ? tr("co.blockSignIn")
     : step === 0 && !address
-      ? "Add a delivery address to continue"
+      ? tr("co.blockAddress")
       : step === 2 && !payment
-        ? "Choose a payment method"
+        ? tr("co.blockPayment")
         : step === 3 && !terms
-          ? "Please accept the terms to place your order"
+          ? tr("co.blockTerms")
           : null;
 
   const next = () => {
@@ -177,21 +180,19 @@ export function CheckoutView() {
           store.repriceCart(body.prices);
           const up = body.prices.filter((x) => x.freshBdt > x.oldBdt).length;
           setError(
-            `${body.prices.length} ${body.prices.length === 1 ? "price" : "prices"} changed at the source store` +
-              (up ? " (some went up)" : "") +
-              ". Your cart has been updated. Please review the new total and place the order again.",
+            tr("co.pricesChanged", { count: body.prices.length }) + (up ? tr("co.someUp") : "") + tr("co.cartUpdated"),
           );
           setPhase("error");
           return;
         }
         setError(
           err instanceof ApiError && err.status === 409
-            ? "Some prices changed while you were checking out. Please review and try again."
+            ? tr("co.pricesMoved")
             : err instanceof ApiError && err.status === 422 && body?.items?.length
-              ? `${body.items.length} ${body.items.length === 1 ? "item is" : "items are"} no longer available. Remove ${body.items.length === 1 ? "it" : "them"} from your cart and try again.`
+              ? tr("co.unavailable", { count: body.items.length })
               : err instanceof ApiError
               ? err.message
-              : "We couldn't place your order. Nothing was charged. Please try again.",
+              : tr("co.failed"),
         );
         setPhase("error");
       }
@@ -202,7 +203,7 @@ export function CheckoutView() {
       createdAt: new Date().toISOString(),
       items: orderItems,
       address,
-      payment: paymentLabel(payment, tt.total),
+      payment: paymentLabel(payment, tt.total, tx),
       subtotal: tt.subtotal,
       shipping: tt.shipping,
       discount: tt.discount,
@@ -258,7 +259,7 @@ export function CheckoutView() {
       clearTimeout(t2);
       if (!alive.current) return;
       setChecks((c) => c.map((s) => (s === "ok" ? s : "fail")) as CheckState[]);
-      setError("We couldn't reach the Indian stores to verify your items. Nothing was charged. Please try again.");
+      setError(tr("co.unreachable"));
       setPhase("error");
       return;
     }
@@ -308,17 +309,17 @@ export function CheckoutView() {
   const actionLabel =
     step < 3 ? (
       <>
-        Continue to {STEPS[step + 1].label.toLowerCase()} <Icon name="arrow" size={18} className="arrow" />
+        {tr("co.continueTo", { step: tr(STEPS[step + 1].label).toLowerCase() })} <Icon name="arrow" size={18} className="arrow" />
       </>
     ) : phase === "confirm" ? (
-      <>Confirm new prices · {formatBdt(t.total)}</>
+      <>{tr("co.confirmPrices", { amount: bdt(t.total) })}</>
     ) : phase === "error" ? (
       <>
-        <Icon name="refresh" size={17} /> Try again
+        <Icon name="refresh" size={17} /> {tr("common.tryAgain")}
       </>
     ) : (
       <>
-        <Icon name="shield" size={17} /> Place order · {formatBdt(step === 3 && moneyQ ? moneyQ.payNow : t.total)}
+        <Icon name="shield" size={17} /> {tr("co.placeOrder", { amount: bdt(step === 3 && moneyQ ? moneyQ.payNow : t.total) })}
       </>
     );
 
@@ -333,7 +334,7 @@ export function CheckoutView() {
         onClick={next}
         disabled={!!blockedReason || phase === "blocked"}
         idleLabel={actionLabel}
-        busyText={phase === "verifying" ? "Verifying price, stock and delivery" : "Placing your order"}
+        busyText={phase === "verifying" ? tr("co.verifying") : tr("van.placing")}
         error={phase === "error"}
         className={cls}
       />
@@ -342,9 +343,9 @@ export function CheckoutView() {
   return (
     <div className="co-bottom-pad mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-8">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Checkout</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tr("checkout.meta")}</h1>
         <Link href="/cart" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent">
-          <Icon name="left" size={16} /> Cart
+          <Icon name="left" size={16} /> {tr("nav.cart")}
         </Link>
       </div>
 
@@ -361,7 +362,7 @@ export function CheckoutView() {
               <span className="chip-icon is-active">
                 <Icon name={["pin", "truck", "wallet", "receipt"][step]} size={18} />
               </span>
-              {["Delivery address", "Delivery", "Payment method", "Review your order"][step]}
+              {tr((["co.h.address", "co.h.delivery", "co.h.payment", "co.h.review"] as const)[step])}
             </h2>
 
             {step === 0 && <AddressStep key={user?.phone ?? "guest"} selected={address?.id ?? null} onSelect={setAddrPick} />}
@@ -408,20 +409,20 @@ export function CheckoutView() {
                     <Icon name="spark" size={18} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-bold">Use {redeemable.points} Skydrop Points</span>
+                    <span className="block text-sm font-bold">{tr("co.usePoints", { count: redeemable.points })}</span>
                     <span className="block text-xs text-ink-2">
-                      Save {formatBdt(redeemable.valueBdt)} · you have {pointsBalance} points
+                      {tr("co.pointsSave", { amount: bdt(redeemable.valueBdt), count: pointsBalance })}
                     </span>
                   </span>
                   <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (usePoints ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
-                    {usePoints ? "ON" : "OFF"}
+                    {usePoints ? tr("f.on") : tr("f.off")}
                   </span>
                 </label>
               )}
               <Review
                 t={t}
-                addressLine={address ? `${address.name}, ${address.phone} · ${addressText(address)}` : "No address"}
-                paymentText={emi ? `Card EMI · ${emi.tenure} months` : payment ? paymentLabel(payment, t.total) : "Not chosen"}
+                addressLine={address ? `${address.name}, ${address.phone} · ${addressText(address, lang)}` : tr("co.noAddress")}
+                paymentText={emi ? tr("co.cardEmi", { count: emi.tenure }) : payment ? paymentLabel(payment, t.total, tx) : tr("co.notChosen")}
                 paymentIcon={PAYMENTS.find((p) => p.id === payment)?.icon ?? "wallet"}
                 onEdit={go}
                 terms={terms}
@@ -463,16 +464,16 @@ export function CheckoutView() {
           <div className="sticky top-24 space-y-4">
             <section className="co-card space-y-4 p-5" aria-labelledby="co-sum-h">
               <h2 id="co-sum-h" className="text-base font-extrabold">
-                Order summary
-              </h2>
+{tr("cart.summary")}
+</h2>
               <ul className="space-y-2 text-xs text-ink-2">
                 {t.groups.map((g) => (
                   <li key={g.market} data-store={g.market} className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-accent" />
                     <span className="flex-1">
-                      From {STORES[g.market].source}, India · {g.count} item{g.count === 1 ? "" : "s"}
+                      {tr("del.fromLine", { source: STORES[g.market].source, items: tr("cart.items", { count: g.count }) })}
                     </span>
-                    <span className="font-semibold tabular-nums text-ink">{formatBdt(g.sub)}</span>
+                    <span className="font-semibold tabular-nums text-ink">{bdt(g.sub)}</span>
                   </li>
                 ))}
               </ul>
@@ -480,7 +481,7 @@ export function CheckoutView() {
               {action("w-full")}
               {step > 0 && phase === "idle" && (
                 <button type="button" onClick={() => go(step - 1)} className="btn btn-ghost w-full">
-                  <Icon name="left" size={16} /> Back to {STEPS[step - 1].label.toLowerCase()}
+                  <Icon name="left" size={16} /> {tr("co.backTo", { step: tr(STEPS[step - 1].label).toLowerCase() })}
                 </button>
               )}
               <TrustRow />
@@ -494,15 +495,15 @@ export function CheckoutView() {
       <div className="co-bottom-bar fixed inset-x-0 bottom-16 z-40 mb-[env(safe-area-inset-bottom)] px-4 pt-3 md:hidden">
         <div className="mx-auto flex max-w-md items-center gap-2">
           {step > 0 && phase === "idle" ? (
-            <button type="button" onClick={() => go(step - 1)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-2" aria-label={`Back to ${STEPS[step - 1].label}`}>
+            <button type="button" onClick={() => go(step - 1)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-2" aria-label={tr("co.backTo", { step: tr(STEPS[step - 1].label) })}>
               <Icon name="left" size={18} />
             </button>
           ) : null}
           <div className="min-w-0 shrink-0 pr-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Total</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">{tr("sum.total")}</p>
             <p key={t.total} className="co-bump text-base font-extrabold leading-tight tabular-nums">
-              {formatBdt(step === 3 && moneyQ ? moneyQ.payNow : t.total)}
-            </p>
+              {bdt(step === 3 && moneyQ ? moneyQ.payNow : t.total)}
+</p>
           </div>
           {action("min-w-0 flex-1 px-3 text-sm")}
         </div>
@@ -532,6 +533,7 @@ function Review({
   setTerms: (v: boolean) => void;
   lock: boolean;
 }) {
+  const { t: tr, bdt } = useT();
   return (
     <div className="space-y-3">
       {t.groups.map((g) => (
@@ -540,9 +542,9 @@ function Review({
             <span className="chip-icon is-active shrink-0">
               <Icon name={STORES[g.market].icon} size={16} />
             </span>
-            <h3 className="flex-1 text-sm font-extrabold">From {STORES[g.market].source}, India</h3>
+            <h3 className="flex-1 text-sm font-extrabold">{tr("cart.fromSource", { source: STORES[g.market].source })}</h3>
             <span className={"text-xs font-bold " + (g.shipping === 0 ? "text-good" : "text-ink-2")}>
-              Shipping {g.shipping === 0 ? "free" : formatBdt(g.shipping)}
+              {g.shipping === 0 ? tr("co.shippingFree") : tr("co.shippingAmt", { amount: bdt(g.shipping) })}
             </span>
           </header>
           <ul className="divide-y divide-line/60">
@@ -554,10 +556,10 @@ function Review({
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-1 text-sm font-medium">{i.title}</span>
                   <span className="text-xs text-ink-2">
-                    {i.variant ? i.variant + " · " : ""}Qty {i.qty}
+                    {i.variant ? i.variant + " · " : ""}{tr("co.qty", { qty: i.qty })}
                   </span>
                 </span>
-                <span className="text-sm font-bold tabular-nums">{formatBdt(i.unitBdt * i.qty)}</span>
+                <span className="text-sm font-bold tabular-nums">{bdt(i.unitBdt * i.qty)}</span>
               </li>
             ))}
           </ul>
@@ -565,8 +567,8 @@ function Review({
       ))}
 
       {[
-        { icon: "pin", title: "Deliver to", text: addressLine, step: 0 },
-        { icon: paymentIcon, title: "Payment", text: paymentText, step: 2 },
+        { icon: "pin", title: tr("co.deliverTo"), text: addressLine, step: 0 },
+        { icon: paymentIcon, title: tr("co.payment"), text: paymentText, step: 2 },
       ].map((r) => (
         <div key={r.title} className="co-option cursor-default items-center">
           <span className="chip-icon shrink-0">
@@ -578,7 +580,7 @@ function Review({
           </span>
           {!lock && (
             <button type="button" onClick={() => onEdit(r.step)} className="h-11 shrink-0 rounded-full px-3 text-sm font-bold text-accent hover:bg-accent/10">
-              Change<span className="sr-only"> {r.title.toLowerCase()}</span>
+              {tr("co.change")}<span className="sr-only"> {r.title.toLowerCase()}</span>
             </button>
           )}
         </div>
@@ -600,20 +602,23 @@ function Review({
           )}
         </span>
         <span className="text-xs leading-relaxed text-ink-2">
-          I agree that Skydrop Retail buys these items for me from the Indian stores named above and Skydrop delivers them to my address. Prices are
-          re-checked live before the order is placed. I have read the{" "}
-          <Link href="/legal/terms" target="_blank" className="font-semibold text-accent underline underline-offset-2">
-            terms
-          </Link>
-          ,{" "}
-          <Link href="/legal/refunds" target="_blank" className="font-semibold text-accent underline underline-offset-2">
-            refund policy
-          </Link>{" "}
-          and{" "}
-          <Link href="/legal/shipping" target="_blank" className="font-semibold text-accent underline underline-offset-2">
-            shipping policy
-          </Link>
-          .
+          {rich(tr("co.agree"), {
+  terms: (
+    <Link href="/legal/terms" target="_blank" className="font-semibold text-accent underline underline-offset-2">
+      {tr("co.terms")}
+    </Link>
+  ),
+  refund: (
+    <Link href="/legal/refunds" target="_blank" className="font-semibold text-accent underline underline-offset-2">
+      {tr("co.refundPolicy")}
+    </Link>
+  ),
+  shipping: (
+    <Link href="/legal/shipping" target="_blank" className="font-semibold text-accent underline underline-offset-2">
+      {tr("co.shippingPolicy")}
+    </Link>
+  ),
+})}
         </span>
       </label>
     </div>
@@ -621,8 +626,9 @@ function Review({
 }
 
 function CheckoutSkeleton() {
+  const { t: tr } = useT();
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6" aria-busy="true" aria-label="Loading checkout">
+    <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6" aria-busy="true" aria-label={tr("co.loading")}>
       <div className="skeleton mb-6 h-8 w-40 rounded-xl" />
       <div className="skeleton mb-8 h-12 rounded-full" />
       <div className="grid gap-6 md:grid-cols-[1fr_340px]">

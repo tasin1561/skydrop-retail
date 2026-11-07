@@ -5,22 +5,24 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { api, apiEnabled } from "@/lib/apiClient";
 import { POINTS, demoLedger, pointsValueBdt, type PointsEntry } from "@/lib/points";
-import { formatBdt } from "@/lib/pricing";
 import { useStore } from "@/state/store";
 import { SignedOut } from "./SignedOut";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
 
-const TONE: Record<string, { icon: string; color: string; label: string }> = {
-  earn: { icon: "plus", color: "var(--good)", label: "Earned" },
-  bonus: { icon: "spark", color: "var(--good)", label: "Bonus" },
-  refund: { icon: "refresh", color: "var(--good)", label: "Returned" },
-  pending: { icon: "clock", color: "var(--warn)", label: "Pending" },
-  redeem: { icon: "tag", color: "var(--accent)", label: "Used" },
-  expire: { icon: "x", color: "var(--bad)", label: "Expired" },
-  adjust: { icon: "settings", color: "var(--ink-2)", label: "Adjusted" },
+const TONE: Record<string, { icon: string; color: string; label: MsgKey }> = {
+  earn: { icon: "plus", color: "var(--good)", label: "pv.earned" },
+  bonus: { icon: "spark", color: "var(--good)", label: "pv.bonus" },
+  refund: { icon: "refresh", color: "var(--good)", label: "pv.returned" },
+  pending: { icon: "clock", color: "var(--warn)", label: "pv.pending" },
+  redeem: { icon: "tag", color: "var(--accent)", label: "pv.used" },
+  expire: { icon: "x", color: "var(--bad)", label: "pv.expired" },
+  adjust: { icon: "settings", color: "var(--ink-2)", label: "pv.adjusted" },
 };
 
 export function PointsView() {
   const { user, orders, ready } = useStore();
+  const { t, bdt, num, date, digits } = useT();
   const [remote, setRemote] = useState<{ balance: number; pending: number; history: PointsEntry[] } | null>(null);
 
   useEffect(() => {
@@ -34,11 +36,11 @@ export function PointsView() {
   if (ready && !user)
     return (
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-10 md:pb-12">
-        <SignedOut next="/account/points" title="Sign in to see your points" body="Earn Skydrop Points on every order and save at checkout." />
+        <SignedOut next="/account/points" title={t("pv.signIn")} body={t("pv.signInB")} />
       </div>
     );
 
-  const data = remote ?? demoLedger(orders, "1970-01-01T00:00:00.000Z");
+  const data = remote ?? demoLedger(orders, "1970-01-01T00:00:00.000Z", t);
   const nextBlock = POINTS.blockPoints - (data.balance % POINTS.blockPoints);
 
   return (
@@ -52,12 +54,12 @@ export function PointsView() {
         style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
       >
         <span aria-hidden className="float absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/15" />
-        <p className="text-sm font-semibold text-white/85">Skydrop Points</p>
-        <p className="mt-1 text-5xl font-black tracking-tight tabular-nums">{data.balance.toLocaleString("en-IN")}</p>
-        <p className="mt-1 text-sm text-white/90">Worth {formatBdt(pointsValueBdt(data.balance))} off your next order</p>
+        <p className="text-sm font-semibold text-white/85">{t("acc.points")}</p>
+        <p className="mt-1 text-5xl font-black tracking-tight tabular-nums">{num(data.balance)}</p>
+        <p className="mt-1 text-sm text-white/90">{t("pv.worth", { amount: bdt(pointsValueBdt(data.balance)) })}</p>
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
           <span className="rounded-full bg-white/20 px-3 py-1">{data.pending} pending</span>
-          <span className="rounded-full bg-white/20 px-3 py-1">{nextBlock} more to the next {formatBdt(POINTS.blockValueBdt)}</span>
+          <span className="rounded-full bg-white/20 px-3 py-1">{t("pv.next", { count: nextBlock, amount: bdt(POINTS.blockValueBdt) })}</span>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25" aria-hidden>
           <div
@@ -69,9 +71,9 @@ export function PointsView() {
 
       <section className="mt-4 grid gap-3 sm:grid-cols-3">
         {[
-          ["receipt", "Earn", `1 point for every ${formatBdt(POINTS.earnPerBdt)} of items, added when your order is delivered.`],
-          ["tag", "Save", `${POINTS.blockPoints} points = ${formatBdt(POINTS.blockValueBdt)} off, up to ${POINTS.maxRedeemPct * 100}% of your items.`],
-          ["clock", "Keep", `Points last ${POINTS.expiryMonths} months. Cancelled orders return the points you used.`],
+          ["receipt", t("pv.earn"), t("pv.earnT", { amount: bdt(POINTS.earnPerBdt) })],
+          ["tag", t("pv.save"), t("pv.saveT", { count: POINTS.blockPoints, amount: bdt(POINTS.blockValueBdt), pct: POINTS.maxRedeemPct * 100 })],
+          ["clock", t("pv.keep"), t("pv.keepT", { count: POINTS.expiryMonths })],
         ].map(([icon, title, text], i) => (
           <div key={title} className="card rise flex gap-3 p-4" style={{ ["--i" as string]: i }}>
             <span className="chip-icon shrink-0">
@@ -86,9 +88,9 @@ export function PointsView() {
       </section>
 
       <section className="card mt-4 p-2">
-        <h2 className="px-3 pb-1 pt-3 text-base font-extrabold">History</h2>
+        <h2 className="px-3 pb-1 pt-3 text-base font-extrabold">{t("pv.history")}</h2>
         {data.history.length === 0 ? (
-          <p className="px-3 pb-4 text-sm text-ink-2">No points yet. Your first order earns points once it is delivered.</p>
+          <p className="px-3 pb-4 text-sm text-ink-2">{t("pv.none")}</p>
         ) : (
           <ul className="divide-y divide-line/60">
             {data.history.map((h, i) => {
@@ -101,13 +103,13 @@ export function PointsView() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{h.note}</p>
                     <p className="text-xs text-ink-3">
-                      {tone.label}
-                      {h.at && !h.at.startsWith("1970") ? ` · ${new Date(h.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
+                      {t(tone.label)}
+                      {h.at && !h.at.startsWith("1970") ? ` · ${date(h.at)}` : ""}
                     </p>
                   </div>
                   <span className="font-extrabold tabular-nums" style={{ color: tone.color }}>
                     {h.points > 0 ? "+" : ""}
-                    {h.points}
+                    {digits(h.points)}
                   </span>
                 </li>
               );

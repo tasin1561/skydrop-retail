@@ -4,7 +4,7 @@ import Animated, { FadeOut, LinearTransition } from "react-native-reanimated";
 import { router } from "expo-router";
 import { useStore } from "@/state/store";
 import { STORES } from "@/lib/markets";
-import { PRICING, formatBdt } from "@/lib/pricing";
+import { PRICING } from "@/lib/pricing";
 import { cartKey } from "@/lib/cart";
 import { sized } from "@/lib/variants";
 import { radius, useAccent, useTheme } from "@/theme";
@@ -14,8 +14,10 @@ import { QtyStepper } from "@/components/QtyStepper";
 import { CouponField, SummaryLines } from "@/components/CartBits";
 import { Icon } from "@/components/Icon";
 import type { Group } from "@/lib/cart";
+import { useT } from "@/i18n";
 
 export default function Cart() {
+  const { t, bdt } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { totals, cart } = useStore();
@@ -23,7 +25,7 @@ export default function Cart() {
   if (!cart.length)
     return (
       <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + 40 }}>
-        <Empty icon="shopping-cart" title="Your cart is empty" text="Find something from India's biggest stores. We'll bring it to your door." action="Start shopping" onAction={() => router.navigate("/")} />
+        <Empty icon="shopping-cart" title={t("m.cartEmpty")} text={t("m.cartEmptyText")} action={t("hero.start")} onAction={() => router.navigate("/")} />
       </View>
     );
 
@@ -31,11 +33,9 @@ export default function Cart() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: 120, gap: 14 }}>
         <View>
-          <T v="h1" accessibilityRole="header">
-            Cart
-          </T>
+          <T v="h1" accessibilityRole="header">{t("nav.cart")}</T>
           <T v="small" tone="ink2">
-            {totals.count} {totals.count === 1 ? "item" : "items"} from {totals.groups.length} {totals.groups.length === 1 ? "store" : "stores"}. Each store ships as one Skydrop parcel.
+            {t("m.cartLine", { items: t("cart.items", { count: totals.count }), stores: t("cart.stores", { count: totals.groups.length }) })}
           </T>
         </View>
         {totals.groups.map((g) => (
@@ -48,13 +48,11 @@ export default function Cart() {
       </ScrollView>
       <View style={[styles.bar, { backgroundColor: c.surface, borderTopColor: c.line }]}>
         <View style={{ flex: 1 }}>
-          <T v="tiny" tone="ink3">
-            Total
-          </T>
-          <T v="h2">{formatBdt(totals.total)}</T>
+          <T v="tiny" tone="ink3">{t("sum.total")}</T>
+          <T v="h2">{bdt(totals.total)}</T>
         </View>
         <Button
-          label="Checkout"
+          label={t("cart.checkout")}
           icon="arrow-right"
           onPress={() => {
             haptic.medium();
@@ -68,6 +66,7 @@ export default function Cart() {
 }
 
 function StoreGroup({ g }: { g: Group }) {
+  const { t, bdt } = useT();
   const { c } = useTheme();
   const a = useAccent(g.market);
   const { setQty, removeItem } = useStore();
@@ -81,11 +80,11 @@ function StoreGroup({ g }: { g: Group }) {
           <View style={{ flex: 1 }}>
             <T v="h3">{s.name}</T>
             <T v="tiny" tone="ink2">
-              Bought from {s.source} · ships with Skydrop
+              {t("m.groupMeta", { source: s.source })}
             </T>
           </View>
           <T v="small" style={{ fontWeight: "800" }}>
-            {formatBdt(g.sub)}
+            {bdt(g.sub)}
           </T>
         </View>
 
@@ -93,7 +92,7 @@ function StoreGroup({ g }: { g: Group }) {
           const key = cartKey(i);
           return (
             <Animated.View key={key} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(20)} style={styles.item}>
-              <Tap onPress={() => router.push(`/product/${i.productId}`)} accessibilityLabel={`Open ${i.title}`}>
+              <Tap onPress={() => router.push(`/product/${i.productId}`)} accessibilityLabel={t("m.openItem", { title: i.title })}>
                 <ProductImage uri={sized(i.image, "SL200")} placeholder={i.placeholder} size={72} style={{ borderRadius: 14 }} />
               </Tap>
               <View style={{ flex: 1, gap: 4 }}>
@@ -108,13 +107,13 @@ function StoreGroup({ g }: { g: Group }) {
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
                   <QtyStepper small value={i.qty} onChange={(n) => setQty(key, n)} />
                   <T v="h3" style={{ fontWeight: "800" }}>
-                    {formatBdt(i.unitBdt * i.qty)}
+                    {bdt(i.unitBdt * i.qty)}
                   </T>
                 </View>
               </View>
               <IconButton
                 icon="trash-2"
-                label={`Remove ${i.title}`}
+                label={t("cart.removeItem", { title: i.title })}
                 size={36}
                 bg="transparent"
                 tint={c.ink3}
@@ -131,10 +130,10 @@ function StoreGroup({ g }: { g: Group }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Icon name="truck" size={16} color={a.ink} />
             <T v="small" style={{ flex: 1, fontWeight: "700", color: a.ink }}>
-              {free ? "Free Skydrop shipping unlocked" : `Add ${formatBdt(g.toFree)} for free shipping`}
+              {free ? t("m.freeShipUnlocked") : t("m.addForFree", { amount: bdt(g.toFree) })}
             </T>
             <T v="small" style={{ fontWeight: "800" }}>
-              {g.shipping ? formatBdt(g.shipping) : "Free"}
+              {g.shipping ? bdt(g.shipping) : t("common.free")}
             </T>
           </View>
           <Progress value={g.sub / PRICING.shipping.freeAboveBdt} color={a.accent} track={c.surface} />

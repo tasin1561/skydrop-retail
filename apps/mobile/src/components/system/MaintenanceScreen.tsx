@@ -4,12 +4,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, IconChip, T } from "@/components/ui";
 import { reloadFeatures, useMaintenance } from "@/lib/features";
 import { useTheme } from "@/theme";
+import { useT } from "@/i18n";
 
 /**
  * Full-screen "We'll be right back" when the storefront is in maintenance (Admin → System → Settings).
  * Shown over the whole app on start (GET /features → maintenance.on); "Try again" re-checks.
  */
 export function MaintenanceOverlay() {
+  const { t } = useT();
   const m = useMaintenance();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -40,13 +42,13 @@ export function MaintenanceOverlay() {
         SKYDROP RETAIL
       </T>
       <T v="h1" style={{ textAlign: "center" }}>
-        {"We'll be right back"}
+        {t("maint.title")}
       </T>
       <T v="body" tone="ink2" style={{ textAlign: "center", maxWidth: 360 }}>
         {m.message}
       </T>
       <Button
-        label={busy ? "Checking..." : "Try again"}
+        label={busy ? t("coupon.checking") : t("maint.retry")}
         icon="refresh"
         busy={busy}
         style={{ marginTop: 12, paddingHorizontal: 28 }}
@@ -55,9 +57,7 @@ export function MaintenanceOverlay() {
           reloadFeatures().finally(() => setBusy(false));
         }}
       />
-      <T v="small" tone="ink3" style={{ textAlign: "center", marginTop: 8 }}>
-        Your cart and orders are safe.
-      </T>
+      <T v="small" tone="ink3" style={{ textAlign: "center", marginTop: 8 }}>{t("m.safe")}</T>
     </View>
   );
 }

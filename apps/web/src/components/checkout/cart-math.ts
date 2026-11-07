@@ -5,6 +5,7 @@ import type { CartItem, MarketId } from "@/lib/types";
 import { MARKET_IDS } from "@/lib/markets";
 import { PRICING, groupByMarket, shippingFor } from "@/lib/pricing";
 import { useFeature } from "@/components/features/FeaturesProvider";
+import { fmtDate, hasKey, type Lang, type TFn } from "@/i18n/core";
 
 // ---------- coupons (demo codes until the Laravel promotions API exists) ----------
 export type Coupon = {
@@ -188,8 +189,14 @@ export function phoneState(digits: string): "idle" | "typing" | "valid" | "inval
   return digits.length < 10 ? "typing" : "invalid";
 }
 
-export function addDays(iso: string, days: number) {
+export function addDays(iso: string, days: number, lang: Lang = "en") {
   const d = new Date(iso);
   d.setDate(d.getDate() + days);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return fmtDate(d, lang, { day: "numeric", month: "short" });
+}
+
+/** Coupon description in the shopper's language (demo codes have Bangla text; API coupons show the admin's label). */
+export function couponLabel(c: Pick<Coupon, "code" | "label">, t: TFn) {
+  const k = "coupon." + c.code;
+  return hasKey(k) ? t(k) : c.label;
 }

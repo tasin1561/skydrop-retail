@@ -12,23 +12,30 @@ import { SignedOut } from "./SignedOut";
 import { prettyPhone } from "./phone";
 import { AccountMoney, PlusBadge } from "@/components/money/AccountMoney";
 import { Feature } from "@/components/features/FeaturesProvider";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
+import { bdName } from "@/lib/bd";
+import { LangSwitch } from "@/components/LangSwitch";
+import { useFeature } from "@/components/features/FeaturesProvider";
 
 type Theme = "light" | "dark" | "system";
-const THEMES: { id: Theme; label: string; icon: string }[] = [
-  { id: "light", label: "Light", icon: "sun" },
-  { id: "dark", label: "Dark", icon: "moon" },
-  { id: "system", label: "System", icon: "settings" },
+const THEMES: { id: Theme; label: MsgKey; icon: string }[] = [
+  { id: "light", label: "acc.light", icon: "sun" },
+  { id: "dark", label: "acc.dark", icon: "moon" },
+  { id: "system", label: "acc.system", icon: "settings" },
 ];
 
-function greeting(now: number) {
-  if (!now) return "Hello";
+function greeting(now: number): MsgKey {
+  if (!now) return "acc.hello";
   const h = new Date(now).getHours();
-  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  return h < 12 ? "acc.morning" : h < 17 ? "acc.afternoon" : "acc.evening";
 }
 
 export function AccountDashboard() {
   const { ready, user, orders, wishlist, addresses, theme, setTheme, logout } = useStore();
   const toast = useToast();
+  const { t: tr, digits, lang } = useT();
+  const bangla = useFeature("bangla");
   const router = useRouter();
   const now = useNow(60_000);
   const [confirmOut, setConfirmOut] = useState(false);
@@ -43,7 +50,7 @@ export function AccountDashboard() {
   if (!user)
     return (
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-10 md:pb-12">
-        <SignedOut next="/account" title="Sign in to your account" body="See your orders, addresses and wishlist in one place." />
+        <SignedOut next="/account" title={tr("acc.signInTitle")} body={tr("acc.signInBody")} />
       </div>
     );
 
@@ -58,9 +65,9 @@ export function AccountDashboard() {
     .toUpperCase();
 
   const stats = [
-    { label: "Orders", value: orders.length, icon: "receipt", href: "/orders" },
-    { label: "In transit", value: inTransit, icon: "truck", href: "/orders?tab=active" },
-    { label: "Wishlist", value: wishlist.length, icon: "heart", href: "/wishlist" },
+    { label: tr("acc.orders"), value: orders.length, icon: "receipt", href: "/orders" },
+    { label: tr("acc.inTransit"), value: inTransit, icon: "truck", href: "/orders?tab=active" },
+    { label: tr("acc.wishlist"), value: wishlist.length, icon: "heart", href: "/wishlist" },
   ];
 
   return (
@@ -77,7 +84,7 @@ export function AccountDashboard() {
             {initials || <Icon name="user" />}
           </span>
           <div className="min-w-0">
-            <p className="text-sm text-white/80">{greeting(now)},</p>
+            <p className="text-sm text-white/80">{tr(greeting(now))},</p>
             <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
               <span className="truncate">{user.name}</span> <PlusBadge />
             </h1>
@@ -87,7 +94,7 @@ export function AccountDashboard() {
       </section>
 
       {/* quick stats */}
-      <section aria-label="Quick stats" className="mt-4 grid grid-cols-3 gap-3">
+      <section aria-label={tr("acc.stats")} className="mt-4 grid grid-cols-3 gap-3">
         {stats.map((s, i) => (
           <Link
             key={s.label}
@@ -98,7 +105,7 @@ export function AccountDashboard() {
             <span className="chip-icon transition group-hover:bg-accent group-hover:text-white">
               <Icon name={s.icon} size={18} />
             </span>
-            <span className="text-2xl font-extrabold tabular-nums tracking-tight">{String(s.value).padStart(2, "0")}</span>
+            <span className="text-2xl font-extrabold tabular-nums tracking-tight">{digits(String(s.value).padStart(2, "0"))}</span>
             <span className="text-xs font-semibold text-ink-2">{s.label}</span>
           </Link>
         ))}
@@ -108,49 +115,49 @@ export function AccountDashboard() {
       <AccountMoney />
 
       {/* menu */}
-      <section aria-label="Account menu" className="card rise mt-4 overflow-hidden" style={{ ["--i" as string]: 4 }}>
-        <Row href="/orders" icon="receipt" label="Orders" sub="Track and manage" badge={orders.length} />
+      <section aria-label={tr("acc.menu")} className="card rise mt-4 overflow-hidden" style={{ ["--i" as string]: 4 }}>
+        <Row href="/orders" icon="receipt" label={tr("acc.orders")} sub={tr("acc.ordersSub")} badge={orders.length} />
         <Row
           href="/account/addresses"
           icon="pin"
-          label="Addresses"
-          sub={def ? `${def.area || def.district}, ${def.district}` : "Add a delivery address"}
+          label={tr("acc.addresses")}
+          sub={def ? `${def.area || bdName(def.district, lang)}, ${bdName(def.district, lang)}` : tr("acc.addAddress")}
           badge={addresses.length}
         />
-        <Row href="/wishlist" icon="heart" label="Wishlist" sub="Saved for later" badge={wishlist.length} />
-        <Row href="/account/points" icon="spark" label="Skydrop Points" sub="Earn on every order, save at checkout" />
+        <Row href="/wishlist" icon="heart" label={tr("acc.wishlist")} sub={tr("acc.wishSub")} badge={wishlist.length} />
+        <Row href="/account/points" icon="spark" label={tr("acc.points")} sub={tr("acc.pointsSub")} />
         <Feature name="wallet">
-          <Row href="/account/wallet" icon="wallet" label="Skydrop Wallet" sub="Refunds, gift cards and store credit" />
+          <Row href="/account/wallet" icon="wallet" label={tr("acc.wallet")} sub={tr("acc.walletSub")} />
         </Feature>
         <Feature name="gift_cards">
-          <Row href="/gift-cards" icon="bag" label="Gift cards" sub="Send or redeem a gift card" />
+          <Row href="/gift-cards" icon="bag" label={tr("acc.gift")} sub={tr("acc.giftSub")} />
         </Feature>
         <Feature name="membership">
-          <Row href="/plus" icon="star" label="Skydrop Plus" sub="Free shipping on every order" />
+          <Row href="/plus" icon="star" label={tr("acc.plus")} sub={tr("acc.plusSub")} />
         </Feature>
         <Feature name="referral">
-          <Row href="/account/invite" icon="share" label="Invite friends" sub="You both get Skydrop Points" />
+          <Row href="/account/invite" icon="share" label={tr("acc.invite")} sub={tr("acc.inviteSub")} />
         </Feature>
         <Feature name="affiliate">
-          <Row href="/account/affiliate" icon="tag" label="Affiliate" sub="Earn commission on orders from your links" />
+          <Row href="/account/affiliate" icon="tag" label={tr("acc.affiliate")} sub={tr("acc.affiliateSub")} />
         </Feature>
-        <Row icon="card" label="Payment methods" sub="bKash, Nagad and cards at checkout" soon />
-        <Row icon="info" label="Notifications" sub="SMS delivery updates are on" soon />
-        <Row href="/how-it-works" icon="help" label="Help" sub="How it works, shipping, returns" />
+        <Row icon="card" label={tr("acc.payment")} sub={tr("acc.paymentSub")} soon />
+        <Row icon="info" label={tr("acc.notif")} sub={tr("acc.notifSub")} soon />
+        <Row href="/how-it-works" icon="help" label={tr("acc.help")} sub={tr("acc.helpSub")} />
       </section>
 
       {/* theme */}
-      <section aria-label="Appearance" className="card rise mt-4 p-4" style={{ ["--i" as string]: 5 }}>
+      <section aria-label={tr("acc.appearance")} className="card rise mt-4 p-4" style={{ ["--i" as string]: 5 }}>
         <div className="mb-3 flex items-center gap-3">
           <span className="chip-icon">
             <Icon name={theme === "dark" ? "moon" : theme === "light" ? "sun" : "settings"} size={18} />
           </span>
           <div>
-            <h2 className="text-sm font-bold">Theme</h2>
-            <p className="text-xs text-ink-2">Currently {THEMES[themeIdx]?.label ?? "System"}</p>
+            <h2 className="text-sm font-bold">{tr("acc.theme")}</h2>
+            <p className="text-xs text-ink-2">{tr("acc.currently", { name: tr(THEMES[themeIdx]?.label ?? "acc.system") })}</p>
           </div>
         </div>
-        <div role="radiogroup" aria-label="Theme" className="ac-tabs" style={{ ["--n" as string]: THEMES.length }}>
+        <div role="radiogroup" aria-label={tr("acc.theme")} className="ac-tabs" style={{ ["--n" as string]: THEMES.length }}>
           <span aria-hidden className="ac-tab-pill" style={{ ["--idx" as string]: Math.max(0, themeIdx) }} />
           {THEMES.map((t, i) => (
             <button
@@ -170,10 +177,24 @@ export function AccountDashboard() {
                 (e.currentTarget.parentElement?.querySelectorAll("button")[THEMES.indexOf(n)] as HTMLElement | undefined)?.focus();
               }}
             >
-              <Icon name={t.icon} size={16} /> {t.label}
+              <Icon name={t.icon} size={16} /> {tr(t.label)}
             </button>
           ))}
         </div>
+        {bangla && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="chip-icon">
+                <Icon name="globe" size={18} />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold">{tr("acc.language")}</h2>
+                <p className="text-xs text-ink-2">{tr("acc.languageSub")}</p>
+              </div>
+            </div>
+            <LangSwitch />
+          </div>
+        )}
       </section>
 
       {/* sign out */}
@@ -182,23 +203,23 @@ export function AccountDashboard() {
           <span className="chip-icon" style={{ background: "color-mix(in srgb, var(--bad) 12%, transparent)", color: "var(--bad)" }}>
             <Icon name="logout" size={18} />
           </span>
-          <span className="flex-1 font-semibold text-bad">Sign out</span>
+          <span className="flex-1 font-semibold text-bad">{tr("acc.signOut")}</span>
           <Icon name="right" size={18} className="ac-chev" />
         </button>
       </section>
-      <p className="mt-4 text-center text-xs text-ink-3">Demo account: data is stored on this device only.</p>
+      <p className="mt-4 text-center text-xs text-ink-3">{tr("acc.demo")}</p>
 
       {confirmOut && (
         <ConfirmDialog
-          title="Sign out?"
-          body="Your cart, orders and addresses stay on this device."
-          confirmLabel="Sign out"
+          title={tr("acc.signOutQ")}
+body={tr("acc.signOutBody")}
+confirmLabel={tr("acc.signOut")}
           icon="logout"
           danger
           onClose={() => setConfirmOut(false)}
           onConfirm={() => {
             logout();
-            toast({ kind: "info", title: "Signed out", body: "See you soon." });
+            toast({ kind: "info", title: tr("acc.signedOut"), body: tr("acc.seeYou") });
             router.push("/");
           }}
         />
@@ -222,6 +243,7 @@ function Row({
   badge?: number;
   soon?: boolean;
 }) {
+  const { t: tr, digits } = useT();
   const inner = (
     <>
       <span className="chip-icon shrink-0">
@@ -233,11 +255,11 @@ function Row({
       </span>
       {soon ? (
         <span className="ac-chip" data-tone="muted">
-          Coming soon
+          {tr("acc.soon")}
         </span>
       ) : typeof badge === "number" ? (
-        <span className="ac-chip tabular-nums" aria-label={`${badge} items`}>
-          {String(badge).padStart(2, "0")}
+        <span className="ac-chip tabular-nums" aria-label={tr("acc.badge", { count: badge })}>
+          {digits(String(badge).padStart(2, "0"))}
         </span>
       ) : null}
       {!soon && <Icon name="right" size={18} className="ac-chev shrink-0" />}

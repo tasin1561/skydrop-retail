@@ -9,8 +9,10 @@ import { useTheme } from "@/theme";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { Empty, T } from "./ui";
 import { FetchingLive } from "./product/Extras";
+import { useT } from "@/i18n";
 
 export function ProductGrid({ params, header, onTotal }: { params: SearchParams; header?: ReactElement; onTotal?: (n: number) => void }) {
+  const { t } = useT();
   const { c } = useTheme();
   const { width } = useWindowDimensions();
   const W = (width - 32 - 12) / 2;
@@ -95,9 +97,7 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
             {header}
             {job && store && <FetchingLive market={store} />}
             {job && !store && (
-              <T v="tiny" tone="ink3">
-                Fetching live results from the stores…
-              </T>
+              <T v="tiny" tone="ink3">{t("m.fetchingLive")}</T>
             )}
           </View>
         ) : undefined
@@ -134,22 +134,20 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
             ))}
           </View>
         ) : error ? (
-          <Empty icon="wifi-off" title="Couldn't load products" text={error} action="Try again" onAction={() => {
+          <Empty icon="wifi-off" title={t("m.loadFailed")} text={error} action={t("maint.retry")} onAction={() => {
               setLoading(true);
               load(1);
             }}
           />
         ) : (
-          <Empty icon="search" title="No matches" text="Try a shorter search, another store or fewer filters." />
+          <Empty icon="search" title={t("m.noMatches")} text={t("m.noMatchesText")} />
         )
       }
       ListFooterComponent={
         more ? (
           <ActivityIndicator color={c.brand} style={{ marginVertical: 16 }} />
         ) : !loading && items.length > 0 && page >= pages ? (
-          <T v="tiny" tone="ink3" style={{ textAlign: "center", marginVertical: 16 }}>
-            That's everything
-          </T>
+          <T v="tiny" tone="ink3" style={{ textAlign: "center", marginVertical: 16 }}>{t("m.thatsAll")}</T>
         ) : undefined
       }
       initialNumToRender={6}

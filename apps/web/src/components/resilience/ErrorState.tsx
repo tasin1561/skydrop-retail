@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 
 /** Friendly full-section error with retry. Used by error.tsx files and SafeSection. */
 export function ErrorState({
-  title = "This page is taking a break",
-  body = "Something went wrong on our side. Nothing you did. Please try again.",
+  title: titleProp,
+  body: bodyProp,
   retry,
   compact,
   digest,
@@ -19,6 +20,9 @@ export function ErrorState({
   digest?: string;
 }) {
   const [busy, setBusy] = useState(false);
+  const { t } = useT();
+  const title = titleProp ?? t("err.title");
+  const body = bodyProp ?? t("err.body");
   // Auto-retry once after a short pause: most failures are a brief API hiccup.
   useEffect(() => {
     if (!retry || compact) return;
@@ -33,7 +37,7 @@ export function ErrorState({
         <span className="flex-1">{title}</span>
         {retry && (
           <button type="button" className="btn btn-ghost min-h-11 px-3" onClick={() => retry()}>
-            Retry
+            {t("err.retry")}
           </button>
         )}
       </div>
@@ -57,14 +61,14 @@ export function ErrorState({
               retry();
             }}
           >
-            <Icon name="refresh" size={18} /> {busy ? "Trying again..." : "Try again"}
+            <Icon name="refresh" size={18} /> {busy ? t("err.trying") : t("common.tryAgain")}
           </button>
         )}
         <Link href="/" className="btn btn-ghost">
-          Go to home
+          {t("err.home")}
         </Link>
       </div>
-      {digest && <p className="mt-4 text-[11px] text-ink-3">Ref: {digest}</p>}
+      {digest && <p className="mt-4 text-[11px] text-ink-3">{t("err.ref", { digest })}</p>}
     </section>
   );
 }

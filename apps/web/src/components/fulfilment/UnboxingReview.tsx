@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/apiClient";
 import { REASON_LABELS, apiEnabled, fulfilmentApi, type ProblemReason, type Unboxing } from "@/lib/fulfilment";
 import { useStore } from "@/state/store";
 import "./fulfilment.css";
+import { useT } from "@/i18n/client";
 
 type Media = { src: string; kind: "image" | "video"; title: string; itemId: number };
 
@@ -17,6 +18,7 @@ export function UnboxingReview({ id }: { id: string }) {
   const on = useFeature("unboxing");
   const { ready, user } = useStore();
   const toast = useToast();
+  const { t, dateTime } = useT();
   const [data, setData] = useState<Unboxing | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<number | null>(null);
@@ -38,30 +40,30 @@ export function UnboxingReview({ id }: { id: string }) {
     ...(it.video ? [{ src: it.video, kind: "video" as const, title: it.title, itemId: it.id }] : []),
   ]);
 
-  const back = { href: `/orders/${id}`, label: "Order" };
+  const back = { href: `/orders/${id}`, label: t("rw.order") };
   if (!on)
     return (
       <Shell>
-        <PageHead title="Unboxing check" icon="package" back={back} />
-        <EmptyState title="Unboxing checks are paused" body="Your order ships as usual." action={{ label: "Back to your order", href: `/orders/${id}` }} />
+        <PageHead title={t("ur.title")} icon="package" back={back} />
+        <EmptyState title={t("ur.paused")} body={t("ur.pausedB")} action={{ label: t("rw.backOrder"), href: `/orders/${id}` }} />
       </Shell>
     );
   if (!apiEnabled)
     return (
       <Shell>
-        <PageHead title="Unboxing check" icon="package" back={back} />
+        <PageHead title={t("ur.title")} icon="package" back={back} />
         <EmptyState
-          title="Photos appear here after the hub opens your parcel"
-          body="In this demo there is no Kolkata hub. With a live account you would see the photos, then approve or report a problem."
-          action={{ label: "Back to your order", href: `/orders/${id}` }}
+          title={t("ur.demoT")}
+          body={t("ur.demoB")}
+          action={{ label: t("rw.backOrder"), href: `/orders/${id}` }}
         />
       </Shell>
     );
   if (error)
     return (
       <Shell>
-        <PageHead title="Unboxing check" icon="package" back={back} />
-        <EmptyState title="We couldn't load the unboxing" body={error} action={{ label: "Back to your order", href: `/orders/${id}` }} />
+        <PageHead title={t("ur.title")} icon="package" back={back} />
+        <EmptyState title={t("ur.loadFail")} body={error} action={{ label: t("rw.backOrder"), href: `/orders/${id}` }} />
       </Shell>
     );
   if (!data)
@@ -78,9 +80,9 @@ export function UnboxingReview({ id }: { id: string }) {
     setBusy(true);
     try {
       setData(await fulfilmentApi.approveUnboxing(id));
-      toast({ kind: "success", title: "Approved", body: "Your parcel leaves Kolkata for Bangladesh next." });
+      toast({ kind: "success", title: t("ur.approved"), body: t("ur.approvedB") });
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't approve", body: e instanceof ApiError ? e.message : "Please try again." });
+      toast({ kind: "error", title: t("ur.approveFail"), body: e instanceof ApiError ? e.message : t("common.pleaseRetry") });
     } finally {
       setBusy(false);
     }
@@ -92,9 +94,9 @@ export function UnboxingReview({ id }: { id: string }) {
       const r = await fulfilmentApi.reportUnboxing(id, reason, note.trim());
       setData(r.unboxing);
       setMode("view");
-      toast({ kind: "info", title: "Problem reported", body: "We'll contact you about a replacement or refund. The parcel stays in Kolkata." });
+      toast({ kind: "info", title: t("ur.reported"), body: t("ur.reportedB") });
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't send", body: e instanceof ApiError ? e.message : "Please try again." });
+      toast({ kind: "error", title: t("ur.sendFail"), body: e instanceof ApiError ? e.message : t("common.pleaseRetry") });
     } finally {
       setBusy(false);
     }
@@ -102,20 +104,20 @@ export function UnboxingReview({ id }: { id: string }) {
 
   return (
     <Shell>
-      <PageHead title="Unboxing check" sub={`Order ${id}`} icon="package" back={back} />
+      <PageHead title={t("ur.title")} sub={t("ur.sub", { id })} icon="package" back={back} />
 
       <section className="card rise p-4 sm:p-5" aria-labelledby="ub-h">
         <h2 id="ub-h" className="text-lg font-extrabold tracking-tight">
-          {awaiting ? "We opened your parcel at our Kolkata hub" : data.status === "problem" ? "Problem reported" : data.status ? "Approved" : "Not unboxed yet"}
+          {awaiting ? t("ur.opened") : data.status === "problem" ? t("ur.reported") : data.status ? t("ur.approved") : t("ur.notYet")}
         </h2>
         <p className="mt-1 text-sm text-ink-2">
           {awaiting
-            ? `Check every photo. Approve to ship it to Bangladesh, or report a problem and we fix it before it leaves India.${deadline ? ` If we don't hear from you, it ships automatically on ${deadline.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.` : ""}`
+            ? t("ur.check") + (deadline ? t("ur.auto", { when: dateTime(deadline) }) : "")
             : data.status === "problem"
-              ? "Our team is on it. Follow the case on your order page."
+              ? t("ur.onIt")
               : data.status
-                ? "Your parcel is on its way to Bangladesh."
-                : "Photos appear here once every item arrives at the hub."}
+                ? t("ur.onWay")
+                : t("ur.whenArrive")}
         </p>
 
         {data.items.map((it) => (
@@ -125,11 +127,11 @@ export function UnboxingReview({ id }: { id: string }) {
               {it.variant ? <span className="font-normal text-ink-2"> · {it.variant}</span> : null}
               {it.condition && it.condition !== "ok" && (
                 <span className="ac-chip ml-2" data-tone="bad">
-                  {it.condition === "damaged" ? "Damaged" : "Wrong item"}
+                  {it.condition === "damaged" ? t("rr.damaged") : t("rr.wrong_item")}
                 </span>
               )}
             </p>
-            {it.note && <p className="text-xs text-ink-2">Hub note: {it.note}</p>}
+            {it.note && <p className="text-xs text-ink-2">{t("ur.hubNote", { note: it.note })}</p>}
             {(it.photos.length > 0 || it.video) && (
               <div className="ff-gallery mt-2">
                 {media
@@ -142,7 +144,7 @@ export function UnboxingReview({ id }: { id: string }) {
                       className="ff-thumb ff-pop"
                       style={{ ["--d" as string]: `${k * 0.05}s` }}
                       onClick={() => setOpen(idx)}
-                      aria-label={`Open ${m.kind === "video" ? "video" : "photo"} ${k + 1} of ${it.title}`}
+                      aria-label={t("ur.openMedia", { kind: t(m.kind === "video" ? "ur.video" : "ur.photo"), n: k + 1, title: it.title })}
                     >
                       {m.kind === "image" ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -163,10 +165,10 @@ export function UnboxingReview({ id }: { id: string }) {
       {awaiting && mode === "view" && (
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <button type="button" className="btn btn-primary h-12" onClick={approve} disabled={busy}>
-            <Icon name="check" size={18} /> Looks good, ship it
+            <Icon name="check" size={18} /> {t("ur.good")}
           </button>
           <button type="button" className="btn btn-ghost h-12" onClick={() => setMode("problem")} disabled={busy}>
-            <Icon name="info" size={18} /> Report a problem
+            <Icon name="info" size={18} /> {t("ur.report")}
           </button>
         </div>
       )}
@@ -174,17 +176,17 @@ export function UnboxingReview({ id }: { id: string }) {
       {awaiting && mode === "problem" && (
         <section className="card rise mt-4 p-4 sm:p-5" aria-labelledby="pr-h">
           <h2 id="pr-h" className="text-base font-bold">
-            What&apos;s wrong?
+            {t("ur.wrong")}
           </h2>
-          <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Problem">
+          <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label={t("ur.problem")}>
             {data.reasons.map((r) => (
               <button key={r} type="button" role="radio" aria-checked={reason === r} className="ff-chip" onClick={() => setReason(r)}>
-                {REASON_LABELS[r]}
+                {t(REASON_LABELS[r])}
               </button>
             ))}
           </div>
           <label className="mt-3 block text-sm font-semibold" htmlFor="pr-note">
-            Tell us more <span className="font-normal text-ink-3">(optional)</span>
+            {t("ur.more")} <span className="font-normal text-ink-3">{t("rw.optional")}</span>
           </label>
           <textarea
             id="pr-note"
@@ -193,14 +195,14 @@ export function UnboxingReview({ id }: { id: string }) {
             maxLength={1000}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="e.g. The colour is blue, I ordered black"
+            placeholder={t("ur.notePh")}
           />
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" className="btn btn-primary h-12 px-5" disabled={!reason || busy} onClick={report}>
-              Send to our team
+              {t("ur.send")}
             </button>
             <button type="button" className="btn btn-ghost h-12 px-5" onClick={() => setMode("view")} disabled={busy}>
-              Back
+              {t("common.back")}
             </button>
           </div>
         </section>
@@ -208,7 +210,7 @@ export function UnboxingReview({ id }: { id: string }) {
 
       {!awaiting && (
         <Link href={`/orders/${id}`} className="btn btn-ghost mt-4 h-12 w-full">
-          Back to your order
+          {t("rw.backOrder")}
         </Link>
       )}
 
@@ -222,6 +224,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 function Lightbox({ media, index, onIndex, onClose }: { media: Media[]; index: number; onIndex: (i: number) => void; onClose: () => void }) {
+  const { t } = useT();
   const closeRef = useRef<HTMLButtonElement>(null);
   const m = media[index];
   const go = useCallback((d: number) => onIndex((index + d + media.length) % media.length), [index, media.length, onIndex]);
@@ -245,11 +248,11 @@ function Lightbox({ media, index, onIndex, onClose }: { media: Media[]; index: n
   }, [go, onClose]);
 
   return (
-    <div className="ff-lightbox" role="dialog" aria-modal="true" aria-label={`${m.title}, ${index + 1} of ${media.length}`} onClick={onClose}>
+    <div className="ff-lightbox" role="dialog" aria-modal="true" aria-label={t("ur.lbAria", { title: m.title, n: index + 1, total: media.length })} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} key={m.src}>
         {m.kind === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={m.src} alt={`${m.title}, photo ${index + 1}`} />
+          <img src={m.src} alt={t("ur.photoAlt", { title: m.title, n: index + 1 })} />
         ) : (
           <video src={m.src} controls playsInline autoPlay muted />
         )}
@@ -257,15 +260,15 @@ function Lightbox({ media, index, onIndex, onClose }: { media: Media[]; index: n
           {index + 1} / {media.length}
         </p>
       </div>
-      <button ref={closeRef} type="button" className="ff-lb-btn" style={{ top: 16, right: 16 }} onClick={onClose} aria-label="Close">
+      <button ref={closeRef} type="button" className="ff-lb-btn" style={{ top: 16, right: 16 }} onClick={onClose} aria-label={t("common.close")}>
         <Icon name="x" size={22} />
       </button>
       {media.length > 1 && (
         <>
-          <button type="button" className="ff-lb-btn" style={{ left: 12, top: "50%" }} onClick={(e) => (e.stopPropagation(), go(-1))} aria-label="Previous">
+          <button type="button" className="ff-lb-btn" style={{ left: 12, top: "50%" }} onClick={(e) => (e.stopPropagation(), go(-1))} aria-label={t("common.previous")}>
             <Icon name="left" size={22} />
           </button>
-          <button type="button" className="ff-lb-btn" style={{ right: 12, top: "50%" }} onClick={(e) => (e.stopPropagation(), go(1))} aria-label="Next">
+          <button type="button" className="ff-lb-btn" style={{ right: 12, top: "50%" }} onClick={(e) => (e.stopPropagation(), go(1))} aria-label={t("common.next")}>
             <Icon name="right" size={22} />
           </button>
         </>

@@ -69,3 +69,8 @@ export function restrictionOf(p: Pick<Product, "title" | "restriction">): Restri
   if (p.restriction !== undefined) return p.restriction;
   return API_MODE ? null : checkRestriction(p.title);
 }
+
+/** Blocked items get a disabled buy box (server and client). */
+export function isBlocked(p: Pick<Product, "title" | "restriction">) {
+  return restrictionOf(p)?.action === "block";
+}

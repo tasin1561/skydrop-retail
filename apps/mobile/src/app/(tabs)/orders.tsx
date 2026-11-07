@@ -8,13 +8,15 @@ import { useStore } from "@/state/store";
 import type { Order } from "@/lib/types";
 import { currentStatus, etaRange, isInProgress, storesOf } from "@/lib/orderStatus";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import { sized } from "@/lib/variants";
 import { useTheme } from "@/theme";
 import { Card, Empty, ProductImage, Skeleton, T, Tap } from "@/components/ui";
 import { StatusPill, TrackBar, useNow } from "@/components/OrderBits";
+import { useT } from "@/i18n";
 
 export default function Orders() {
+  const tr = useT();
+  const { t, bdt, digits, date } = tr;
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { user, demo } = useStore();
@@ -39,7 +41,7 @@ export default function Orders() {
   if (!user && !demo)
     return (
       <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + 40 }}>
-        <Empty icon="package" title="Sign in to see your orders" text="Track every parcel from the Indian store to your door." action="Sign in" onAction={() => router.push("/login")} />
+        <Empty icon="package" title={t("ai.signInOrders")} text={t("m.ordersSignInText")} action={t("nav.signIn")} onAction={() => router.push("/login")} />
       </View>
     );
 
@@ -62,9 +64,7 @@ export default function Orders() {
         />
       }
       ListHeaderComponent={
-        <T v="h1" accessibilityRole="header" style={{ marginBottom: 4 }}>
-          Orders
-        </T>
+        <T v="h1" accessibilityRole="header" style={{ marginBottom: 4 }}>{t("nav.orders")}</T>
       }
       ListEmptyComponent={
         orders === null ? (
@@ -74,23 +74,25 @@ export default function Orders() {
             ))}
           </View>
         ) : (
-          <Empty icon="package" title="No orders yet" text="When you place an order, you can follow it from India to your door here." action="Start shopping" onAction={() => router.navigate("/")} />
+          <Empty icon="package" title={t("ol.e.all")} text={t("m.noOrdersText")} action={t("hero.start")} onAction={() => router.navigate("/")} />
         )
       }
       renderItem={({ item: o, index }) => {
         const status = demo ? currentStatus(o, now) : o.status;
         return (
           <Animated.View entering={FadeInDown.delay(index * 50).springify().damping(18)}>
-            <Tap onPress={() => router.push(`/order/${o.id}`)} accessibilityLabel={`Order ${o.id}, ${formatBdt(o.total)}`}>
+            <Tap onPress={() => router.push(`/order/${o.id}`)} accessibilityLabel={t("m.orderA11y", { id: o.id, total: bdt(o.total) })}>
               <Card style={{ gap: 12 }}>
                 <View style={styles.row}>
                   <View>
-                    <T v="h3">{o.id}</T>
+                    <T v="h3">{digits(o.id)}</T>
                     <T v="tiny" tone="ink3">
-                      {new Date(o.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · from{" "}
-                      {storesOf(o)
-                        .map((m) => STORES[m].source)
-                        .join(", ")}
+                      {t("m.orderMeta", {
+                        date: date(o.createdAt, { day: "numeric", month: "short", year: "numeric" }),
+                        sources: storesOf(o)
+                          .map((m) => STORES[m].source)
+                          .join(", "),
+                      })}
                     </T>
                   </View>
                   <StatusPill status={status} />
@@ -102,7 +104,7 @@ export default function Orders() {
                   {o.items.length > 4 && (
                     <View style={[styles.more, { backgroundColor: c.surface2 }]}>
                       <T v="small" style={{ fontWeight: "700" }}>
-                        +{o.items.length - 4}
+                        +{digits(o.items.length - 4)}
                       </T>
                     </View>
                   )}
@@ -110,10 +112,10 @@ export default function Orders() {
                 <TrackBar status={status} />
                 <View style={styles.row}>
                   <T v="small" tone="ink2">
-                    {isInProgress(status) ? `Arrives ${etaRange(o)}` : status === "delivered" ? "Delivered" : "Cancelled"}
+                    {isInProgress(status) ? t("m.arrives", { range: etaRange(o, tr) }) : status === "delivered" ? t("st.delivered.label") : t("st.cancelled")}
                   </T>
                   <T v="h3" style={{ fontWeight: "800" }}>
-                    {formatBdt(o.total)}
+                    {bdt(o.total)}
                   </T>
                 </View>
               </Card>

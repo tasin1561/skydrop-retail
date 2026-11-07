@@ -2,10 +2,9 @@
 
 import "./cms.css";
 import { useT } from "@/i18n/client";
-import { rich } from "@/i18n/rich";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { flashOffBdt, formatBdt } from "@/lib/pricing";
+import { flashOffBdt } from "@/lib/pricing";
 import { restrictionOf } from "@/lib/restrictions";
 import { Icon } from "@/components/Icon";
 import { Countdown } from "@/components/offers/Countdown";

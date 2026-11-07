@@ -12,6 +12,7 @@ import { StoreProvider, useStore } from "@/state/store";
 import { ToastProvider } from "@/components/Toast";
 import { listenForTaps } from "@/lib/push";
 import { MaintenanceOverlay } from "@/components/system/MaintenanceScreen";
+import { LangProvider, useLangSync, useT } from "@/i18n";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -28,9 +29,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <StoreProvider>
-          <ToastProvider>
-            <Nav />
-          </ToastProvider>
+          <LangProvider>
+            <ToastProvider>
+              <Nav />
+            </ToastProvider>
+          </LangProvider>
         </StoreProvider>
       </ThemeProvider>
     </SafeAreaProvider>
@@ -39,7 +42,9 @@ export default function RootLayout() {
 
 function Nav() {
   const { c } = useTheme();
-  const { ready } = useStore();
+  const { ready, user } = useStore();
+  const { t } = useT();
+  useLangSync(!!user); // signed-in shoppers: save the language to the profile (PATCH /me { locale })
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
@@ -62,7 +67,7 @@ function Nav() {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: c.bg },
           headerTintColor: c.ink,
-          headerTitleStyle: { fontWeight: "800", ...(brandFont("800") as { fontFamily?: string }) },
+          headerTitleStyle: { fontWeight: "800", ...(brandFont("800") as { fontFamily?: string }) }, // brandFont follows `lang`
           headerBackButtonDisplayMode: "minimal",
           contentStyle: { backgroundColor: c.bg },
           // Native slide on Android, native push with swipe-back on iOS.
@@ -75,21 +80,21 @@ function Nav() {
         <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="store/[market]" options={{ headerShown: false }} />
         <Stack.Screen name="search" options={{ headerShown: false, animation: "fade" }} />
-        <Stack.Screen name="checkout/index" options={{ title: "Checkout" }} />
+        <Stack.Screen name="checkout/index" options={{ title: t("checkout.meta") }} />
         <Stack.Screen name="checkout/success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
         <Stack.Screen name="deals" options={{ headerShown: false }} />
-        <Stack.Screen name="points" options={{ title: "Skydrop Points" }} />
-        <Stack.Screen name="wallet" options={{ title: "Skydrop Wallet" }} />
-        <Stack.Screen name="plus" options={{ title: "Skydrop Plus" }} />
+        <Stack.Screen name="points" options={{ title: t("acc.points") }} />
+        <Stack.Screen name="wallet" options={{ title: t("acc.wallet") }} />
+        <Stack.Screen name="plus" options={{ title: t("acc.plus") }} />
         <Stack.Screen name="success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
-        <Stack.Screen name="order/[id]" options={{ title: "Order" }} />
-        <Stack.Screen name="login" options={{ title: "Sign in", presentation: "modal" }} />
-        <Stack.Screen name="addresses" options={{ title: "Addresses" }} />
-        <Stack.Screen name="wishlist" options={{ title: "Wishlist" }} />
-        <Stack.Screen name="request" options={{ title: "Request a product" }} />
-        <Stack.Screen name="requests" options={{ title: "My requests" }} />
-        <Stack.Screen name="profile" options={{ title: "Profile" }} />
-        <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
+        <Stack.Screen name="order/[id]" options={{ title: t("rw.order") }} />
+        <Stack.Screen name="login" options={{ title: t("nav.signIn"), presentation: "modal" }} />
+        <Stack.Screen name="addresses" options={{ title: t("acc.addresses") }} />
+        <Stack.Screen name="wishlist" options={{ title: t("acc.wishlist") }} />
+        <Stack.Screen name="request" options={{ title: t("common.requestProduct") }} />
+        <Stack.Screen name="requests" options={{ title: t("m.myRequests") }} />
+        <Stack.Screen name="profile" options={{ title: t("m.profile") }} />
+        <Stack.Screen name="notifications" options={{ title: t("acc.notif") }} />
       </Stack>
       <MaintenanceOverlay />
     </NavTheme>

@@ -6,17 +6,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { isDemo } from "@/api/client";
 import { REASON_LABELS, RESOLUTION_LABELS, fulfilment, type Eligibility, type Resolution, type ReturnCase, type ReturnReason } from "@/api/fulfilment";
 import { useFeature } from "@/lib/features";
-import { formatBdt } from "@/lib/pricing";
 import { haptic } from "@/lib/haptics";
 import { useTheme, withAlpha } from "@/theme";
 import { Button, Card, Empty, Skeleton, T, Tap } from "@/components/ui";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/i18n";
 
 const WEB = (process.env.EXPO_PUBLIC_WEB_URL ?? "").replace(/\/+$/, "");
 const PHOTO_REASONS: ReturnReason[] = ["damaged", "wrong_item"];
 
 /** Simple return / replacement form (the web has the full wizard with photo upload). */
 export default function ReturnScreen() {
+  const { t, bdt } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -39,9 +40,9 @@ export default function ReturnScreen() {
       .catch((e: Error) => setError(e.message));
   }, [id, on]);
 
-  if (!on) return <Empty icon="rotate-ccw" title="Returns are paused" text="Contact support if something is wrong with your order." action="Back" onAction={() => router.back()} />;
-  if (isDemo()) return <Empty icon="rotate-ccw" title="Returns need a live account" text="In demo mode there is no server to send the request to." action="Back" onAction={() => router.back()} />;
-  if (error) return <Empty icon="alert-circle" title="Couldn't load the order" text={error} action="Back" onAction={() => router.back()} />;
+  if (!on) return <Empty icon="rotate-ccw" title={t("rw.paused")} text={t("rw.pausedB")} action={t("common.back")} onAction={() => router.back()} />;
+  if (isDemo()) return <Empty icon="rotate-ccw" title={t("m.retDemo")} text={t("m.retDemoBody")} action={t("common.back")} onAction={() => router.back()} />;
+  if (error) return <Empty icon="alert-circle" title={t("rw.loadFail")} text={error} action={t("common.back")} onAction={() => router.back()} />;
   if (!elig)
     return (
       <View style={{ padding: 16, gap: 12 }}>
@@ -53,9 +54,9 @@ export default function ReturnScreen() {
     return (
       <Empty
         icon="check-circle"
-        title="Return requested"
-        text="Our team replies within one working day. We'll text you when the pickup is booked."
-        action="Back to your order"
+        title={t("rw.requested")}
+        text={t("rw.gotB")}
+        action={t("rw.backOrder")}
         onAction={() => router.back()}
       />
     );
@@ -63,9 +64,9 @@ export default function ReturnScreen() {
     return (
       <Empty
         icon="rotate-ccw"
-        title="This order can't be returned"
-        text={elig.reason === "window_closed" ? `The ${elig.windowDays}-day return window has closed.` : elig.reason === "already_requested" ? "Every item is already in a return." : "Returns open once your order is delivered."}
-        action="Back"
+        title={t("rw.cant")}
+        text={elig.reason === "window_closed" ? t("rw.closed", { count: elig.windowDays }) : elig.reason === "already_requested" ? t("rw.already") : t("rw.notDelivered")}
+        action={t("common.back")}
         onAction={() => router.back()}
       />
     );
@@ -88,7 +89,7 @@ export default function ReturnScreen() {
       haptic.success();
       setDone(r);
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't send", body: (e as Error).message });
+      toast({ kind: "error", title: t("m.cantSend"), body: (e as Error).message });
     } finally {
       setBusy(false);
     }
@@ -101,11 +102,9 @@ export default function ReturnScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32, gap: 14 }} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ title: "Return an item" }} />
+      <Stack.Screen options={{ title: t("rw.title") }} />
       <Card style={{ gap: 10 }}>
-        <T v="h3" accessibilityRole="header">
-          Which items?
-        </T>
+        <T v="h3" accessibilityRole="header">{t("rw.which")}</T>
         {elig.items.map((it) => (
           <Tap
             key={it.id}
@@ -123,7 +122,7 @@ export default function ReturnScreen() {
                 {it.title}
               </T>
               <T v="tiny" tone="ink2">
-                {it.returnableQty === 0 ? "Already in a return" : `Qty ${it.returnableQty} · ${formatBdt(it.unitBdt)} each`}
+                {it.returnableQty === 0 ? t("rw.inReturn") : t("m.retQty", { qty: it.returnableQty, price: bdt(it.unitBdt) })}
               </T>
             </View>
           </Tap>
@@ -132,51 +131,49 @@ export default function ReturnScreen() {
 
       <Card style={{ gap: 10 }}>
         <T v="h3" accessibilityRole="header">
-          What&apos;s the problem?
+          {t("rw.problem")}
         </T>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }} accessibilityRole="radiogroup">
           {elig.reasons.map((r) => (
             <Tap key={r} onPress={() => setReason(r)} accessibilityRole="radio" accessibilityState={{ checked: reason === r }} style={chip(reason === r)}>
               <T v="small" style={{ fontWeight: "700", color: reason === r ? "#fff" : c.ink }}>
-                {REASON_LABELS[r]}
+                {t(REASON_LABELS[r])}
               </T>
             </Tap>
           ))}
         </View>
         {needsPhoto && (
           <View style={{ padding: 12, borderRadius: 14, backgroundColor: withAlpha(c.warn, 0.12), gap: 8 }}>
-            <T v="small">Damaged or wrong items need photos. Add them on the website, it takes a minute.</T>
-            {!!WEB && <Button label="Open on the website" kind="ghost" icon="external-link" onPress={() => WebBrowser.openBrowserAsync(`${WEB}/orders/${id}/return`)} />}
+            <T v="small">{t("m.retPhotos")}</T>
+            {!!WEB && <Button label={t("m.openWeb")} kind="ghost" icon="external-link" onPress={() => WebBrowser.openBrowserAsync(`${WEB}/orders/${id}/return`)} />}
           </View>
         )}
         <TextInput
           value={note}
           onChangeText={setNote}
-          placeholder="Details (optional)"
+          placeholder={t("m.detailsOpt")}
           placeholderTextColor={c.ink3}
           multiline
           maxLength={1000}
-          accessibilityLabel="Details"
+          accessibilityLabel={t("rw.details")}
           style={{ minHeight: 88, borderRadius: 14, padding: 12, backgroundColor: c.surface2, color: c.ink, textAlignVertical: "top" }}
         />
       </Card>
 
       <Card style={{ gap: 10 }}>
-        <T v="h3" accessibilityRole="header">
-          What would you like?
-        </T>
+        <T v="h3" accessibilityRole="header">{t("rw.what")}</T>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }} accessibilityRole="radiogroup">
           {elig.resolutions.map((r) => (
             <Tap key={r} onPress={() => setResolution(r)} accessibilityRole="radio" accessibilityState={{ checked: resolution === r }} style={chip(resolution === r)}>
               <T v="small" style={{ fontWeight: "700", color: resolution === r ? "#fff" : c.ink }}>
-                {RESOLUTION_LABELS[r]}
+                {t(RESOLUTION_LABELS[r])}
               </T>
             </Tap>
           ))}
         </View>
       </Card>
 
-      <Button label="Request return" icon="rotate-ccw" busy={busy} disabled={!ready} onPress={submit} />
+      <Button label={t("rw.request")} icon="rotate-ccw" busy={busy} disabled={!ready} onPress={submit} />
     </ScrollView>
   );
 }

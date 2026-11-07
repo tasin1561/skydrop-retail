@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import { LayoutAnimation, Pressable, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import type { MarketId, Product } from "@/lib/types";
-import { PRICING, buyPriceInr, deliveryWindow, formatBdt, priceBdt } from "@/lib/pricing";
+import { PRICING, buyPriceInr, deliveryWindow, priceBdt } from "@/lib/pricing";
 import { STORES } from "@/lib/markets";
 import { addDays } from "@/lib/cart";
 import { useAccent, useTheme } from "@/theme";
 import { Icon } from "../Icon";
 import { Card, Divider, IconChip, T } from "../ui";
+import { useT } from "@/i18n";
 
 
 export function Accordion({ title, icon, meta, children, market, initiallyOpen }: { title: string; icon: string; meta?: string; children: React.ReactNode; market: MarketId; initiallyOpen?: boolean }) {
@@ -50,6 +51,7 @@ export function Accordion({ title, icon, meta, children, market, initiallyOpen }
 }
 
 export function PriceBreakdown({ p }: { p: Product }) {
+  const { t, bdt, inr, digits } = useT();
   const source = STORES[p.market].source;
   const total = p.priceBdt ?? priceBdt(p);
   const buyInr = buyPriceInr(p);
@@ -59,12 +61,12 @@ export function PriceBreakdown({ p }: { p: Product }) {
   const service = total - Math.round(converted) - Math.round(duty);
   const { baseBdt, perKgBdt, freeAboveBdt } = PRICING.shipping;
   const rows = [
-    { icon: "tag", label: `Price on ${source}`, note: `₹${buyInr.toLocaleString("en-IN")}${buyInr < p.priceInr ? " after store coupon" : ""} at ৳${PRICING.fxInrToBdt.toFixed(2)} per rupee, with FX protection`, value: formatBdt(converted) },
-    { icon: "shield", label: "Import duty", note: `${Math.round(importPct * 100)}% for ${p.category}, paid by us at customs`, value: formatBdt(duty) },
-    { icon: "star", label: "Skydrop service", note: "Buying in India, checks and packing", value: formatBdt(service) },
+    { icon: "tag", label: t("pb.priceOn", { source }), note: t("pb.fxNote", { inr: inr(buyInr) + (buyInr < p.priceInr ? t("m.afterCoupon") : ""), rate: "৳" + digits(PRICING.fxInrToBdt.toFixed(2)) }), value: bdt(converted) },
+    { icon: "shield", label: t("pb.duty"), note: t("pb.dutyNote", { pct: Math.round(importPct * 100), category: p.category }), value: bdt(duty) },
+    { icon: "star", label: t("pb.service"), note: t("pb.serviceNote"), value: bdt(service) },
   ];
   return (
-    <Accordion title="Price breakdown" icon="file-text" meta="Import duty and service included. No surprises at the door." market={p.market}>
+    <Accordion title={t("pb.title")} icon="file-text" meta={t("pb.meta")} market={p.market}>
       <View style={{ gap: 10 }}>
         {rows.map((r) => (
           <View key={r.label} style={styles.line}>
@@ -84,13 +86,13 @@ export function PriceBreakdown({ p }: { p: Product }) {
         ))}
         <Divider />
         <View style={[styles.line, { justifyContent: "space-between" }]}>
-          <T v="h3">Item price you pay</T>
+          <T v="h3">{t("pb.youPay")}</T>
           <T v="h3" style={{ fontWeight: "800" }}>
-            {formatBdt(total)}
+            {bdt(total)}
           </T>
         </View>
         <T v="tiny" tone="ink2">
-          Skydrop shipping is added in your cart by weight: {formatBdt(baseBdt)} + {formatBdt(perKgBdt)}/kg per store shipment, free above {formatBdt(freeAboveBdt)}. Prices are verified live at checkout; if {source} changes the price, you see the new total before you pay.
+          {t("pb.shipping")}: {t("pb.shippingRule", { base: bdt(baseBdt), perKg: bdt(perKgBdt), free: bdt(freeAboveBdt) })} {t("pb.verified")} {t("pb.verifiedNote", { source })}
         </T>
       </View>
     </Accordion>
@@ -101,18 +103,19 @@ export function PriceBreakdown({ p }: { p: Product }) {
 export function DeliveryRoute({ market }: { market: MarketId }) {
   const { c } = useTheme();
   const a = useAccent(market);
+  const { t, lang } = useT();
   const { min, max } = deliveryWindow();
   const now = new Date().toISOString();
   const [w, setW] = useState(0);
-  const t = useSharedValue(0);
+  const prog = useSharedValue(0);
   useEffect(() => {
-    t.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.cubic) }), -1, false);
-  }, [t]);
-  const parcel = useAnimatedStyle(() => ({ transform: [{ translateX: t.value * Math.max(0, w - 24) }], opacity: t.value < 0.05 || t.value > 0.95 ? 0.4 : 1 }));
+    prog.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.cubic) }), -1, false);
+  }, [prog]);
+  const parcel = useAnimatedStyle(() => ({ transform: [{ translateX: prog.value * Math.max(0, w - 24) }], opacity: prog.value < 0.05 || prog.value > 0.95 ? 0.4 : 1 }));
   const stops = [
-    { icon: "shopping-bag", title: STORES[market].source, sub: "India store" },
-    { icon: "package", title: "Kolkata hub", sub: "Skydrop checks & packs" },
-    { icon: "home", title: "Your door", sub: "Anywhere in Bangladesh" },
+    { icon: "shopping-bag", title: STORES[market].source, sub: t("ws.store") },
+    { icon: "package", title: t("ws.hub"), sub: t("m.hubSub") },
+    { icon: "home", title: t("dc.door"), sub: t("dc.doorBody") },
   ];
   return (
     <Card style={{ gap: 14 }}>
@@ -120,10 +123,10 @@ export function DeliveryRoute({ market }: { market: MarketId }) {
         <IconChip icon="truck" mode={market} />
         <View style={{ flex: 1 }}>
           <T v="h3" style={{ fontSize: 15 }}>
-            Delivered by Skydrop in {min}-{max} days
+            {t("m.deliveredIn", { min, max })}
           </T>
           <T v="tiny" tone="ink2">
-            Order today, arrives {addDays(now, min)} - {addDays(now, max)}
+            {t("m.orderToday", { from: addDays(now, min, lang), to: addDays(now, max, lang) })}
           </T>
         </View>
       </View>
@@ -157,9 +160,10 @@ export function DeliveryRoute({ market }: { market: MarketId }) {
 export function Specs({ p }: { p: Product }) {
   const specs = Object.entries(p.specs ?? {}).filter(([k, v]) => v && !/customer reviews|best sellers rank/i.test(k));
   const bullets = (p.bullets ?? []).filter(Boolean);
+  const { t } = useT();
   if (!specs.length && !bullets.length) return null;
   return (
-    <Accordion title="About this item" icon="list" meta={`${bullets.length ? "Highlights" : ""}${bullets.length && specs.length ? " and " : ""}${specs.length ? "specifications" : ""}`} market={p.market} initiallyOpen>
+    <Accordion title={t("pd.about")} icon="list" meta={bullets.length && specs.length ? t("m.highlightsSpecs") : bullets.length ? t("m.highlights") : t("pd.specs")} market={p.market} initiallyOpen>
       <View style={{ gap: 8 }}>
         {bullets.slice(0, 6).map((b, i) => (
           <View key={i} style={{ flexDirection: "row", gap: 8 }}>
@@ -189,6 +193,7 @@ export function Specs({ p }: { p: Product }) {
 
 export function Reviews({ p }: { p: Product }) {
   const { c } = useTheme();
+  const { t, digits, num } = useT();
   const a = useAccent(p.market);
   const list = p.reviewList ?? [];
   const bars = (p.starBreakdown ?? []).filter((r) => r.percentage >= 0).sort((x, y) => y.rating - x.rating);
@@ -197,29 +202,29 @@ export function Reviews({ p }: { p: Product }) {
     <Card style={{ gap: 14 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
         <View style={{ alignItems: "center" }}>
-          <T v="h1">{p.rating.toFixed(1)}</T>
+          <T v="h1">{digits(p.rating.toFixed(1))}</T>
           <T v="tiny" tone="ink3">
-            {p.reviews.toLocaleString("en-IN")} ratings
+            {t("m.ratingsN", { count: num(p.reviews) })}
           </T>
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           {bars.map((b) => (
-            <View key={b.rating} style={{ flexDirection: "row", alignItems: "center", gap: 6 }} accessibilityLabel={`${b.rating} stars, ${b.percentage}%`}>
+            <View key={b.rating} style={{ flexDirection: "row", alignItems: "center", gap: 6 }} accessibilityLabel={t("m.starsPct", { rating: b.rating, pct: b.percentage })}>
               <T v="tiny" tone="ink2" style={{ width: 14 }}>
-                {b.rating}
+                {digits(b.rating)}
               </T>
               <View style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: c.surface2, overflow: "hidden" }}>
                 <View style={{ width: `${b.percentage}%`, height: 6, backgroundColor: a.accent }} />
               </View>
               <T v="tiny" tone="ink3" style={{ width: 30, textAlign: "right" }}>
-                {b.percentage}%
+                {digits(b.percentage)}%
               </T>
             </View>
           ))}
         </View>
       </View>
       <T v="tiny" tone="ink3">
-        Reviews from shoppers on {STORES[p.market].source}
+        {t("m.reviewsFrom", { source: STORES[p.market].source })}
       </T>
       {list.slice(0, 5).map((r, i) => (
         <View key={i} style={{ gap: 4 }}>

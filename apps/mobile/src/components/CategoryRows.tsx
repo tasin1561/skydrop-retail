@@ -8,6 +8,7 @@ import type { StoreMode } from "@/lib/types";
 import { useTheme } from "@/theme";
 import { IconChip, T, Tap } from "./ui";
 import { Icon } from "./Icon";
+import { useT } from "@/i18n";
 
 /** Category tree for a store (cached per store for the session). */
 const cache = new Map<StoreMode, CatNode[]>();
@@ -36,30 +37,32 @@ export function openCategory(path: string, store: StoreMode) {
 /** Drill-down rows: icon, English + Bangla name, product count, chevron. */
 export function CategoryRows({ nodes, store }: { nodes: CatNode[]; store: StoreMode }) {
   const { c } = useTheme();
+  const { t, lang, digits } = useT();
+  const bn = lang === "bn";
   return (
     <View style={[styles.list, { backgroundColor: c.surface }]}>
       {nodes.map((n, i) => (
         <Animated.View key={n.path} entering={FadeInDown.delay(Math.min(i, 10) * 25).duration(220)}>
           <Tap
             onPress={() => openCategory(n.path, store)}
-            accessibilityLabel={`${n.name}${n.count ? `, ${n.count} products` : ""}`}
+            accessibilityLabel={`${bn && n.nameBn ? n.nameBn : n.name}${n.count ? `, ${t("m.products", { count: n.count })}` : ""}`}
             style={[styles.row, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line }]}
             scaleTo={0.985}
           >
             <IconChip icon={n.icon} mode={store} size={36} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <T v="body" style={{ fontWeight: "700" }} numberOfLines={1}>
-                {n.name}
+                {bn && n.nameBn ? n.nameBn : n.name}
               </T>
               {!!n.nameBn && (
                 <T v="tiny" tone="ink3" numberOfLines={1}>
-                  {n.nameBn}
+                  {bn ? n.name : n.nameBn}
                 </T>
               )}
             </View>
             {!!n.count && (
               <T v="tiny" tone="ink3">
-                {n.count}
+                {digits(n.count)}
               </T>
             )}
             <Icon name={n.children.length ? "chevron-right" : "arrow-right"} size={18} color={c.ink3} />

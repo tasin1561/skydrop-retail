@@ -10,8 +10,10 @@ import { openFromNotification } from "@/lib/push";
 import { radius, useTheme, withAlpha } from "@/theme";
 import { useStore } from "@/state/store";
 import type { AppNotification } from "@/api/messaging";
+import { useT } from "@/i18n";
 
 export default function NotificationsScreen() {
+  const { t, lang } = useT();
   const { c } = useTheme();
   const { user } = useStore();
   const n = useNotifications();
@@ -22,21 +24,19 @@ export default function NotificationsScreen() {
     const today = n.items.filter((x) => new Date(x.createdAt) >= start);
     const earlier = n.items.filter((x) => new Date(x.createdAt) < start);
     return [
-      { title: "Today", data: today },
-      { title: "Earlier", data: earlier },
+      { title: t("nt.today"), data: today },
+      { title: t("nt.earlier"), data: earlier },
     ].filter((s) => s.data.length > 0);
-  }, [n.items]);
+  }, [n.items, t]);
 
   const header = (
     <Stack.Screen
       options={{
-        title: "Notifications",
+        title: t("nt.title"),
         headerRight: () =>
           n.unread > 0 ? (
-            <Tap onPress={() => (haptic.light(), n.markAllRead())} accessibilityLabel="Mark all as read" style={{ paddingHorizontal: 8, paddingVertical: 6 }}>
-              <T v="label" tone="brand" style={{ fontWeight: "700" }}>
-                Read all
-              </T>
+            <Tap onPress={() => (haptic.light(), n.markAllRead())} accessibilityLabel={t("m.markAllA11y")} style={{ paddingHorizontal: 8, paddingVertical: 6 }}>
+              <T v="label" tone="brand" style={{ fontWeight: "700" }}>{t("m.readAll")}</T>
             </Tap>
           ) : null,
       }}
@@ -47,7 +47,7 @@ export default function NotificationsScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {header}
-        <Empty icon="bell" title="Sign in for updates" text="Order, payment and delivery updates show up here." action="Sign in" onAction={() => router.push("/login")} />
+        <Empty icon="bell" title={t("m.signInUpdates")} text={t("m.updatesHere")} action={t("nav.signIn")} onAction={() => router.push("/login")} />
       </View>
     );
   }
@@ -55,7 +55,7 @@ export default function NotificationsScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {header}
-        <Empty icon="bell-off" title="Not available" text="Notifications are switched off right now." />
+        <Empty icon="bell-off" title={t("rq.notAvail")} text={t("m.notifOff")} />
       </View>
     );
   }
@@ -80,12 +80,12 @@ export default function NotificationsScreen() {
           onEndReachedThreshold={0.4}
           renderSectionHeader={({ section }) => (
             <T v="tiny" tone="ink3" style={styles.section}>
-              {section.title.toUpperCase()}
+              {lang === "bn" ? section.title : section.title.toUpperCase()}
             </T>
           )}
           renderItem={({ item, index }) => <Row n={item} index={index} onRead={n.markRead} onRemove={n.remove} />}
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-          ListEmptyComponent={<Empty icon="bell" title="You are all caught up" text="Order updates, price drops and offers will show up here." />}
+          ListEmptyComponent={<Empty icon="bell" title={t("nt.caught")} text={t("nt.caughtB")} />}
         />
       )}
     </View>
@@ -93,6 +93,7 @@ export default function NotificationsScreen() {
 }
 
 function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number; onRead: (id: number) => void; onRemove: (id: number) => void }) {
+  const { t, lang } = useT();
   const { c } = useTheme();
   const [icon, color] = CHIP[n.type] ?? [n.icon ?? "info", c.brand];
   return (
@@ -103,7 +104,7 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
           if (n.link) openFromNotification({ link: n.link, route: (n.data as { route?: string })?.route });
         }}
         onLongPress={() => (haptic.medium(), onRemove(n.id))}
-        accessibilityLabel={`${n.read ? "" : "Unread. "}${n.title}. ${n.body ?? ""}. Long press to delete.`}
+        accessibilityLabel={`${n.read ? "" : t("m.unreadPrefix")}${n.title}. ${n.body ?? ""}. ${t("m.longPressDelete")}`}
         style={[styles.row, { backgroundColor: n.read ? c.surface : withAlpha(c.brand, c.dark ? 0.14 : 0.06), borderColor: c.line }]}
       >
         <IconChip icon={icon} color={color} size={40} />
@@ -117,12 +118,12 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
             </T>
           )}
           <T v="tiny" tone="ink3" style={{ marginTop: 4 }}>
-            {timeAgo(n.createdAt)}
+            {timeAgo(n.createdAt, lang)}
           </T>
         </View>
         <View style={{ alignItems: "center", gap: 10 }}>
           {!n.read && <View style={[styles.dot, { backgroundColor: c.brand, shadowColor: c.brand }]} />}
-          <Tap onPress={() => onRemove(n.id)} accessibilityLabel="Delete notification" hitSlop={10}>
+          <Tap onPress={() => onRemove(n.id)} accessibilityLabel={t("nt.deleteN")} hitSlop={10}>
             <Icon name="x" size={16} color={c.ink3} />
           </Tap>
         </View>

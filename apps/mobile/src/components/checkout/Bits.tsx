@@ -13,15 +13,17 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import type { CartItem } from "@/lib/types";
-import { formatBdt } from "@/lib/pricing";
 import { BRAND, CORAL, useTheme, withAlpha } from "@/theme";
 import { Icon } from "../Icon";
 import { Card, T, Tap } from "../ui";
+import { useT } from "@/i18n";
+import type { MsgKey } from "@/i18n";
 
 // ---------- stepper with travelling indicator ----------
-export const STEP_LABELS = ["Address", "Delivery", "Payment", "Review"];
+export const STEP_LABELS: MsgKey[] = ["co.step.address", "co.step.delivery", "co.step.payment", "co.step.review"];
 
 export function Stepper({ step, onJump }: { step: number; onJump: (i: number) => void }) {
+  const { t, digits } = useT();
   const { c } = useTheme();
   const [w, setW] = useState(0);
   const x = useSharedValue(0);
@@ -33,7 +35,8 @@ export function Stepper({ step, onJump }: { step: number; onJump: (i: number) =>
   return (
     <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ gap: 8 }}>
       <View style={{ flexDirection: "row" }}>
-        {STEP_LABELS.map((l, i) => {
+        {STEP_LABELS.map((k, i) => {
+          const l = t(k);
           const done = i < step;
           const on = i === step;
           return (
@@ -41,7 +44,7 @@ export function Stepper({ step, onJump }: { step: number; onJump: (i: number) =>
               key={l}
               onPress={() => done && onJump(i)}
               disabled={!done}
-              accessibilityLabel={`Step ${i + 1}, ${l}${done ? ", done" : on ? ", current" : ""}`}
+              accessibilityLabel={t("m.stepA11y", { n: i + 1, label: done ? t("m.stageDone", { label: l }) : on ? t("m.stageCurrent", { label: l }) : l })}
               style={{ flex: 1, alignItems: "center", gap: 4, minHeight: 48, justifyContent: "center" }}
             >
               <View style={[styles.stepDot, { backgroundColor: done || on ? BRAND : c.surface2 }]}>
@@ -49,7 +52,7 @@ export function Stepper({ step, onJump }: { step: number; onJump: (i: number) =>
                   <Icon name="check" size={13} color="#fff" />
                 ) : (
                   <T v="tiny" style={{ fontWeight: "800", color: on ? "#fff" : c.ink3 }}>
-                    {i + 1}
+                    {digits(i + 1)}
                   </T>
                 )}
               </View>
@@ -69,21 +72,21 @@ export function Stepper({ step, onJump }: { step: number; onJump: (i: number) =>
 
 // ---------- live verification panel ----------
 export type CheckState = "wait" | "run" | "ok" | "warn" | "fail";
-export const CHECKS = [
-  { id: "price", run: "Checking live price…", ok: "Live price confirmed", warn: "Some prices changed", fail: "Couldn't confirm price" },
-  { id: "stock", run: "Checking stock…", ok: "In stock in India", warn: "In stock in India", fail: "Some items unavailable" },
-  { id: "hub", run: "Checking delivery to Kolkata hub…", ok: "Delivers to Skydrop's Kolkata hub", warn: "Delivers to Skydrop's Kolkata hub", fail: "Can't deliver to the Kolkata hub" },
-] as const;
+/** Labels are dictionary keys. */
+export const CHECKS: { id: string; run: MsgKey; ok: MsgKey; warn: MsgKey; fail: MsgKey }[] = [
+  { id: "price", run: "vp.priceRun", ok: "vp.priceOk", warn: "vp.priceWarn", fail: "vp.priceFail" },
+  { id: "stock", run: "vp.stockRun", ok: "vp.stockOk", warn: "vp.stockOk", fail: "vp.stockFail" },
+  { id: "hub", run: "vp.hubRun", ok: "vp.hubOk", warn: "vp.hubOk", fail: "vp.hubFail" },
+];
 
 export function VerifyPanel({ states, changed, failed, error }: { states: CheckState[]; changed: { item: CartItem; fresh: number }[]; failed: CartItem[]; error: string | null }) {
+  const { t, bdt } = useT();
   const { c } = useTheme();
   return (
     <Card style={{ gap: 10 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Icon name="shield" size={17} color={BRAND} />
-        <T v="h3" style={{ fontSize: 15 }}>
-          Live verification with the Indian stores
-        </T>
+        <T v="h3" style={{ fontSize: 15 }}>{t("vp.title")}</T>
       </View>
       <View accessibilityLiveRegion="polite" style={{ gap: 8 }}>
         {CHECKS.map((ck, i) => {
@@ -103,7 +106,7 @@ export function VerifyPanel({ states, changed, failed, error }: { states: CheckS
                 )}
               </View>
               <T v="small" style={{ flex: 1, color: s === "wait" ? c.ink3 : s === "fail" ? c.bad : c.ink, fontWeight: s === "run" ? "700" : "500" }}>
-                {s === "wait" || s === "run" ? ck.run : s === "ok" ? ck.ok : s === "warn" ? ck.warn : ck.fail}
+                {t(s === "wait" || s === "run" ? ck.run : s === "ok" ? ck.ok : s === "warn" ? ck.warn : ck.fail)}
               </T>
             </View>
           );
@@ -120,7 +123,7 @@ export function VerifyPanel({ states, changed, failed, error }: { states: CheckS
             {item.title}
           </T>
           <T v="tiny" tone="ink2">
-            Price changed from {formatBdt(item.unitBdt)} to {formatBdt(fresh)}. Your cart is updated.
+            {t("m.priceChanged", { from: bdt(item.unitBdt), to: bdt(fresh) })}
           </T>
         </Animated.View>
       ))}
@@ -129,9 +132,7 @@ export function VerifyPanel({ states, changed, failed, error }: { states: CheckS
           <T v="small" numberOfLines={1} style={{ fontWeight: "700" }}>
             {item.title}
           </T>
-          <T v="tiny" tone="bad">
-            Not available right now. Remove it to continue.
-          </T>
+          <T v="tiny" tone="bad">{t("m.notAvail")}</T>
         </View>
       ))}
     </Card>

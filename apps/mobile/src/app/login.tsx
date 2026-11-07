@@ -11,8 +11,10 @@ import { haptic } from "@/lib/haptics";
 import { Button, IconChip, T } from "@/components/ui";
 import { OtpInput } from "@/components/OtpInput";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/i18n";
 
 export default function Login() {
+  const { t } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { next } = useLocalSearchParams<{ next?: string }>();
@@ -25,12 +27,12 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
-  const check = checkPhone(digits);
+  const check = checkPhone(digits, t);
 
   useEffect(() => {
     if (resendIn <= 0) return;
-    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
   }, [resendIn]);
 
   async function sendCode() {
@@ -42,7 +44,7 @@ export default function Login() {
       haptic.success();
       setStep("code");
       setResendIn(30);
-      if (r.demoCode) toast({ kind: "info", title: "Demo sign-in", body: `Any 6 digits work (e.g. ${r.demoCode}).` });
+      if (r.demoCode) toast({ kind: "info", title: t("m.demoSignIn"), body: t("m.anyDigits", { code: r.demoCode }) });
     } catch (e) {
       haptic.error();
       setErr((e as Error).message);
@@ -59,12 +61,12 @@ export default function Login() {
       const r = await api.otpVerify(toE164(digits), v, name.trim() || undefined);
       haptic.success();
       signIn(r.user);
-      toast({ kind: "success", title: r.isNew ? "Welcome to Skydrop Retail" : "Signed in" });
+      toast({ kind: "success", title: r.isNew ? t("nd.welcome") : t("m.signedIn") });
       if (next) router.replace(next as never);
       else router.back();
     } catch (e) {
       haptic.error();
-      setErr((e as Error).message || "That code didn't work");
+      setErr((e as Error).message || t("m.codeBad"));
       setCode("");
     } finally {
       setBusy(false);
@@ -80,12 +82,8 @@ export default function Login() {
         {step === "phone" ? (
           <Animated.View key="phone" entering={FadeInRight} exiting={FadeOutLeft} style={{ gap: 16 }}>
             <View>
-              <T v="h1" accessibilityRole="header">
-                Sign in with your phone
-              </T>
-              <T v="body" tone="ink2">
-                We'll text a 6-digit code to your Bangladesh mobile number.
-              </T>
+              <T v="h1" accessibilityRole="header">{t("so.signInPhone")}</T>
+              <T v="body" tone="ink2">{t("m.textCode")}</T>
             </View>
             <View>
               <View style={[styles.phone, { backgroundColor: c.surface, borderColor: check.tone === "bad" ? c.bad : c.line }]}>
@@ -94,7 +92,7 @@ export default function Login() {
                 </View>
                 <TextInput
                   value={formatPhone(digits)}
-                  onChangeText={(t) => setDigits(phoneDigits(t))}
+                  onChangeText={(v) => setDigits(phoneDigits(v))}
                   placeholder="1712-345678"
                   placeholderTextColor={c.ink3}
                   keyboardType="phone-pad"
@@ -104,7 +102,7 @@ export default function Login() {
                   maxLength={11}
                   returnKeyType="next"
                   onSubmitEditing={sendCode}
-                  accessibilityLabel="Mobile number after +880"
+                  accessibilityLabel={t("m.phoneAfter")}
                   style={[styles.phoneInput, { color: c.ink }]}
                 />
               </View>
@@ -115,29 +113,25 @@ export default function Login() {
             <TextInput
               value={name}
               onChangeText={setName}
-              placeholder="Your name (for new accounts)"
+              placeholder={t("m.namePh")}
               placeholderTextColor={c.ink3}
               textContentType="name"
               autoComplete="name"
-              accessibilityLabel="Your name"
+              accessibilityLabel={t("qs.name")}
               style={[styles.field, { color: c.ink, backgroundColor: c.surface, borderColor: c.line }]}
             />
             {err && <T v="small" tone="bad">{err}</T>}
-            <Button label="Send code" icon="send" onPress={sendCode} busy={busy} disabled={!check.valid} />
+            <Button label={t("lg.send")} icon="send" onPress={sendCode} busy={busy} disabled={!check.valid} />
             {demo && (
-              <T v="tiny" tone="ink3" style={{ textAlign: "center" }}>
-                Demo mode: no SMS is sent. Any 6-digit code signs you in on this device.
-              </T>
+              <T v="tiny" tone="ink3" style={{ textAlign: "center" }}>{t("m.demoOtp")}</T>
             )}
           </Animated.View>
         ) : (
           <Animated.View key="code" entering={FadeInRight} exiting={FadeOutLeft} style={{ gap: 18 }}>
             <View>
-              <T v="h1" accessibilityRole="header">
-                Enter the code
-              </T>
+              <T v="h1" accessibilityRole="header">{t("m.enterCode")}</T>
               <T v="body" tone="ink2">
-                Sent to +880 {formatPhone(digits)}
+                {t("m.sentTo", { phone: digits ? formatPhone(digits) : "" })}
               </T>
             </View>
             <OtpInput
@@ -154,10 +148,10 @@ export default function Login() {
                 {err}
               </T>
             )}
-            <Button label="Verify and sign in" onPress={() => verify()} busy={busy} disabled={code.length !== 6} />
+            <Button label={t("m.verifySignIn")} onPress={() => verify()} busy={busy} disabled={code.length !== 6} />
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <Button label="Change number" kind="ghost" onPress={() => setStep("phone")} style={{ minHeight: 44 }} />
-              <Button label={resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"} kind="ghost" disabled={resendIn > 0} onPress={sendCode} style={{ minHeight: 44 }} />
+              <Button label={t("m.changeNumber")} kind="ghost" onPress={() => setStep("phone")} style={{ minHeight: 44 }} />
+              <Button label={resendIn > 0 ? t("m.resendIn", { n: resendIn }) : t("lg.resend")} kind="ghost" disabled={resendIn > 0} onPress={sendCode} style={{ minHeight: 44 }} />
             </View>
           </Animated.View>
         )}

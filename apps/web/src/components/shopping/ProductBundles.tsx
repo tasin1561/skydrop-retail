@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
-import { formatBdt } from "@/lib/pricing";
 import type { Bundle } from "@/lib/shopping/types";
 import { getT } from "@/i18n/server";
 

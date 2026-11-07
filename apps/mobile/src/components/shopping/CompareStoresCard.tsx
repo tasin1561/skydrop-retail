@@ -5,12 +5,13 @@ import { Card, IconChip, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useFeature } from "@/lib/features";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import { shopping, type CompareResult } from "@/lib/shopping";
 import { useTheme } from "@/theme";
+import { useT } from "@/i18n";
 
-/** "Compare stores": the same product on other listings; tap a row to switch to it. */
+/** t("cmp.title"): the same product on other listings; tap a row to switch to it. */
 export function CompareStoresCard({ id }: { id: string }) {
+  const { t, bdt } = useT();
   const on = useFeature("compare_stores");
   const { c } = useTheme();
   const [data, setData] = useState<CompareResult | null>(null);
@@ -32,10 +33,10 @@ export function CompareStoresCard({ id }: { id: string }) {
   return (
     <Card pad={0}>
       <View style={{ padding: 16, paddingBottom: 8 }}>
-        <T v="h3">Compare stores</T>
+        <T v="h3">{t("cmp.title")}</T>
         {best && !best.current && data.savingBdt > 0 && (
           <T v="small" tone="good" style={{ fontWeight: "700", marginTop: 4 }}>
-            Save {formatBdt(data.savingBdt)} on {STORES[best.market].name} for the same item.
+            {t("cmp.save", { amount: bdt(data.savingBdt), store: STORES[best.market].name })}
           </T>
         )}
       </View>
@@ -44,7 +45,7 @@ export function CompareStoresCard({ id }: { id: string }) {
           key={r.productId}
           disabled={r.current}
           onPress={() => router.push(`/product/${encodeURIComponent(r.productId)}`)}
-          accessibilityLabel={`${STORES[r.market].name}, ${formatBdt(r.priceBdt)}${r.best ? ", best price" : ""}${r.current ? ", viewing" : ""}`}
+          accessibilityLabel={[t("m.cmpA11y", { store: STORES[r.market].name, price: bdt(r.priceBdt) }), r.best ? t("cmp.best") : "", r.current ? t("cmp.viewing") : ""].filter(Boolean).join(", ")}
           style={[styles.row, { borderTopColor: c.line, backgroundColor: r.current ? c.surface2 : "transparent" }]}
           scaleTo={0.99}
         >
@@ -57,18 +58,18 @@ export function CompareStoresCard({ id }: { id: string }) {
               {r.best && (
                 <View style={[styles.tag, { backgroundColor: c.good }]}>
                   <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
-                    BEST PRICE
+                    {t("cmp.best")}
                   </T>
                 </View>
               )}
             </View>
             <T v="small" tone="ink2">
-              {r.inStock ? `${r.delivery.min}-${r.delivery.max} days to your door` : "Out of stock"}
-              {r.current ? " · viewing" : ""}
+              {r.inStock ? t("cmp.days", { min: r.delivery.min, max: r.delivery.max }) : t("stock.out")}
+              {r.current ? ` · ${t("cmp.viewing")}` : ""}
             </T>
           </View>
           <T v="body" style={{ fontWeight: "800", color: r.best ? c.good : c.ink }}>
-            {formatBdt(r.priceBdt)}
+            {bdt(r.priceBdt)}
           </T>
           {!r.current && <Icon name="chevron-right" size={16} color={c.ink3} />}
         </Tap>

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { SUPPORT } from "@/lib/support";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 
 const CHAT_PATH = "M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM8 10h.01M12 10h.01M16 10h.01";
 
@@ -16,6 +17,7 @@ const CHAT_PATH = "M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1
  */
 export function SupportButton() {
   const on = useFeature("support_chat");
+  const { t } = useT();
   const path = usePathname() ?? "";
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -56,16 +58,16 @@ export function SupportButton() {
           <span className="sc-dot" style={{ background: o.bg }}>
             <Icon name="phone" size={16} />
           </span>
-          Chat on {o.label}
+          {t("sup.chatOn", { name: o.label })}
         </a>
       ))}
       <Link href="/contact" className="sc-opt" style={{ ["--k" as string]: 0 }} tabIndex={open ? 0 : -1} aria-hidden={!open} onClick={() => setOpen(false)}>
         <span className="sc-dot bg-accent">
           <Icon name="help" size={16} />
         </span>
-        Help and contact
+        {t("sup.help")}
       </Link>
-      <button type="button" className="sc-main" aria-expanded={open} aria-label={open ? "Close support options" : "Chat with support"} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className="sc-main" aria-expanded={open} aria-label={open ? t("sup.close") : t("sup.chat")} onClick={() => setOpen((o) => !o)}>
         <svg className="sc-ic sc-ic-chat" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d={CHAT_PATH} />
         </svg>

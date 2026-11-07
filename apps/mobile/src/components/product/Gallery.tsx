@@ -9,12 +9,14 @@ import { ProductImage } from "../ui";
 import { Icon } from "../Icon";
 import { sized } from "@/lib/variants";
 import { useTheme } from "@/theme";
+import { useT } from "@/i18n";
 
 export type Media = { kind: "image"; src: string } | { kind: "video"; hls: string; thumb: string | null };
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<Media>);
 
 export function Gallery({ media, placeholder, title }: { media: Media[]; placeholder?: { hue: number; icon: string }; title: string }) {
+  const { t } = useT();
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
   const [index, setIndex] = useState(0);
@@ -44,7 +46,7 @@ export function Gallery({ media, placeholder, title }: { media: Media[]; placeho
                 contentFit="contain"
                 transition={200}
                 cachePolicy="memory-disk"
-                accessibilityLabel={`${title}, photo ${i + 1} of ${media.length}`}
+                accessibilityLabel={t("m.photoOf", { title, n: i + 1, total: media.length })}
               />
             </View>
           ) : (
@@ -55,7 +57,7 @@ export function Gallery({ media, placeholder, title }: { media: Media[]; placeho
         windowSize={3}
       />
       {media.length > 1 && (
-        <View style={styles.dots} accessibilityLabel={`Item ${index + 1} of ${media.length}`}>
+        <View style={styles.dots} accessibilityLabel={t("m.itemOf", { n: index + 1, total: media.length })}>
           {media.map((m, i) => (
             <Dot key={i} i={i} x={x} width={width} video={m.kind === "video"} />
           ))}
@@ -79,10 +81,11 @@ function Dot({ i, x, width, video }: { i: number; x: SharedValue<number>; width:
 
 // Native HLS playback: AVPlayer on iOS, ExoPlayer (Media3) on Android.
 function VideoSlide({ hls, thumb, size, active }: { hls: string; thumb: string | null; size: number; active: boolean }) {
+  const { t } = useT();
   const [started, setStarted] = useState(false);
   if (!started || !active)
     return (
-      <Pressable onPress={() => setStarted(true)} accessibilityRole="button" accessibilityLabel="Play product video" style={{ width: size, height: size, backgroundColor: "#000" }}>
+      <Pressable onPress={() => setStarted(true)} accessibilityRole="button" accessibilityLabel={t("m.playVideo")} style={{ width: size, height: size, backgroundColor: "#000" }}>
         {thumb && <Image source={{ uri: thumb }} style={StyleSheet.absoluteFill} contentFit="cover" />}
         <View style={styles.play}>
           <Icon name="play" size={28} color="#fff" />

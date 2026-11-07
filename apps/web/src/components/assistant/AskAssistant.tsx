@@ -3,18 +3,20 @@
 import { openAssistant } from "@/lib/assistant/client";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { AiGlyph } from "./AiGlyph";
+import { useT } from "@/i18n/client";
 
 /** "Ask about this product" (product page). Hidden when the ai_assistant feature is off. */
 export function AskAboutProduct({ productId, title }: { productId: string; title: string }) {
   const on = useFeature("ai_assistant");
+  const { t } = useT();
   if (!on) return null;
   return (
     <button
       type="button"
       className="ai-entry"
-      onClick={() => openAssistant({ productId, prompt: `Tell me about "${title.slice(0, 80)}": is it worth it, and when would it arrive?`, send: true })}
+      onClick={() => openAssistant({ productId, prompt: t("ai.askProductPrompt", { title: title.slice(0, 80) }), send: true })}
     >
-      <AiGlyph size={16} /> Ask Skydrop AI about this product
+      <AiGlyph size={16} /> {t("ai.askProduct")}
     </button>
   );
 }
@@ -22,14 +24,15 @@ export function AskAboutProduct({ productId, title }: { productId: string; title
 /** "Help me choose" (search results). */
 export function HelpMeChoose({ query }: { query: string }) {
   const on = useFeature("ai_assistant");
+  const { t } = useT();
   if (!on || !query.trim()) return null;
   return (
     <button
       type="button"
       className="ai-entry"
-      onClick={() => openAssistant({ prompt: `Help me choose the best ${query.slice(0, 60)}. My budget is ৳`, send: false })}
+      onClick={() => openAssistant({ prompt: t("ai.helpChoosePrompt", { query: query.slice(0, 60) }), send: false })}
     >
-      <AiGlyph size={16} /> Help me choose
+      <AiGlyph size={16} /> {t("ai.helpChoose")}
     </button>
   );
 }

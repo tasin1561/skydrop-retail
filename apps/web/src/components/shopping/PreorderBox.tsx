@@ -7,7 +7,6 @@ import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { apiEnabled, ApiError } from "@/lib/apiClient";
-import { formatBdt } from "@/lib/pricing";
 import { placePreorder, preorderInfo, type HistoryInput } from "@/lib/shopping/client";
 import type { PreorderInfo } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";

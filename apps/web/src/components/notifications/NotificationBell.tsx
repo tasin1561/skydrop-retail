@@ -7,11 +7,13 @@ import { Icon } from "@/components/Icon";
 import { NotificationList } from "./NotificationList";
 import { useNotifications } from "./useNotifications";
 import "./notifications.css";
+import { useT } from "@/i18n/client";
 
 /** Header bell: unread badge; dropdown panel on desktop, the /notifications page on mobile. Hidden when signed out or switched off. */
 export function NotificationBell() {
   const n = useNotifications();
   const [open, setOpen] = useState(false);
+  const { t, digits } = useT();
   const [ring, setRing] = useState(0);
   const prevUnread = useRef(n.unread);
   const wrap = useRef<HTMLDivElement>(null);
@@ -42,7 +44,7 @@ export function NotificationBell() {
   }, [open]);
 
   if (!n.enabled) return null;
-  const label = n.unread > 0 ? `Notifications, ${n.unread} unread` : "Notifications";
+  const label = n.unread > 0 ? t("nt.unreadAria", { count: n.unread }) : t("nt.title");
 
   return (
     <div ref={wrap} className="relative">
@@ -67,7 +69,7 @@ export function NotificationBell() {
             key={n.unread}
             className="nc-badge absolute right-1.5 top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-bad px-1 text-[10px] font-bold leading-none text-white ring-2 ring-[var(--bg)]"
           >
-            {n.unread > 99 ? "99+" : n.unread}
+            {digits(n.unread > 99 ? "99+" : n.unread)}
           </span>
         )}
       </button>
@@ -75,16 +77,16 @@ export function NotificationBell() {
       {open && (
         <div
           role="dialog"
-          aria-label="Notifications"
+          aria-label={t("nt.title")}
           className="nc-panel absolute right-0 top-[calc(100%+8px)] z-50 hidden w-[380px] overflow-hidden rounded-3xl border border-line bg-surface shadow-[var(--shadow-2)] md:block"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="font-bold text-ink">
-              Notifications {n.unread > 0 && <span className="ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent">{n.unread} new</span>}
+              {t("nt.title")} {n.unread > 0 && <span className="ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent">{t("nt.new", { count: n.unread })}</span>}
             </p>
             <button type="button" onClick={n.markAllRead} disabled={n.unread === 0}
               className="rounded-full px-2.5 py-1 text-xs font-semibold text-accent transition hover:bg-accent-soft disabled:opacity-40">
-              Mark all read
+              {t("nt.markAll")}
             </button>
           </div>
           <div className="max-h-[min(70vh,520px)] overflow-y-auto overscroll-contain p-2">
@@ -99,7 +101,7 @@ export function NotificationBell() {
             )}
           </div>
           <Link href="/notifications" onClick={() => setOpen(false)} className="block border-t border-line px-4 py-2.5 text-center text-sm font-semibold text-accent transition hover:bg-surface-2">
-            See all notifications
+            {t("nt.seeAll")}
           </Link>
         </div>
       )}

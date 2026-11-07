@@ -5,11 +5,12 @@
 // Demo mode (no NEXT_PUBLIC_API_URL): items generated from the locally stored orders; read/deleted state in localStorage.
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { api, apiEnabled, type AppNotification } from "@/lib/apiClient";
-import { currentStatus, stageIndex, STAGES, DEMO_STAGE_MS } from "@/lib/orderStatus";
-import { formatBdt } from "@/lib/pricing";
+import { currentStatus, stageIndex, STAGES, stageDetail, stageLabel, DEMO_STAGE_MS } from "@/lib/orderStatus";
 import type { Order } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/components/features/FeaturesProvider";
+import { makeT, type MsgKey, type Translator } from "@/i18n/core";
+import { useLang } from "@/i18n/client";
 
 type State = { items: AppNotification[]; unread: number; loaded: boolean; loading: boolean; hasMore: boolean; page: number };
 
@@ -65,18 +66,18 @@ export function demoNotifications(orders: Order[], now = Date.now()): AppNotific
       const at = s.status === "placed" ? created : created + i * DEMO_STAGE_MS;
       out.push({
         id: hashId(o.id + s.status), type: s.status === "placed" ? "order_placed" : `order_${s.status}`,
-        title: s.status === "placed" ? `Order ${o.id} placed` : s.label.replace("{store}", "the store"),
-        body: s.status === "placed" ? `Total ${formatBdt(o.total)}. We will verify price and stock, then buy it in India.` : s.detail,
+        title: s.status === "placed" ? demoTr.t("nd.placed", { id: o.id }) : stageLabel(s, undefined, demoTr),
+        body: s.status === "placed" ? demoTr.t("nd.placedB", { amount: demoTr.bdt(o.total) }) : stageDetail(s, demoTr),
         icon: STATUS_ICON[s.status] ?? "info", link: `/orders/${o.id}`, image: o.items[0]?.image ?? null, data: { orderId: o.id },
         read: false, createdAt: new Date(at).toISOString(),
       });
     });
     if (status === "cancelled") {
-      out.push({ id: hashId(o.id + "cancelled"), type: "order_cancelled", title: `Order ${o.id} cancelled`, body: "Any payment is refunded to your original method.",
+      out.push({ id: hashId(o.id + "cancelled"), type: "order_cancelled", title: demoTr.t("nd.cancelled", { id: o.id }), body: demoTr.t("nd.cancelledB"),
         icon: "x", link: `/orders/${o.id}`, image: null, data: { orderId: o.id }, read: false, createdAt: new Date(created + 60_000).toISOString() });
     }
   }
-  out.push({ id: 1, type: "welcome", title: "Welcome to Skydrop Retail", body: "Shop Amazon India, Flipkart and BigBasket in taka. Skydrop delivers to your door.",
+  out.push({ id: 1, type: "welcome", title: demoTr.t("nd.welcome"), body: demoTr.t("nd.welcomeB"),
     icon: "spark", link: "/", image: null, data: {}, read: false, createdAt: new Date(now - 3 * 86_400_000).toISOString() });
   return out
     .filter((n) => !marks.removed.includes(n.id))
@@ -86,6 +87,7 @@ export function demoNotifications(orders: Order[], now = Date.now()): AppNotific
 
 // ---------- actions ----------
 let demoOrders: Order[] = [];
+let demoTr: Translator = makeT("en"); // demo notifications follow the shopper's language
 
 async function fetchPage(page = 1) {
   if (!apiEnabled) {
@@ -163,6 +165,7 @@ function stopPolling() {
 /** Notification centre for the signed-in shopper. `enabled` is false when signed out or the feature is off. */
 export function useNotifications() {
   const { user, token, orders, ready } = useStore();
+  const { lang } = useLang();
   const featureOn = useFeature("in_app_notifications");
   const enabled = featureOn && ready && !!user && (!apiEnabled || !!token);
   const s = useSyncExternalStore(subscribe, () => state, () => EMPTY);
@@ -173,10 +176,11 @@ export function useNotifications() {
       return;
     }
     demoOrders = orders;
+    demoTr = makeT(lang);
     fetchPage(1);
     startPolling();
     return stopPolling;
-  }, [enabled, token, orders]);
+  }, [enabled, token, orders, lang]);
 
   const loadMore = useCallback(() => {
     if (state.hasMore && !state.loading) fetchPage(state.page + 1);
@@ -186,22 +190,18 @@ export function useNotifications() {
 }
 
 /** "Today" / "Earlier" groups, newest first. */
-export function groupByDay(items: AppNotification[], now = new Date()) {
+export function groupByDay(items: AppNotification[], now = new Date()): { label: MsgKey; items: AppNotification[] }[] {
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
   const today = items.filter((n) => new Date(n.createdAt) >= start);
   const earlier = items.filter((n) => new Date(n.createdAt) < start);
   return [
-    { label: "Today", items: today },
-    { label: "Earlier", items: earlier },
+    { label: "nt.today" as MsgKey, items: today },
+    { label: "nt.earlier" as MsgKey, items: earlier },
   ].filter((g) => g.items.length > 0);
 }
 
-export function timeAgo(iso: string, now = Date.now()) {
-  const s = Math.max(0, Math.round((now - new Date(iso).getTime()) / 1000));
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
-  const d = Math.floor(s / 86400);
-  return d === 1 ? "yesterday" : d < 7 ? `${d} days ago` : new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+/** "2 minutes ago", "yesterday", "২ দিন আগে" (Intl.RelativeTimeFormat in the shopper's language). */
+export function timeAgo(iso: string, tr: Translator = makeT("en")) {
+  return tr.rel(iso);
 }

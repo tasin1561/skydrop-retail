@@ -9,10 +9,13 @@ import { ConfirmDialog, EmptyState, LoadingBlock, PageHead, Sheet, UndoToast, ty
 import { SignedOut } from "./SignedOut";
 import { AddressForm } from "./AddressForm";
 import { prettyPhone } from "./phone";
+import { useT } from "@/i18n/client";
+import { bdName } from "@/lib/bd";
 
 export function AddressBook() {
   const { ready, user, addresses, saveAddress, removeAddress } = useStore();
   const toast = useToast();
+  const { t, lang } = useT();
   const [editing, setEditing] = useState<Address | "new" | null>(null);
   const [deleting, setDeleting] = useState<Address | null>(null);
   const [undo, setUndo] = useState<UndoToastState>(null);
@@ -27,7 +30,7 @@ export function AddressBook() {
   if (!user)
     return (
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-10 md:pb-12">
-        <SignedOut next="/account/addresses" title="Sign in to manage addresses" body="Save delivery addresses for faster checkout." />
+        <SignedOut next="/account/addresses" title={t("ab.signIn")} body={t("ab.signInB")} />
       </div>
     );
 
@@ -36,7 +39,7 @@ export function AddressBook() {
 
   function makeDefault(a: Address) {
     saveAddress({ ...a, isDefault: true });
-    toast({ kind: "success", title: "Default address updated", body: `${a.area}, ${a.district}` });
+    toast({ kind: "success", title: t("ab.defaultUpdated"), body: `${a.area}, ${bdName(a.district, lang)}` });
   }
 
   function doDelete(a: Address) {
@@ -47,7 +50,7 @@ export function AddressBook() {
     if (wasDefault && others.length) saveAddress({ ...others[0], isDefault: true });
     setUndo({
       id: Date.now(),
-      title: "Address deleted",
+      title: t("ab.deleted"),
       body: `${a.name}, ${a.area}`,
       undo: () => saveAddress({ ...a }),
     });
@@ -55,13 +58,13 @@ export function AddressBook() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
-      <PageHead title="Addresses" sub="Where Skydrop delivers your parcels" icon="pin" back={{ href: "/account", label: "Account" }} />
+      <PageHead title={t("acc.addresses")} sub={t("ab.sub")} icon="pin" back={{ href: "/account", label: t("acc.account") }} />
 
       {list.length === 0 ? (
         <EmptyState
-          title="No saved addresses yet"
-          body="Add your home or office address. Skydrop delivers to all 64 districts."
-          action={{ label: "Add address", onClick: () => setEditing("new") }}
+          title={t("ab.none")}
+          body={t("ab.noneB")}
+          action={{ label: t("ab.add"), onClick: () => setEditing("new") }}
         />
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2" aria-live="polite">
@@ -76,30 +79,30 @@ export function AddressBook() {
                     <p className="font-bold">{a.name}</p>
                     {a.isDefault && (
                       <span className="ac-chip">
-                        <Icon name="check" size={12} stroke={2.6} /> Default
+                        <Icon name="check" size={12} stroke={2.6} /> {t("addr.default")}
                       </span>
                     )}
                   </div>
                   <p className="text-sm tabular-nums text-ink-2">{prettyPhone(a.phone)}</p>
                   <p className="mt-1 text-sm">{a.line}</p>
                   <p className="text-sm text-ink-2">
-                    {a.area}, {a.district}, {a.division}
+                    {a.area}, {bdName(a.district, lang)}, {bdName(a.division, lang)}
                   </p>
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 pt-1">
                 <button type="button" className="btn btn-ghost h-11 px-4 text-sm" onClick={() => setEditing(a)}>
-                  <Icon name="settings" size={16} /> Edit
+                  <Icon name="settings" size={16} /> {t("ab.edit")}
                 </button>
                 {!a.isDefault && (
                   <button type="button" className="btn btn-ghost h-11 px-4 text-sm" onClick={() => makeDefault(a)}>
-                    <Icon name="star" size={16} /> Set default
+                    <Icon name="star" size={16} /> {t("ab.setDefault")}
                   </button>
                 )}
                 <button
                   type="button"
                   className="btn ml-auto h-11 w-11 px-0 text-bad hover:bg-surface-2"
-                  aria-label={`Delete address for ${a.name}, ${a.area}`}
+                  aria-label={t("ab.deleteFor", { name: a.name, area: a.area })}
                   onClick={() => setDeleting(a)}
                 >
                   <Icon name="trash" size={18} />
@@ -121,16 +124,16 @@ export function AddressBook() {
           <Icon name="plus" size={18} />
         </span>
         <span className="flex-1">
-          <span className="block font-semibold text-accent">Add a new address</span>
-          <span className="block text-xs text-ink-2">Home, office or a family member</span>
+          <span className="block font-semibold text-accent">{t("addr.addNew")}</span>
+          <span className="block text-xs text-ink-2">{t("ab.addSub")}</span>
         </span>
         <Icon name="right" size={18} className="ac-chev" />
       </button>
 
       {editing && (
         <Sheet
-          title={editing === "new" ? "New address" : "Edit address"}
-          description="Skydrop riders call this number before delivery."
+          title={editing === "new" ? t("ab.new") : t("ab.editTitle")}
+          description={t("ab.riders")}
           icon="pin"
           onClose={() => setEditing(null)}
         >
@@ -143,7 +146,7 @@ export function AddressBook() {
               onCancel={close}
               onSave={(a) => {
                 saveAddress(a);
-                toast({ kind: "success", title: editing === "new" ? "Address saved" : "Address updated", body: `${a.area}, ${a.district}` });
+                toast({ kind: "success", title: editing === "new" ? t("ab.saved") : t("ab.updated"), body: `${a.area}, ${bdName(a.district, lang)}` });
                 setTimeout(close, 500);
               }}
             />
@@ -153,9 +156,9 @@ export function AddressBook() {
 
       {deleting && (
         <ConfirmDialog
-          title="Delete this address?"
-          body={`${deleting.name}, ${deleting.line}, ${deleting.area}. You can undo for a few seconds.`}
-          confirmLabel="Delete"
+          title={t("ab.deleteQ")}
+          body={t("ab.deleteB", { address: `${deleting.name}, ${deleting.line}, ${deleting.area}` })}
+          confirmLabel={t("ab.delete")}
           icon="trash"
           danger
           onClose={() => setDeleting(null)}

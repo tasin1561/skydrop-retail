@@ -2,6 +2,7 @@
 
 import type { Tracking } from "@/lib/fulfilment";
 import "./fulfilment.css";
+import { useT } from "@/i18n/client";
 
 // Stylised map of West Bengal + Bangladesh (original simplified artwork, no tiles).
 // Equirectangular projection over lng 87.6–92.8, lat 20.6–26.7.
@@ -43,6 +44,7 @@ function bez(a: Pt, c: Pt, b: Pt, t: number): Pt {
 }
 
 export function RouteMap({ tracking, showRider = true }: { tracking: Tracking; showRider?: boolean }) {
+  const tr = useT();
   const pts = tracking.points.map((p) => {
     const [x, y] = px(p.lng, p.lat);
     return { ...p, x, y };
@@ -64,21 +66,21 @@ export function RouteMap({ tracking, showRider = true }: { tracking: Tracking; s
   const reached = (i: number) => !cancelled && tracking.currentLeg !== null && tracking.progress >= i / total - 1e-6;
 
   const label = cancelled
-    ? "Order cancelled"
-    : `Route from ${pts[0].short} through ${pts[1].short} and ${pts[2].short} to ${pts[3].short}. ${Math.round(tracking.progress * 100)}% of the way.`;
+    ? tr.t("rm.cancelled")
+: tr.t("rm.route", { a: pts[0].short, b: pts[1].short, c: pts[2].short, d: pts[3].short, pct: Math.round(tracking.progress * 100) });
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="ff-map" role="img" aria-label={label}>
       <polygon points={poly(SEA)} className="ff-water" />
       <polygon points={poly(BD)} className="ff-bd" />
       <text x={px(88.25, 25.0)[0] - 30} y={px(88.25, 25.0)[1]} className="ff-country" aria-hidden>
-        INDIA
+        {tr.t("rm.india")}
       </text>
       <text x={px(90.1, 24.55)[0]} y={px(90.1, 24.55)[1]} className="ff-country" aria-hidden>
-        BANGLADESH
+        {tr.t("rm.bd")}
       </text>
       <text x={px(89.6, 21.1)[0]} y={px(89.6, 21.1)[1]} className="ff-country" aria-hidden>
-        BAY OF BENGAL
+        {tr.t("rm.bay")}
       </text>
 
       {/* full route, dashed */}

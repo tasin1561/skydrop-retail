@@ -1,7 +1,7 @@
 import "./product.css";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { STORES, storeText } from "@/lib/markets";
+import { storeText } from "@/lib/markets";
 import { getT } from "@/i18n/server";
 import { discountPct, mrpBdt, priceBdt, weightKg } from "@/lib/pricing";
 import { Icon } from "@/components/Icon";
@@ -17,7 +17,8 @@ import { OffersSection } from "../offers/OffersSection";
 import { ReviewList, StarBars } from "./Reviews";
 import { ShareButton } from "@/components/share/ShareButton";
 import type { BuyInfo, Media } from "./types";
-import { FlashNotice, isBlocked, RestrictionNotice } from "@/components/cms/ProductNotices";
+import { FlashNotice, RestrictionNotice } from "@/components/cms/ProductNotices";
+import { isBlocked } from "@/lib/restrictions";
 import { ShopperReviews } from "@/components/cms/ShopperReviews";
 import { AskAboutProduct } from "@/components/assistant/AskAssistant";
 import { SafeSection } from "@/components/resilience/SafeSection";

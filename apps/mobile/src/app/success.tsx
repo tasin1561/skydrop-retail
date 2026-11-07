@@ -14,13 +14,15 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Path, Rect } from "react-native-svg";
-import { formatBdt, deliveryWindow } from "@/lib/pricing";
+import { deliveryWindow } from "@/lib/pricing";
 import { addDays } from "@/lib/cart";
 import { BRAND, CORAL, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Button, Card, T } from "@/components/ui";
+import { useT } from "@/i18n";
 
 export default function Success() {
+  const { t, bdt, lang } = useT();
   const { id, total, paid } = useLocalSearchParams<{ id: string; total?: string; paid?: string }>();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
@@ -36,8 +38,8 @@ export default function Success() {
     y.value = withTiming(0, { duration: 1800, easing: Easing.out(Easing.cubic) });
     sway.value = withRepeat(withSequence(withTiming(-6, { duration: 700, easing: Easing.inOut(Easing.sin) }), withTiming(6, { duration: 700, easing: Easing.inOut(Easing.sin) })), -1, true);
     land.value = withDelay(1750, withSequence(withTiming(0.9, { duration: 120 }), withSpring(1, { damping: 6 })));
-    const t = setTimeout(() => haptic.success(), 1800);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => haptic.success(), 1800);
+    return () => clearTimeout(timer);
   }, [y, sway, land, height]);
 
   const chute = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }, { rotate: `${sway.value}deg` }, { scaleY: land.value }] }));
@@ -58,21 +60,17 @@ export default function Success() {
       </View>
 
       <Animated.View entering={FadeInDown.delay(1500).springify().damping(16)} style={{ alignItems: "center", gap: 6, marginTop: 20 }}>
-        <T v="h1" accessibilityRole="header" style={{ textAlign: "center" }}>
-          Order placed!
-        </T>
-        <T v="body" tone="ink2" style={{ textAlign: "center" }}>
-          We'll buy your items in India and Skydrop will bring them to your door.
-        </T>
+        <T v="h1" accessibilityRole="header" style={{ textAlign: "center" }}>{t("m.orderPlaced")}</T>
+        <T v="body" tone="ink2" style={{ textAlign: "center" }}>{t("m.orderPlacedB")}</T>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(1700).springify().damping(16)} style={{ marginTop: 20 }}>
         <Card style={{ gap: 10 }}>
           {[
-            ["Order", id],
-            ["Total", total ? formatBdt(Number(total)) : "-"],
-            ...(paid ? [["Payment", paid === "paid" ? "Paid" : paid]] : []),
-            ["Estimated delivery", `${addDays(now, w.min)} - ${addDays(now, w.max)}`],
+            [t("rw.order"), id],
+            [t("sum.total"), total ? bdt(Number(total)) : "-"],
+            ...(paid ? [[t("co.payment"), paid === "paid" ? t("af2.paid") : paid]] : []),
+            [t("tp.eta"), `${addDays(now, w.min, lang)} - ${addDays(now, w.max, lang)}`],
           ].map(([k, v]) => (
             <View key={k} style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <T v="small" tone="ink2">
@@ -88,8 +86,8 @@ export default function Success() {
 
       <View style={{ flex: 1 }} />
       <Animated.View entering={FadeInDown.delay(1900)} style={{ gap: 10 }}>
-        <Button label="Track order" icon="map-pin" onPress={() => router.replace(`/order/${id}`)} />
-        <Button label="Continue shopping" kind="ghost" onPress={() => router.dismissTo("/")} />
+        <Button label={t("os.track")} icon="map-pin" onPress={() => router.replace(`/order/${id}`)} />
+        <Button label={t("os.continue")} kind="ghost" onPress={() => router.dismissTo("/")} />
       </Animated.View>
     </View>
   );

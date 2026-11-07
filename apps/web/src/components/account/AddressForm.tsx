@@ -6,6 +6,8 @@ import { BD_DIVISIONS } from "@/lib/bd";
 import { Icon } from "@/components/Icon";
 import { PhoneField, Spinner, useShake } from "./ui";
 import { checkPhone, phoneDigits, toE164 } from "./phone";
+import { useT } from "@/i18n/client";
+import { bdName } from "@/lib/bd";
 
 type Draft = Omit<Address, "id" | "phone"> & { phoneDigits: string };
 
@@ -34,17 +36,18 @@ export function AddressForm({
     isDefault: initial?.isDefault ?? !canUnsetDefault,
   }));
   const [tried, setTried] = useState(false);
+  const { t, lang } = useT();
   const [state, setState] = useState<"idle" | "busy" | "done">("idle");
   const { shakeClass, shake, onAnimationEnd } = useShake();
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
   const errs = {
-    name: d.name.trim().length < 2 ? "Enter the receiver's name" : "",
-    phone: checkPhone(d.phoneDigits).valid ? "" : "Enter a valid mobile number",
-    division: d.division ? "" : "Choose a division",
-    district: d.district ? "" : "Choose a district",
-    area: d.area.trim().length < 2 ? "Enter your area or thana" : "",
-    line: d.line.trim().length < 6 ? "Add house, road and landmark" : "",
+    name: d.name.trim().length < 2 ? t("addr.errName") : "",
+    phone: checkPhone(d.phoneDigits).valid ? "" : t("af.errPhone"),
+    division: d.division ? "" : t("addr.errDivision"),
+    district: d.district ? "" : t("addr.errDistrict"),
+    area: d.area.trim().length < 2 ? t("addr.errArea") : "",
+    line: d.line.trim().length < 6 ? t("af.errLine") : "",
   };
   const firstErr = Object.entries(errs).find(([, v]) => v);
   const doneCount = Object.values(errs).filter((v) => !v).length;
@@ -88,13 +91,14 @@ export function AddressForm({
         <span className="tabular-nums">{String(doneCount).padStart(2, "0")}/06 complete</span>
       </div>
 
-      <TextField id="addr-name" label="Receiver's name" icon="user" value={d.name} onChange={(v) => set("name", v)} cls={status("name", !!d.name)} error={tried ? errs.name : ""} autoComplete="name" max={40} />
-      <PhoneField id="addr-phone" label="Receiver's mobile" digits={d.phoneDigits} onChange={(v) => set("phoneDigits", v)} showErrors={tried} />
+      <TextField id="addr-name" label={t("af.receiver")} icon="user" value={d.name} onChange={(v) => set("name", v)} cls={status("name", !!d.name)} error={tried ? errs.name : ""} autoComplete="name" max={40} />
+      <PhoneField id="addr-phone" label={t("af.receiverPhone")} digits={d.phoneDigits} onChange={(v) => set("phoneDigits", v)} showErrors={tried} />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SelectField
           id="addr-division"
-          label="Division"
+          label={t("addr.division")}
+          optionLabel={(o) => bdName(o, lang)}
           icon="globe"
           value={d.division}
           options={Object.keys(BD_DIVISIONS)}
@@ -104,7 +108,8 @@ export function AddressForm({
         />
         <SelectField
           id="addr-district"
-          label={d.division ? "District" : "District (choose division first)"}
+          label={d.division ? t("addr.district") : t("af.districtFirst")}
+          optionLabel={(o) => bdName(o, lang)}
           icon="pin"
           value={d.district}
           options={districts}
@@ -114,10 +119,10 @@ export function AddressForm({
           error={tried ? errs.district : ""}
         />
       </div>
-      <TextField id="addr-area" label="Area / thana" icon="grid" value={d.area} onChange={(v) => set("area", v)} cls={status("area", !!d.area)} error={tried ? errs.area : ""} autoComplete="address-level3" max={50} />
+      <TextField id="addr-area" label={t("addr.area")} icon="grid" value={d.area} onChange={(v) => set("area", v)} cls={status("area", !!d.area)} error={tried ? errs.area : ""} autoComplete="address-level3" max={50} />
       <TextField
         id="addr-line"
-        label="House, road, landmark"
+        label={t("addr.line")}
         icon="home"
         value={d.line}
         onChange={(v) => set("line", v)}
@@ -133,9 +138,9 @@ export function AddressForm({
           <Icon name="star" size={18} />
         </span>
         <span className="flex-1 text-sm">
-          <span className="block font-semibold">Default address</span>
+          <span className="block font-semibold">{t("af.default")}</span>
           <span className="block text-xs text-ink-2">
-            {canUnsetDefault ? "Use this for checkout automatically" : "To change it, set another address as default"}
+            {canUnsetDefault ? t("af.defaultYes") : t("af.defaultNo")}
           </span>
         </span>
         <input
@@ -152,23 +157,23 @@ export function AddressForm({
 
       <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button type="submit" className="btn btn-primary" disabled={state !== "idle"} aria-busy={state === "busy"}>
           {state === "busy" ? (
             <>
-              <Spinner /> Saving...
+              <Spinner /> {t("af.saving")}
             </>
           ) : state === "done" ? (
             <>
               <svg width="18" height="18" viewBox="0 0 24 24" className="draw-check" aria-hidden>
                 <path d="M5 12l5 5 9-11" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Saved
+              {t("af.saved")}
             </>
           ) : (
             <>
-              <Icon name="check" size={18} /> {initial ? "Save changes" : "Save address"}
+              <Icon name="check" size={18} /> {initial ? t("af.saveChanges") : t("af.save")}
             </>
           )}
         </button>
@@ -250,11 +255,13 @@ function SelectField({
   icon,
   value,
   options,
+  optionLabel,
   onChange,
   cls,
   error,
   disabled,
 }: {
+  optionLabel?: (o: string) => string;
   id: string;
   label: string;
   icon: string;
@@ -265,6 +272,7 @@ function SelectField({
   error: string;
   disabled?: boolean;
 }) {
+  const { t: tSel } = useT();
   return (
     <div>
       <div className={"field " + cls}>
@@ -278,11 +286,11 @@ function SelectField({
           style={cls === "is-invalid" ? { borderColor: "color-mix(in srgb, var(--bad) 60%, var(--line))" } : cls === "is-valid" ? { borderColor: "color-mix(in srgb, var(--good) 60%, var(--line))" } : undefined}
         >
           <option value="" disabled>
-            Select
+            {tSel("af.select")}
           </option>
           {options.map((o) => (
             <option key={o} value={o}>
-              {o}
+              {optionLabel ? optionLabel(o) : o}
             </option>
           ))}
         </select>

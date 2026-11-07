@@ -1,4 +1,5 @@
 import type { CartItem, MarketId, Product } from "./types";
+import { fmtBdt, type Lang } from "@/i18n/core";
 // Ported verbatim from apps/web/src/lib/pricing.ts. Keep the two files identical.
 
 // All figures are placeholders until the admin pricing rules are live.
@@ -74,8 +75,9 @@ export function groupByMarket(items: CartItem[]) {
   return groups;
 }
 
-export function formatBdt(n: number) {
-  return "৳" + Math.round(n).toLocaleString("en-IN");
+/** ৳1,250, or ৳১,২৫০ in Bangla (digit switch: BANGLA_DIGITS in src/i18n/core.ts). Screens use `bdt` from useT(). */
+export function formatBdt(n: number, lang: Lang = "en") {
+  return fmtBdt(n, lang);
 }
 
 export function deliveryWindow() {

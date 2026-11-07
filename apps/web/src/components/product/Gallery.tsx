@@ -30,7 +30,7 @@ export function Gallery({
   badges?: React.ReactNode;
 }) {
   const [idx, setIdx] = useState(0);
-  const { t } = useT();
+  const { t, digits } = useT();
   const [view, setView] = useState<{ start: number; autoPlay: boolean } | null>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -184,7 +184,7 @@ export function Gallery({
           {count > 1 && (
             <>
               <span className="absolute right-3 top-3 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold tabular-nums text-ink-2 shadow-[var(--shadow-1)] backdrop-blur lg:hidden" aria-live="polite">
-                {idx + 1}/{count}
+                {digits(`${idx + 1}/${count}`)}
               </span>
               <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center lg:hidden">
                 <div className="rounded-full bg-surface/85 px-1 py-[7px] shadow-[var(--shadow-1)] backdrop-blur">
@@ -224,6 +224,7 @@ export function Gallery({
 }
 
 function VideoThumb({ thumb, size }: { thumb: string | null; size: "lg" | "sm" }) {
+  const { t } = useT();
   return (
     <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-2xl bg-surface-2">
       {thumb && (
@@ -234,7 +235,7 @@ function VideoThumb({ thumb, size }: { thumb: string | null; size: "lg" | "sm" }
         <Icon name="play" size={size === "lg" ? 26 : 14} fill="currentColor" stroke={1} className="translate-x-0.5" />
       </span>
       <span className="absolute bottom-3 left-3 rounded-full bg-[#0b0b0f]/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-        Video
+        {t("gal.videoBadge")}
       </span>
     </span>
   );

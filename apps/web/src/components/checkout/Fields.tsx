@@ -2,6 +2,7 @@
 
 import { Icon } from "@/components/Icon";
 import { formatPhone, nextPhoneDigits, phoneState } from "./cart-math";
+import { useT } from "@/i18n/client";
 
 export type FieldState = "idle" | "typing" | "valid" | "invalid";
 
@@ -99,21 +100,22 @@ export function PhoneField({
   onBlur?: () => void;
 }) {
   const s = phoneState(digits);
+  const { t } = useT();
   const state: FieldState = s === "typing" && touched ? "invalid" : s === "idle" && touched ? "invalid" : s;
   const msg =
     state === "valid"
-      ? "Valid Bangladeshi mobile number"
+      ? t("phone.valid")
       : state === "invalid"
         ? digits
-          ? "Use an 11-digit mobile number like 01712-345678"
-          : "Phone number is required"
+          ? t("phone.use11")
+          : t("phone.required")
         : digits
-          ? `${10 - digits.length} more digit${10 - digits.length === 1 ? "" : "s"}`
-          : "We'll text delivery updates here";
+          ? t("phone.more", { count: 10 - digits.length })
+          : t("phone.updates");
   return (
     <TextField
       id={id}
-      label="Mobile number"
+      label={t("phone.label")}
       icon="phone"
       type="tel"
       inputMode="tel"
@@ -134,6 +136,7 @@ export function SelectField({
   value,
   onChange,
   options,
+  optionLabel,
   disabled,
   state = "idle",
   msg,
@@ -145,6 +148,8 @@ export function SelectField({
   value: string;
   onChange: (v: string) => void;
   options: string[];
+  /** Display text for an option (the value stays as given), e.g. Bangla district names. */
+  optionLabel?: (o: string) => string;
   disabled?: boolean;
   state?: FieldState;
   msg?: string;
@@ -176,7 +181,7 @@ export function SelectField({
           </option>
           {options.map((o) => (
             <option key={o} value={o}>
-              {o}
+              {optionLabel ? optionLabel(o) : o}
             </option>
           ))}
         </select>

@@ -4,6 +4,7 @@ import "./legal.css";
 import { useDeferredValue, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 
 export type Faq = { q: string; a: string; topic: string };
 
@@ -16,6 +17,7 @@ function Highlight({ text, term }: { text: string; term: string }) {
 /** FAQ with live search and topic filter. Answers open with the grid-rows accordion (.acc in globals.css). */
 export function FaqSearch({ faqs }: { faqs: Faq[] }) {
   const [q, setQ] = useState("");
+  const { t: tr } = useT();
   const [topic, setTopic] = useState("All");
   const [open, setOpen] = useState<number | null>(0);
   const term = useDeferredValue(q.trim());
@@ -30,15 +32,15 @@ export function FaqSearch({ faqs }: { faqs: Faq[] }) {
     <div className="faq">
       <div className="field">
         <input id={id} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder=" " autoComplete="off" enterKeyHint="search" aria-describedby={id + "-hint"} />
-        <label htmlFor={id}>Search questions</label>
+        <label htmlFor={id}>{tr("faq.search")}</label>
         <Icon name="search" size={18} className="field-icon" />
       </div>
 
       <p id={id + "-hint"} className="mt-1.5 pl-1 text-xs text-ink-3">
-        Try refund, customs, bKash or points
+        {tr("faq.hint")}
       </p>
 
-      <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Topics">
+      <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label={tr("faq.topics")}>
         {topics.map((t) => (
           <button
             key={t}
@@ -50,13 +52,13 @@ export function FaqSearch({ faqs }: { faqs: Faq[] }) {
               (topic === t ? "bg-accent text-white" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-ink")
             }
           >
-            {t}
-          </button>
+            {t === "All" ? tr("common.all") : t}
+</button>
         ))}
       </div>
 
       <p className="sr-only" aria-live="polite">
-        {shown.length} {shown.length === 1 ? "question" : "questions"} found
+        {tr("faq.found", { count: shown.length })}
       </p>
 
       <ul className="mt-5 flex flex-col gap-2.5">
@@ -95,10 +97,10 @@ export function FaqSearch({ faqs }: { faqs: Faq[] }) {
 
       {!shown.length && (
         <div className="card mt-5 p-6 text-center">
-          <p className="font-bold">No answers for &ldquo;{q}&rdquo;</p>
-          <p className="mt-1 text-sm text-ink-2">Try another word, or ask us directly.</p>
+          <p className="font-bold">{tr("faq.none", { q })}</p>
+          <p className="mt-1 text-sm text-ink-2">{tr("faq.noneHint")}</p>
           <Link href="/contact" className="btn btn-primary mt-4">
-            Contact support <Icon name="arrow" size={16} className="arrow" />
+            {tr("faq.contact")} <Icon name="arrow" size={16} className="arrow" />
           </Link>
         </div>
       )}

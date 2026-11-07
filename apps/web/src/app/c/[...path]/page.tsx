@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getCategoryPage, searchProducts } from "@/lib/data";
 import { isStoreMode, STORES, STORE_MODES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import type { StoreMode } from "@/lib/types";
 import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
@@ -13,6 +12,8 @@ import { SafeSection } from "@/components/resilience/SafeSection";
 import { StaleNote } from "@/components/resilience/LiveRefresh";
 import { Pager } from "@/components/categories/Pager";
 import "@/components/categories/categories.css";
+import { getT } from "@/i18n/server";
+import { catLabel } from "@/lib/categories";
 
 type SP = Record<string, string | string[] | undefined>;
 type Params = { path: string[] };
@@ -32,12 +33,14 @@ const href = (path: string, store: StoreMode, extra: Record<string, string> = {}
 export async function generateMetadata({ params, searchParams }: { params: Promise<Params>; searchParams: Promise<SP> }): Promise<Metadata> {
   const path = joinPath((await params).path);
   const store = storeOf(await searchParams);
-  const data = await getCategoryPage(path, store);
-  if (!data) return { title: "Category not found" };
-  const name = data.node.name;
-  const parent = data.breadcrumbs.length > 1 ? data.breadcrumbs[data.breadcrumbs.length - 2].name : null;
-  const title = `${name}${parent ? ` · ${parent}` : ""} from Indian stores`;
-  const description = `Shop ${name.toLowerCase()} from amazon.in, Flipkart and BigBasket in Bangladesh. Prices in BDT with import duty included, delivered to your door by Skydrop.`;
+  const [data, { t, lang }] = await Promise.all([getCategoryPage(path, store), getT()]);
+  if (!data) return { title: t("c.notFound") };
+  const bn = lang === "bn";
+  const name = catLabel(data.node, bn);
+  const parentCrumb = data.breadcrumbs.length > 1 ? data.breadcrumbs[data.breadcrumbs.length - 2] : null;
+  const parent = parentCrumb ? catLabel(parentCrumb, bn) : null;
+  const title = t("c.metaTitle", { name: `${name}${parent ? ` · ${parent}` : ""}` });
+  const description = t("c.metaDesc", { name: bn ? name : name.toLowerCase() });
   return {
     title,
     description,
@@ -50,6 +53,8 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const path = joinPath((await params).path);
   const sp = await searchParams;
   const store = storeOf(sp);
+  const { t, bdt, num, lang } = await getT();
+  const bn = lang === "bn";
   const data = await getCategoryPage(path, store);
   if (!data) notFound();
 
@@ -95,30 +100,30 @@ export default async function CategoryPage({ params, searchParams }: { params: P
     <div data-store={store} className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
-      <nav aria-label="Breadcrumb" className="no-scrollbar -mx-4 overflow-x-auto px-4">
+      <nav aria-label={t("pd.breadcrumb")} className="no-scrollbar -mx-4 overflow-x-auto px-4">
         <ol className="flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-ink-3">
           <li>
             <Link href="/" className="inline-flex min-h-8 items-center hover:text-accent">
-              Home
-            </Link>
+{t("nav.home")}
+</Link>
           </li>
           <li className="flex items-center gap-1">
             <Icon name="right" size={12} />
             <Link href="/categories" className="inline-flex min-h-8 items-center hover:text-accent">
-              Categories
-            </Link>
+{t("nav.categories")}
+</Link>
           </li>
           {breadcrumbs.map((b, i) => (
             <li key={b.path} className="flex items-center gap-1">
               <Icon name="right" size={12} />
               {i === breadcrumbs.length - 1 ? (
                 <span aria-current="page" className="text-ink-2">
-                  {b.name}
+{catLabel(b, bn)}
                 </span>
               ) : (
                 <Link href={href(b.path, store)} className="inline-flex min-h-8 items-center hover:text-accent">
-                  {b.name}
-                </Link>
+                  {catLabel(b, bn)}
+</Link>
               )}
             </li>
           ))}
@@ -130,18 +135,18 @@ export default async function CategoryPage({ params, searchParams }: { params: P
           <Icon name={node.icon} size={24} />
         </span>
         <div className="min-w-0">
-          <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">{node.name}</h1>
+          <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">{catLabel(node, bn)}</h1>
           <p className="text-sm text-ink-2">
-            {node.nameBn && (
-              <span lang="bn" className="mr-2">
-                {node.nameBn}
-              </span>
-            )}
-            {res.total} {res.total === 1 ? "product" : "products"}
+            {(bn ? node.name : node.nameBn) && (
+<span lang={bn ? "en" : "bn"} className="mr-2">
+{bn ? node.name : node.nameBn}
+</span>
+)}
+{t("sp.count", { count: res.total })}
             {priceRange && priceRange.maxBdt > 0 && (
               <>
                 {" "}
-                · {formatBdt(priceRange.minBdt)} to {formatBdt(priceRange.maxBdt)}
+                {t("c.range", { min: bdt(priceRange.minBdt), max: bdt(priceRange.maxBdt) })}
               </>
             )}
           </p>
@@ -149,11 +154,11 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       </header>
 
       {/* store tabs */}
-      <nav aria-label="Store" className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4">
+      <nav aria-label={t("cat.store")} className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4">
         {STORE_MODES.map((m) => {
           const sells = m === "all" || node.stores.includes(m);
           const on = m === store;
-          const label = m === "all" ? "All stores" : STORES[m].name;
+          const label = m === "all" ? t("search.allStores") : STORES[m].name;
           return sells ? (
             <Link
               key={m}
@@ -167,7 +172,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
               <Icon name={STORES[m].icon} size={15} /> {label}
             </Link>
           ) : (
-            <span key={m} aria-disabled="true" title={`${STORES[m].source} doesn't sell this`} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm text-ink-3 opacity-60">
+            <span key={m} aria-disabled="true" title={t("c.notSold", { source: STORES[m].source })} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm text-ink-3 opacity-60">
               <Icon name={STORES[m].icon} size={15} /> {label}
             </span>
           );
@@ -176,7 +181,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
       {/* child category rail (siblings on a leaf) */}
       {rail.length > 0 && (
-        <nav aria-label={children.length ? "Subcategories" : "Related categories"} className="no-scrollbar snap-x-rail -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <nav aria-label={children.length ? t("c.sub") : t("c.related")} className="no-scrollbar snap-x-rail -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {rail.map((c, i) => {
             const n = children.length ? (childCount.get(c.path) ?? c.count) : c.count;
             return (
@@ -189,8 +194,8 @@ export default async function CategoryPage({ params, searchParams }: { params: P
                 <span className="chip-icon h-8 w-8 rounded-xl">
                   <Icon name={c.icon} size={16} />
                 </span>
-                <span className="text-sm font-semibold">{c.name}</span>
-                {!!n && <span className="text-xs text-ink-3">{n}</span>}
+                <span className="text-sm font-semibold">{catLabel(c, bn)}</span>
+                {!!n && <span className="text-xs text-ink-3">{num(n)}</span>}
               </Link>
             );
           })}
@@ -198,9 +203,9 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       )}
 
       {brands.length > 0 && (
-        <SafeSection label="Top brands" quiet>
+        <SafeSection label={t("c.brands")} quiet>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wide text-ink-3">Top brands</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-ink-3">{t("c.brands")}</span>
             {brands.slice(0, 8).map((b) => (
               <Link
                 key={b.name}
@@ -233,23 +238,22 @@ export default async function CategoryPage({ params, searchParams }: { params: P
               <span className="chip-icon mx-auto h-14 w-14">
                 <Icon name={node.icon} size={26} />
               </span>
-              <h2 className="mt-4 text-lg font-extrabold">Nothing in {node.name} yet</h2>
+              <h2 className="mt-4 text-lg font-extrabold">{t("c.nothing", { name: catLabel(node, bn) })}</h2>
               <p className="mt-1 text-sm text-ink-2">
-                {store === "all" ? "We haven't brought these in yet." : `${STORES[store].name} has nothing here in our catalog yet.`} Tell us what you need and
-                we&apos;ll source it from India and send you a price.
+                {store === "all" ? t("c.notYet") : t("c.storeNothing", { store: STORES[store].name })}{t("c.tellUs")}
               </p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link href={`/request?from=category&category=${encodeURIComponent(path)}&q=${encodeURIComponent(node.name)}`} className="btn btn-primary">
-                  Request a product <Icon name="arrow" size={18} className="arrow" />
+                  {t("common.requestProduct")} <Icon name="arrow" size={18} className="arrow" />
                 </Link>
                 {store !== "all" ? (
                   <Link href={href(path, "all")} className="btn btn-ghost">
-                    Try every store
-                  </Link>
+{t("c.tryEvery")}
+</Link>
                 ) : (
                   <Link href="/categories" className="btn btn-ghost">
-                    All categories
-                  </Link>
+{t("cat.allCategories")}
+</Link>
                 )}
               </div>
             </div>

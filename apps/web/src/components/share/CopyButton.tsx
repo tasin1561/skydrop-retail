@@ -4,10 +4,13 @@ import "./share.css";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/i18n/client";
 
 /** Copy to clipboard; the label morphs to "Copied" in place (stable accessible name, polite announcement). */
-export function CopyButton({ text, label = "Copy", className = "btn btn-ghost min-h-11 px-3 text-sm" }: { text: string; label?: string; className?: string }) {
+export function CopyButton({ text, label: labelProp, className = "btn btn-ghost min-h-11 px-3 text-sm" }: { text: string; label?: string; className?: string }) {
   const toast = useToast();
+  const { t: tr } = useT();
+  const label = labelProp ?? tr("common.copy");
   const [done, setDone] = useState(false);
   const t = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(t.current), []);
@@ -19,7 +22,7 @@ export function CopyButton({ text, label = "Copy", className = "btn btn-ghost mi
       clearTimeout(t.current);
       t.current = setTimeout(() => setDone(false), 2000);
     } catch {
-      toast({ kind: "error", title: "Couldn't copy", body: text });
+      toast({ kind: "error", title: tr("cp.failed"), body: text });
     }
   }
 
@@ -29,10 +32,10 @@ export function CopyButton({ text, label = "Copy", className = "btn btn-ghost mi
         <Icon name="receipt" size={15} /> {label}
       </span>
       <span className="sh-copy-face" data-face="done" aria-hidden>
-        <Icon name="check" size={15} stroke={2.6} /> Copied
+        <Icon name="check" size={15} stroke={2.6} /> {tr("common.copied")}
       </span>
       <span className="sr-only" aria-live="polite">
-        {done ? "Copied" : ""}
+        {done ? tr("common.copied") : ""}
       </span>
     </button>
   );

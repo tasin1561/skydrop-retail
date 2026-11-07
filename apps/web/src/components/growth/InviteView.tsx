@@ -9,19 +9,21 @@ import { SignedOut } from "@/components/account/SignedOut";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { NotAvailable } from "./NotAvailable";
 import { useReferrals } from "./useGrowth";
+import { useT } from "@/i18n/client";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export function InviteView() {
+  const { t } = useT();
   const enabled = useFeature("referral");
   const { ready, user, live, data, error } = useReferrals();
 
   const body = !enabled ? (
-    <NotAvailable title="Refer a friend" />
+    <NotAvailable title={t("iv.refer")} />
   ) : !ready ? (
     <LoadingBlock rows={3} />
   ) : !user ? (
-    <SignedOut next="/account/invite" title="Sign in to invite friends" body="Get Skydrop Points when friends you invite get their first order." />
+    <SignedOut next="/account/invite" title={t("iv.signIn")} body={t("iv.signInB")} />
   ) : error ? (
     <div className="card p-6 text-center font-bold">{error}</div>
   ) : !data ? (
@@ -32,7 +34,7 @@ export function InviteView() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
-      <PageHead title="Invite friends" sub="Share Skydrop Retail, both of you earn points" icon="spark" back={{ href: "/account", label: "Account" }} />
+      <PageHead title={t("acc.invite")} sub={t("iv.sub")} icon="spark" back={{ href: "/account", label: t("acc.account") }} />
       {body}
     </div>
   );
@@ -40,10 +42,11 @@ export function InviteView() {
 
 function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferrals>["data"]>; live: boolean }) {
   const { inviterPoints, friendPoints } = data.rules;
+  const { t, digits, date } = useT();
   const steps = [
-    { icon: "share", title: "Share your link", sub: "On WhatsApp, Messenger or anywhere you like" },
-    { icon: "user", title: "Your friend signs up", sub: "With your link or your code at sign-in" },
-    { icon: "truck", title: "Their first order arrives", sub: `You get ${inviterPoints} points, they get ${friendPoints}` },
+    { icon: "share", title: t("iv.s1"), sub: t("iv.s1b") },
+    { icon: "user", title: t("iv.s2"), sub: t("iv.s2b") },
+    { icon: "truck", title: t("iv.s3"), sub: t("iv.s3b", { mine: inviterPoints, theirs: friendPoints }) },
   ];
   const progress = data.invited ? data.rewarded / data.invited : 0;
 
@@ -51,7 +54,7 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
     <div className="space-y-4">
       {!live && (
         <p className="inline-flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-xs font-semibold text-ink-2">
-          <Icon name="info" size={15} className="text-accent" /> Demo data: friends and points below are examples.
+          <Icon name="info" size={15} className="text-accent" /> {t("iv.demo")}
         </p>
       )}
 
@@ -59,28 +62,28 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
         <div aria-hidden className="gr-float absolute -right-6 -top-6 grid h-28 w-28 place-items-center rounded-full bg-white/10">
           <Icon name="spark" size={44} />
         </div>
-        <p className="relative text-sm text-white/85">Give {friendPoints} points, get {inviterPoints} points</p>
-        <p className="relative mt-1 text-xs font-semibold uppercase tracking-widest text-white/75">Your code</p>
+        <p className="relative text-sm text-white/85">{t("iv.give", { theirs: friendPoints, mine: inviterPoints })}</p>
+        <p className="relative mt-1 text-xs font-semibold uppercase tracking-widest text-white/75">{t("iv.code")}</p>
         <p className="relative font-mono text-3xl font-extrabold tracking-[0.2em]">{data.code}</p>
         <div className="relative mt-4 flex flex-wrap gap-2">
           <ShareButton
             variant="ghost"
-            label="Share invite"
+            label={t("iv.share")}
             path="/"
             title="Skydrop Retail"
-            text={`Shop amazon.in, Flipkart and BigBasket from Bangladesh with Skydrop Retail. Use my link and get ${friendPoints} points after your first order:`}
+            text={t("iv.text", { points: friendPoints })}
             className="!border-white/40 !bg-white !text-slate-900"
             qr
           />
-          <CopyButton text={data.link} label="Copy link" className="btn min-h-11 border border-white/40 bg-white/10 px-4 text-sm font-bold text-white" />
+          <CopyButton text={data.link} label={t("common.copyLink")} className="btn min-h-11 border border-white/40 bg-white/10 px-4 text-sm font-bold text-white" />
         </div>
       </section>
 
-      <section aria-label="Your invites" className="grid grid-cols-3 gap-3">
+      <section aria-label={t("iv.yours")} className="grid grid-cols-3 gap-3">
         {[
-          { label: "Invited", value: pad(data.invited), icon: "user" },
-          { label: "First orders", value: pad(data.rewarded), icon: "truck" },
-          { label: "Points earned", value: String(data.pointsEarned), icon: "spark" },
+          { label: t("iv.invited"), value: digits(pad(data.invited)), icon: "user" },
+          { label: t("iv.first"), value: digits(pad(data.rewarded)), icon: "truck" },
+          { label: t("iv.earned"), value: digits(data.pointsEarned), icon: "spark" },
         ].map((s, i) => (
           <div key={s.label} className="card rise flex flex-col gap-2 p-3 sm:p-4" style={{ ["--i" as string]: i + 1 }}>
             <span className="chip-icon">
@@ -94,8 +97,8 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
 
       <section className="card rise p-4" aria-labelledby="inv-how" style={{ ["--i" as string]: 4 }}>
         <h2 id="inv-how" className="text-sm font-extrabold">
-          How it works
-        </h2>
+          {t("iv.how")}
+</h2>
         <ol className="gr-steps mt-3">
           {steps.map((s, i) => (
             <li key={s.title} className="gr-step" data-state={i === 0 ? "current" : "next"}>
@@ -107,7 +110,7 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
               </span>
               <span>
                 <span className="block text-sm font-bold">
-                  {pad(i + 1)} · {s.title}
+                  {digits(pad(i + 1))} · {s.title}
                 </span>
                 <span className="block text-xs text-ink-2">{s.sub}</span>
               </span>
@@ -119,15 +122,15 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
       <section className="card rise overflow-hidden" aria-labelledby="inv-friends" style={{ ["--i" as string]: 5 }}>
         <div className="px-4 pt-4">
           <h2 id="inv-friends" className="text-sm font-extrabold">
-            Friends
+            {t("iv.friends")}
           </h2>
           {data.invited > 0 && (
             <>
-              <div className="ac-bar mt-2" data-tone="good" role="progressbar" aria-label="Friends with a delivered first order" aria-valuemin={0} aria-valuemax={data.invited} aria-valuenow={data.rewarded}>
+              <div className="ac-bar mt-2" data-tone="good" role="progressbar" aria-label={t("iv.progress")} aria-valuemin={0} aria-valuemax={data.invited} aria-valuenow={data.rewarded}>
                 <span style={{ ["--p" as string]: progress }} />
               </div>
               <p className="mt-1 text-xs text-ink-2">
-                {data.rewarded} of {data.invited} got their first order
+                {t("iv.ofGot", { n: data.rewarded, total: data.invited })}
               </p>
             </>
           )}
@@ -141,19 +144,19 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">{f.name}</span>
-                  <span className="block text-xs text-ink-2">Joined {new Date(f.joinedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                  <span className="block text-xs text-ink-2">{t("iv.joined", { date: date(f.joinedAt) })}</span>
                 </span>
                 <span className="ac-chip" data-tone={f.status === "rewarded" ? "good" : "warn"}>
-                  {f.status === "rewarded" ? `+${inviterPoints} points` : "Waiting for first order"}
+                  {f.status === "rewarded" ? t("iv.plus", { count: inviterPoints }) : t("iv.waiting")}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="px-4 pb-4 pt-2 text-sm text-ink-2">No friends yet. Share your link to get started.</p>
+          <p className="px-4 pb-4 pt-2 text-sm text-ink-2">{t("iv.none")}</p>
         )}
       </section>
-      <p className="text-center text-xs text-ink-3">Points are added once per friend, after their first order is delivered.</p>
+      <p className="text-center text-xs text-ink-3">{t("iv.once")}</p>
     </div>
   );
 }

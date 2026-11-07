@@ -12,8 +12,10 @@ import { haptic } from "@/lib/haptics";
 import { Icon } from "./Icon";
 import { DealBadge, OfferHint } from "./offers/offers";
 import { ProductImage, Skeleton, Stars, T, Tap } from "./ui";
+import { useT } from "@/i18n";
 
 export const ProductCard = memo(function ProductCard({ p, width }: { p: Product; width: number }) {
+  const { t, bdt, digits } = useT();
   const { c } = useTheme();
   const a = useAccent(p.market);
   const { wish, toggleWish } = useStore();
@@ -26,7 +28,7 @@ export const ProductCard = memo(function ProductCard({ p, width }: { p: Product;
   return (
     <Tap
       onPress={() => router.push(`/product/${p.id}`)}
-      accessibilityLabel={`${p.title}, ${formatBdt(price)}, from ${source}`}
+      accessibilityLabel={t("m.cardA11y", { title: p.title, price: bdt(price), source })}
       style={[styles.card, { width, backgroundColor: c.surface }, shadow(c)]}
     >
       <View>
@@ -34,7 +36,7 @@ export const ProductCard = memo(function ProductCard({ p, width }: { p: Product;
         {off >= 10 && (
           <View style={[styles.off, { backgroundColor: c.coral }]}>
             <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
-              -{off}%
+              -{digits(off)}%
             </T>
           </View>
         )}
@@ -43,7 +45,7 @@ export const ProductCard = memo(function ProductCard({ p, width }: { p: Product;
             haptic.light();
             toggleWish(p.id);
           }}
-          accessibilityLabel={wished ? "Remove from wishlist" : "Save to wishlist"}
+          accessibilityLabel={wished ? t("wish.remove") : t("wish.save")}
           accessibilityState={{ selected: wished }}
           hitSlop={6}
           style={[styles.heart, { backgroundColor: c.surface }, shadow(c)]}
@@ -54,7 +56,7 @@ export const ProductCard = memo(function ProductCard({ p, width }: { p: Product;
       <View style={{ padding: 10, gap: 4 }}>
         <View style={[styles.origin, { backgroundColor: a.soft }]}>
           <T v="tiny" style={{ color: a.ink, fontWeight: "700" }} numberOfLines={1}>
-            From {source}
+            {t("m.fromSource", { source })}
           </T>
         </View>
         <T v="small" numberOfLines={2} style={{ fontWeight: "600", minHeight: 36 }}>

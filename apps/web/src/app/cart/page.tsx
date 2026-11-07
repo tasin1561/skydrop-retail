@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { CartView } from "@/components/checkout/CartView";
 import "@/components/checkout/checkout.css";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Cart",
-  description: "Your Skydrop Retail cart, grouped by Indian store, with BDT prices and Skydrop door delivery.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getT();
+  return { title: t("nav.cart"), description: t("cartp.metaDesc"), robots: { index: false } };
+}
 
 export default function CartPage() {
   return <CartView />;

@@ -1,6 +1,7 @@
 // Skydrop Points (loyalty). Same rules as the API's PointsService; in demo mode the balance
 // is worked out in the browser from the shopper's orders.
 import type { Order } from "./types";
+import { translate, type TFn } from "@/i18n/core";
 
 export const POINTS = {
   earnPerBdt: 100, // 1 point per ৳100 of items
@@ -31,21 +32,21 @@ export function maxRedeem(balance: number, itemSubtotalBdt: number) {
 export type PointsEntry = { type: "earn" | "pending" | "redeem" | "bonus" | "refund"; points: number; note: string; at: string; orderId?: string };
 
 /** Demo ledger built from local orders; the API returns the real ledger. */
-export function demoLedger(orders: Order[], signedUpAt?: string): { balance: number; pending: number; history: PointsEntry[] } {
+export function demoLedger(orders: Order[], signedUpAt?: string, t: TFn = (k, v) => translate("en", k, v)): { balance: number; pending: number; history: PointsEntry[] } {
   const history: PointsEntry[] = [];
-  if (signedUpAt !== undefined) history.push({ type: "bonus", points: POINTS.signupBonus, note: "Welcome bonus", at: signedUpAt });
+  if (signedUpAt !== undefined) history.push({ type: "bonus", points: POINTS.signupBonus, note: t("pt.welcome"), at: signedUpAt });
   for (const o of orders) {
     const used = o.pointsRedeemed ?? 0;
     if (used) {
-      history.push({ type: "redeem", points: -used, note: `Used on order ${o.id}`, at: o.createdAt, orderId: o.id });
-      if (o.status === "cancelled") history.push({ type: "refund", points: used, note: `Returned from cancelled order ${o.id}`, at: o.createdAt, orderId: o.id });
+      history.push({ type: "redeem", points: -used, note: t("pt.used", { id: o.id }), at: o.createdAt, orderId: o.id });
+      if (o.status === "cancelled") history.push({ type: "refund", points: used, note: t("pt.returned", { id: o.id }), at: o.createdAt, orderId: o.id });
     }
     if (o.status === "cancelled") continue;
     const earn = o.pointsEarned ?? pointsToEarn(o.subtotal);
     history.push({
       type: o.status === "delivered" ? "earn" : "pending",
       points: earn,
-      note: o.status === "delivered" ? `Earned on order ${o.id}` : `Pending until order ${o.id} is delivered`,
+      note: o.status === "delivered" ? t("pt.earned", { id: o.id }) : t("pt.pending", { id: o.id }),
       at: o.createdAt,
       orderId: o.id,
     });

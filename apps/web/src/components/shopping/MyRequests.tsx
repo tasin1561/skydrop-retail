@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { apiEnabled } from "@/lib/apiClient";
-import { formatBdt } from "@/lib/pricing";
 import { myRequests } from "@/lib/shopping/client";
 import type { ProductRequest, RequestStatus } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";

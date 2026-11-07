@@ -4,16 +4,18 @@ import Link from "next/link";
 import { useState } from "react";
 import type { AssistantProduct, CardEvent, DeliveryData, OrderCardData } from "@/lib/assistant/types";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import { statusText } from "@/lib/orderStatus";
 import type { OrderStatus } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
 
 /** Inline result cards inside an assistant reply. */
 export function AssistantCard({ card, onNavigate }: { card: CardEvent; onNavigate: () => void }) {
+  const { t } = useT();
   switch (card.type) {
     case "products":
       return <ProductRail items={card.data.items} onNavigate={onNavigate} />;
@@ -42,8 +44,8 @@ export function AssistantCard({ card, onNavigate }: { card: CardEvent; onNavigat
             <Icon name="user" size={18} />
           </span>
           <span className="min-w-0 flex-1 text-sm">
-            <b className="block">Sign in to see your orders</b>
-            <span className="text-ink-2">Phone number and one-time code</span>
+            <b className="block">{t("ai.signInOrders")}</b>
+            <span className="text-ink-2">{t("ai.otpLine")}</span>
           </span>
           <Icon name="right" size={18} />
         </Link>
@@ -55,7 +57,7 @@ export function AssistantCard({ card, onNavigate }: { card: CardEvent; onNavigat
             <Icon name="check" size={18} />
           </span>
           <span>
-            Request sent: <b>{card.data.title}</b>. Our team will reply by SMS.
+            {rich(t("ai.requestSent"), { title: <b>{card.data.title}</b> })}
           </span>
         </div>
       );
@@ -65,6 +67,7 @@ export function AssistantCard({ card, onNavigate }: { card: CardEvent; onNavigat
 function useAdd() {
   const { addToCart } = useStore();
   const toast = useToast();
+  const { t } = useT();
   return (p: AssistantProduct, qty = 1, variant?: string) => {
     addToCart({
       productId: p.id,
@@ -77,7 +80,7 @@ function useAdd() {
       weightKg: p.weightKg,
       qty,
     });
-    toast({ kind: "success", title: "Added to cart", body: p.title.slice(0, 80), action: { label: "View cart", href: "/cart" } });
+    toast({ kind: "success", title: t("ai.added"), body: p.title.slice(0, 80), action: { label: t("buy.viewCart"), href: "/cart" } });
   };
 }
 
@@ -87,29 +90,31 @@ function blocked(p: AssistantProduct) {
 
 function AddButton({ p, qty = 1, variant, wide }: { p: AssistantProduct; qty?: number; variant?: string; wide?: boolean }) {
   const add = useAdd();
+  const { t } = useT();
   const [done, setDone] = useState(false);
   if (blocked(p))
     return (
       <button type="button" disabled className={"btn btn-ghost ai-add " + (wide ? "w-full" : "")}>
-        {p.inStock ? "Can't ship to BD" : "Out of stock"}
+        {p.inStock ? t("qa.cantShipShort") : t("stock.out")}
       </button>
     );
   return (
     <button
       type="button"
       className={"btn btn-primary ai-add " + (wide ? "w-full" : "")}
-      aria-label={`Add ${p.title} to cart`}
+      aria-label={t("ai.addTitle", { title: p.title })}
       onClick={() => {
         add(p, qty, variant);
         setDone(true);
       }}
     >
-      <Icon name={done ? "check" : "cart"} size={15} stroke={2.4} /> {done ? "Added" : "Add to cart"}
+      <Icon name={done ? "check" : "cart"} size={15} stroke={2.4} /> {done ? t("buy.addedShort") : t("buy.addToCart")}
     </button>
   );
 }
 
 function MiniProduct({ p, onNavigate }: { p: AssistantProduct; onNavigate: () => void }) {
+  const tr = useT();
   const off = p.mrpBdt > p.priceBdt ? Math.round(100 - (p.priceBdt / p.mrpBdt) * 100) : 0;
   return (
     <article className="ai-prod" data-store={p.market}>
@@ -124,13 +129,13 @@ function MiniProduct({ p, onNavigate }: { p: AssistantProduct; onNavigate: () =>
           <span className="text-[11px] text-ink-2">
             {p.rating ? (
               <>
-                <span className="text-amber-500">★</span> {p.rating.toFixed(1)} · {p.reviews.toLocaleString("en-IN")}
+                <span className="text-amber-500">★</span> {tr.digits(p.rating.toFixed(1))} · {tr.num(p.reviews)}
               </>
             ) : (
-              "New"
+              tr.t("card.new")
             )}
           </span>
-          <span className="mt-auto text-[15px] font-extrabold tracking-tight text-ink">{formatBdt(p.priceBdt)}</span>
+          <span className="mt-auto text-[15px] font-extrabold tracking-tight text-ink">{tr.bdt(p.priceBdt)}</span>
         </div>
       </Link>
       <div className="px-2.5 pb-2.5">
@@ -141,9 +146,10 @@ function MiniProduct({ p, onNavigate }: { p: AssistantProduct; onNavigate: () =>
 }
 
 function ProductRail({ items, onNavigate }: { items: AssistantProduct[]; onNavigate: () => void }) {
+  const tr = useT();
   if (!items.length) return null;
   return (
-    <div className="ai-rail no-scrollbar" role="list" aria-label={`${items.length} products`}>
+    <div className="ai-rail no-scrollbar" role="list" aria-label={tr.t("ai.products", { count: items.length })}>
       {items.map((p, i) => (
         <div role="listitem" key={p.id} className="ai-rail-item" style={{ ["--i" as string]: i }}>
           <MiniProduct p={p} onNavigate={onNavigate} />
@@ -154,14 +160,15 @@ function ProductRail({ items, onNavigate }: { items: AssistantProduct[]; onNavig
 }
 
 function CompareTable({ items, rows, onNavigate }: { items: AssistantProduct[]; rows: { label: string; values: string[] }[]; onNavigate: () => void }) {
+  const tr = useT();
   return (
     <div className="ai-card overflow-x-auto p-0">
       <table className="ai-compare">
-        <caption className="sr-only">Product comparison</caption>
+        <caption className="sr-only">{tr.t("ai.comparison")}</caption>
         <thead>
           <tr>
             <th scope="col">
-              <span className="sr-only">Feature</span>
+              <span className="sr-only">{tr.t("ai.feature")}</span>
             </th>
             {items.map((p) => (
               <th key={p.id} scope="col">
@@ -184,7 +191,7 @@ function CompareTable({ items, rows, onNavigate }: { items: AssistantProduct[]; 
           ))}
           <tr>
             <th scope="row">
-              <span className="sr-only">Add</span>
+              <span className="sr-only">{tr.t("qa.add")}</span>
             </th>
             {items.map((p) => (
               <td key={p.id}>
@@ -199,6 +206,7 @@ function CompareTable({ items, rows, onNavigate }: { items: AssistantProduct[]; 
 }
 
 function OrderCard({ o, detailed, onNavigate }: { o: OrderCardData; detailed?: boolean; onNavigate: () => void }) {
+  const tr = useT();
   const st = o.status as OrderStatus;
   return (
     <Link href={`/orders/${encodeURIComponent(o.id)}`} onClick={onNavigate} className="ai-card ai-tap block">
@@ -208,11 +216,11 @@ function OrderCard({ o, detailed, onNavigate }: { o: OrderCardData; detailed?: b
         </span>
         <span className="min-w-0 flex-1">
           <b className="block text-sm">
-            {o.id} · {statusText(st) ?? o.status}
+            {o.id} · {statusText(st, tr) ?? o.status}
           </b>
           <span className="text-xs text-ink-2">
-            {o.itemCount} item{o.itemCount === 1 ? "" : "s"} · {formatBdt(o.total)}
-            {o.expectedBy ? ` · expected by ${new Date(o.expectedBy).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
+            {tr.t("ai.orderLine", { items: tr.t("cart.items", { count: o.itemCount }), total: tr.bdt(o.total) })}
+            {o.expectedBy ? tr.t("ai.expectedBy", { date: tr.date(o.expectedBy) }) : ""}
           </span>
         </span>
         <Icon name="right" size={18} />
@@ -221,8 +229,8 @@ function OrderCard({ o, detailed, onNavigate }: { o: OrderCardData; detailed?: b
         <ol className="ai-timeline">
           {o.timeline.map((t, i) => (
             <li key={i}>
-              <span>{statusText(t.status as OrderStatus) ?? t.status}</span>
-              <time dateTime={t.at}>{new Date(t.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</time>
+              <span>{statusText(t.status as OrderStatus, tr) ?? t.status}</span>
+              <time dateTime={t.at}>{tr.date(t.at)}</time>
             </li>
           ))}
         </ol>
@@ -232,6 +240,7 @@ function OrderCard({ o, detailed, onNavigate }: { o: OrderCardData; detailed?: b
 }
 
 function CartAction({ p, variant, qty, onNavigate }: { p: AssistantProduct; variant?: string; qty: number; onNavigate: () => void }) {
+  const tr = useT();
   return (
     <div className="ai-card ai-row">
       <Link href={`/p/${encodeURIComponent(p.id)}`} onClick={onNavigate} className="shrink-0">
@@ -240,7 +249,7 @@ function CartAction({ p, variant, qty, onNavigate }: { p: AssistantProduct; vari
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-[13px] font-semibold leading-snug">{p.title}</p>
         <p className="text-xs text-ink-2">
-          {formatBdt(p.priceBdt)}
+          {tr.bdt(p.priceBdt)}
           {variant ? ` · ${variant}` : ""}
           {qty > 1 ? ` · qty ${qty}` : ""}
         </p>
@@ -251,9 +260,10 @@ function CartAction({ p, variant, qty, onNavigate }: { p: AssistantProduct; vari
 }
 
 function DeliveryInfo({ d }: { d: DeliveryData }) {
-  const fmt = (s: string) => new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const tr = useT();
+  const fmt = (s: string) => tr.date(s);
   const tone = { on_time: "text-good", maybe: "text-warn", too_late: "text-bad" } as const;
-  const label = { on_time: "On time if you order by", maybe: "Tight: may arrive late", too_late: "Too late for delivery before" } as const;
+  const label = { on_time: tr.t("ai.dOnTime"), maybe: tr.t("ai.dMaybe"), too_late: tr.t("ai.dLate") };
   return (
     <div className="ai-card text-sm">
       <div className="ai-row">
@@ -262,10 +272,10 @@ function DeliveryInfo({ d }: { d: DeliveryData }) {
         </span>
         <span>
           <b className="block">
-            {d.minDays}-{d.maxDays} days to your door
+            {tr.t("ai.daysDoor", { min: d.minDays, max: d.maxDays })}
           </b>
           <span className="text-xs text-ink-2">
-            Order today: arrives {fmt(d.earliest)} to {fmt(d.latest)}
+            {tr.t("ai.orderToday", { from: fmt(d.earliest), to: fmt(d.latest) })}
           </span>
         </span>
       </div>
@@ -289,6 +299,7 @@ function DeliveryInfo({ d }: { d: DeliveryData }) {
 }
 
 function PriceSpark({ points, current }: { points: { date: string; bdt: number }[]; current: number }) {
+  const tr = useT();
   if (points.length < 2) return null;
   const vals = points.map((p) => p.bdt);
   const min = Math.min(...vals);
@@ -297,13 +308,13 @@ function PriceSpark({ points, current }: { points: { date: string; bdt: number }
   const d = points.map((p, i) => `${i ? "L" : "M"}${((i / (points.length - 1)) * 100).toFixed(1)},${(30 - ((p.bdt - min) / span) * 28 - 1).toFixed(1)}`).join(" ");
   return (
     <figure className="ai-card text-xs">
-      <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="h-12 w-full text-accent" role="img" aria-label={`Price ranged from ${formatBdt(min)} to ${formatBdt(max)}`}>
+      <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="h-12 w-full text-accent" role="img" aria-label={tr.t("ai.priceRange", { min: tr.bdt(min), max: tr.bdt(max) })}>
         <path d={d} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
       </svg>
       <figcaption className="mt-1 flex justify-between text-ink-2">
-        <span>Low {formatBdt(min)}</span>
-        <span className="font-semibold text-ink">Now {formatBdt(current)}</span>
-        <span>High {formatBdt(max)}</span>
+        <span>{tr.t("ai.low", { amount: tr.bdt(min) })}</span>
+        <span className="font-semibold text-ink">{tr.t("ai.now", { amount: tr.bdt(current) })}</span>
+        <span>{tr.t("ai.high", { amount: tr.bdt(max) })}</span>
       </figcaption>
     </figure>
   );

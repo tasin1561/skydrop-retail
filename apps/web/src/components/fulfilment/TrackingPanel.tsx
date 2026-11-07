@@ -9,10 +9,9 @@ import { statusText } from "@/lib/orderStatus";
 import { LiveMap } from "./LiveMap";
 import { RouteMap } from "./RouteMap";
 import "./fulfilment.css";
+import { useT } from "@/i18n/client";
 
-const fmtDay = (d: string) => new Date(d + (d.length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-const fmtWhen = (d: string) =>
-  new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
 
 /**
  * Route visual for the order page: Kolkata → Benapole → Dhaka hub → customer district, ETA, last event,
@@ -20,6 +19,10 @@ const fmtWhen = (d: string) =>
  */
 export function TrackingPanel({ order, status, now }: { order: Order; status: OrderStatus; now: number }) {
   const on = useFeature("live_tracking_map");
+  const tr = useT();
+  const { t: tx } = tr;
+  const fmtDay = (d: string) => tr.date(d + (d.length === 10 ? "T00:00:00" : ""));
+  const fmtWhen = (d: string) => tr.dateTime(d);
   const [remote, setRemote] = useState<Tracking | null>(null);
   const [live, setLive] = useState(false);
 
@@ -54,16 +57,16 @@ export function TrackingPanel({ order, status, now }: { order: Order; status: Or
         <div className="flex min-w-0 flex-col gap-4">
           <div>
             <h2 id="route-h" className="text-lg font-extrabold tracking-tight">
-              Route to {t.points[3]?.short}
+              {tx("tp.routeTo", { place: t.points[3]?.short })}
             </h2>
             <p className="text-sm text-ink-2">
               {before
-                ? "Your items are on their way from the Indian store to our Kolkata hub."
+                ? tx("tp.toHub")
                 : t.status === "delivered"
-                  ? "Delivered. The whole route is complete."
+                  ? tx("tp.complete")
                   : t.unboxingHold
-                    ? "Waiting at the Kolkata hub for your unboxing approval."
-                    : `Now: ${statusText(t.status)}.`}
+                    ? tx("tp.awaiting")
+                    : tx("tp.now", { status: statusText(t.status, tr) })}
             </p>
           </div>
 
@@ -73,21 +76,21 @@ export function TrackingPanel({ order, status, now }: { order: Order; status: Or
                 <Icon name="clock" size={18} />
               </span>
               <div>
-                <p className="text-xs text-ink-2">Estimated delivery</p>
+                <p className="text-xs text-ink-2">{tx("tp.eta")}</p>
                 <p className="font-bold tabular-nums">
-                  {t.eta.from === t.eta.to ? (t.eta.from === new Date(now).toISOString().slice(0, 10) ? "Today" : fmtDay(t.eta.from)) : `${fmtDay(t.eta.from)} – ${fmtDay(t.eta.to)}`}
+                  {t.eta.from === t.eta.to ? (t.eta.from === new Date(now).toISOString().slice(0, 10) ? tx("tp.today") : fmtDay(t.eta.from)) : `${fmtDay(t.eta.from)} – ${fmtDay(t.eta.to)}`}
                 </p>
               </div>
             </div>
           )}
 
-          <ol className="ff-legs" aria-label="Route legs">
+          <ol className="ff-legs" aria-label={tx("tp.legs")}>
             {t.legs.map((l) => (
               <li key={l.id} className="ff-legrow" data-state={l.state}>
                 <span className="ff-legdot" aria-hidden />
                 <span className="min-w-0 flex-1">{l.label}</span>
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">
-                  {l.state === "done" ? "Done" : l.state === "current" ? "On the way" : ""}
+                  {l.state === "done" ? tx("tp.done") : l.state === "current" ? tx("tp.onWay") : ""}
                 </span>
               </li>
             ))}
@@ -95,14 +98,14 @@ export function TrackingPanel({ order, status, now }: { order: Order; status: Or
 
           {last && (
             <div className="text-sm ff-fade" style={{ ["--d" as string]: ".1s" }}>
-              <p className="text-xs text-ink-2">Last update · {fmtWhen(last.at)}</p>
-              <p className="font-medium">{last.note ?? (last.status ? statusText(last.status as OrderStatus) : last.event)}</p>
+              <p className="text-xs text-ink-2">{tx("tp.lastUpdate", { when: fmtWhen(last.at) })}</p>
+              <p className="font-medium">{last.note ?? (last.status ? statusText(last.status as OrderStatus, tr) : last.event)}</p>
             </div>
           )}
 
           {t.rider && t.liveMap && !live && (
             <button type="button" className="btn btn-primary h-11 self-start px-4 text-sm" onClick={() => setLive(true)}>
-              <Icon name="pin" size={16} /> Show live map
+              <Icon name="pin" size={16} /> {tx("tp.showMap")}
             </button>
           )}
         </div>
@@ -111,9 +114,9 @@ export function TrackingPanel({ order, status, now }: { order: Order; status: Or
       {live && t.rider && (
         <div className="px-4 pb-4 sm:px-5 sm:pb-5">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-bold">Your rider, live</p>
+            <p className="text-sm font-bold">{tx("tp.rider")}</p>
             <button type="button" className="btn btn-ghost h-11 px-3 text-sm" onClick={() => setLive(false)}>
-              Hide map
+              {tx("tp.hideMap")}
             </button>
           </div>
           <LiveMap tracking={t} onUpdate={setRemote} />
@@ -123,23 +126,23 @@ export function TrackingPanel({ order, status, now }: { order: Order; status: Or
       {t.pod && (t.pod.photoUrl || t.pod.signatureUrl) && (
         <div className="border-t border-line px-4 py-4 sm:px-5" aria-labelledby="pod-h">
           <h3 id="pod-h" className="mb-2 flex items-center gap-2 text-sm font-bold">
-            <Icon name="verified" size={16} /> Proof of delivery
+            <Icon name="verified" size={16} /> {tx("tp.pod")}
           </h3>
           <div className="flex flex-wrap items-end gap-3">
             {t.pod.photoUrl && (
-              <a href={t.pod.photoUrl} target="_blank" rel="noopener noreferrer" className="ff-thumb block w-28" aria-label="Open delivery photo">
+              <a href={t.pod.photoUrl} target="_blank" rel="noopener noreferrer" className="ff-thumb block w-28" aria-label={tx("tp.openPhoto")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={t.pod.photoUrl} alt="Parcel at your door" loading="lazy" />
+                <img src={t.pod.photoUrl} alt={tx("tp.photoAlt")} loading="lazy" />
               </a>
             )}
             {t.pod.signatureUrl && (
-              <a href={t.pod.signatureUrl} target="_blank" rel="noopener noreferrer" className="ff-thumb block w-40 bg-white" style={{ aspectRatio: "2 / 1" }} aria-label="Open signature">
+              <a href={t.pod.signatureUrl} target="_blank" rel="noopener noreferrer" className="ff-thumb block w-40 bg-white" style={{ aspectRatio: "2 / 1" }} aria-label={tx("tp.openSig")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={t.pod.signatureUrl} alt="Signature" loading="lazy" style={{ objectFit: "contain" }} />
+                <img src={t.pod.signatureUrl} alt={tx("tp.signature")} loading="lazy" style={{ objectFit: "contain" }} />
               </a>
             )}
             <p className="text-xs text-ink-2">
-              {t.pod.receivedBy ? `Received by ${t.pod.receivedBy}` : "Handed over"} · {fmtWhen(t.pod.at)}
+              {t.pod.receivedBy ? tx("tp.receivedBy", { name: t.pod.receivedBy }) : tx("tp.handed")} · {fmtWhen(t.pod.at)}
             </p>
           </div>
         </div>

@@ -7,8 +7,10 @@ import { router, useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import { useTheme } from "@/theme";
 import { T } from "@/components/ui";
+import { useT } from "@/i18n";
 
 export default function PaymentReturn() {
+  const { t } = useT();
   const { order } = useLocalSearchParams<{ order?: string }>();
   const { c } = useTheme();
   useEffect(() => {
@@ -24,9 +26,7 @@ export default function PaymentReturn() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, alignItems: "center", justifyContent: "center", gap: 12 }}>
       <ActivityIndicator color={c.brand} />
-      <T v="small" tone="ink2">
-        Confirming your payment…
-      </T>
+      <T v="small" tone="ink2">{t("m.confirmingPay")}</T>
     </View>
   );
 }

@@ -4,7 +4,6 @@ import "./cms.css";
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import type { FlashSale } from "@/lib/cms";
-import { formatBdt } from "@/lib/pricing";
 import { Icon } from "@/components/Icon";
 import { OriginTag, ProductImage } from "@/components/ProductBits";
 import { FlashCountdown } from "./FlashCountdown";

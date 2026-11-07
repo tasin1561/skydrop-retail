@@ -36,6 +36,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@expo-google-fonts/noto-sans-bengali':
+        specifier: ^0.4.4
+        version: 0.4.4
       '@expo-google-fonts/plus-jakarta-sans':
         specifier: ^0.4.2
         version: 0.4.2
@@ -624,6 +627,9 @@ packages:
 
   '@expo-google-fonts/material-symbols@0.4.53':
     resolution: {integrity: sha512-SgCSm8rUYvwy+5ABvwlV/h7xbJkWAsenChSKlUwMLVyEw/QoUon055QixCOtGCjrSRWqFGDvR0ghVa5nA2OkIg==}
+
+  '@expo-google-fonts/noto-sans-bengali@0.4.4':
+    resolution: {integrity: sha512-Ya58tLTEdP4P5EF3ZXTM829/g57mbfW8OrD16MMZr2sC3nIKItl/3J9tZlk1nrtqfFGzIgxb+zt/hLjAaTAQgQ==}
 
   '@expo-google-fonts/plus-jakarta-sans@0.4.2':
     resolution: {integrity: sha512-6LYVmVGwjQvH+uzzWlVc9+oMj4lkNQ41aymVDjO+x8aFk8kCye20wOyLomYMZaMezA++Uf1mZRCw3W3Fy/hxEA==}
@@ -5309,6 +5315,8 @@ snapshots:
       levn: 0.4.1
 
   '@expo-google-fonts/material-symbols@0.4.53': {}
+
+  '@expo-google-fonts/noto-sans-bengali@0.4.4': {}
 
   '@expo-google-fonts/plus-jakarta-sans@0.4.2': {}
 

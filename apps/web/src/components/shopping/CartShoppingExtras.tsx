@@ -7,7 +7,6 @@ import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
 import { STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import { cartLine } from "@/lib/shopping/cart";
 import { cheaperListings, groupSavingPreview } from "@/lib/shopping/client";
 import type { Alternative } from "@/lib/shopping/types";
@@ -21,7 +20,7 @@ export function CartShoppingExtras({ items }: { items: CartItem[] }) {
   const groupsOn = useFeature("group_orders");
   const { removeFromCart, addToCart } = useStore();
   const toast = useToast();
-  const { t, bdt, digits } = useT();
+  const { t, bdt } = useT();
   const [alts, setAlts] = useState<{ key: string; list: Alternative[] } | null>(null);
   const key = items.map((i) => `${i.productId}:${i.qty}`).join("|");
 

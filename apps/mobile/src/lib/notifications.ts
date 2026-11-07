@@ -5,6 +5,7 @@ import { AppState } from "react-native";
 import { messagingApi, type AppNotification } from "@/api/messaging";
 import { useFeature } from "@/lib/features";
 import { useStore } from "@/state/store";
+import { fmtRelative, type Lang } from "@/i18n/core";
 
 type State = { items: AppNotification[]; unread: number; loaded: boolean; loading: boolean; hasMore: boolean; page: number };
 const EMPTY: State = { items: [], unread: 0, loaded: false, loading: false, hasMore: false, page: 1 };
@@ -88,13 +89,9 @@ export function useNotifications() {
   return { ...(enabled ? s : EMPTY), enabled, refresh, loadMore, markRead, markAllRead, remove };
 }
 
-export function timeAgo(iso: string, now = Date.now()) {
-  const s = Math.max(0, Math.round((now - new Date(iso).getTime()) / 1000));
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
-  const d = Math.floor(s / 86400);
-  return d === 1 ? "yesterday" : d < 7 ? `${d} days ago` : new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+/** "5 minutes ago", "yesterday", "৫ মিনিট আগে" (Intl.RelativeTimeFormat in the shopper's language). */
+export function timeAgo(iso: string, lang: Lang = "en", now = Date.now()) {
+  return fmtRelative(Math.min(new Date(iso).getTime(), now), lang, now);
 }
 
 /** Feather-friendly icon + color per notification type. */

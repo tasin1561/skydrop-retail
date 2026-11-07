@@ -9,12 +9,14 @@ import type { MarketId } from "@/lib/types";
 import { useJob } from "./useJob";
 import { WaitStory } from "./WaitStory";
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
 
-const STEPS = [
-  { at: 0, label: "Connecting to the store in India" },
-  { at: 4, label: "Reading the live price and offers" },
-  { at: 9, label: "Loading photos, videos and variants" },
-  { at: 15, label: "Converting to BDT with duty and delivery" },
+const STEPS: { at: number; label: MsgKey }[] = [
+  { at: 0, label: "lf.s1" },
+  { at: 4, label: "lf.s2" },
+  { at: 9, label: "lf.s3" },
+  { at: 15, label: "lf.s4" },
 ];
 
 /**
@@ -24,12 +26,13 @@ const STEPS = [
 export function LiveFetch({ jobId, market, productId, browse }: { jobId: string; market?: string; productId: string; browse?: ReactNode }) {
   const router = useRouter();
   const [failed, setFailed] = useState(false);
+  const { t } = useT();
   const { elapsed } = useJob(jobId, {
     maxMs: 75_000,
     onDone: (s) => (s === "done" ? router.refresh() : setFailed(true)),
   });
   const store = market && market in STORES ? STORES[market as MarketId] : null;
-  const source = store?.source ?? "the store";
+  const source = store?.source ?? t("lf.theStore");
   const step = STEPS.filter((s) => elapsed >= s.at).length - 1;
   const slow = elapsed >= 25;
 
@@ -39,14 +42,14 @@ export function LiveFetch({ jobId, market, productId, browse }: { jobId: string;
         <span className="chip-icon mx-auto h-14 w-14 rounded-2xl">
           <Icon name="search" size={26} />
         </span>
-        <h1 className="mt-4 text-2xl font-extrabold tracking-tight">We couldn&apos;t reach {source} right now</h1>
-        <p className="mt-2 text-sm text-ink-2">The store didn&apos;t answer in time. This is usually temporary.</p>
+        <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{t("lf.cantReach", { source })}</h1>
+        <p className="mt-2 text-sm text-ink-2">{t("lf.timeout")}</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
-            <Icon name="refresh" size={18} /> Try again
+            <Icon name="refresh" size={18} /> {t("common.tryAgain")}
           </button>
           <Link href={`/request?url=${encodeURIComponent(productId)}`} className="btn btn-ghost">
-            Ask us to source it
+            {t("lf.source")}
           </Link>
         </div>
       </section>
@@ -58,10 +61,10 @@ export function LiveFetch({ jobId, market, productId, browse }: { jobId: string;
       <div role="status" aria-live="polite" className="card mb-4 flex items-center gap-3 p-4">
         <span className="live-dot" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold">Fetching this product live from {source}</p>
+          <p className="text-sm font-bold">{t("lf.fetching", { source })}</p>
           <p className="text-xs text-ink-2">
-            {STEPS[Math.max(0, step)].label}
-            {slow ? " · the store is slow today, still working on it" : ""} · {elapsed}s
+            {t(STEPS[Math.max(0, step)].label)}
+            {slow ? t("lf.slow") : ""} · {t("lf.secs", { n: elapsed })}
           </p>
         </div>
       </div>

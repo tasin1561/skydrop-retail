@@ -6,10 +6,12 @@ import { useStore } from "@/state/store";
 import { apiEnabled } from "@/lib/apiClient";
 import { formatPhone, phoneValid } from "./cart-math";
 import { PhoneField, TextField } from "./Fields";
+import { useT } from "@/i18n/client";
 
 // Inline sign-in for guests: name + phone, no OTP (the /login page owns OTP).
 export function QuickSignIn() {
   const { login } = useStore();
+  const { t } = useT();
   const [name, setName] = useState("");
   const [digits, setDigits] = useState("");
   const [touched, setTouched] = useState({ name: false, phone: false });
@@ -27,10 +29,10 @@ export function QuickSignIn() {
             <Icon name="user" size={18} />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold">Sign in to continue</h2>
-            <p className="text-sm text-ink-2">We&apos;ll text you a 6 digit code. Your cart stays as it is.</p>
+            <h2 className="text-base font-extrabold">{t("qs.title")}</h2>
+            <p className="text-sm text-ink-2">{t("qs.sub")}</p>
             <a href="/login?next=/checkout" className="btn btn-primary mt-3 w-full">
-              Sign in with phone <Icon name="arrow" size={18} className="arrow" />
+              {t("qs.withPhone")} <Icon name="arrow" size={18} className="arrow" />
             </a>
           </div>
         </div>
@@ -46,9 +48,9 @@ export function QuickSignIn() {
         </span>
         <div>
           <h2 id="qs-h" className="text-base font-extrabold">
-            Quick sign-in to continue
+            {t("qs.quick")}
           </h2>
-          <p className="text-xs text-ink-2">We use your number for order updates and Skydrop delivery calls.</p>
+          <p className="text-xs text-ink-2">{t("qs.why")}</p>
         </div>
       </div>
       <form
@@ -67,14 +69,14 @@ export function QuickSignIn() {
       >
         <TextField
           id="qs-name"
-          label="Your name"
+          label={t("qs.name")}
           icon="user"
           autoComplete="name"
           value={name}
           onChange={setName}
           onBlur={() => setTouched((t) => ({ ...t, name: true }))}
           state={nameOk ? "valid" : touched.name ? "invalid" : "idle"}
-          msg={touched.name && !nameOk ? "Please enter your name" : undefined}
+          msg={touched.name && !nameOk ? t("qs.errName") : undefined}
         />
         <PhoneField
           id="qs-phone"
@@ -84,12 +86,12 @@ export function QuickSignIn() {
           onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
         />
         <button type="submit" className="btn btn-primary mt-1 w-full">
-          Continue as {nameOk ? name.trim().split(" ")[0] : "guest"} <Icon name="arrow" size={18} className="arrow" />
+          {t("qs.continueAs", { name: nameOk ? name.trim().split(" ")[0] : t("qs.guest") })} <Icon name="arrow" size={18} className="arrow" />
         </button>
         <p className="text-center text-xs text-ink-3">
-          Have an account?{" "}
+          {t("qs.haveAccount")}{" "}
           <a href="/login?next=/checkout" className="font-semibold text-accent">
-            Sign in with OTP
+            {t("qs.otp")}
           </a>
         </p>
       </form>

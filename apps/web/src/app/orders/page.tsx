@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { OrdersList } from "@/components/account/OrdersList";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Your orders" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getT();
+  return { title: t("meta.orders") };
+}
 
 const TABS = ["all", "active", "delivered", "cancelled"] as const;
 type Tab = (typeof TABS)[number];

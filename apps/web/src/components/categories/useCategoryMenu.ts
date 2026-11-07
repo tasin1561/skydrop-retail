@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import menuData from "@/data/category-menu.json";
 import { apiEnabled } from "@/lib/apiClient";
 import { useLang } from "@/i18n/client";
@@ -44,7 +44,7 @@ export function useIsBn() {
   return useLang().lang === "bn";
 }
 
-export const catLabel = (n: Pick<CatNode, "name" | "nameBn">, bn: boolean) => (bn && n.nameBn ? n.nameBn : n.name);
+export { catLabel } from "@/lib/categories";
 
 export function catHref(path: string, store: StoreMode) {
   return `/c/${path}${store !== "all" ? `?store=${store}` : ""}`;

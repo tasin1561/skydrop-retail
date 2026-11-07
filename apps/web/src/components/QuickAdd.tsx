@@ -13,7 +13,7 @@ import { useT } from "@/i18n/client";
 export function QuickAdd({ p }: { p: Product }) {
   const { cart, addToCart, setQty, removeFromCart } = useStore();
   const [busy, setBusy] = useState(false);
-  const { t, digits } = useT();
+  const { t } = useT();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);

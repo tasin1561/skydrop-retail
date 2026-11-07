@@ -9,7 +9,6 @@ import { ProductImage } from "@/components/ProductBits";
 import { useToast } from "@/components/Toast";
 import { apiEnabled, ApiError } from "@/lib/apiClient";
 import { MARKET_IDS, STORES } from "@/lib/markets";
-import { formatBdt } from "@/lib/pricing";
 import { groupSavingPreview, groups } from "@/lib/shopping/client";
 import type { Group } from "@/lib/shopping/types";
 import type { MarketId } from "@/lib/types";

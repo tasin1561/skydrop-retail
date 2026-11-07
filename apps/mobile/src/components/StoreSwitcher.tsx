@@ -7,6 +7,7 @@ import { STORES } from "@/lib/markets";
 import { ACCENTS, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { T } from "./ui";
+import { useT } from "@/i18n";
 
 export function StoreSwitcher({
   value,
@@ -19,6 +20,7 @@ export function StoreSwitcher({
   modes: StoreMode[];
   compact?: boolean;
 }) {
+  const { t } = useT();
   const { c } = useTheme();
   const [layouts, setLayouts] = useState<Record<string, { x: number; w: number }>>({});
   const x = useSharedValue(0);
@@ -59,11 +61,11 @@ export function StoreSwitcher({
             }}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            accessibilityLabel={`${STORES[m].name}${m === "all" ? "" : `, from ${STORES[m].source}`}`}
+            accessibilityLabel={m === "all" ? t("store.all.name") : t("m.storeFromA11y", { name: STORES[m].name, source: STORES[m].source })}
             style={styles.tab}
           >
             <T v="small" numberOfLines={1} style={{ fontWeight: "700", color: on ? "#fff" : c.ink2 }}>
-              {compact ? STORES[m].short : STORES[m].name}
+              {m === "all" ? t(compact ? "store.all.short" : "store.all.name") : compact ? STORES[m].short : STORES[m].name}
             </T>
           </Pressable>
         );

@@ -9,7 +9,7 @@ import type { PaymentMethod } from "@/api/types";
 import { useStore } from "@/state/store";
 import type { Address, CartItem } from "@/lib/types";
 import { STORES } from "@/lib/markets";
-import { deliveryWindow, formatBdt } from "@/lib/pricing";
+import { deliveryWindow } from "@/lib/pricing";
 import { addDays, cartKey, computeTotals } from "@/lib/cart";
 import { maxRedeem } from "@/lib/points";
 import { prettyPhone } from "@/lib/phone";
@@ -22,19 +22,25 @@ import { AddressForm, addressValid, emptyAddress, type AddressDraft } from "@/co
 import { CouponField, SummaryLines } from "@/components/CartBits";
 import { Stepper, VanDrive, VerifyPanel, type CheckState } from "@/components/checkout/Bits";
 import { useToast } from "@/components/Toast";
+import { useT } from "@/i18n";
+import type { MsgKey, TFn } from "@/i18n";
+import { bdName } from "@/lib/bd";
 
-const PAYMENTS: { id: PaymentMethod; label: string; icon: string; desc: string }[] = [
-  { id: "bkash", label: "bKash", icon: "smartphone", desc: "Pay from your bKash account" },
-  { id: "nagad", label: "Nagad", icon: "smartphone", desc: "Pay from your Nagad account" },
-  { id: "card", label: "Card (SSLCommerz)", icon: "credit-card", desc: "Visa, Mastercard, Amex via SSLCommerz" },
-  { id: "advance50", label: "Pay 50% advance, rest on delivery", icon: "dollar-sign", desc: "Half now, the rest to the Skydrop rider" },
+// label/desc are dictionary keys (bKash and Nagad are brand names and stay as they are).
+const PAYMENTS: { id: PaymentMethod; label: MsgKey | "bKash" | "Nagad"; icon: string; desc: MsgKey }[] = [
+  { id: "bkash", label: "bKash", icon: "smartphone", desc: "pay.bkashDesc" },
+  { id: "nagad", label: "Nagad", icon: "smartphone", desc: "pay.nagadDesc" },
+  { id: "card", label: "pay.cardLabel", icon: "credit-card", desc: "pay.cardDesc" },
+  { id: "advance50", label: "pay.halfLabel", icon: "dollar-sign", desc: "pay.halfDesc" },
 ];
+const payLabel = (l: (typeof PAYMENTS)[number]["label"], t: TFn) => (l === "bKash" || l === "Nagad" ? l : t(l));
 
 type Phase = "idle" | "verifying" | "placing";
 
 const RETURN_URL = "skydropretail://checkout/success";
 
 export default function Checkout() {
+  const { t, bdt, lang } = useT();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const toast = useToast();
@@ -88,10 +94,10 @@ export default function Checkout() {
   }, [step]);
 
   if (!cart.length && phase === "idle")
-    return <Empty icon="shopping-cart" title="Your cart is empty" text="Add something before checking out." action="Start shopping" onAction={() => router.navigate("/")} />;
+    return <Empty icon="shopping-cart" title={t("m.cartEmpty")} text={t("m.addFirst")} action={t("hero.start")} onAction={() => router.navigate("/")} />;
 
   if (!user && !demo)
-    return <Empty icon="user" title="Sign in to check out" text="We use your phone number to keep you updated on delivery." action="Sign in" onAction={() => router.push({ pathname: "/login", params: { next: "/checkout" } })} />;
+    return <Empty icon="user" title={t("m.signInCheckout")} text={t("m.phoneUpdates")} action={t("nav.signIn")} onAction={() => router.push({ pathname: "/login", params: { next: "/checkout" } })} />;
 
   const address = addresses.find((a) => a.id === addressId) ?? null;
   const w = deliveryWindow();
@@ -106,7 +112,7 @@ export default function Checkout() {
       setAddressId(a.id);
       loadAddresses();
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't save address", body: (e as Error).message });
+      toast({ kind: "error", title: t("m.saveAddrFailed"), body: (e as Error).message });
     }
   }
 
@@ -191,7 +197,7 @@ export default function Checkout() {
           router.replace({ pathname: "/success", params: { id: fresh.id, total: String(fresh.total), paid: fresh.paymentStatus ?? "" } });
         } else {
           haptic.warn();
-          toast({ kind: "info", title: "Payment not finished", body: "Your order is saved. You can pay or cancel it from the order page." });
+          toast({ kind: "info", title: t("m.payNotFinished"), body: t("m.payNotFinishedBody") });
           router.replace(`/order/${order.id}`);
         }
         return;
@@ -200,7 +206,7 @@ export default function Checkout() {
       router.replace({ pathname: "/success", params: { id: order.id, total: String(order.total) } });
     } catch (e) {
       haptic.error();
-      toast({ kind: "error", title: "Couldn't place the order", body: (e as Error).message });
+      toast({ kind: "error", title: t("m.placeFailed"), body: (e as Error).message });
       setPhase("idle");
     }
   }
@@ -214,15 +220,13 @@ export default function Checkout() {
         {demo && (
           <View style={[styles.demo, { backgroundColor: withAlpha(c.warn, 0.12) }]}>
             <Icon name="info" size={16} color={c.warn} />
-            <T v="tiny" style={{ flex: 1, color: c.ink }}>
-              Demo mode: payments aren't connected yet. Placing an order saves it on this phone only and no money is taken.
-            </T>
+            <T v="tiny" style={{ flex: 1, color: c.ink }}>{t("m.demoCheckout")}</T>
           </View>
         )}
 
         <Animated.View key={step} entering={FadeInRight.duration(220)} exiting={FadeOutLeft.duration(150)} style={{ gap: 14 }}>
           <T v="h2" accessibilityRole="header">
-            {["Delivery address", "Delivery", "Payment method", "Review your order"][step]}
+            {t((["co.h.address", "co.h.delivery", "co.h.payment", "co.h.review"] as const)[step])}
           </T>
 
           {step === 0 && (
@@ -239,7 +243,7 @@ export default function Checkout() {
                     }}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: on }}
-                    accessibilityLabel={`${a.name}, ${a.area}, ${a.district}`}
+                    accessibilityLabel={`${a.name}, ${a.area}, ${bdName(a.district, lang)}`}
                     scaleTo={0.98}
                   >
                     <Card style={[{ flexDirection: "row", gap: 12, borderWidth: 2, borderColor: on ? c.brand : "transparent" }]}>
@@ -252,7 +256,7 @@ export default function Checkout() {
                           {prettyPhone(a.phone)}
                         </T>
                         <T v="small" tone="ink2">
-                          {a.line}, {a.area}, {a.district}, {a.division}
+                          {a.line}, {a.area}, {bdName(a.district, lang)}, {bdName(a.division, lang)}
                         </T>
                       </View>
                     </Card>
@@ -262,20 +266,18 @@ export default function Checkout() {
               {draft ? (
                 <Card style={{ gap: 14 }}>
                   <AddressForm value={draft} onChange={setDraft} />
-                  <Button label="Save and use this address" icon="check" onPress={saveDraft} disabled={!addressValid(draft)} />
-                  {addresses.length > 0 && <Button label="Cancel" kind="ghost" onPress={() => setDraft(null)} />}
+                  <Button label={t("m.saveUseAddr")} icon="check" onPress={saveDraft} disabled={!addressValid(draft)} />
+                  {addresses.length > 0 && <Button label={t("common.cancel")} kind="ghost" onPress={() => setDraft(null)} />}
                 </Card>
               ) : (
-                <Button label="Add a new address" kind="soft" icon="plus" onPress={() => setDraft(emptyAddress(user?.name, user?.phone))} />
+                <Button label={t("addr.addNew")} kind="soft" icon="plus" onPress={() => setDraft(emptyAddress(user?.name, user?.phone))} />
               )}
             </>
           )}
 
           {step === 1 && (
             <>
-              <T v="small" tone="ink2">
-                Each store ships as its own Skydrop parcel. Items from different stores are bought separately in India and can arrive on different days.
-              </T>
+              <T v="small" tone="ink2">{t("del.intro")}</T>
               {totals.groups.map((g) => {
                 const free = g.shipping === 0 || coupon?.kind === "freeship";
                 return (
@@ -283,22 +285,20 @@ export default function Checkout() {
                     <IconChip icon="truck" mode={g.market} />
                     <View style={{ flex: 1 }}>
                       <T v="tiny" style={{ fontWeight: "700", color: c.ink2 }}>
-                        From {STORES[g.market].source}, India · {g.count} item{g.count === 1 ? "" : "s"}
+                        {t("del.fromLine", { source: STORES[g.market].source, items: t("cart.items", { count: g.count }) })}
                       </T>
-                      <T v="h3" style={{ fontSize: 14 }}>
-                        Skydrop door delivery · Standard
-                      </T>
+                      <T v="h3" style={{ fontSize: 14 }}>{t("del.standard")}</T>
                       <T v="tiny" tone="ink2">
-                        Arrives {addDays(now, w.min)} - {addDays(now, w.max)} ({w.min}-{w.max} days)
+                        {t("del.arrives", { from: addDays(now, w.min, lang), to: addDays(now, w.max, lang), min: w.min, max: w.max })}
                       </T>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <T v="small" style={{ fontWeight: "800", color: free ? c.good : c.ink }}>
-                        {free ? "Free" : formatBdt(g.shipping)}
+                        {free ? t("common.free") : bdt(g.shipping)}
                       </T>
                       {free && g.shipping > 0 && (
                         <T v="tiny" tone="ink3" style={{ textDecorationLine: "line-through" }}>
-                          {formatBdt(g.shipping)}
+                          {bdt(g.shipping)}
                         </T>
                       )}
                     </View>
@@ -307,9 +307,9 @@ export default function Checkout() {
               })}
               <View style={{ flexDirection: "row", gap: 8 }}>
                 {[
-                  ["shopping-bag", "Bought in India", "1-3 days"],
-                  ["send", "Kolkata hub to Bangladesh", "3-5 days"],
-                  ["home", "To your door", "1-3 days"],
+                  ["shopping-bag", t("del.bought"), t("del.d13")],
+                  ["send", t("del.hubToBd"), t("del.d35")],
+                  ["home", t("del.toDoor"), t("del.d13")],
                 ].map(([i, a, b]) => (
                   <Card key={a} pad={10} style={{ flex: 1, alignItems: "center", gap: 4 }}>
                     <Icon name={i} size={18} color={c.brand} />
@@ -338,21 +338,21 @@ export default function Checkout() {
                     }}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: on }}
-                    accessibilityLabel={p.label}
+                    accessibilityLabel={payLabel(p.label, t)}
                     scaleTo={0.98}
                   >
                     <Card style={{ flexDirection: "row", gap: 12, alignItems: "center", borderWidth: 2, borderColor: on ? c.brand : "transparent" }}>
                       <IconChip icon={p.icon} />
                       <View style={{ flex: 1 }}>
                         <T v="h3" style={{ fontSize: 15 }}>
-                          {p.label}
+                          {payLabel(p.label, t)}
                         </T>
                         <T v="tiny" tone="ink2">
-                          {p.desc}
+                          {t(p.desc)}
                         </T>
                         {p.id === "advance50" && (
                           <T v="tiny" style={{ color: c.brand, fontWeight: "700", marginTop: 2 }}>
-                            {formatBdt(Math.ceil(totals.total / 2))} now, {formatBdt(totals.total - Math.ceil(totals.total / 2))} on delivery
+                            {t("pay.halfNow", { now: bdt(Math.ceil(totals.total / 2)), later: bdt(totals.total - Math.ceil(totals.total / 2)) })}
                           </T>
                         )}
                       </View>
@@ -362,7 +362,7 @@ export default function Checkout() {
                 );
               })}
               <T v="tiny" tone="ink3">
-                {demo ? "Payments aren't connected yet in this demo build. No payment screen will open." : "You'll be taken to the payment page after you place the order."}
+                {demo ? t("m.payDemo") : t("m.payNext")}
               </T>
             </>
           )}
@@ -371,9 +371,9 @@ export default function Checkout() {
             <>
               <Card style={{ gap: 10 }}>
                 {[
-                  { icon: "map-pin", title: "Deliver to", text: address ? `${address.name}, ${address.line}, ${address.area}, ${address.district}` : "-", s: 0 },
-                  { icon: "truck", title: "Delivery", text: `Skydrop door delivery, ${w.min}-${w.max} days`, s: 1 },
-                  { icon: "credit-card", title: "Payment", text: PAYMENTS.find((p) => p.id === payment)!.label, s: 2 },
+                  { icon: "map-pin", title: t("co.deliverTo"), text: address ? `${address.name}, ${address.line}, ${address.area}, ${bdName(address.district, lang)}` : "-", s: 0 },
+                  { icon: "truck", title: t("co.h.delivery"), text: t("m.doorDays", { min: w.min, max: w.max }), s: 1 },
+                  { icon: "credit-card", title: t("co.payment"), text: payLabel(PAYMENTS.find((p) => p.id === payment)!.label, t), s: 2 },
                 ].map((r) => (
                   <View key={r.title} style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
                     <IconChip icon={r.icon} size={32} />
@@ -385,7 +385,7 @@ export default function Checkout() {
                         {r.text}
                       </T>
                     </View>
-                    <Button label="Change" kind="ghost" onPress={() => setStep(r.s)} style={{ minHeight: 44, paddingHorizontal: 12 }} />
+                    <Button label={t("co.change")} kind="ghost" onPress={() => setStep(r.s)} style={{ minHeight: 44, paddingHorizontal: 12 }} />
                   </View>
                 ))}
               </Card>
@@ -398,12 +398,12 @@ export default function Checkout() {
                         {i.title}
                       </T>
                       <T v="tiny" tone="ink2">
-                        From {STORES[i.market].source} · Qty {i.qty}
+                        {t("m.itemLine", { source: STORES[i.market].source, qty: i.qty })}
                         {i.variant ? ` · ${i.variant}` : ""}
                       </T>
                     </View>
                     <T v="small" style={{ fontWeight: "800" }}>
-                      {formatBdt(i.unitBdt * i.qty)}
+                      {bdt(i.unitBdt * i.qty)}
                     </T>
                   </View>
                 ))}
@@ -418,22 +418,22 @@ export default function Checkout() {
                   disabled={redeemable.points === 0 || phase !== "idle"}
                   accessibilityRole="switch"
                   accessibilityState={{ checked: usePoints, disabled: redeemable.points === 0 }}
-                  accessibilityLabel={`Use ${redeemable.points} Skydrop Points, save ${formatBdt(redeemable.valueBdt)}`}
+                  accessibilityLabel={t("m.usePointsA11y", { count: redeemable.points, amount: bdt(redeemable.valueBdt) })}
                   scaleTo={0.98}
                 >
                   <Card style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderColor: usePoints ? c.brand : "transparent" }}>
                     <IconChip icon="star" />
                     <View style={{ flex: 1 }}>
                       <T v="h3" style={{ fontSize: 15 }}>
-                        Use {redeemable.points} Skydrop Points
+                        {t("co.usePoints", { count: redeemable.points })}
                       </T>
                       <T v="tiny" tone="ink2">
-                        {redeemable.points > 0 ? `Save ${formatBdt(redeemable.valueBdt)} · you have ${pointsBalance} points` : `You have ${pointsBalance} points; add more items to use them`}
+                        {redeemable.points > 0 ? t("co.pointsSave", { amount: bdt(redeemable.valueBdt), count: pointsBalance }) : t("m.pointsHave", { count: pointsBalance })}
                       </T>
                     </View>
                     <View style={[styles.onoff, { backgroundColor: usePoints ? c.brand : c.surface2 }]}>
                       <T v="tiny" style={{ fontWeight: "800", color: usePoints ? "#fff" : c.ink2 }}>
-                        {usePoints ? "ON" : "OFF"}
+                        {usePoints ? t("f.on") : t("f.off")}
                       </T>
                     </View>
                   </Card>
@@ -445,7 +445,7 @@ export default function Checkout() {
               {(phase === "verifying" || checks.some((s) => s !== "wait")) && <VerifyPanel states={checks} changed={changed} failed={failed} error={verifyError} />}
               {failed.length > 0 && (
                 <Button
-                  label="Remove unavailable items"
+                  label={t("m.removeUnavail")}
                   kind="danger"
                   onPress={() => {
                     failed.forEach((i) => removeItem(cartKey(i)));
@@ -455,9 +455,7 @@ export default function Checkout() {
                 />
               )}
               <SummaryLines t={totals} />
-              <T v="tiny" tone="ink3">
-                By placing this order you agree that Skydrop Retail buys these items for you from the Indian stores named above and Skydrop delivers them to your address. Prices are checked live before purchase.
-              </T>
+              <T v="tiny" tone="ink3">{t("m.agreeShort")}</T>
             </>
           )}
         </Animated.View>
@@ -465,19 +463,17 @@ export default function Checkout() {
 
       <View style={[styles.bar, { backgroundColor: c.surface, borderTopColor: c.line, paddingBottom: Math.max(insets.bottom, 12) }]}>
         {phase !== "idle" ? (
-          <VanDrive label={phase === "verifying" ? "Verifying price, stock and delivery" : "Placing your order"} />
+          <VanDrive label={phase === "verifying" ? t("co.verifying") : t("van.placing")} />
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <T v="tiny" tone="ink3">
-                Total
-              </T>
-              <T v="h2">{formatBdt(totals.total)}</T>
-              {verified && step === 3 && <Pill text="Verified" icon="check" color={c.good} bg={withAlpha(c.good, 0.12)} />}
+              <T v="tiny" tone="ink3">{t("sum.total")}</T>
+              <T v="h2">{bdt(totals.total)}</T>
+              {verified && step === 3 && <Pill text={t("st.verified.short")} icon="check" color={c.good} bg={withAlpha(c.good, 0.12)} />}
             </View>
             {step < 3 ? (
               <Button
-                label="Continue"
+                label={t("common.continue")}
                 icon="arrow-right"
                 disabled={!canNext}
                 onPress={() => {
@@ -487,7 +483,7 @@ export default function Checkout() {
                 style={{ flex: 1.4 }}
               />
             ) : (
-              <Button label={verified ? "Place order" : "Verify and place order"} kind="coral" icon="shield" onPress={place} disabled={!address || failed.length > 0} style={{ flex: 1.8 }} />
+              <Button label={verified ? t("m.placeOrder") : t("m.verifyPlace")} kind="coral" icon="shield" onPress={place} disabled={!address || failed.length > 0} style={{ flex: 1.8 }} />
             )}
           </View>
         )}
