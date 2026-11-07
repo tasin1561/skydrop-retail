@@ -7,6 +7,8 @@ import { STORES, STORE_MODES } from "@/lib/markets";
 import { useStore } from "@/state/store";
 import { Icon, Logo } from "./Icon";
 import { SearchBox } from "./SearchBox";
+import { MegaMenu } from "./categories/MegaMenu";
+import { CategorySheetButton } from "./categories/CategorySheet";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { useCurrentMode } from "./StoreTheme";
 import { RequestHeaderLink } from "./shopping/RequestLinks";
@@ -95,12 +97,14 @@ export function Header() {
         <Link href="/" aria-label="Skydrop Retail home" className="shrink-0 text-[17px] sm:text-lg">
           <Logo />
         </Link>
+        {!checkout && <MegaMenu />}
         {!checkout && (
           <div className="hidden flex-1 md:block">
             <SearchBox />
           </div>
         )}
         <div className="ml-auto flex items-center gap-1">
+          {!checkout && <CategorySheetButton />}
           <NotificationBell />
           <button
             className="grid h-11 w-11 place-items-center rounded-full text-ink-2 transition hover:bg-surface-2 hover:text-ink"

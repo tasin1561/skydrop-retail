@@ -7,7 +7,7 @@ import { Icon } from "./Icon";
 
 const ITEMS = [
   { href: "/", label: "Home", icon: "home", match: (p: string) => p === "/" || p.startsWith("/store") },
-  { href: "/categories", label: "Categories", icon: "grid", match: (p: string) => p.startsWith("/categories") || p.startsWith("/search") },
+  { href: "/categories", label: "Categories", icon: "grid", match: (p: string) => p.startsWith("/categories") || p.startsWith("/c/") || p.startsWith("/search") },
   { href: "/cart", label: "Cart", icon: "cart", match: (p: string) => p.startsWith("/cart") || p.startsWith("/checkout") },
   { href: "/orders", label: "Orders", icon: "receipt", match: (p: string) => p.startsWith("/orders") },
   { href: "/account", label: "Account", icon: "user", match: (p: string) => p.startsWith("/account") || p.startsWith("/login") || p.startsWith("/wishlist") },

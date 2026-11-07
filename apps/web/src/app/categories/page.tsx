@@ -1,66 +1,45 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { byMarket } from "@/lib/data";
-import { MARKET_IDS, STORES } from "@/lib/markets";
+import { getCategoryTree } from "@/lib/data";
+import { isStoreMode, MARKET_IDS, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
-import { ProductImage } from "@/components/ProductBits";
+import { CategoryExplorer } from "@/components/categories/CategoryExplorer";
 
-export const metadata: Metadata = { title: "Categories" };
+export const metadata: Metadata = {
+  title: "All categories",
+  description: "Every category from amazon.in, Flipkart and BigBasket, delivered to Bangladesh by Skydrop.",
+  alternates: { canonical: "/categories" },
+};
 
-export default async function CategoriesPage() {
-  const samples = Object.fromEntries(
-    await Promise.all(
-      MARKET_IDS.flatMap((m) => STORES[m].categories.map(async (c) => [`${m}:${c.slug}`, (await byMarket(m, 1, c.slug))[0]] as const)),
-    ),
-  );
+type SP = Record<string, string | string[] | undefined>;
+
+export default async function CategoriesPage({ searchParams }: { searchParams: Promise<SP> }) {
+  const raw = (await searchParams).store;
+  const first = Array.isArray(raw) ? raw[0] : raw;
+  const store = isStoreMode(first) ? first : "all";
+  const tree = await getCategoryTree("all");
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">
       <h1 className="text-2xl font-extrabold tracking-tight">Shop by category</h1>
-      <p className="text-sm text-ink-2">Pick a store, then a category. Every item ships to Bangladesh with Skydrop.</p>
-      <div className="mt-6 space-y-8">
-        {MARKET_IDS.map((m) => {
-          const s = STORES[m];
-          return (
-            <section key={m} data-store={m}>
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-extrabold">
-                  <span className="chip-icon is-active">
-                    <Icon name={s.icon} size={18} />
-                  </span>
-                  {s.name}
-                  <span className="text-xs font-semibold text-ink-3">from {s.source}</span>
-                </h2>
-                <Link href={`/store/${m}`} className="text-sm font-semibold text-accent">
-                  Visit store
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {s.categories.map((c, i) => {
-                  const sample = samples[`${m}:${c.slug}`];
-                  return (
-                    <Link
-                      key={c.slug}
-                      href={`/search?q=&store=${m}&category=${c.slug}`}
-                      className="card rise group flex items-center gap-3 p-3 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
-                      style={{ ["--i" as string]: i }}
-                    >
-                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white p-1">
-                        {sample ? <ProductImage p={sample} className="h-full w-full" /> : <Icon name={c.icon} size={32} />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold">{c.label}</p>
-                        <p className="flex items-center gap-1 text-xs text-accent">
-                          Browse <Icon name="right" size={12} className="transition-transform group-hover:translate-x-0.5" />
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      <p className="text-sm text-ink-2">Everything the Indian stores sell, in one tree. Every item ships to Bangladesh with Skydrop.</p>
+      <CategoryExplorer tree={tree} initialStore={store} />
+      <section className="mt-10">
+        <h2 className="mb-3 text-lg font-extrabold">Or browse a store</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {MARKET_IDS.map((m) => (
+            <Link key={m} href={`/store/${m}`} data-store={m} className="card cm-tile flex min-h-16 items-center gap-3 p-3">
+              <span className="chip-icon is-active">
+                <Icon name={STORES[m].icon} size={18} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold">{STORES[m].name}</span>
+                <span className="block text-xs text-ink-3">from {STORES[m].source}</span>
+              </span>
+              <Icon name="right" size={16} className="text-ink-3" />
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

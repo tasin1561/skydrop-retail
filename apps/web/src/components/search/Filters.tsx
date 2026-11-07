@@ -49,6 +49,7 @@ function useParamsUpdater() {
 
 function FilterBody() {
   const sp = useSearchParams();
+  const onCategoryPage = usePathname().startsWith("/c/"); // the /c/{path} URL already scopes the category
   const set = useParamsUpdater();
   const { enabled } = useStore();
   const store = sp.get("store") ?? "all";
@@ -85,14 +86,16 @@ function FilterBody() {
           </Opt>
         ))}
       </fieldset>
-      <fieldset>
-        <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Category</legend>
-        {CATS.map(([v, l]) => (
-          <Opt key={v} on={cat === v} onClick={() => set({ category: v })}>
-            {l}
-          </Opt>
-        ))}
-      </fieldset>
+      {!onCategoryPage && (
+        <fieldset>
+          <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Category</legend>
+          {CATS.map(([v, l]) => (
+            <Opt key={v} on={cat === v} onClick={() => set({ category: v })}>
+              {l}
+            </Opt>
+          ))}
+        </fieldset>
+      )}
       <fieldset>
         <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-3">Price</legend>
         {PRICES.map(([a, b, l]) => (

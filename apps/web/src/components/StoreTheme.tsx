@@ -14,7 +14,7 @@ export function useCurrentMode() {
   const m = path.match(/^\/store\/([a-z]+)/)?.[1];
   if (isStoreMode(m)) return m;
   const q = sp.get("store");
-  if (path.startsWith("/search") && isStoreMode(q)) return q;
+  if ((path.startsWith("/search") || path.startsWith("/c/")) && isStoreMode(q)) return q;
   return mode;
 }
 

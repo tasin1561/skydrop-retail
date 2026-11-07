@@ -502,3 +502,82 @@ replacement; permission `returns.resolve`) and **Price alerts** (source INR pric
 from the purchase queue; rise above the threshold or out of stock → red banner in the purchase queue and order view with old vs new and margin impact,
 Filament database notification + ops email; actions absorb, ask the customer (pay link), cancel the item with a refund, switch to a matched listing
 from `product_matches`).
+
+## Shopping: price history, compare stores, bundles, group buy, pre-orders, product requests
+
+Each block is behind its admin feature switch (`price_history`, `compare_stores`, `bundles`, `group_orders`, `preorders`,
+`waitlist`, `product_requests`); off → `404 { error: "feature_disabled", feature }`. Routes: `routes/api_shopping.php`.
+
+**Price history.** `GET /products/{id}/price-history?days=30|90|365` (other values → 30) →
+`{ productId, days, currency: "BDT", points: [{ date, bdt, inr, inStock }], lowestBdt, highestBdt, averageBdt, currentBdt,
+position (0 = at the period low … 1 = at the high), positionLabel: "lowest"|"low"|"typical"|"high"|"steady", changes, badges: PriceInsight[] }`
+- One point per day (last price of the day, carried forward; the window starts at the first known price). History comes from
+  `price_history` (INR, written by the catalog on price changes); every point is converted with **today's** FX and pricing rules
+  (`PricingService::priceBdt`). The last point is today's buy price.
+- `PriceInsight`: `{ type: "lowest", label: "Lowest price in 30 days", days: 30 }` (current ≤ every day of the last 30, the price moved,
+  ≥ 7 days of data) or `{ type: "drop", label: "Price dropped ৳X this week", dropBdt }` (vs. 7 days ago, ≥ ৳20 and ≥ 2%).
+- Product JSON (cards and detail) carries `priceInsight: PriceInsight | null` (the first badge; cached 30 min; null when the feature is off).
+
+**Compare stores.** `GET /products/{id}/compare` → `{ productId, items: [{ productId, market, priceBdt, inStock, delivery: { min, max },
+current, best, match: { method: "gtin"|"model"|"title", score } | null, product: Product }], bestId, savingBdt }` (items sorted by price;
+empty when there is no other listing). `savingBdt` = this listing's price minus the best in-stock price.
+- Pairs come from `product_matches` (filled daily at 03:40 by `MatchProducts` and from the admin): same normalised brand, then
+  GTIN/EAN/UPC from specs (different barcodes never match), else a model number from specs/title (sizes such as 128GB/256GB must not
+  conflict), else same category + title trigram similarity ≥ 0.62. Shown: admin-confirmed pairs and pending pairs with score ≥ 0.82;
+  rejected pairs never. Admin decisions survive re-runs. Delivery estimate: Mega Store 7-12, Style Bazaar 8-13, Daily Basket 6-10 days (−1 for Prime).
+- `POST /checkout/alternatives { items }` (same item rules as quote) → `{ items: [{ productId, variant, qty, title, market, unitBdt,
+  alternativeId, alternativeMarket, alternativeBdt, savingBdt (× qty), delivery, alternative: Product }] }` — cheaper identical in-stock
+  listings not already in the cart, saving ≥ ৳20.
+
+**Bundles.** `GET /products/{id}/bought-together?limit=3` (max 6) → `{ product, source: "copurchase"|"category", items: (Product & { boughtTogether })[], totalBdt }`
+(co-purchases from non-cancelled orders, then same-store complementary categories; listings of the same product are excluded).
+`GET /bundles` → `{ items: Bundle[] }` (without items) · `GET /bundles/{slug}` → `{ bundle }` · `GET /products/{id}/bundles` → `{ items: Bundle[] }`
+`Bundle`: `{ id, slug, title, description, image, discountPct, regularBdt, discountBdt, totalBdt, available, endsAt, count, items?: [{ qty, product }] }`
+- Curated bundles (`bundles` + `bundle_items`, admin → Catalog → Bundles) give an extra `discount_pct` on a complete set, capped at our
+  margin on those items. `POST /checkout/quote` adds `bundleDiscount` (already inside `discount`/`total`, not in `couponDiscount`) and
+  `bundles: [{ id, slug, title, sets, discountBdt }]`; each cart unit counts towards one bundle, biggest saving first. Orders store it in
+  `orders.bundle_discount_bdt`; `Order.bundleDiscount` is present when > 0.
+
+**Group buy** (auth unless noted). One store; friends join via `{WEB_URL}/group/{code}`; each member pays for their own order.
+`POST /groups { market, hours: 24|48|72 (default 48), items?: [{ productId, variant?, qty }], addressId? | address?, payment? }` → `201 { group }`
+`GET /groups/{code}` (token optional) → `{ group }` · `GET /groups` → `{ items: Group[] }` (mine)
+`POST /groups/{code}/join { items, addressId? | address?, payment? }` (join or update your items) · `POST /groups/{code}/leave`
+`POST /groups/{code}/close` (organiser; places orders now) · `POST /groups/{code}/cancel` (organiser) → `{ group }`
+`Group`: `{ id, code, market, status: "open"|"closing"|"closed"|"cancelled", closesAt, closedAt, closeNote, minMembers: 2, owner (first name),
+isOwner, shareUrl, members: [{ name, isOwner, isYou, items, weightKg, savingBdt, status }], totals: { soloShippingBdt, groupShippingBdt,
+savingBdt, eachSavesBdt, weightKg, grouped }, you: { items, addressId, payment, status, orderId, error, savingBdt, shareBdt, soloShippingBdt } | null }`
+- Items from another store → `422 errors.items`; joining a closed group → `409 { code: "group_closed" }`; the organiser cannot leave
+  (`422 { code: "owner_cannot_leave" }`); close/cancel by others → `403 { code: "not_owner" }`.
+- Shipping: the consolidated shipment's shipping (`PricingService::shipping` over all members' items) is split by weight share; each
+  member's saving (their solo shipping − share) is a discount on their order (`orders.group_id`, `orders.group_discount_bdt`;
+  `Order.groupId`, `groupCode`, `groupDiscount`).
+- At the deadline (`CloseDueGroups`, every 5 min) or on close: one order per member through the normal order flow (live verification;
+  unavailable items are dropped and the rest retried), payment pending and a pay-link notification. Fewer than 2 members with items →
+  the order goes ahead without a discount; nobody with items → `cancelled`.
+
+**Pre-orders and restock waitlist.** `GET /products/{id}/preorder` (token optional) → `{ productId, inStock, available, waitlist (active
+back-in-stock watchers; null when "waitlist" is off), watching, depositPct?, priceBdt?, depositBdt?, etaDays?, etaDate?, note? }`.
+`available` = out of stock + an active `preorder_rules` row (product, or category optionally per store; admin → Catalog → Pre-order rules;
+deposit default 30%, ETA days) + feature `preorders`. "Notify me when back" is the existing `POST /watches { type: "back_in_stock" }`.
+`POST /preorders { productId, variant?, qty (1-10), addressId | address, payment: "bkash"|"nagad"|"card", returnUrl? }` (auth) →
+`201 { order, payment }` — in-stock or not pre-orderable → `422 { code: "not_preorderable" }`.
+- The order is flagged `orders.is_preorder` (statuses are unchanged): `deposit_pct`, `deposit_bdt` (ceil of total × pct), `preorder_eta`,
+  `preorder_state: awaiting_stock → balance_due → ready`. The first payment collects the deposit (`paymentStatus: "partial"`); the order
+  stays `placed` until the balance is paid, then moves to `verified` as usual. `ProcessPreorders` (hourly :25) sends one SMS with a pay
+  link when every item is back in stock; `POST /orders/{id}/pay` collects the balance. Cancelling refunds the deposit. Unpaid pre-orders
+  stay out of the purchase queue. `Order.isPreorder` + `Order.preorder: { state, depositPct, depositBdt, balanceBdt, eta }`.
+
+**Product requests.** `POST /product-requests { url? | description? (one required), photoUrl?, qty?, budgetBdt?, name?, phone (required
+when signed out), query?, source?: "web"|"search"|"header"|"app" }` (token optional, 10/min) → `201 { request }`.
+A supported store link (amazon.in / flipkart.com / bigbasket.com) is resolved with the catalog `UrlResolver` (same as `POST /products/resolve`)
+to `market` + `productId`, otherwise just stored. `GET /product-requests` (auth) → `{ items: ProductRequest[] }`.
+`ProductRequest`: `{ id, status: "new"|"sourcing"|"quoted"|"ordered"|"declined", url, description, photoUrl, qty, budgetBdt, market, productId,
+quoteBdt, quoteNote, orderId, payUrl ("/orders/{id}?pay=1" while unpaid), quotedAt, createdAt }`.
+- Admin → Sales → Product requests: status workflow and "Send quote" (price per item + shipping + message) → creates an order with a
+  custom line (`product_id` `REQ-{id}`, payment pending) for the customer (a guest is matched or signed up by phone) and texts a pay
+  link (`Notifier::custom`). The request becomes `ordered` once that order is paid.
+
+**Admin** (permission keys in `ShoppingServiceProvider`, group "Shopping"): Catalog → Store matches (confirm/reject, bulk, "Run matcher";
+`matches.review`, `matches.run`), Bundles, Pre-order rules, Waitlist demand (out-of-stock products by waiting customers, "Allow pre-order";
+`preorders.allow`); Sales → Group buys (members, force close / cancel; `groups.close`, `groups.cancel`), Product requests (`requests.quote`,
+`requests.status`).
