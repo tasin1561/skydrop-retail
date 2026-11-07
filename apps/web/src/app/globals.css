@@ -296,6 +296,7 @@ body {
 /* add-to-cart rolling label */
 .roll {
   display: inline-grid;
+  justify-items: center;
   height: 1.4em;
   overflow: hidden;
   line-height: 1.4em;

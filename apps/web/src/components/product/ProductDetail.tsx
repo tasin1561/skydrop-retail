@@ -106,12 +106,13 @@ export function ProductDetail({
         </ol>
       </nav>
 
-      <div className="grid gap-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10">
+      <div className="grid grid-cols-1 gap-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10">
         {/* gallery */}
         <div className="relative">
           <Gallery
             key={p.id}
             p={{ title: p.title, image: p.image, placeholder: p.placeholder }}
+            market={p.market}
             media={media}
             source={source}
             hasVideosOnly={!!p.hasVideos && !videos.length}

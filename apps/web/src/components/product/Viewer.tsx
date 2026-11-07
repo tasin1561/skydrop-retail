@@ -13,6 +13,7 @@ type P = { title: string; placeholder?: { hue: number; icon: string }; image: st
 // Fullscreen media viewer: a sheet with swipeable slides, tap-to-zoom, focus trap and Escape to close.
 export function Viewer({
   p,
+  market,
   media,
   start,
   source,
@@ -21,6 +22,7 @@ export function Viewer({
   onIndex,
 }: {
   p: P;
+  market: string;
   media: Media[];
   start: number;
   source: string;
@@ -115,6 +117,7 @@ export function Viewer({
       ref={dialogRef}
       className="pd-viewer fixed inset-0 z-[80]"
       data-closing={closing}
+      data-store={market}
       role="dialog"
       aria-modal="true"
       aria-label={`Photos and videos: ${p.title}`}

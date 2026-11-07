@@ -14,12 +14,14 @@ type P = { title: string; placeholder?: { hue: number; icon: string }; image: st
 
 export function Gallery({
   p,
+  market,
   media,
   source,
   hasVideosOnly,
   badges,
 }: {
   p: P;
+  market: string;
   media: Media[];
   source: string;
   hasVideosOnly?: boolean;
@@ -203,6 +205,7 @@ export function Gallery({
       {view && (
         <Viewer
           p={p}
+          market={market}
           media={media}
           start={view.start}
           source={source}

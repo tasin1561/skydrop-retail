@@ -28,6 +28,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-store="all" suppressHydrationWarning>
       <body className="min-h-dvh">
+        <svg width="0" height="0" aria-hidden="true" className="absolute">
+          <defs>
+            <linearGradient id="half">
+              <stop offset="50%" stopColor="currentColor" />
+              <stop offset="50%" stopColor="transparent" />
+            </linearGradient>
+          </defs>
+        </svg>
         <StoreProvider>
           <ToastProvider>
             <Suspense>
