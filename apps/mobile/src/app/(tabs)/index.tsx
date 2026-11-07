@@ -72,7 +72,7 @@ export default function Home() {
       </View>
 
       <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
-        <StoreSwitcher value={mode} onChange={setMode} modes={enabled as StoreMode[]} compact />
+        <StoreSwitcher value={mode} onChange={setMode} modes={enabled as StoreMode[]} compact label />
       </View>
 
       <SearchBar mode={mode} />

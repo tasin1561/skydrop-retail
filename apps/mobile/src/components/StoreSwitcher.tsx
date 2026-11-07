@@ -15,11 +15,14 @@ export function StoreSwitcher({
   onChange,
   modes,
   compact,
+  label,
 }: {
   value: StoreMode;
   onChange: (m: StoreMode) => void;
   modes: StoreMode[];
   compact?: boolean;
+  /** Show the "Shopping at" caption above the control (home header). */
+  label?: boolean;
 }) {
   const { t } = useT();
   const { c } = useTheme();
@@ -45,8 +48,12 @@ export function StoreSwitcher({
     setLayouts((prev) => (prev[m]?.x === lx && prev[m]?.w === width ? prev : { ...prev, [m]: { x: lx, w: width } }));
   };
 
-  return (
-    <View style={[styles.track, { backgroundColor: c.surface2 }]} accessibilityRole="tablist">
+  const track = (
+    <View
+      style={[styles.track, { backgroundColor: c.surface2 }]}
+      accessibilityRole="tablist"
+      accessibilityLabel={label ? t("mx.shoppingAt") : undefined}
+    >
       <Animated.View style={[styles.pill, { backgroundColor: ACCENTS[value].accent }, pill]} />
       {modes.map((m) => {
         const on = m === value;
@@ -72,10 +79,20 @@ export function StoreSwitcher({
       })}
     </View>
   );
+  if (!label) return track;
+  return (
+    <View>
+      <T v="small" tone="ink2" style={styles.caption} importantForAccessibility="no" accessibilityElementsHidden>
+        {t("mx.shoppingAt")}
+      </T>
+      {track}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   track: { flexDirection: "row", borderRadius: 999, padding: 4 },
+  caption: { fontWeight: "600", marginBottom: 6, marginLeft: 4 },
   tab: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 6, zIndex: 1 },
   pill: { position: "absolute", top: 4, bottom: 4, left: 0, width: 100, borderRadius: 999 },
 });

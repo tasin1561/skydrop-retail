@@ -69,7 +69,7 @@ export default async function StorePage({
         <CategoryChips mode={market} />
         <StoreQuickBar market={market} hasBrands={facets.length > 0} />
         <CmsHero store={market} />
-        <PromoStrip />
+        <PromoStrip store={market} />
         <CmsTiles store={market} />
         <CmsFlash store={market} />
         <EnabledRail title={t("storePage.dealsOfDay")} note={t("storePage.biggestDiscounts", { source: s.source })} href={`/search?q=&store=${market}&sort=discount`} items={dealItems} />

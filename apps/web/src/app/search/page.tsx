@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { searchProducts } from "@/lib/data";
+import { getCategoryPage, searchProducts } from "@/lib/data";
+import { catLabel } from "@/lib/categories";
 import { isStoreMode, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
@@ -29,7 +30,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
-  const { t, digits } = await getT();
+  const { t, digits, lang } = await getT();
   const q = one(sp.q) ?? "";
   const storeRaw = one(sp.store);
   const store = isStoreMode(storeRaw) ? storeRaw : "all";
@@ -60,7 +61,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   };
 
   const catKey = "store.cat." + one(sp.category);
-  const heading = q ? t("sp.resultsFor", { q }) : one(sp.category) ? (hasKey(catKey) ? t(catKey) : `${one(sp.category)![0].toUpperCase()}${one(sp.category)!.slice(1)}`) : t("sp.allProducts");
+  // Tree categories ("mobiles-electronics/mobiles") show their real name from the category tree, not the raw path.
+  const cat = one(sp.category);
+  const catNode = cat && !hasKey(catKey) ? (await getCategoryPage(cat, store).catch(() => null))?.node : null;
+  const prettyPath = (p: string) => p.split("/").pop()!.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+  const heading = q
+    ? t("sp.resultsFor", { q })
+    : cat
+      ? hasKey(catKey)
+        ? t(catKey)
+        : catNode
+          ? catLabel(catNode, lang === "bn")
+          : prettyPath(cat)
+      : t("sp.allProducts");
 
   return (
     <div data-store={store} className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">

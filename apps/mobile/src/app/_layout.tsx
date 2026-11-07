@@ -12,6 +12,7 @@ import { StoreProvider, useStore } from "@/state/store";
 import { ToastProvider } from "@/components/Toast";
 import { listenForTaps } from "@/lib/push";
 import { MaintenanceOverlay } from "@/components/system/MaintenanceScreen";
+import { StorePicker } from "@/components/StorePicker";
 import { LangProvider, useLangSync, useT } from "@/i18n";
 
 export { ErrorBoundary } from "expo-router";
@@ -103,6 +104,7 @@ function Nav() {
         <Stack.Screen name="unboxing/[id]" options={{ title: t("ur.title") }} />
         <Stack.Screen name="invite" options={{ title: t("acc.invite") }} />
       </Stack>
+      <StorePicker />
       <MaintenanceOverlay />
     </NavTheme>
   );
