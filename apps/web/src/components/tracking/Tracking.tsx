@@ -11,24 +11,32 @@ import { hasAnyTag, loadTrackingIds } from "@/lib/track/config";
 import { getConsent, OPEN_CONSENT_EVENT, subscribeConsent } from "@/lib/track/consent";
 import { consentDefaults, TIKTOK_SDK } from "@/lib/track/platforms";
 import type { TrackingIds } from "@/lib/track/types";
+import { useFeature } from "@/components/features/FeaturesProvider";
 import { ConsentBanner } from "./ConsentBanner";
 
 const SSR = "ssr" as const;
 
 export function Tracking() {
+  // Admin → Features → "Pixels & server-side tracking": off = no banner, no tags, no attribution capture.
+  const enabled = useFeature("tracking");
   const consent = useSyncExternalStore(subscribeConsent, getConsent, () => SSR);
   const [ids, setIds] = useState<TrackingIds | null>(null);
   const [reopened, setReopened] = useState(false);
 
   useEffect(() => {
+    if (!enabled) {
+      deactivateTracking();
+      return;
+    }
     captureAttribution();
     consentDefaults();
     const open = () => setReopened(true);
     window.addEventListener(OPEN_CONSENT_EVENT, open);
     return () => window.removeEventListener(OPEN_CONSENT_EVENT, open);
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     if (consent === "essential") {
       deactivateTracking();
       return;
@@ -43,8 +51,9 @@ export function Tracking() {
     return () => {
       alive = false;
     };
-  }, [consent]);
+  }, [consent, enabled]);
 
+  if (!enabled) return null;
   const tags = consent === "all" ? ids : null;
   return (
     <>

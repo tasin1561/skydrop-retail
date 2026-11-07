@@ -55,8 +55,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Suspense>
           </ToastProvider>
         </StoreProvider>
-        </FeaturesProvider>
         <Tracking />
+        </FeaturesProvider>
       </body>
     </html>
   );

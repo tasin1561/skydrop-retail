@@ -74,6 +74,8 @@ export function activateTracking(next: TrackingIds) {
 }
 
 /** "Essential only" after having accepted: stop sending and tell the tags. */
+let disabled = false;
+
 export function deactivateTracking() {
   pending = [];
   if (ids) consentUpdate(false);
