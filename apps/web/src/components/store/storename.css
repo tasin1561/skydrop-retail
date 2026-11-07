@@ -12,18 +12,18 @@
 .sn[data-store="bigbasket"] { --sn-a: #0a7a55; --sn-b: #0b7287; --sn-ring: #0e9f6e; --sn-fill: #0a7a55; }
 
 /* dark theme (and tone="dark" for names sitting on deep store tints in light mode) */
-:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="all"],
+:where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="all"],
 .sn[data-tone="dark"][data-store="all"] { --sn-a: #9a8cff; --sn-b: #ff7a5c; --sn-ring: #7c6cff; }
-:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="amazon"],
+:where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="amazon"],
 .sn[data-tone="dark"][data-store="amazon"] { --sn-a: #9a8cff; --sn-b: #c98bff; --sn-ring: #7c6cff; }
-:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="flipkart"],
+:where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="flipkart"],
 .sn[data-tone="dark"][data-store="flipkart"] { --sn-a: #f25a9b; --sn-b: #ff8a6b; --sn-ring: #f0468f; }
-:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="bigbasket"],
+:where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="bigbasket"],
 .sn[data-tone="dark"][data-store="bigbasket"] { --sn-a: #2fcf96; --sn-b: #5fd3e0; --sn-ring: #22c08a; }
 :root[data-theme="dark"] .sn { --sn-shine: rgb(255 255 255 / 0.95); }
 
 /* on a filled accent (selected pill, active segment): near-white text, the shine is a store tint */
-.sn[data-fill] {
+.sn[data-fill][data-store] {
   --sn-a: #ffffff;
   --sn-b: #ffffff;
   --sn-shine: color-mix(in srgb, var(--sn-ring) 22%, #ffd9c9);

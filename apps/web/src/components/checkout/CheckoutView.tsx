@@ -30,6 +30,7 @@ import { CheckoutMoney, EmiOption, type EmiChoice } from "@/components/money/Che
 import type { MoneyQuote } from "@/lib/money";
 import { useT } from "@/i18n/client";
 import { rich } from "@/i18n/rich";
+import { StoreName } from "@/components/store/StoreName";
 
 const ALNUM = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function rand(n: number, chars: string) {
@@ -551,10 +552,9 @@ function Review({
       {t.groups.map((g) => (
         <section key={g.market} data-store={g.market} className="co-card overflow-hidden">
           <header className="co-store-head flex items-center gap-3 px-4 py-3">
-            <span className="chip-icon is-active shrink-0">
-              <Icon name={STORES[g.market].icon} size={16} />
-            </span>
-            <h3 className="flex-1 text-sm font-extrabold">{tr("cart.fromSource", { source: STORES[g.market].source })}</h3>
+            <h3 className="min-w-0 flex-1">
+              <StoreName mode={g.market} size="text-[15px]" source />
+            </h3>
             <span className={"text-xs font-bold " + (g.shipping === 0 ? "text-good" : "text-ink-2")}>
               {g.shipping === 0 ? tr("co.shippingFree") : tr("co.shippingAmt", { amount: bdt(g.shipping) })}
             </span>

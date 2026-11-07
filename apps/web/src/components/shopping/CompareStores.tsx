@@ -4,6 +4,7 @@ import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
 import type { CompareResult } from "@/lib/shopping/types";
 import { getT } from "@/i18n/server";
+import { StoreName } from "@/components/store/StoreName";
 
 /** "Compare stores": the same product on other listings, with BDT price, delivery estimate and a Best price tag. */
 export async function CompareStores({ data }: { data: CompareResult }) {
@@ -32,12 +33,9 @@ export async function CompareStores({ data }: { data: CompareResult }) {
           const store = STORES[r.market];
           const row = (
             <div className="flex min-h-[60px] items-center gap-3 px-4 py-2.5">
-              <span data-store={r.market} className="chip-icon h-9 w-9 shrink-0 rounded-[10px]">
-                <Icon name={store.icon} size={17} />
-              </span>
               <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-1.5 text-sm font-bold text-ink">
-                  {store.name}
+                <p className="flex flex-wrap items-center gap-1.5 text-[15px]">
+                  <StoreName mode={r.market} />
                   {r.best && (
                     <span className="sh-chip rounded-full bg-good px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white" style={{ animationDelay: `${i * 60}ms` }}>
 {t("cmp.best")}

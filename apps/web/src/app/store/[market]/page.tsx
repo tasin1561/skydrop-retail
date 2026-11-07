@@ -13,6 +13,7 @@ import { EnabledGrid, EnabledRail, StoreGate } from "@/components/home/Gates";
 import { StoreBrowse, StoreQuickBar } from "@/components/home/StoreBrowse";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { StoreName } from "@/components/store/StoreName";
 
 export function generateStaticParams() {
   return MARKET_IDS.map((market) => ({ market }));
@@ -59,8 +60,8 @@ export default async function StorePage({
             </li>
             <li className="flex items-center gap-1">
               <Icon name="right" size={12} />
-              <span aria-current="page" className="text-ink-2">
-                {s.name}
+              <span aria-current="page">
+                <StoreName mode={market} />
               </span>
             </li>
           </ol>

@@ -12,10 +12,11 @@ import { sized } from "@/lib/variants";
 import type { MarketId } from "@/lib/types";
 import { haptic } from "@/lib/haptics";
 import { radius, useAccent, useTheme, withAlpha } from "@/theme";
-import { Button, Card, Empty, IconChip, ProductImage, T, Tap } from "@/components/ui";
+import { Button, Card, Empty, ProductImage, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { hasKey, useT, type MsgKey } from "@/i18n";
+import { StoreName } from "@/components/StoreName";
 
 const HOURS = [24, 48, 72] as const;
 
@@ -112,10 +113,7 @@ export default function GroupStartScreen() {
                   accessibilityLabel={`${STORES[id].name}, ${t("grp.inCart", { count: counts[id] })}`}
                   style={[styles.store, { borderColor: sel ? a.accent : c.line, backgroundColor: sel ? a.soft : c.surface }]}
                 >
-                  <Icon name={STORES[id].icon} size={18} color={sel ? a.ink : c.ink2} />
-                  <T v="tiny" style={{ fontWeight: "800", color: sel ? a.ink : c.ink, textAlign: "center" }} numberOfLines={1}>
-                    {STORES[id].name}
-                  </T>
+                  <StoreName mode={id} size={14} style={{ alignSelf: "center" }} />
                   <T v="tiny" tone="ink3">{t("grp.inCart", { count: counts[id] })}</T>
                 </Tap>
               );
@@ -193,9 +191,8 @@ export default function GroupStartScreen() {
             {mine.map((g) => (
               <Tap key={g.code} onPress={() => router.push(`/group/${g.code}`)} accessibilityLabel={`${STORES[g.market].name}, ${t("grp.members", { count: g.members.length })}`} scaleTo={0.98}>
                 <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <IconChip icon={STORES[g.market].icon} mode={g.market} />
                   <View style={{ flex: 1 }}>
-                    <T v="h3" style={{ fontSize: 15 }}>{STORES[g.market].name}</T>
+                    <StoreName mode={g.market} size={16} />
                     <T v="tiny" tone="ink2">{t("grp.members", { count: g.members.length })} · {g.code}</T>
                   </View>
                   <View style={[styles.status, { backgroundColor: c.surface2 }]}>

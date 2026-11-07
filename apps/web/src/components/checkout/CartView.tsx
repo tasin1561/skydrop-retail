@@ -22,6 +22,7 @@ import { FreeShipMeter } from "@/components/motion/FreeShipMeter";
 import { SavedChip } from "@/components/motion/SavedChip";
 import { CountUp } from "@/components/motion/CountUp";
 import { useT } from "@/i18n/client";
+import { StoreName } from "@/components/store/StoreName";
 
 const key = (i: Pick<CartItem, "productId" | "variant">) => i.productId + "::" + (i.variant ?? "");
 
@@ -208,13 +209,12 @@ function StoreGroup({
   return (
     <section data-store={g.market} className="co-card rise overflow-hidden" style={{ ["--i" as string]: gi }} aria-label={tr("cart.itemsFrom", { source: s.source })}>
       <header className="co-store-head flex items-center gap-3 p-4 pb-3">
-        <span className="chip-icon is-active shrink-0">
-          <Icon name={s.icon} size={18} />
-        </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[15px] font-extrabold leading-tight">{tr("cart.fromSource", { source: s.source })}</h2>
+          <h2 className="leading-tight">
+            <StoreName mode={g.market} size="text-lg" className="tracking-tight" />
+          </h2>
           <p className="text-xs text-ink-2">
-            {tr("cart.groupMeta", { store: s.name, items: tr("cart.items", { count: g.count }) })}
+            {tr("cart.fromSource", { source: s.source })} · {tr("cart.items", { count: g.count })}
           </p>
         </div>
         <span className="shrink-0 text-right text-sm font-bold tabular-nums">{bdt(g.sub)}</span>

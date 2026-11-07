@@ -24,6 +24,7 @@ import { ShopperReviews } from "@/components/cms/ShopperReviews";
 import { AskAboutProduct } from "@/components/assistant/AskAssistant";
 import { SafeSection } from "@/components/resilience/SafeSection";
 import { ShoppingBuyExtras, ShoppingSections } from "@/components/shopping/ShoppingSections";
+import { StoreName } from "@/components/store/StoreName";
 
 // Server component: shapes the product into small serialisable props for the client parts.
 export async function ProductDetail({
@@ -100,7 +101,7 @@ export async function ProductDetail({
           </li>
           <li>
             <Link href={`/store/${p.market}`} className="inline-flex min-h-[32px] items-center gap-1 rounded-full px-1.5 hover:text-accent">
-              <Icon name={store.icon} size={14} /> {store.name}
+              <StoreName mode={p.market} />
             </Link>
           </li>
           <li aria-hidden>

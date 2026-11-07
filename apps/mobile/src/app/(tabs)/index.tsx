@@ -5,9 +5,7 @@ import { router } from "expo-router";
 import { api } from "@/api/client";
 import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
-import { ACCENTS, radius, useTheme } from "@/theme";
-import { LinearGradient } from "expo-linear-gradient";
-import { Icon } from "@/components/Icon";
+import { STORE_TEXT, radius, useTheme, withAlpha } from "@/theme";
 import { StoreSwitcher } from "@/components/StoreSwitcher";
 import { CategoryChips, HowItWorks, Rail, SearchBar, StoreHero, useAsync } from "@/components/Shop";
 import { IconButton, Pill, T, Tap } from "@/components/ui";
@@ -16,6 +14,7 @@ import { useNotifications } from "@/lib/notifications";
 import { AskAiButton } from "@/components/AskAiButton";
 import { CouponPromo } from "@/components/CartBits";
 import { useT } from "@/i18n";
+import { StoreName } from "@/components/StoreName";
 
 export default function Home() {
   const { t } = useT();
@@ -132,24 +131,22 @@ export default function Home() {
 
 function StoreTile({ m }: { m: MarketId }) {
   const { t } = useT();
-  const a = ACCENTS[m];
+  const { c } = useTheme();
+  const a = STORE_TEXT[m][c.dark ? "dark" : "light"];
   const s = STORES[m];
   return (
     <Tap style={{ flex: 1 }} onPress={() => router.push(`/store/${m}`)} accessibilityLabel={t("m.storeTileA11y", { name: s.name, source: s.source })}>
-      <LinearGradient colors={[a.heroA, a.heroB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tile}>
-        <Icon name={s.icon} size={20} color="#fff" />
-        <T v="h3" tone="white" style={{ fontSize: 14, marginTop: 8 }} numberOfLines={1}>
-          {s.name}
-        </T>
-        <T v="tiny" style={{ color: "rgba(255,255,255,0.85)" }} numberOfLines={1}>
+      <View style={[styles.tile, { backgroundColor: withAlpha(a.ring, c.dark ? 0.12 : 0.07), borderColor: withAlpha(a.ring, 0.35) }]}>
+        <StoreName mode={m} size={17} />
+        <T v="tiny" tone="ink2" style={{ marginTop: 4 }} numberOfLines={1}>
           {s.source}
         </T>
-      </LinearGradient>
+      </View>
     </Tap>
   );
 }
 
 const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 14 },
-  tile: { borderRadius: radius.md, padding: 12, minHeight: 92 },
+  tile: { borderRadius: radius.md, borderWidth: 1, padding: 12, minHeight: 76, justifyContent: "center" },
 });

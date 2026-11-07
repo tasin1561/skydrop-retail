@@ -16,6 +16,7 @@ import { DUR, timing } from "@/lib/motion";
 import { useT } from "@/i18n";
 import { Icon } from "./Icon";
 import { IconChip, T, Tap } from "./ui";
+import { StoreName } from "./StoreName";
 
 export const STORE_PICKED_KEY = "skydrop-retail:store-picked";
 
@@ -152,12 +153,9 @@ function StoreCard({ mode, onPress }: { mode: MarketId; onPress: () => void }) {
       style={[styles.card, { backgroundColor: c.surface, borderColor: c.line }]}
     >
       <View style={[styles.bar, { backgroundColor: a.accent }]} />
-      <IconChip icon={s.icon} mode={mode} size={48} />
       <View style={{ flex: 1 }}>
-        <T v="h2" style={{ fontSize: 18, lineHeight: 24 }}>
-          {s.name}
-        </T>
-        <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
+        <StoreName mode={mode} variant="hero" size={22} />
+        <T v="small" tone="ink2" style={{ fontWeight: "700" }}>
           {t("mx.pick.from", { source: s.source })}
         </T>
         <T v="small" tone="ink2" style={{ marginTop: 4 }} numberOfLines={2}>

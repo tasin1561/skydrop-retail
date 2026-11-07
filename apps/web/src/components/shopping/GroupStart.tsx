@@ -4,7 +4,6 @@ import "./shopping.css";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
 import { useToast } from "@/components/Toast";
 import { apiEnabled, ApiError } from "@/lib/apiClient";
@@ -16,6 +15,7 @@ import { useStore } from "@/state/store";
 import { useT } from "@/i18n/client";
 import { rich } from "@/i18n/rich";
 import { hasKey, type MsgKey } from "@/i18n/core";
+import { StoreName } from "@/components/store/StoreName";
 
 const HOURS = [24, 48, 72] as const;
 
@@ -87,13 +87,12 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
               onClick={() => setMarket(id)}
               aria-pressed={m === id}
               className={
-                "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-2xl border px-2 text-center text-xs font-bold transition " +
-                (m === id ? "border-accent bg-[var(--accent-soft)] text-accent" : "border-line bg-surface text-ink-2")
+                "flex min-h-[64px] flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 text-center transition " +
+                (m === id ? "border-accent bg-[var(--accent-soft)]" : "border-line bg-surface")
               }
             >
-              <Icon name={STORES[id].icon} size={18} />
-              {STORES[id].name}
-              <span className="font-semibold opacity-70">{t("grp.inCart", { count: counts[id] })}</span>
+              <StoreName mode={id} size="text-sm sm:text-base" className="leading-tight" />
+              <span className="text-xs font-semibold text-ink-2">{t("grp.inCart", { count: counts[id] })}</span>
             </button>
           ))}
         </div>
@@ -151,9 +150,8 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
             {mine.map((g) => (
               <li key={g.code}>
                 <Link href={`/group/${g.code}`} className="card flex min-h-[56px] items-center gap-3 px-4 py-3">
-                  <Icon name={STORES[g.market].icon} size={18} className="text-accent" />
-                  <span className="min-w-0 flex-1 text-sm font-semibold">
-                    {STORES[g.market].name} · {t("grp.members", { count: g.members.length })}
+                  <span className="min-w-0 flex-1 text-sm font-semibold text-ink-2">
+                    <StoreName mode={g.market} size="text-[15px]" /> · {t("grp.members", { count: g.members.length })}
                   </span>
                   <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-bold capitalize text-ink-2">{hasKey("grp.st." + g.status) ? t(("grp.st." + g.status) as MsgKey) : g.status}</span>
                 </Link>

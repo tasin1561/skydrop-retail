@@ -72,7 +72,7 @@ export function Stepper({ step, reached, onGo }: { step: number; reached: number
                 onClick={() => onGo(i)}
                 aria-current={i === step ? "step" : undefined}
                 aria-label={t("co.stepAria", { label: t(s.label), n: i + 1, total: n }) + (state === "done" ? t("co.completed") : state === "current" ? t("co.current") : "")}
-                className={"co-step-dot " + (state === "current" ? "pulse-dot" : "") + (can ? " cursor-pointer" : "")}
+                className={"co-step-dot " + (state === "current" ? "ring-2 ring-accent/30 ring-offset-2 ring-offset-surface" : "") + (can ? " cursor-pointer" : "")}
               >
                 {state === "done" ? <DrawnCheck /> : digits(i + 1)}
               </button>

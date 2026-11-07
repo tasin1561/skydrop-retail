@@ -1,17 +1,17 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated from "react-native-reanimated";
 import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
-import { ACCENTS, radius, useTheme } from "@/theme";
+import { STORE_TEXT, radius, useTheme, withAlpha } from "@/theme";
 import { Card, IconChip, Skeleton, T, Tap } from "@/components/ui";
 import { CategoryRows, useCategoryTree } from "@/components/CategoryRows";
 import { Icon } from "@/components/Icon";
 import type { MarketId } from "@/lib/types";
 import { useT } from "@/i18n";
 import { listEnter } from "@/lib/motion";
+import { StoreName } from "@/components/StoreName";
 
 export default function Categories() {
   const { t } = useT();
@@ -53,22 +53,19 @@ export default function Categories() {
 
       {markets.map((m) => {
         const s = storeText(m, t);
-        const a = ACCENTS[m];
+        const a = STORE_TEXT[m][c.dark ? "dark" : "light"];
         return (
           <View key={m} style={{ gap: 8 }}>
             <Tap onPress={() => router.push(`/store/${m}`)} accessibilityLabel={t("m.openStore", { name: s.name, source: s.source })}>
-              <LinearGradient colors={[a.heroA, a.heroB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.banner}>
-                <Icon name={s.icon} size={20} color="#fff" />
+              <View style={[styles.banner, { backgroundColor: withAlpha(a.ring, c.dark ? 0.12 : 0.07), borderColor: withAlpha(a.ring, 0.35) }]}>
                 <View style={{ flex: 1 }}>
-                  <T v="h3" tone="white">
-                    {s.name}
-                  </T>
-                  <T v="tiny" style={{ color: "rgba(255,255,255,0.9)" }}>
+                  <StoreName mode={m} size={20} variant="plain" style={{ alignSelf: "flex-start" }} />
+                  <T v="tiny" tone="ink2">
                     {t("m.fromSource", { source: s.source })}
                   </T>
                 </View>
-                <Icon name="chevron-right" size={20} color="#fff" />
-              </LinearGradient>
+                <Icon name="chevron-right" size={20} color={c.ink3} />
+              </View>
             </Tap>
             <View style={styles.grid}>
               {s.categories.map((cat) => (
@@ -96,5 +93,5 @@ export default function Categories() {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
-  banner: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.md, minHeight: 56 },
+  banner: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: radius.md, borderWidth: 1, minHeight: 60 },
 });

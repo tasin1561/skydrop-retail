@@ -18,6 +18,7 @@ import { Countdown } from "@/components/offers/offers";
 import { useToast } from "@/components/Toast";
 import { hasKey, useT, type MsgKey } from "@/i18n";
 import { listEnter } from "@/lib/motion";
+import { StoreNameText } from "@/components/StoreName";
 
 type Act = "join" | "leave" | "close" | "cancel";
 
@@ -138,8 +139,11 @@ export default function GroupScreen() {
         <Card pad={0} style={{ overflow: "hidden" }}>
           <LinearGradient colors={[a.heroA ?? "#0b0b0f", a.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, gap: 8 }}>
             <View style={styles.badge}>
-              <Icon name={store.icon} size={13} color="#fff" />
-              <T v="tiny" tone="white" style={{ fontWeight: "800" }}>{t("grp.groupBuyStore", { store: store.name })}</T>
+              <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
+                {t("grp.groupBuyStore", { store: "\u0000" }).split("\u0000")[0]}
+                <StoreNameText mode={g.market} tone="dark" />
+                {t("grp.groupBuyStore", { store: "\u0000" }).split("\u0000")[1]}
+              </T>
             </View>
             <T v="h1" tone="white" accessibilityRole="header">{t("grp.ownerOrder", { owner: g.owner })}</T>
             {open ? (

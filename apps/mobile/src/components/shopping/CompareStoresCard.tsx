@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { Card, IconChip, T, Tap } from "@/components/ui";
+import { Card, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useFeature } from "@/lib/features";
 import { STORES } from "@/lib/markets";
 import { shopping, type CompareResult } from "@/lib/shopping";
 import { useTheme } from "@/theme";
 import { useT } from "@/i18n";
+import { StoreName } from "../StoreName";
 
 /** t("cmp.title"): the same product on other listings; tap a row to switch to it. */
 export function CompareStoresCard({ id }: { id: string }) {
@@ -49,12 +50,9 @@ export function CompareStoresCard({ id }: { id: string }) {
           style={[styles.row, { borderTopColor: c.line, backgroundColor: r.current ? c.surface2 : "transparent" }]}
           scaleTo={0.99}
         >
-          <IconChip icon={STORES[r.market].icon} mode={r.market} size={34} />
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <T v="body" style={{ fontWeight: "800" }}>
-                {STORES[r.market].name}
-              </T>
+              <StoreName mode={r.market} size={16} />
               {r.best && (
                 <View style={[styles.tag, { backgroundColor: c.good }]}>
                   <T v="tiny" tone="white" style={{ fontWeight: "800" }}>

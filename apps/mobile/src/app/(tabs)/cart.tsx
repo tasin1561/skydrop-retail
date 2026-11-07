@@ -18,6 +18,7 @@ import { useFeature } from "@/lib/features";
 import { groupSavingPreview } from "@/lib/shopping";
 import { useT } from "@/i18n";
 import { DUR, EASE } from "@/lib/motion";
+import { StoreName } from "@/components/StoreName";
 
 export default function Cart() {
   const { t, bdt } = useT();
@@ -80,9 +81,8 @@ function StoreGroup({ g }: { g: Group }) {
     <Animated.View layout={LinearTransition.duration(DUR.open).easing(EASE)}>
       <Card style={{ gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <IconChip icon={s.icon} mode={g.market} />
           <View style={{ flex: 1 }}>
-            <T v="h3">{s.name}</T>
+            <StoreName mode={g.market} size={18} />
             <T v="tiny" tone="ink2">
               {t("m.groupMeta", { source: s.source })}
             </T>

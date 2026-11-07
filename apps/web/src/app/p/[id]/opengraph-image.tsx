@@ -3,6 +3,13 @@ import { getProduct } from "@/lib/data";
 import { STORES } from "@/lib/markets";
 import { priceBdt } from "@/lib/pricing";
 
+// Store chip in our own per-store gradient (same text-safe stops as StoreName); no third-party colours.
+const OG_FILL: Record<string, string> = {
+  amazon: "linear-gradient(100deg, #5b3df5, #9426c4)",
+  flipkart: "linear-gradient(100deg, #c8185f, #b8361a)",
+  bigbasket: "linear-gradient(100deg, #0a7a55, #0b7287)",
+};
+
 // Per-product social card: product image, title, BDT price, origin store chip and Skydrop Retail branding.
 export const alt = "Product on Skydrop Retail";
 export const size = { width: 1200, height: 630 };
@@ -92,7 +99,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           {brand}
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 18px", borderRadius: 999, background: "#0b0b0f", color: "#fff", fontSize: 22, fontWeight: 700 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 18px", borderRadius: 999, background: OG_FILL[p.market], color: "#fff", fontSize: 22, fontWeight: 700 }}>
                 {store.name} · from {store.source}
               </div>
             </div>

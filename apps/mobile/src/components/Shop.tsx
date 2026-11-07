@@ -14,6 +14,7 @@ import { haptic } from "@/lib/haptics";
 import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
 import { enterFade, listEnter } from "@/lib/motion";
+import { StoreName } from "./StoreName";
 
 export function StoreHero({ mode }: { mode: StoreMode }) {
   const { t } = useT();
@@ -25,10 +26,13 @@ export function StoreHero({ mode }: { mode: StoreMode }) {
       <LinearGradient colors={[a.heroA, a.heroA, a.heroB]} locations={[0, 0.6, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={{ flex: 1, gap: 8 }}>
           <View style={styles.heroTag}>
-            <Icon name={s.icon} size={12} color="#fff" />
-            <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
-              {mode === "all" ? t("m.allStoresCaps") : `${s.name.toUpperCase()} · ${s.source}`}
-            </T>
+            {mode === "all" ? (
+              <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
+                {t("m.allStoresCaps")}
+              </T>
+            ) : (
+              <StoreName mode={mode} tone="dark" size={13} source />
+            )}
           </View>
           <T v="h2" tone="white" style={{ fontSize: 21, lineHeight: 26 }}>
             {s.heroTitle}

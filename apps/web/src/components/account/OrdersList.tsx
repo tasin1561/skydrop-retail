@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { Order, OrderStatus } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "@/components/Icon";
-import { STORES } from "@/lib/markets";
 import { currentStatus, etaRange, isInProgress, storesOf } from "@/lib/orderStatus";
 import { EmptyState, LoadingBlock, PageHead, SegTabs, useNow } from "./ui";
 import { ProgressBar, StatusChip, Thumb, orderDate, shortId } from "./OrderBits";
@@ -137,7 +136,7 @@ function OrderCard({ o, s }: { o: Order; s: OrderStatus }) {
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {stores.map((m) => (
-              <StoreName key={m} mode={m} variant="pill" size="text-[11px]" source className="!min-h-6" />
+              <StoreName key={m} mode={m} variant="pill" size="text-[11px]" source />
             ))}
           </div>
         </div>

@@ -26,7 +26,7 @@ export function StoreCards() {
               href={`/store/${m}`}
               data-store={m}
               className="sn rise group relative flex w-[78vw] max-w-[320px] shrink-0 flex-col overflow-hidden rounded-3xl border border-line bg-surface p-4 sm:w-auto sm:max-w-none sm:p-5 shadow-[var(--shadow-1)] transition hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--accent)_45%,var(--line))] hover:shadow-[var(--shadow-2)]"
-              style={{ ["--i" as string]: i, backgroundImage: "radial-gradient(120% 90% at 100% 0%, var(--accent-soft), transparent 60%)" }}
+              style={{ ["--i" as string]: i, backgroundImage: "radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--sn-ring) 10%, transparent), transparent 60%)" }}
             >
               <h3>
                 <StoreName mode={m} variant="hero" source />

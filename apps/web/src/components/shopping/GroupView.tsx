@@ -16,6 +16,7 @@ import { useStore } from "@/state/store";
 import { useT } from "@/i18n/client";
 import { rich } from "@/i18n/rich";
 import { hasKey, type MsgKey } from "@/i18n/core";
+import { StoreName } from "@/components/store/StoreName";
 
 /** /group/[code]: live group buy view: members, deadline, shipping split and "each member saves ৳X". */
 export function GroupView({ code }: { code: string }) {
@@ -102,7 +103,9 @@ export function GroupView({ code }: { code: string }) {
       <header className="card overflow-hidden">
         <div className="bg-[var(--hero-a)] px-5 py-6 text-white">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
-            <Icon name={store.icon} size={14} /> {t("grp.groupBuyStore", { store: store.name })}
+            {t("grp.groupBuyStore", { store: "\u0000" }).split("\u0000")[0]}
+            <StoreName mode={g.market} tone="dark" size="text-sm" />
+            {t("grp.groupBuyStore", { store: "\u0000" }).split("\u0000")[1]}
           </p>
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight">{g.isOwner || g.owner === "You" ? t("grp.yourOrder") : t("grp.ownerOrder", { owner: g.owner })}</h1>
           {open ? (

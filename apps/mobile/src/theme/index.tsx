@@ -21,6 +21,19 @@ export const ACCENTS: Record<StoreMode, Accent> = {
   bigbasket: { accent: "#0e9f6e", accent2: "#6ee7b7", accentDark: "#22c08a", heroA: "#06281e", heroB: "#0e9f6e", heroADark: "#06281e" },
 };
 
+/**
+ * Store-name text tokens (StoreName): text-safe shades of each store's own accent. Both gradient stops pass
+ * WCAG AA (4.5:1) on surface, bg, surface2 and the pill tint; `fill` is the selected fill (white text >= 5.3:1).
+ * Mirrors the .sn tokens in apps/web/src/components/store/storename.css. No third-party colours.
+ */
+export type StoreTextTokens = { a: string; b: string; ring: string };
+export const STORE_TEXT: Record<StoreMode, { light: StoreTextTokens; dark: StoreTextTokens; fill: [string, string] }> = {
+  all: { light: { a: "#5b3df5", b: "#c0301a", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#ff7a5c", ring: "#7c6cff" }, fill: ["#5b3df5", "#c0301a"] },
+  amazon: { light: { a: "#5b3df5", b: "#9426c4", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#c98bff", ring: "#7c6cff" }, fill: ["#5b3df5", "#5b3df5"] },
+  flipkart: { light: { a: "#c8185f", b: "#b8361a", ring: "#e11d74" }, dark: { a: "#f25a9b", b: "#ff8a6b", ring: "#f0468f" }, fill: ["#c8185f", "#c8185f"] },
+  bigbasket: { light: { a: "#0a7a55", b: "#0b7287", ring: "#0e9f6e" }, dark: { a: "#2fcf96", b: "#5fd3e0", ring: "#22c08a" }, fill: ["#0a7a55", "#0a7a55"] },
+};
+
 const light = {
   dark: false,
   bg: "#f7f7f4",

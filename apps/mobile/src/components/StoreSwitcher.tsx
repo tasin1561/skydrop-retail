@@ -4,9 +4,10 @@ import { Pressable, StyleSheet, View, type LayoutChangeEvent } from "react-nativ
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import type { StoreMode } from "@/lib/types";
 import { STORES } from "@/lib/markets";
-import { ACCENTS, useTheme } from "@/theme";
+import { STORE_TEXT, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { T } from "./ui";
+import { StoreName } from "./StoreName";
 import { useT } from "@/i18n";
 import { DUR, timing } from "@/lib/motion";
 import { useFeature } from "@/lib/features";
@@ -62,7 +63,7 @@ export function StoreSwitcher({
       accessibilityRole="tablist"
       accessibilityLabel={label ? t("mx.shoppingAt") : undefined}
     >
-      <Animated.View style={[styles.pill, { backgroundColor: ACCENTS[value].accent }, pill]} />
+      <Animated.View style={[styles.pill, { backgroundColor: STORE_TEXT[value].fill[0] }, pill]} />
       {modes.map((m) => {
         const on = m === value;
         return (
@@ -79,9 +80,7 @@ export function StoreSwitcher({
             accessibilityLabel={m === "all" ? t("store.all.name") : t("m.storeFromA11y", { name: STORES[m].name, source: STORES[m].source })}
             style={styles.tab}
           >
-            <T v="small" numberOfLines={1} style={{ fontWeight: "700", color: on ? "#fff" : c.ink2 }}>
-              {m === "all" ? t(compact ? "store.all.short" : "store.all.name") : compact ? STORES[m].short : STORES[m].name}
-            </T>
+            <StoreName mode={m} size={13} fill={on} name={m === "all" ? t(compact ? "store.all.short" : "store.all.name") : compact ? STORES[m].short : STORES[m].name} />
           </Pressable>
         );
       })}
