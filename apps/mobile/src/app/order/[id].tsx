@@ -14,6 +14,9 @@ import { haptic } from "@/lib/haptics";
 import { Button, Card, Divider, Empty, IconChip, ProductImage, Skeleton, T, Tap } from "@/components/ui";
 import { StatusPill, Timeline, TrackBar, useNow } from "@/components/OrderBits";
 import { useToast } from "@/components/Toast";
+import { RouteCard } from "@/components/RouteCard";
+import { fulfilment, localTracking, type Tracking } from "@/api/fulfilment";
+import { useFeature } from "@/lib/features";
 
 const PAY: Record<string, string> = { bkash: "bKash", nagad: "Nagad", card: "Card", advance50: "50% advance, rest on delivery" };
 
@@ -28,11 +31,16 @@ export default function OrderDetail() {
   const [refreshing, setRefreshing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const now = useNow();
+  // fulfilment: route map + returns
+  const mapOn = useFeature("live_tracking_map");
+  const returnsOn = useFeature("returns");
+  const [tracking, setTracking] = useState<Tracking | null>(null);
 
   const load = useCallback(async () => {
     try {
       setOrder(await api.order(id));
       setError(null);
+      setTracking(await fulfilment.tracking(id));
     } catch (e) {
       setError((e as Error).message);
     }
@@ -118,6 +126,8 @@ export default function OrderDetail() {
         )}
       </Card>
 
+      {mapOn && status !== "cancelled" && <RouteCard tracking={tracking ?? localTracking(order, status)} />}
+
       <Card>
         <T v="h2" accessibilityRole="header" style={{ marginBottom: 14 }}>
           Tracking
@@ -194,6 +204,9 @@ export default function OrderDetail() {
         </View>
       </Card>
 
+      {returnsOn && status === "delivered" && (
+        <Button label="Return or replace an item" kind="ghost" icon="rotate-ccw" onPress={() => router.push(`/return/${order.id}`)} />
+      )}
       {canCancel(status) && <Button label="Cancel order" kind="danger" icon="x" busy={cancelling} onPress={cancel} />}
     </ScrollView>
   );

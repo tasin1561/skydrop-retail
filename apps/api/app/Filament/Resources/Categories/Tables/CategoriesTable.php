@@ -79,7 +79,7 @@ class CategoriesTable
                         ->action(fn () => CategoryAdmin::recount()),
                     Action::make('browse')->label('Open on the storefront')->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->visible(fn (Category $r) => $r->market === Category::UNIFIED)
-                        ->url(fn (Category $r) => rtrim((string) config('retail.web_url', config('app.frontend_url', '')), '/').'/c/'.$r->path, true),
+                        ->url(fn (Category $r) => rtrim((string) config('retail.web_url'), '/').'/c/'.$r->path, true),
                 ])->visible(fn (Category $r) => $r->market === Category::UNIFIED),
             ])
             ->toolbarActions([
