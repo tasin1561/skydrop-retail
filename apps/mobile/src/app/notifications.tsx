@@ -33,12 +33,20 @@ export default function NotificationsScreen() {
     <Stack.Screen
       options={{
         title: t("nt.title"),
-        headerRight: () =>
-          n.unread > 0 ? (
-            <Tap onPress={() => (haptic.light(), n.markAllRead())} accessibilityLabel={t("m.markAllA11y")} style={{ paddingHorizontal: 8, paddingVertical: 6 }}>
-              <T v="label" tone="brand" style={{ fontWeight: "700" }}>{t("m.readAll")}</T>
-            </Tap>
-          ) : null,
+        headerRight: () => (
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {n.unread > 0 && (
+              <Tap onPress={() => (haptic.light(), n.markAllRead())} accessibilityLabel={t("m.markAllA11y")} style={{ paddingHorizontal: 8, minHeight: 44, justifyContent: "center" }}>
+                <T v="label" tone="brand" style={{ fontWeight: "700" }}>{t("m.readAll")}</T>
+              </Tap>
+            )}
+            {!!user && (
+              <Tap onPress={() => router.push("/notification-settings")} accessibilityLabel={t("mx.np.title")} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="settings" size={20} color={c.ink} />
+              </Tap>
+            )}
+          </View>
+        ),
       }}
     />
   );
@@ -105,6 +113,8 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
         }}
         onLongPress={() => (haptic.medium(), onRemove(n.id))}
         accessibilityLabel={`${n.read ? "" : t("m.unreadPrefix")}${n.title}. ${n.body ?? ""}. ${t("m.longPressDelete")}`}
+        accessibilityActions={[{ name: "delete", label: t("nt.deleteN") }]}
+        onAccessibilityAction={(e) => e.nativeEvent.actionName === "delete" && onRemove(n.id)}
         style={[styles.row, { backgroundColor: n.read ? c.surface : withAlpha(c.brand, c.dark ? 0.14 : 0.06), borderColor: c.line }]}
       >
         <IconChip icon={icon} color={color} size={40} />
@@ -113,7 +123,7 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
             {n.title}
           </T>
           {!!n.body && (
-            <T v="label" tone="ink2" numberOfLines={3} style={{ marginTop: 2 }}>
+            <T v="small" tone="ink2" numberOfLines={3} style={{ marginTop: 2 }}>
               {n.body}
             </T>
           )}
@@ -121,12 +131,11 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
             {timeAgo(n.createdAt, lang)}
           </T>
         </View>
-        <View style={{ alignItems: "center", gap: 10 }}>
-          {!n.read && <View style={[styles.dot, { backgroundColor: c.brand, shadowColor: c.brand }]} />}
-          <Tap onPress={() => onRemove(n.id)} accessibilityLabel={t("nt.deleteN")} hitSlop={10}>
-            <Icon name="x" size={16} color={c.ink3} />
-          </Tap>
-        </View>
+        {/* room for the delete button, which sits on top of the row (a button inside a button is not reachable by screen readers) */}
+        <View style={{ width: 28, alignItems: "center" }}>{!n.read && <View style={[styles.dot, { backgroundColor: c.brand, shadowColor: c.brand }]} />}</View>
+      </Tap>
+      <Tap onPress={() => onRemove(n.id)} accessibilityLabel={t("nt.deleteN")} style={styles.del}>
+        <Icon name="x" size={16} color={c.ink3} />
       </Tap>
     </Animated.View>
   );
@@ -135,5 +144,6 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
 const styles = StyleSheet.create({
   section: { fontWeight: "800", letterSpacing: 0.8, marginTop: 8, marginBottom: 8, marginLeft: 4 },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 12, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
+  del: { position: "absolute", right: 4, bottom: 4, width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   dot: { width: 9, height: 9, borderRadius: 5, marginTop: 6, shadowOpacity: 0.5, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } },
 });

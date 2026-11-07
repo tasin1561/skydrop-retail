@@ -136,6 +136,18 @@ export type Order = {
   pointsDiscount?: number;
   pointsEarned?: number;
   timeline?: { status: string; at: string; note?: string }[];
+  paymentMethod?: string;
+  paidBdt?: number;
+  dueOnDelivery?: number;
+  walletBdt?: number;
+  emiChargeBdt?: number;
+  unboxing?: boolean;
+  unboxingFee?: number;
+  unboxingStatus?: "awaiting_customer_approval" | "approved" | "auto_approved" | "problem" | null;
+  groupCode?: string | null;
+  groupDiscount?: number;
+  bundleDiscount?: number;
+  canCancel?: boolean;
 };
 
 export type User = { id?: string; name: string; phone: string; email?: string };

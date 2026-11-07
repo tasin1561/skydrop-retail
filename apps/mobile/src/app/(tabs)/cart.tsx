@@ -14,6 +14,8 @@ import { QtyStepper } from "@/components/QtyStepper";
 import { CouponField, SummaryLines } from "@/components/CartBits";
 import { Icon } from "@/components/Icon";
 import type { Group } from "@/lib/cart";
+import { useFeature } from "@/lib/features";
+import { groupSavingPreview } from "@/lib/shopping";
 import { useT } from "@/i18n";
 
 export default function Cart() {
@@ -41,6 +43,7 @@ export default function Cart() {
         {totals.groups.map((g) => (
           <StoreGroup key={g.market} g={g} />
         ))}
+        <GroupInvite />
         <Card>
           <CouponField />
         </Card>
@@ -140,6 +143,30 @@ function StoreGroup({ g }: { g: Group }) {
         </View>
       </Card>
     </Animated.View>
+  );
+}
+
+/** Group buy invite for the biggest single-store basket (feature "group_orders"), like the web cart. */
+function GroupInvite() {
+  const on = useFeature("group_orders");
+  const { t, bdt } = useT();
+  const { c } = useTheme();
+  const { totals, demo } = useStore();
+  if (!on || demo) return null;
+  const g = [...totals.groups].sort((x, y) => y.items.length - x.items.length)[0];
+  const save = g ? groupSavingPreview(g.items) : 0;
+  if (!g || save <= 0) return null;
+  return (
+    <Tap onPress={() => router.push({ pathname: "/group", params: { market: g.market } })} accessibilityLabel={t("grp.share")} scaleTo={0.98}>
+      <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <IconChip icon="users" mode={g.market} />
+        <View style={{ flex: 1 }}>
+          <T v="h3" style={{ fontSize: 15 }}>{t("grp.share")}</T>
+          <T v="tiny" tone="ink2">{t("grp.startOn", { store: STORES[g.market].name, amount: bdt(save) })}</T>
+        </View>
+        <Icon name="arrow-right" size={18} color={c.brand} />
+      </Card>
+    </Tap>
   );
 }
 

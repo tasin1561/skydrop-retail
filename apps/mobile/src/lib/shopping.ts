@@ -3,8 +3,8 @@
 // apps/web/src/lib/shopping/history.ts) and AsyncStorage for requests.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { http, isDemo, resolveMode } from "@/api/client";
-import { buyPriceInr, priceBdt } from "./pricing";
-import type { MarketId, Product } from "./types";
+import { buyPriceInr, priceBdt, shippingFor, weightKg } from "./pricing";
+import type { CartItem, MarketId, Product } from "./types";
 
 export type PriceInsight = { type: "lowest" | "drop"; label: string; days?: number; dropBdt?: number };
 export type PricePoint = { date: string; bdt: number; inr: number; inStock: boolean };
@@ -185,5 +185,99 @@ export const shopping = {
   async myRequests(): Promise<ProductRequest[]> {
     if (await live()) return (await http<{ items: ProductRequest[] }>("GET", "/product-requests")).items;
     return JSON.parse((await AsyncStorage.getItem("sr.requests")) ?? "[]") as ProductRequest[];
+  },
+};
+
+// ---------------- bundles + frequently bought together (feature "bundles") ----------------
+
+export type BoughtTogether = { product: Product; source: "copurchase" | "category"; items: (Product & { boughtTogether?: number })[]; totalBdt: number };
+export type Bundle = {
+  id: string;
+  slug: string;
+  title: string;
+  description?: string | null;
+  image?: string | null;
+  discountPct: number;
+  regularBdt: number;
+  discountBdt: number;
+  totalBdt: number;
+  available: boolean;
+  endsAt?: string | null;
+  count: number;
+  items?: { qty: number; product: Product }[];
+};
+
+// ---------------- group buy (feature "group_orders") ----------------
+
+export type GroupItem = { productId: string; variant?: string | null; qty: number };
+export type GroupMember = { name: string; isOwner: boolean; isYou: boolean; items: number; weightKg: number; savingBdt: number; status: string };
+export type Group = {
+  id: string;
+  code: string;
+  market: MarketId;
+  status: "open" | "closing" | "closed" | "cancelled";
+  closesAt: string;
+  closedAt?: string | null;
+  closeNote?: string | null;
+  minMembers: number;
+  owner: string;
+  isOwner: boolean;
+  shareUrl: string;
+  members: GroupMember[];
+  totals: { soloShippingBdt: number; groupShippingBdt: number; savingBdt: number; eachSavesBdt: number; weightKg: number; grouped: boolean };
+  you: { items: GroupItem[]; addressId: string | null; payment: string | null; status: string; orderId: string | null; error: string | null; savingBdt: number } | null;
+};
+export type GroupBody = { items: GroupItem[]; addressId?: number; payment?: string };
+
+/** Rough "each of you saves ~৳X" preview (same as apps/web/src/lib/shopping/client.ts groupSavingPreview). */
+export function groupSavingPreview(mine: CartItem[], friendKg = 0.5): number {
+  if (!mine.length) return 0;
+  const avgUnit = mine.reduce((s, i) => s + i.unitBdt, 0) / mine.length;
+  const friend: CartItem = { ...mine[0], productId: "friend", qty: 1, weightKg: friendKg, unitBdt: Math.round(avgUnit) };
+  const solo = shippingFor(mine) + shippingFor([friend]);
+  const together = shippingFor([...mine, friend]);
+  return Math.max(0, Math.floor((solo - together) / 2));
+}
+
+/** Cart line for a product (default variant). */
+export function cartLine(p: Product, qty = 1): CartItem {
+  return { productId: p.id, market: p.market, title: p.title, image: p.image, placeholder: p.placeholder, unitBdt: priceBdt(p), weightKg: weightKg(p), qty };
+}
+
+/** Group codes are letters and digits; accept a pasted share link too. */
+export function parseGroupCode(raw: string): string {
+  const m = raw.trim().match(/group\/([A-Za-z0-9]+)/);
+  return (m ? m[1] : raw).replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 16);
+}
+
+export const shoppingMore = {
+  async boughtTogether(id: string, limit = 3): Promise<BoughtTogether | null> {
+    if (!(await live())) return null;
+    return http<BoughtTogether>("GET", `/products/${enc(id)}/bought-together`, { query: { limit } });
+  },
+  async productBundles(id: string): Promise<Bundle[]> {
+    if (!(await live())) return [];
+    return (await http<{ items: Bundle[] }>("GET", `/products/${enc(id)}/bundles`)).items;
+  },
+  async bundles(): Promise<Bundle[]> {
+    if (!(await live())) return [];
+    return (await http<{ items: Bundle[] }>("GET", "/bundles")).items;
+  },
+  async bundle(slug: string): Promise<Bundle | null> {
+    if (!(await live())) return null;
+    return (await http<{ bundle: Bundle }>("GET", `/bundles/${enc(slug)}`)).bundle;
+  },
+  async isLive() {
+    return live();
+  },
+  groups: {
+    mine: async (): Promise<Group[]> => ((await live()) ? (await http<{ items: Group[] }>("GET", "/groups")).items : []),
+    get: async (code: string): Promise<Group> => (await http<{ group: Group }>("GET", `/groups/${enc(code)}`)).group,
+    create: async (market: MarketId, hours: 24 | 48 | 72, body: GroupBody): Promise<Group> =>
+      (await http<{ group: Group }>("POST", "/groups", { body: { market, hours, ...body } })).group,
+    join: async (code: string, body: GroupBody): Promise<Group> => (await http<{ group: Group }>("POST", `/groups/${enc(code)}/join`, { body })).group,
+    leave: async (code: string): Promise<Group> => (await http<{ group: Group }>("POST", `/groups/${enc(code)}/leave`)).group,
+    close: async (code: string): Promise<Group> => (await http<{ group: Group }>("POST", `/groups/${enc(code)}/close`)).group,
+    cancel: async (code: string): Promise<Group> => (await http<{ group: Group }>("POST", `/groups/${enc(code)}/cancel`)).group,
   },
 };

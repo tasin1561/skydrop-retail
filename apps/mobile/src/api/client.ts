@@ -15,6 +15,7 @@ import type {
   Marketplace,
   OrderRequest,
   OrderResponse,
+  PaymentStart,
   OtpRequestResponse,
   OtpVerifyResponse,
   PointsResponse,
@@ -35,10 +36,17 @@ const TOKEN_KEY = "sr.token";
 export class ApiError extends Error {
   status: number;
   errors?: Record<string, string[]>;
+  /** Machine-readable error code (`price_changed`, `restricted`, `group_closed` …) when the API sends one. */
+  code?: string;
+  /** The whole error body (e.g. `prices` on a 409 price_changed). */
+  data?: Record<string, unknown>;
   constructor(status: number, body: ApiErrorBody | null) {
     super(body?.message ?? `Request failed (${status})`);
     this.status = status;
     this.errors = body?.errors;
+    const raw = (body ?? {}) as Record<string, unknown>;
+    this.code = typeof raw.code === "string" ? raw.code : undefined;
+    this.data = raw;
   }
 }
 
@@ -136,7 +144,14 @@ async function http<T>(method: string, path: string, opts: { query?: Query; body
     throw new ApiError(0, { message: "Can't reach Skydrop right now. Check your connection." });
   }
   const text = await res.text();
-  const json = text ? (JSON.parse(text) as unknown) : null;
+  let json: unknown = null;
+  try {
+    json = text ? (JSON.parse(text) as unknown) : null;
+  } catch {
+    // HTML error page from a proxy / PHP fatal: don't surface a JSON SyntaxError to the shopper.
+    if (!res.ok) throw new ApiError(res.status, { message: res.status >= 500 ? "Skydrop is having a problem. Please try again." : `Request failed (${res.status})` });
+    throw new ApiError(res.status, { message: "Unexpected response from Skydrop. Please try again." });
+  }
   if (!res.ok) throw new ApiError(res.status, json as ApiErrorBody | null);
   return json as T;
 }
@@ -348,6 +363,8 @@ export const api = {
         return o;
       },
     ),
+  /** POST /orders/{id}/pay: retry an unpaid / failed payment (live API only). */
+  payOrder: (id: string) => http<{ order: Order; payment: PaymentStart }>("POST", `/orders/${encodeURIComponent(id)}/pay`),
   cancelOrder: (id: string) =>
     either(
       () => http<{ order: Order }>("POST", `/orders/${id}/cancel`).then((r) => r.order),

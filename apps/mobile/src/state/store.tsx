@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api, isDemo, onModeChange, resolveMode, tokenStore } from "@/api/client";
 import type { CartItem, StoreMode, User } from "@/lib/types";
-import { cartKey, computeTotals, findCoupon, type Coupon, type Totals } from "@/lib/cart";
+import { cartKey, computeTotals, couponFromApi, findCoupon, type Coupon, type Totals } from "@/lib/cart";
 import { messagingApi } from "@/api/messaging";
 import { loadFeatures } from "@/lib/features";
 import { registerForPush, unregisterPush } from "@/lib/push";
@@ -24,7 +24,7 @@ type Store = {
   removeItem: (key: string) => void;
   clearCart: () => void;
   coupon: Coupon | null;
-  setCoupon: (code: string) => void;
+  setCoupon: (value: Coupon | string | null) => void;
   totals: Totals;
   // wishlist
   wish: string[];
@@ -49,7 +49,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<StoreMode>("all");
   const [enabled, setEnabled] = useState<StoreMode[]>(["all", "amazon", "flipkart", "bigbasket"]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [couponCode, setCouponCode] = useState("");
+  const [couponState, setCouponState] = useState<Coupon | null>(null);
   const [wish, setWish] = useState<string[]>([]);
   const [user, setUserState] = useState<User | null>(null);
   const [recent, setRecent] = useState<string[]>([]);
@@ -63,7 +63,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (r[1]) setRecent(JSON.parse(r[1]));
         if (wt[1]) setWatches(JSON.parse(wt[1]));
         if (c[1]) setCart(JSON.parse(c[1]));
-        if (cp[1]) setCouponCode(cp[1]);
+        if (cp[1]) {
+          // Stored as JSON (server coupons); older builds stored the bare code.
+          let saved: Coupon | null = null;
+          try {
+            saved = couponFromApi(JSON.parse(cp[1]));
+          } catch {
+            saved = findCoupon(cp[1]);
+          }
+          setCouponState(saved);
+        }
         if (w[1]) setWish(JSON.parse(w[1]));
         if (s[1] === "amazon" || s[1] === "flipkart" || s[1] === "bigbasket" || s[1] === "all") setModeState(s[1]);
       } catch {
@@ -162,9 +171,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const removeItem = useCallback((key: string) => setCart((list) => list.filter((i) => cartKey(i) !== key)), []);
   const clearCart = useCallback(() => setCart([]), []);
 
-  const setCoupon = useCallback((code: string) => {
-    setCouponCode(code);
-    if (code) AsyncStorage.setItem(K.coupon, code).catch(() => {});
+  /** Pass a validated Coupon (from the server quote or a demo code), or "" / null to remove it. */
+  const setCoupon = useCallback((value: Coupon | string | null) => {
+    const next = typeof value === "string" ? findCoupon(value) : value;
+    setCouponState(next);
+    if (next) AsyncStorage.setItem(K.coupon, JSON.stringify(next)).catch(() => {});
     else AsyncStorage.removeItem(K.coupon).catch(() => {});
   }, []);
 
@@ -195,7 +206,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setUserState(null);
   }, []);
 
-  const coupon = findCoupon(couponCode);
+  const coupon = couponState;
   const totals = useMemo(() => computeTotals(cart, coupon), [cart, coupon]);
 
   const value: Store = {

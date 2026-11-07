@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +12,7 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
+  useReducedMotion,
 } from "react-native-reanimated";
 import Svg, { Path, Rect } from "react-native-svg";
 import { deliveryWindow } from "@/lib/pricing";
@@ -20,6 +21,9 @@ import { BRAND, CORAL, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
 import { Button, Card, T } from "@/components/ui";
 import { useT } from "@/i18n";
+import { payStatusText } from "@/lib/orderStatus";
+import { enablePush, markPushOffered, shouldOfferPush } from "@/lib/push";
+import { useToast } from "@/components/Toast";
 
 export default function Success() {
   const { t, bdt, lang } = useT();
@@ -34,13 +38,33 @@ export default function Success() {
   const y = useSharedValue(-height * 0.4);
   const sway = useSharedValue(0);
   const land = useSharedValue(1);
+  const reduce = useReducedMotion();
+  const toast = useToast();
+  // Push permission is offered here (after an order), never on launch. Once per install.
+  const [offerPush, setOfferPush] = useState(false);
   useEffect(() => {
+    let live = true;
+    const tm = setTimeout(() => {
+      shouldOfferPush()
+        .then((v) => live && setOfferPush(v))
+        .catch(() => {});
+    }, 2200);
+    return () => {
+      live = false;
+      clearTimeout(tm);
+    };
+  }, []);
+  useEffect(() => {
+    if (reduce) {
+      y.value = 0;
+      return;
+    }
     y.value = withTiming(0, { duration: 1800, easing: Easing.out(Easing.cubic) });
     sway.value = withRepeat(withSequence(withTiming(-6, { duration: 700, easing: Easing.inOut(Easing.sin) }), withTiming(6, { duration: 700, easing: Easing.inOut(Easing.sin) })), -1, true);
     land.value = withDelay(1750, withSequence(withTiming(0.9, { duration: 120 }), withSpring(1, { damping: 6 })));
     const timer = setTimeout(() => haptic.success(), 1800);
     return () => clearTimeout(timer);
-  }, [y, sway, land, height]);
+  }, [y, sway, land, height, reduce]);
 
   const chute = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }, { rotate: `${sway.value}deg` }, { scaleY: land.value }] }));
 
@@ -69,7 +93,7 @@ export default function Success() {
           {[
             [t("rw.order"), id],
             [t("sum.total"), total ? bdt(Number(total)) : "-"],
-            ...(paid ? [[t("co.payment"), paid === "paid" ? t("af2.paid") : paid]] : []),
+            ...(paid ? [[t("co.payment"), payStatusText(paid, t)]] : []),
             [t("tp.eta"), `${addDays(now, w.min, lang)} - ${addDays(now, w.max, lang)}`],
           ].map(([k, v]) => (
             <View key={k} style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -83,6 +107,40 @@ export default function Success() {
           ))}
         </Card>
       </Animated.View>
+
+      {offerPush && (
+        <Animated.View entering={FadeInDown.springify().damping(16)} style={{ marginTop: 14 }}>
+          <Card style={{ gap: 10 }}>
+            <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <T v="h3">{t("mx.pushAskT")}</T>
+                <T v="small" tone="ink2">{t("mx.pushAskB")}</T>
+              </View>
+            </View>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Button
+                label={t("mx.pushNo")}
+                kind="ghost"
+                style={{ flex: 1 }}
+                onPress={() => {
+                  markPushOffered();
+                  setOfferPush(false);
+                }}
+              />
+              <Button
+                label={t("mx.pushYes")}
+                icon="bell"
+                style={{ flex: 1 }}
+                onPress={async () => {
+                  setOfferPush(false);
+                  const s = await enablePush();
+                  if (s === "granted") toast({ kind: "success", title: t("mx.pushOn") });
+                }}
+              />
+            </View>
+          </Card>
+        </Animated.View>
+      )}
 
       <View style={{ flex: 1 }} />
       <Animated.View entering={FadeInDown.delay(1900)} style={{ gap: 10 }}>

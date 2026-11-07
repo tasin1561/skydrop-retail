@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "@/api/client";
 import { useStore } from "@/state/store";
 import type { Order } from "@/lib/types";
-import { canCancel, currentStatus, etaRange, isInProgress } from "@/lib/orderStatus";
+import { canCancel, currentStatus, etaRange, isInProgress, payStatusText } from "@/lib/orderStatus";
+import * as WebBrowser from "expo-web-browser";
 import { STORES } from "@/lib/markets";
 import { sized } from "@/lib/variants";
 import { useTheme } from "@/theme";
@@ -13,13 +14,15 @@ import { haptic } from "@/lib/haptics";
 import { Button, Card, Divider, Empty, IconChip, ProductImage, Skeleton, T, Tap } from "@/components/ui";
 import { StatusPill, Timeline, TrackBar, useNow } from "@/components/OrderBits";
 import { useToast } from "@/components/Toast";
+import { Icon } from "@/components/Icon";
 import { RouteCard } from "@/components/RouteCard";
 import { fulfilment, localTracking, type Tracking } from "@/api/fulfilment";
 import { useFeature } from "@/lib/features";
 import { useT, type MsgKey } from "@/i18n";
 import { bdName } from "@/lib/bd";
 
-const PAY: Record<string, MsgKey | "bKash" | "Nagad"> = { bkash: "bKash", nagad: "Nagad", card: "pay.card", advance50: "m.payHalf" };
+const PAY: Record<string, MsgKey | "bKash" | "Nagad"> = { bkash: "bKash", nagad: "Nagad", card: "pay.card", advance50: "m.payHalf", card_emi: "emi.label" };
+const RETURN_URL = "skydropretail://checkout/success";
 
 export default function OrderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,6 +36,8 @@ export default function OrderDetail() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const unboxingOn = useFeature("unboxing");
   const now = useNow();
   // fulfilment: route map + returns
   const mapOn = useFeature("live_tracking_map");
@@ -66,6 +71,24 @@ export default function OrderDetail() {
 
   const status = demo ? currentStatus(order, now) : order.status;
   const shown: Order = { ...order, status };
+
+  // Unpaid / failed online payment → "Pay now" (POST /orders/{id}/pay), same return deep link as checkout.
+  const payDue =
+    !demo && status === "placed" && (order.paymentStatus === "pending" || order.paymentStatus === "failed") && order.paymentMethod !== "cod";
+  async function payNow() {
+    setPaying(true);
+    try {
+      const r = await api.payOrder(order!.id);
+      if (r.payment.redirectUrl) await WebBrowser.openAuthSessionAsync(r.payment.redirectUrl, RETURN_URL);
+      await load();
+      haptic.success();
+    } catch (e) {
+      haptic.error();
+      toast({ kind: "error", title: t("mx.payStartFail"), body: (e as Error).message });
+    } finally {
+      setPaying(false);
+    }
+  }
 
   const cancel = () =>
     Alert.alert(t("od.cancelQ"), t("m.cancelFreeBody"), [
@@ -124,6 +147,40 @@ export default function OrderDetail() {
           <T v="tiny" tone="ink3">{t("m.demoTrack")}</T>
         )}
       </Card>
+
+      {payDue && (
+        <Card style={{ gap: 10, borderWidth: 2, borderColor: c.warn }}>
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <IconChip icon="alert-circle" color={c.warn} />
+            <View style={{ flex: 1 }}>
+              <T v="h3" style={{ fontSize: 15 }}>{t("mx.payDue")}</T>
+              <T v="small" tone="ink2">{t("mx.payDueB", { amount: bdt(Math.max(0, order.total - (order.paidBdt ?? 0) - (order.walletBdt ?? 0))) })}</T>
+            </View>
+          </View>
+          <Button label={t("common.payNow")} icon="credit-card" kind="coral" busy={paying} onPress={payNow} />
+        </Card>
+      )}
+
+      {unboxingOn && !demo && order.unboxing && (
+        <Tap onPress={() => router.push(`/unboxing/${order.id}`)} accessibilityLabel={t("mx.unboxCta")} scaleTo={0.98}>
+          <Card style={{ flexDirection: "row", gap: 12, alignItems: "center", borderWidth: order.unboxingStatus === "awaiting_customer_approval" ? 2 : 0, borderColor: c.brand }}>
+            <IconChip icon="package" />
+            <View style={{ flex: 1 }}>
+              <T v="h3" style={{ fontSize: 15 }}>{order.unboxingStatus === "awaiting_customer_approval" ? t("mx.unboxCta") : t("ur.title")}</T>
+              <T v="tiny" tone="ink2">
+                {order.unboxingStatus === "awaiting_customer_approval"
+                  ? t("mx.unboxCtaB")
+                  : order.unboxingStatus === "problem"
+                    ? t("ur.reported")
+                    : order.unboxingStatus
+                      ? t("ur.approved")
+                      : t("ur.whenArrive")}
+              </T>
+            </View>
+            <Icon name="chevron-right" size={18} color={c.ink3} />
+          </Card>
+        </Tap>
+      )}
 
       {mapOn && status !== "cancelled" && <RouteCard tracking={tracking ?? localTracking(order, status)} />}
 
@@ -194,7 +251,7 @@ export default function OrderDetail() {
           <IconChip icon="credit-card" />
           <T v="small" style={{ flex: 1 }}>
             {PAY[order.payment] ? (PAY[order.payment] === "bKash" || PAY[order.payment] === "Nagad" ? PAY[order.payment] : t(PAY[order.payment] as MsgKey)) : order.payment}
-            {order.paymentStatus ? t("m.payStatus", { status: order.paymentStatus }) : ""}
+            {order.paymentStatus ? t("m.payStatus", { status: payStatusText(order.paymentStatus, t) }) : ""}
           </T>
         </View>
       </Card>

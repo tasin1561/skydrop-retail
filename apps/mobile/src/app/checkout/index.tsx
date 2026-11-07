@@ -4,7 +4,10 @@ import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
 import * as WebBrowser from "expo-web-browser";
-import { api } from "@/api/client";
+import { api, ApiError, isDemo } from "@/api/client";
+import type { EmiChoice } from "@/api/money";
+import { useFeature } from "@/lib/features";
+import { CheckoutMoney, EmiOption, UnboxingToggle, quoteExtraLines, useEmiConfig, useMoneyQuote } from "@/components/checkout/Money";
 import type { PaymentMethod } from "@/api/types";
 import { useStore } from "@/state/store";
 import type { Address, CartItem } from "@/lib/types";
@@ -27,11 +30,12 @@ import type { MsgKey, TFn } from "@/i18n";
 import { bdName } from "@/lib/bd";
 
 // label/desc are dictionary keys (bKash and Nagad are brand names and stay as they are).
-const PAYMENTS: { id: PaymentMethod; label: MsgKey | "bKash" | "Nagad"; icon: string; desc: MsgKey }[] = [
-  { id: "bkash", label: "bKash", icon: "smartphone", desc: "pay.bkashDesc" },
-  { id: "nagad", label: "Nagad", icon: "smartphone", desc: "pay.nagadDesc" },
-  { id: "card", label: "pay.cardLabel", icon: "credit-card", desc: "pay.cardDesc" },
-  { id: "advance50", label: "pay.halfLabel", icon: "dollar-sign", desc: "pay.halfDesc" },
+// Each method is behind its admin switch (pay.bkash, pay.nagad, pay.card, pay.advance50; card EMI is pay.emi).
+const PAYMENTS: { id: Exclude<PaymentMethod, "card_emi">; feature: string; label: MsgKey | "bKash" | "Nagad"; icon: string; desc: MsgKey }[] = [
+  { id: "bkash", feature: "pay.bkash", label: "bKash", icon: "smartphone", desc: "pay.bkashDesc" },
+  { id: "nagad", feature: "pay.nagad", label: "Nagad", icon: "smartphone", desc: "pay.nagadDesc" },
+  { id: "card", feature: "pay.card", label: "pay.cardLabel", icon: "credit-card", desc: "pay.cardDesc" },
+  { id: "advance50", feature: "pay.advance50", label: "pay.halfLabel", icon: "dollar-sign", desc: "pay.halfDesc" },
 ];
 const payLabel = (l: (typeof PAYMENTS)[number]["label"], t: TFn) => (l === "bKash" || l === "Nagad" ? l : t(l));
 
@@ -53,7 +57,35 @@ export default function Checkout() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressId, setAddressId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AddressDraft | null>(null);
-  const [payment, setPayment] = useState<PaymentMethod>("bkash");
+  const payOn = { bkash: useFeature("pay.bkash"), nagad: useFeature("pay.nagad"), card: useFeature("pay.card"), advance50: useFeature("pay.advance50") };
+  const methods = PAYMENTS.filter((p) => payOn[p.id]);
+  const [picked, setPayment] = useState<Exclude<PaymentMethod, "card_emi">>("bkash");
+  // A switched-off method falls back to the first one still on.
+  const payment = methods.some((m) => m.id === picked) ? picked : (methods[0]?.id ?? picked);
+  // money module: card EMI (instead of a method), store-credit wallet, paid unboxing
+  // 50% advance: which gateway collects the advance (paymentVia); the rider collects the rest.
+  const viaOptions = methods.filter((m): m is (typeof PAYMENTS)[number] & { id: "bkash" | "nagad" | "card" } => m.id !== "advance50");
+  const [viaPicked, setVia] = useState<"bkash" | "nagad" | "card">("bkash");
+  const via = viaOptions.some((m) => m.id === viaPicked) ? viaPicked : (viaOptions[0]?.id ?? "bkash");
+  const emiCfg = useEmiConfig();
+  const [emi, setEmi] = useState<EmiChoice | null>(null);
+  const [useWallet, setUseWallet] = useState(false);
+  const [unboxing, setUnboxing] = useState(false);
+  const unboxingOn = useFeature("unboxing");
+  const emiActive = !!emi && !!emiCfg && baseTotals.total >= emiCfg.minOrderBdt;
+  const { quote, failed: quoteFailed } = useMoneyQuote(
+    cart,
+    {
+      coupon: coupon?.code,
+      redeemPoints: usePoints ? redeemable.points : 0,
+      useWallet,
+      payment: emiActive ? "card_emi" : payment,
+      emiTenure: emiActive ? emi!.tenure : undefined,
+      emiBank: emiActive ? emi!.bank : undefined,
+      unboxing: unboxingOn && unboxing,
+    },
+    !!user && step >= 2,
+  );
   const [phase, setPhase] = useState<Phase>("idle");
   const [checks, setChecks] = useState<CheckState[]>(["wait", "wait", "wait"]);
   const [changed, setChanged] = useState<{ item: CartItem; fresh: number }[]>([]);
@@ -63,7 +95,7 @@ export default function Checkout() {
   const scroll = useRef<ScrollViewInstance>(null);
 
   const loadAddresses = useCallback(() => {
-    if (!user && !demo) return;
+    if (!user && !(demo && isDemo())) return; // `demo` state starts true until the API answers; the client knows
     api
       .addresses()
       .then((list) => {
@@ -77,7 +109,7 @@ export default function Checkout() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!user && !demo) return;
+      if (!user && !(demo && isDemo())) return; // `demo` state starts true until the API answers; the client knows
       api
         .points()
         .then((p) => setPointsBalance(p.balance))
@@ -172,11 +204,16 @@ export default function Checkout() {
         {
           items: cart.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt, weightKg: i.weightKg })),
           addressId: address.id,
-          payment,
+          payment: emiActive ? "card_emi" : payment,
           coupon: coupon?.code,
           redeemPoints: totals.pointsRedeemed || undefined,
           // The API appends ?order=<id>; the app handles it at /checkout/success.
           returnUrl: RETURN_URL,
+          paymentVia: payment === "advance50" && !emiActive ? via : undefined,
+          useWallet: useWallet || undefined,
+          emiTenure: emiActive ? emi!.tenure : undefined,
+          emiBank: emiActive ? emi!.bank : undefined,
+          unboxing: unboxingOn && unboxing ? true : undefined,
         },
         address,
       );
@@ -192,7 +229,8 @@ export default function Checkout() {
         } catch {
           /* show what we have */
         }
-        if (res.type === "success" || fresh.paymentStatus === "paid") {
+        // "partial" = the 50% advance was paid (the rider collects the rest).
+        if (res.type === "success" || fresh.paymentStatus === "paid" || fresh.paymentStatus === "partial") {
           haptic.success();
           router.replace({ pathname: "/success", params: { id: fresh.id, total: String(fresh.total), paid: fresh.paymentStatus ?? "" } });
         } else {
@@ -203,15 +241,39 @@ export default function Checkout() {
         return;
       }
       haptic.success();
-      router.replace({ pathname: "/success", params: { id: order.id, total: String(order.total) } });
+      router.replace({ pathname: "/success", params: { id: order.id, total: String(order.total), paid: r.payment.status === "paid" ? "paid" : (order.paymentStatus ?? "") } });
     } catch (e) {
       haptic.error();
-      toast({ kind: "error", title: t("m.placeFailed"), body: (e as Error).message });
+      const err = e instanceof ApiError ? e : null;
+      const prices = (err?.data?.prices as { productId: string; variant?: string | null; oldBdt: number; freshBdt: number }[] | undefined) ?? [];
+      if (err?.status === 409 && prices.length) {
+        // Store prices moved since verification: reprice the cart and let the shopper confirm again.
+        for (const pr of prices) {
+          const line = cart.find((i) => i.productId === pr.productId && (i.variant ?? null) === (pr.variant ?? null)) ?? cart.find((i) => i.productId === pr.productId);
+          if (line) {
+            removeItem(cartKey(line));
+            addToCart({ ...line, unitBdt: pr.freshBdt });
+          }
+        }
+        setVerifiedSig(null);
+        const up = prices.some((x) => x.freshBdt > x.oldBdt);
+        toast({ kind: "error", title: t("m.placeFailed"), body: t("co.pricesChanged", { count: prices.length }) + (up ? t("co.someUp") : "") + t("co.cartUpdated") });
+      } else {
+        toast({ kind: "error", title: t("m.placeFailed"), body: err?.status === 409 ? t("co.pricesMoved") : (e as Error).message });
+      }
       setPhase("idle");
     }
   }
 
-  const canNext = step === 0 ? !!address && !draft : true;
+  const canNext = step === 0 ? !!address && !draft : step === 2 ? methods.length > 0 || emiActive : true;
+  // Server total (with unboxing / Plus / EMI) once the quote is in, else the cart maths.
+  const payTotal = quote?.total ?? totals.total;
+  const viaLabel = (id: "bkash" | "nagad" | "card") => (id === "bkash" ? "bKash" : id === "nagad" ? "Nagad" : t("pay.card"));
+  const methodText = emiActive
+    ? t("co.cardEmi", { count: emi!.tenure })
+    : payment === "advance50"
+      ? t("pay.halfSummary", { now: bdt(Math.ceil(payTotal / 2)), later: bdt(payTotal - Math.ceil(payTotal / 2)) }) + (viaOptions.length > 1 ? ` · ${viaLabel(via)}` : "")
+      : payLabel((PAYMENTS.find((p) => p.id === payment) ?? PAYMENTS[0]).label, t);
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}>
@@ -322,18 +384,20 @@ export default function Checkout() {
                   </Card>
                 ))}
               </View>
+              {!demo && <UnboxingToggle checked={unboxing} onChange={setUnboxing} shipments={totals.groups.length} disabled={phase !== "idle"} />}
             </>
           )}
 
           {step === 2 && (
             <>
-              {PAYMENTS.map((p) => {
-                const on = payment === p.id;
+              {methods.map((p) => {
+                const on = payment === p.id && !emiActive;
                 return (
                   <Tap
                     key={p.id}
                     onPress={() => {
                       haptic.tap();
+                      setEmi(null);
                       setPayment(p.id);
                     }}
                     accessibilityRole="radio"
@@ -352,7 +416,7 @@ export default function Checkout() {
                         </T>
                         {p.id === "advance50" && (
                           <T v="tiny" style={{ color: c.brand, fontWeight: "700", marginTop: 2 }}>
-                            {t("pay.halfNow", { now: bdt(Math.ceil(totals.total / 2)), later: bdt(totals.total - Math.ceil(totals.total / 2)) })}
+                            {t("pay.halfNow", { now: bdt(Math.ceil(payTotal / 2)), later: bdt(payTotal - Math.ceil(payTotal / 2)) })}
                           </T>
                         )}
                       </View>
@@ -361,6 +425,43 @@ export default function Checkout() {
                   </Tap>
                 );
               })}
+              {payment === "advance50" && !emiActive && viaOptions.length > 1 && (
+                <Animated.View entering={FadeInRight.duration(180)} style={{ gap: 8 }}>
+                  <T v="tiny" tone="ink2" style={{ fontWeight: "700" }}>{t("mx.advanceVia")}</T>
+                  <View style={{ flexDirection: "row", gap: 8 }} accessibilityRole="radiogroup" accessibilityLabel={t("mx.advanceVia")}>
+                    {viaOptions.map((v) => {
+                      const on = via === v.id;
+                      return (
+                        <Tap
+                          key={v.id}
+                          onPress={() => {
+                            haptic.tap();
+                            setVia(v.id);
+                          }}
+                          accessibilityRole="radio"
+                          accessibilityState={{ checked: on }}
+                          accessibilityLabel={viaLabel(v.id)}
+                          style={[styles.via, { backgroundColor: on ? c.brand : c.surface2 }]}
+                        >
+                          <T v="small" style={{ fontWeight: "700", color: on ? "#fff" : c.ink }}>{viaLabel(v.id)}</T>
+                        </Tap>
+                      );
+                    })}
+                  </View>
+                </Animated.View>
+              )}
+              {emiCfg && !demo && (
+                <EmiOption
+                  cfg={emiCfg}
+                  amount={totals.total}
+                  value={emi}
+                  disabled={phase !== "idle"}
+                  onChange={(v) => {
+                    setEmi(v);
+                    if (v) setPayment("card");
+                  }}
+                />
+              )}
               <T v="tiny" tone="ink3">
                 {demo ? t("m.payDemo") : t("m.payNext")}
               </T>
@@ -373,7 +474,7 @@ export default function Checkout() {
                 {[
                   { icon: "map-pin", title: t("co.deliverTo"), text: address ? `${address.name}, ${address.line}, ${address.area}, ${bdName(address.district, lang)}` : "-", s: 0 },
                   { icon: "truck", title: t("co.h.delivery"), text: t("m.doorDays", { min: w.min, max: w.max }), s: 1 },
-                  { icon: "credit-card", title: t("co.payment"), text: payLabel(PAYMENTS.find((p) => p.id === payment)!.label, t), s: 2 },
+                  { icon: "credit-card", title: t("co.payment"), text: methodText, s: 2 },
                 ].map((r) => (
                   <View key={r.title} style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
                     <IconChip icon={r.icon} size={32} />
@@ -454,7 +555,9 @@ export default function Checkout() {
                   }}
                 />
               )}
-              <SummaryLines t={totals} />
+              <SummaryLines t={totals} extra={quoteExtraLines(quote, t)} total={quote?.total} earn={quote?.pointsToEarn} />
+              <CheckoutMoney q={quote} useWallet={useWallet} setUseWallet={setUseWallet} lock={phase !== "idle"} methodLabel={methodText} />
+              {quoteFailed && !demo && <T v="tiny" tone="ink3">{t("mx.quoteFail")}</T>}
               <T v="tiny" tone="ink3">{t("m.agreeShort")}</T>
             </>
           )}
@@ -467,8 +570,8 @@ export default function Checkout() {
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <T v="tiny" tone="ink3">{t("sum.total")}</T>
-              <T v="h2">{bdt(totals.total)}</T>
+              <T v="tiny" tone="ink3">{quote && quote.payNow !== quote.total ? t("money.payNow") : t("sum.total")}</T>
+              <T v="h2">{bdt(quote ? quote.payNow : totals.total)}</T>
               {verified && step === 3 && <Pill text={t("st.verified.short")} icon="check" color={c.good} bg={withAlpha(c.good, 0.12)} />}
             </View>
             {step < 3 ? (
@@ -496,6 +599,7 @@ const styles = StyleSheet.create({
   demo: { flexDirection: "row", gap: 8, alignItems: "flex-start", padding: 12, borderRadius: radius.md },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: "center", justifyContent: "center", marginTop: 2 },
   radioDot: { width: 10, height: 10, borderRadius: 5 },
+  via: { flex: 1, minHeight: 44, borderRadius: radius.md, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   onoff: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
   bar: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
 });

@@ -148,20 +148,66 @@ scripts/make-demo-catalog.mjs
   every 60 s while the app is in the foreground. Demo mode builds items from the local demo orders.
 - **Feature switches.** `src/lib/features.ts` fetches `GET /api/v1/features` once at startup; `useFeature("push")` etc. gate the UI.
 - **Cart sync.** Signed-in shoppers' carts are sent with `PUT /cart` (debounced 1.5 s) so the API can send abandoned-cart reminders.
-- **Push notifications (needs one install).** `expo-notifications` is not in `package.json`, and Metro cannot bundle an import of a missing
-  package, so `src/lib/push.ts` is written against a small interface and stays inactive until the module is provided:
-  1. `npx expo install expo-notifications expo-device`
-  2. In `app.json` add `"expo-notifications"` to `plugins`, and make sure the EAS project id is set (`eas init` writes `extra.eas.projectId`).
-     Android needs a Firebase project: add `google-services.json` and `"android": { "googleServicesFile": "./google-services.json" }`, then upload
-     the FCM V1 service-account key in Expo (Project → Credentials). iOS push keys are created by `eas credentials`.
-  3. At the top of `src/app/_layout.tsx`:
-     ```ts
-     import * as Notifications from "expo-notifications";
-     import { setNotificationsModule } from "@/lib/push";
-     setNotificationsModule(Notifications);
-     ```
-  4. Rebuild the dev client / APK (push does not work in Expo Go on Android since SDK 53).
+- **Push notifications** (`expo-notifications` + `expo-device`, installed with `npx expo install`; plugin in `app.json`). `src/lib/push.ts`:
+  - **No prompt on launch.** On launch and after sign-in the app only refreshes the Expo token when permission was already granted.
+    The system prompt is offered (once per install) on the order success screen ("Get delivery updates on this phone?") and from
+    Account → Notification settings → "Turn on push". A blocked permission shows "Open phone settings".
+  - Tokens go to `POST /api/v1/push/expo-token { token, platform }` and are removed with `DELETE /push/expo-token` on sign-out.
+  - Foreground pushes show as a banner. Taps (also a cold start) open the push's `data.route`, or map `data.link`:
+    `/orders/{id}` → `/order/{id}`, `/orders/{id}/unboxing` → `/unboxing/{id}`, `/p/{id}` → `/product/{id}`, `/group/{code}`, `/cart`,
+    `/account/points`, `/account/wallet`; anything else opens the Notifications screen.
+  - Android channel `default` ("Order updates", high importance). The notification icon is `assets/images/android-icon-monochrome.png`.
+  - Push does not work in Expo Go on Android (SDK 53+) or on simulators; use a development / preview build on a real phone.
 
-  After that the app asks for permission after sign-in, sends the token with `POST /api/v1/push/expo-token`, removes it on sign-out, shows
-  pushes in the foreground, and opens `/order/{id}` or `/product/{id}` when a push is tapped (also from a cold start). The API sends a
-  `route` in the push data; `routeFor()` also maps web paths (`/orders/{id}`, `/p/{id}`).
+  **Credentials (not in the repo; nothing secret is committed):**
+  1. `npx eas-cli@latest init` writes `extra.eas.projectId` into `app.json` (the Expo push token needs it).
+  2. Android: create a Firebase project with the package `online.skydrop.retail`, download `google-services.json` to
+     `apps/mobile/google-services.json` (git-ignore it or use an EAS file secret), add `"googleServicesFile": "./google-services.json"`
+     under `android` in `app.json`, then upload the FCM V1 service-account key in expo.dev → Project → Credentials → Android.
+  3. iOS: `npx eas-cli@latest credentials -p ios` creates the APNs key (paid Apple Developer account). EAS sets `aps-environment`
+     for development / production builds.
+  4. Rebuild (`npx eas-cli@latest build -p android --profile preview` / `-p ios`), sign in on a phone, place an order or use
+     Notification settings, then send a test with https://expo.dev/notifications or an order status change in the admin.
+
+- **Notification settings** (`src/app/notification-settings.tsx`, Account → Notification settings and the gear on the Notifications
+  screen): `GET /me/notifications`, `PATCH /me/notifications { marketing: { sms|email|push|inapp } }` (optimistic, rolls back on error).
+  Channels whose feature switch is off are hidden; the whole "offers" block hides when `marketing_messages` is off. Order / payment /
+  delivery messages are shown as "Always on". Demo mode keeps the choices on the device.
+
+## Mobile-only strings (`src/i18n/mobile.ts`)
+
+`en.ts`, `bn.ts` and `core.ts` are generated from the web dictionaries (`pnpm i18n`) and must not be edited here. Strings only the app
+needs live in `src/i18n/mobile.ts` (`mxEn` + `mxBn`, keys start with `mx.`). `src/i18n/index.tsx` wraps the translator so the same
+`t()` reads both: `mx.*` keys from the extension, everything else from the shared dictionaries (same `{name}` placeholders and
+`one|other` plurals, Bangla digits). `MsgKey`, `TFn`, `Translator`, `makeT` and `hasKey` exported from `@/i18n` include the extension;
+the ones in `@/i18n/core` don't. To share a string with the web later, add it to `apps/web/src/i18n/{en,bn}.ts`, run `pnpm i18n` and
+delete it from `mobile.ts`.
+
+## Money, group buy, bundles, unboxing, invite (added to match the website)
+
+- **Checkout money** (`src/components/checkout/Money.tsx`): payment methods follow the `pay.bkash|pay.nagad|pay.card|pay.advance50`
+  switches; 50% advance asks which gateway takes the advance (`paymentVia`). **Card EMI** (`pay.emi`, off by default) loads `GET /emi`,
+  shows tenure + bank chips with monthly / bank charge / total and sends `payment: "card_emi", emiTenure, emiBank`. The review step asks the
+  server for the quote (`POST /checkout/quote` with `useWallet`, EMI, `unboxing`, coupon, points) and shows Plus, bundle, unboxing and EMI
+  lines and the server total. **Store-credit wallet** (`wallet` feature, shown when the balance > 0) pays part or all of an order
+  (`useWallet: true`); "Pay now" is the gateway amount, and a fully covered order skips the gateway. A `409 price_changed` reprices the
+  cart and asks the shopper to confirm again. **Paid unboxing** (`unboxing`) is a toggle on the delivery step (`unboxing: true`).
+- **Order page:** "Pay now" for a pending / failed online payment (`POST /orders/{id}/pay`, same return deep link as checkout) and an
+  unboxing card that opens `src/app/unboxing/[id].tsx` (hub photos, video, approve / report a problem).
+- **Group buy** (`group_orders`): `src/app/group/index.tsx` (pick store, 24/48/72 h, items from the cart, open a group by code, your
+  groups) and `src/app/group/[code].tsx` (countdown, each-saves / shipping / members, members list, share link via the share sheet,
+  join / update / leave, organiser close / cancel; refreshes every 20 s while focused). Entry points: "Buy with friends" on the product
+  screen, the group invite in the cart, Account → Group buys, and `skydropretail://group/CODE`.
+- **Bundles** (`bundles`): "Frequently bought together" checklist with a live total and "Add all N to cart", curated bundle cards on the
+  product screen, `src/app/bundles/index.tsx` and `src/app/bundles/[slug].tsx` ("Add bundle" adds every item; the saving shows in the
+  checkout quote).
+- **Invite friends** (`referral`): `src/app/invite.tsx` (`GET /referrals/me`, code, share sheet, stats, friends).
+- **Help and policies:** Account lists How it works, Help, Contact, Shipping, Refunds, Terms and Privacy; they open the storefront
+  pages (`EXPO_PUBLIC_WEB_URL`) in an in-app browser tab.
+
+## QA in a browser (react-native-web)
+
+`react-native-web` is already a dependency, so the app runs at phone size in a browser for flow testing:
+`EXPO_PUBLIC_API_URL=http://localhost:<proxy> npx expo start --web`. The API's CORS only allows `WEB_URL` and doesn't accept the
+`X-App-*` headers, so put the web bundle and `/api/v1` behind one local origin (a small proxy that adds `X-Internal-Key` for the catalog
+guard in development). Push, haptics, secure storage and the native share sheet are native-only and are stubbed on web.

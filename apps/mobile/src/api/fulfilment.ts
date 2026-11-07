@@ -41,6 +41,34 @@ export type Eligibility = {
   items: { id: number; title: string; variant: string | null; qty: number; returnableQty: number; unitBdt: number }[];
 };
 
+export type UnboxingStatus = "awaiting_customer_approval" | "approved" | "auto_approved" | "problem" | null;
+export type ProblemReason = "damaged" | "wrong_item" | "not_as_described" | "size_issue";
+export type UnboxingItem = {
+  id: number;
+  title: string;
+  variant: string | null;
+  qty: number;
+  image: string | null;
+  market: string;
+  condition: "ok" | "damaged" | "wrong_item" | null;
+  note: string | null;
+  photos: string[];
+  video: string | null;
+};
+export type Unboxing = {
+  orderId: string;
+  selected: boolean;
+  feeBdt: number;
+  status: UnboxingStatus;
+  requestedAt: string | null;
+  autoApproveAt: string | null;
+  decidedAt: string | null;
+  reasons: ProblemReason[];
+  items: UnboxingItem[];
+};
+/** Client estimate of the unboxing fee (API default ৳150 per store shipment); the server quote is authoritative. */
+export const UNBOXING_FEE_BDT = 150;
+
 /** Dictionary keys: show them with t(). */
 export const REASON_LABELS: Record<ReturnReason, MsgKey> = {
   damaged: "rr.damaged",
@@ -100,6 +128,10 @@ export const fulfilment = {
       return null;
     }
   },
+  unboxing: (id: string) => http<{ unboxing: Unboxing }>("GET", `/orders/${encodeURIComponent(id)}/unboxing`).then((r) => r.unboxing),
+  approveUnboxing: (id: string) => http<{ unboxing: Unboxing }>("POST", `/orders/${encodeURIComponent(id)}/unboxing/approve`).then((r) => r.unboxing),
+  reportUnboxing: (id: string, reason: ProblemReason, note?: string) =>
+    http<{ unboxing: Unboxing }>("POST", `/orders/${encodeURIComponent(id)}/unboxing/problem`, { body: { reason, note: note || undefined } }).then((r) => r.unboxing),
   returns: (id: string) => http<{ eligibility: Eligibility; items: ReturnCase[] }>("GET", `/orders/${encodeURIComponent(id)}/returns`),
   createReturn: (id: string, body: { items: { orderItemId: number; qty: number }[]; reason: ReturnReason; note?: string; photos: number[]; resolution: Resolution }) =>
     http<{ return: ReturnCase }>("POST", `/orders/${encodeURIComponent(id)}/returns`, { body }).then((r) => r.return),

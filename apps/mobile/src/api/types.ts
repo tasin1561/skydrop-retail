@@ -52,18 +52,27 @@ export type QuoteResponse = {
   coupon?: string;
 };
 
-export type PaymentMethod = "bkash" | "nagad" | "card" | "advance50";
+export type PaymentMethod = "bkash" | "nagad" | "card" | "advance50" | "card_emi";
 
 export type OrderRequest = {
   items: CheckoutItem[];
   addressId: string;
   payment: PaymentMethod;
+  /** 50% advance: the gateway for the advance (API default bkash). */
+  paymentVia?: "bkash" | "nagad" | "card";
   coupon?: string;
   redeemPoints?: number;
   /** Where the payment gateway sends the shopper back (deep link into the app). */
   returnUrl?: string;
+  /** Money module: store credit (true = as much as possible, or a BDT cap) and card EMI. */
+  useWallet?: boolean | number;
+  emiTenure?: number;
+  emiBank?: string;
+  /** Fulfilment: paid unboxing check at the Kolkata hub. */
+  unboxing?: boolean;
 };
-export type OrderResponse = { order: Order; payment: { status: "pending" | "redirect" | "paid"; redirectUrl?: string } };
+export type PaymentStart = { status: "pending" | "redirect" | "paid"; redirectUrl?: string; amount?: number; message?: string };
+export type OrderResponse = { order: Order; payment: PaymentStart };
 
 export type OtpRequestResponse = { ok: true; expiresIn: number; demoCode?: string };
 export type OtpVerifyResponse = { token: string; user: User; isNew: boolean };

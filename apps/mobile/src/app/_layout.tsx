@@ -95,6 +95,13 @@ function Nav() {
         <Stack.Screen name="requests" options={{ title: t("m.myRequests") }} />
         <Stack.Screen name="profile" options={{ title: t("m.profile") }} />
         <Stack.Screen name="notifications" options={{ title: t("acc.notif") }} />
+        <Stack.Screen name="notification-settings" options={{ title: t("mx.np.title") }} />
+        <Stack.Screen name="group/index" options={{ title: t("grp.groupBuy") }} />
+        <Stack.Screen name="group/[code]" options={{ title: t("grp.groupBuy") }} />
+        <Stack.Screen name="bundles/index" options={{ title: t("bundles.title") }} />
+        <Stack.Screen name="bundles/[slug]" options={{ title: t("bundles.title") }} />
+        <Stack.Screen name="unboxing/[id]" options={{ title: t("ur.title") }} />
+        <Stack.Screen name="invite" options={{ title: t("acc.invite") }} />
       </Stack>
       <MaintenanceOverlay />
     </NavTheme>

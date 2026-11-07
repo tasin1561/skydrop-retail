@@ -5,12 +5,49 @@ import { PRICING, groupByMarket, mrpBdt, priceBdt, shippingFor } from "./pricing
 import { pointsToEarn, pointsValueBdt } from "./points";
 import { fmtDate, type Lang } from "@/i18n/core";
 
-export type Coupon = { code: string; label: string; kind: "percent" | "freeship" };
+/** A coupon. Built-in demo codes below; live codes come from the server (POST /checkout/quote → coupon). */
+export type Coupon = {
+  code: string;
+  label: string;
+  kind: "percent" | "freeship" | "fixed";
+  /** percent: % off items; fixed: ৳ off */
+  value?: number;
+  maxDiscountBdt?: number | null;
+  minSubtotalBdt?: number | null;
+};
 
 export const COUPONS: Record<string, Coupon> = {
-  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent" },
+  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent", value: 10, maxDiscountBdt: 1000 },
   FREESHIP: { code: "FREESHIP", label: "Free Skydrop shipping on every store", kind: "freeship" },
 };
+
+/** Coupon from the API's quote (`coupon: { code, label, kind, value, maxDiscountBdt, minSubtotalBdt }`). */
+export function couponFromApi(c: unknown): Coupon | null {
+  if (!c || typeof c !== "object") return null;
+  const o = c as Record<string, unknown>;
+  const kind = o.kind === "percent" || o.kind === "freeship" || o.kind === "fixed" ? o.kind : null;
+  if (typeof o.code !== "string" || !kind) return null;
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  return {
+    code: o.code.toUpperCase(),
+    label: typeof o.label === "string" ? o.label : o.code,
+    kind,
+    value: num(o.value) ?? undefined,
+    maxDiscountBdt: num(o.maxDiscountBdt),
+    minSubtotalBdt: num(o.minSubtotalBdt),
+  };
+}
+
+/** Item discount for a coupon (same rules as the API's CheckoutService::quote). */
+export function couponItemDiscount(coupon: Coupon | null, subtotal: number): number {
+  if (!coupon || (coupon.minSubtotalBdt ?? 0) > subtotal) return 0;
+  if (coupon.kind === "percent") {
+    const d = Math.round((subtotal * (coupon.value ?? 10)) / 100);
+    return coupon.maxDiscountBdt != null ? Math.min(d, coupon.maxDiscountBdt) : d;
+  }
+  if (coupon.kind === "fixed") return Math.min(subtotal, Math.round(coupon.value ?? 0));
+  return 0;
+}
 
 export function findCoupon(raw: string | null | undefined): Coupon | null {
   if (!raw) return null;
@@ -65,8 +102,8 @@ export function computeTotals(items: CartItem[], coupon: Coupon | null, redeemPo
   });
   const subtotal = groups.reduce((s, g) => s + g.sub, 0);
   const shipping = groups.reduce((s, g) => s + g.shipping, 0);
-  const itemDiscount = coupon?.kind === "percent" ? Math.min(1000, Math.round(subtotal * 0.1)) : 0;
-  const shipDiscount = coupon?.kind === "freeship" ? shipping : 0;
+  const itemDiscount = couponItemDiscount(coupon, subtotal);
+  const shipDiscount = coupon?.kind === "freeship" && (coupon.minSubtotalBdt ?? 0) <= subtotal ? shipping : 0;
   const pointsDiscount = pointsValueBdt(redeemPoints);
   const discount = itemDiscount + shipDiscount + pointsDiscount;
   return {

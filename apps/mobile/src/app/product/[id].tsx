@@ -337,7 +337,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           <PriceBreakdown p={p} />
           <Specs p={p} />
           <Reviews p={p} />
-          <ShoppingSections p={p} inStock={available} />
+          <ShoppingSections p={p} inStock={available} addLine={put} />
         </View>
 
         <Rail title={t("m.moreFrom", { name: store.name })} items={related.data ?? []} loading={related.loading} />

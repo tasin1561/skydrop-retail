@@ -97,3 +97,9 @@ export function etaRange(order: Pick<Order, "createdAt">, tr: Translator = makeT
   if (from.getMonth() === to.getMonth()) return `${tr.digits(from.getDate())}-${fmt(to.getTime())}`;
   return `${fmt(from.getTime())} - ${fmt(to.getTime())}`;
 }
+
+/** "paid", "partial", "refund_pending" … in the shopper's language (raw value when unknown). */
+export function payStatusText(status: string, t: (k: never, v?: Record<string, string | number>) => string): string {
+  const key = ({ paid: "af2.paid", pending: "mx.ps.pending", partial: "mx.ps.partial", failed: "mx.ps.failed", refunded: "mx.ps.refunded", refund_pending: "mx.ps.refund_pending" } as Record<string, string>)[status];
+  return key ? t(key as never) : status;
+}

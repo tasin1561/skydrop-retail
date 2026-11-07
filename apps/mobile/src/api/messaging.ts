@@ -63,7 +63,34 @@ async function live() {
   return (await resolveMode()) === "live" && !isDemo();
 }
 
+export type NotifyPrefs = {
+  locale: "en" | "bn";
+  marketing: { sms: boolean; email: boolean; push: boolean; inapp: boolean };
+  email?: string | null;
+  emailVerified?: boolean;
+  transactional?: string;
+};
+const PREFS_KEY = "sr:notify-prefs";
+const DEMO_PREFS: NotifyPrefs = { locale: "en", marketing: { sms: true, email: true, push: true, inapp: true }, email: null, emailVerified: false };
+
 export const messagingApi = {
+  /** GET /me/notifications (demo: kept on the device). */
+  prefs: async (): Promise<NotifyPrefs> => {
+    if (await live()) return http<NotifyPrefs>("GET", "/me/notifications");
+    try {
+      return { ...DEMO_PREFS, ...JSON.parse((await AsyncStorage.getItem(PREFS_KEY)) ?? "{}") };
+    } catch {
+      return DEMO_PREFS;
+    }
+  },
+  /** PATCH /me/notifications { marketing } → the full preferences. */
+  savePrefs: async (patch: { locale?: "en" | "bn"; marketing?: Partial<NotifyPrefs["marketing"]> }): Promise<NotifyPrefs> => {
+    if (await live()) return http<NotifyPrefs>("PATCH", "/me/notifications", { body: patch });
+    const cur = await messagingApi.prefs();
+    const next = { ...cur, ...(patch.locale ? { locale: patch.locale } : {}), marketing: { ...cur.marketing, ...patch.marketing } };
+    await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(next)).catch(() => {});
+    return next;
+  },
   notifications: async (page = 1): Promise<NotificationsPage> =>
     (await live()) ? http<NotificationsPage>("GET", "/notifications", { query: { page, perPage: 20 } }) : demoPage(),
   read: async (id: number) => {

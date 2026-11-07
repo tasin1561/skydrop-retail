@@ -11,6 +11,20 @@ import { Icon } from "@/components/Icon";
 import { useFeature } from "@/lib/features";
 import { useT } from "@/i18n";
 import { LangSwitch } from "@/components/LangSwitch";
+import * as WebBrowser from "expo-web-browser";
+import { WEB_URL } from "@/lib/share";
+import type { MsgKey } from "@/i18n";
+
+// Help and policy pages live on the storefront; they open in an in-app browser tab.
+const HELP: { icon: string; title: MsgKey; path: string }[] = [
+  { icon: "compass", title: "mx.howItWorks", path: "/how-it-works" },
+  { icon: "help-circle", title: "mx.helpCentre", path: "/help" },
+  { icon: "message-circle", title: "mx.contact", path: "/contact" },
+  { icon: "truck", title: "mx.shipping", path: "/legal/shipping" },
+  { icon: "rotate-ccw", title: "mx.refunds", path: "/legal/refunds" },
+  { icon: "file-text", title: "mx.terms", path: "/legal/terms" },
+  { icon: "lock", title: "mx.privacy", path: "/legal/privacy" },
+];
 
 export default function Account() {
   const { t } = useT();
@@ -21,6 +35,9 @@ export default function Account() {
   const plusOn = useFeature("membership");
   const requestsOn = useFeature("product_requests");
   const banglaOn = useFeature("bangla");
+  const groupsOn = useFeature("group_orders");
+  const bundlesOn = useFeature("bundles");
+  const referralOn = useFeature("referral");
 
   const row = (icon: string, title: string, sub: string, onPress: () => void) => (
     <Tap onPress={onPress} accessibilityLabel={title} style={styles.row} scaleTo={0.98}>
@@ -84,6 +101,16 @@ export default function Account() {
         {row("package", t("acc.orders"), t("m.ordersSub"), () => router.navigate("/orders"))}
       </Card>
 
+      <Card pad={6}>
+        {row("bell", t("mx.np.title"), t("mx.np.rowSub"), () => (user ? router.push("/notification-settings") : router.push({ pathname: "/login", params: { next: "/notification-settings" } })))}
+        {referralOn && <Divider style={{ marginLeft: 60 }} />}
+        {referralOn && row("gift", t("acc.invite"), t("acc.inviteSub"), () => router.push("/invite"))}
+        {groupsOn && !demo && <Divider style={{ marginLeft: 60 }} />}
+        {groupsOn && !demo && row("users", t("mx.groupsRow"), t("grp.share"), () => router.push("/group"))}
+        {bundlesOn && !demo && <Divider style={{ marginLeft: 60 }} />}
+        {bundlesOn && !demo && row("package", t("bundles.title"), t("mx.bundlesSub"), () => router.push("/bundles"))}
+      </Card>
+
       <Card style={{ gap: 10 }}>
         <T v="h3">{t("acc.appearance")}</T>
         <View style={[styles.seg, { backgroundColor: c.surface2 }]} accessibilityRole="radiogroup">
@@ -124,6 +151,18 @@ export default function Account() {
         </View>
       </Card>
       )}
+
+      <Card pad={6}>
+        <T v="label" tone="ink2" style={{ paddingHorizontal: 10, paddingTop: 10, paddingBottom: 4 }}>{t("mx.helpLinks")}</T>
+        {HELP.map((h, i) => (
+          <View key={h.path}>
+            {i > 0 && <Divider style={{ marginLeft: 60 }} />}
+            {row(h.icon, t(h.title), t("mx.opensWeb"), () => {
+              WebBrowser.openBrowserAsync(WEB_URL + h.path).catch(() => {});
+            })}
+          </View>
+        ))}
+      </Card>
 
       <Card style={{ gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
