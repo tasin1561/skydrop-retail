@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import "./globals.css";
 import { StoreProvider } from "@/state/store";
 import { FeaturesProvider } from "@/components/features/FeaturesProvider";
-import { getFeatures } from "@/lib/features";
+import { getFeaturesResponse, NO_MAINTENANCE } from "@/lib/features";
+import { MaintenanceGate } from "@/components/system/MaintenanceGate";
 import { ToastProvider } from "@/components/Toast";
 import { Header } from "@/components/Header";
 import { MobileNav } from "@/components/MobileNav";
@@ -34,6 +35,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { features, maintenance } = await getFeaturesResponse();
   return (
     <html lang="en" data-store="all" suppressHydrationWarning>
       <body className="min-h-dvh">
@@ -45,7 +47,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </linearGradient>
           </defs>
         </svg>
-        <FeaturesProvider value={await getFeatures()}>
+        <MaintenanceGate maintenance={maintenance ?? NO_MAINTENANCE}>
+        <FeaturesProvider value={features}>
         <StoreProvider>
           <ToastProvider>
             <Suspense>
@@ -68,6 +71,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </StoreProvider>
         <Tracking />
         </FeaturesProvider>
+        </MaintenanceGate>
       </body>
     </html>
   );

@@ -22,17 +22,35 @@ export function isOn(f: Features, key: FeatureKey) {
   return f[key] ?? DEFAULT_FEATURES[key] ?? true;
 }
 
-export async function getFeatures(): Promise<Features> {
+/** Storefront maintenance (Admin → System → Settings). Web shows a full-page screen; the app shows it on start. */
+export type Maintenance = { on: boolean; message: string; since?: string | null };
+
+/** GET /api/v1/features */
+export type FeaturesResponse = { features: Features; maintenance?: Maintenance };
+
+export const NO_MAINTENANCE: Maintenance = { on: false, message: "" };
+
+/** Full GET /features response (features + maintenance). Fetches are deduped and revalidated every 60 s by Next. */
+export async function getFeaturesResponse(): Promise<FeaturesResponse> {
   const api = process.env.API_URL?.replace(/\/$/, "");
-  if (!api) return DEFAULT_FEATURES;
+  if (!api) return { features: DEFAULT_FEATURES, maintenance: NO_MAINTENANCE };
   try {
     const res = await fetch(api + "/features", {
       headers: { Accept: "application/json", ...(process.env.INTERNAL_API_KEY ? { "X-Internal-Key": process.env.INTERNAL_API_KEY } : {}) },
       next: { revalidate: 60 },
     });
-    if (!res.ok) return DEFAULT_FEATURES;
-    return ((await res.json()) as { features: Features }).features;
+    if (!res.ok) return { features: DEFAULT_FEATURES, maintenance: NO_MAINTENANCE };
+    const body = (await res.json()) as FeaturesResponse;
+    return { features: body.features ?? DEFAULT_FEATURES, maintenance: body.maintenance ?? NO_MAINTENANCE };
   } catch {
-    return DEFAULT_FEATURES;
+    return { features: DEFAULT_FEATURES, maintenance: NO_MAINTENANCE };
   }
+}
+
+export async function getFeatures(): Promise<Features> {
+  return (await getFeaturesResponse()).features;
+}
+
+export async function getMaintenance(): Promise<Maintenance> {
+  return (await getFeaturesResponse()).maintenance ?? NO_MAINTENANCE;
 }

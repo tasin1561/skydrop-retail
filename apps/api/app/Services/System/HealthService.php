@@ -2,6 +2,7 @@
 
 namespace App\Services\System;
 
+use App\Filament\Pages\FeatureSwitches;
 use App\Models\ApiLog;
 use App\Models\BlockedEntry;
 use App\Models\ErrorEvent;
@@ -14,7 +15,6 @@ use App\Services\Catalog\BudgetGuard;
 use App\Services\Commerce\Sms\SmsManager;
 use App\Services\Messaging\MessagingSettings;
 use App\Support\Features;
-use App\Support\Limits;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -368,7 +368,7 @@ class HealthService
         $on = count(array_filter($all));
         $m = Maintenance::state();
         $checkoutOff = ! ($all['checkout'] ?? true);
-        $url = rescue(fn () => \App\Filament\Pages\FeatureSwitches::getUrl(), null, false);
+        $url = rescue(fn () => FeatureSwitches::getUrl(), null, false);
 
         return $this->card('Feature switches', ($m['on'] || $checkoutOff) ? 'amber' : 'green', $on.' on · '.(count($all) - $on).' off', [
             ['On', $on],

@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\Catalog\BudgetGuard;
 use App\Services\Catalog\CatalogService;
 use App\Services\Catalog\ProviderChain;
+use App\Services\System\HealthStats;
 use App\Support\Limits;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -178,6 +179,6 @@ class SystemLimitsTest extends TestCase
         $this->getJson('/api/v1/features')->assertStatus(429)->assertJsonPath('code', 'rate_limited');
         $this->getJson('/api/v1/health')->assertOk(); // health checks are exempt
         $this->getJson('/api/v1/features', ['X-Internal-Key' => 'internal-test-key'])->assertOk(); // Next.js server is exempt
-        $this->assertGreaterThanOrEqual(1, \App\Services\System\HealthStats::total429());
+        $this->assertGreaterThanOrEqual(1, HealthStats::total429());
     }
 }
