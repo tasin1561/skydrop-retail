@@ -8,6 +8,7 @@ use App\Http\Middleware\AdminGuard;
 use App\Http\Middleware\AdminRequire2fa;
 use App\Http\Middleware\AuthorizePanelPage;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\FontProviders\GoogleFontProvider;
 use Filament\Http\Middleware\Authenticate; // filters widgets by permission (RBAC)
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -45,18 +46,19 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(fn () => new HtmlString(
                 '<span style="display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:1.05rem">'
                 .'<img src="'.asset('images/skydrop-retail-logo.svg').'" alt="" style="height:2rem;width:2rem">'
-                .'<span>Skydrop Retail <span style="color:#ff6a3d">Admin</span></span></span>'
+                .'<span>Skydrop Retail <span style="color:#ff4d2e">Admin</span></span></span>'
             ))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/skydrop-retail-logo.svg'))
             ->colors([
-                'primary' => Color::hex('#0b6bcb'),
+                'primary' => Color::hex('#5b3df5'), // Midnight Luxe violet
                 'danger' => Color::Rose,
                 'warning' => Color::Amber,
                 'success' => Color::Emerald,
                 'info' => Color::Sky,
-                'gray' => Color::Slate,
+                'gray' => Color::Zinc,
             ])
+            ->font('Plus Jakarta Sans', provider: GoogleFontProvider::class)
             ->darkMode()
             ->databaseNotifications() // fulfilment: staff alerts (price alerts, returns, unboxing problems)
             ->sidebarCollapsibleOnDesktop()
