@@ -81,7 +81,7 @@ export default function WalletScreen() {
         />
       }
     >
-      <LinearGradient colors={[BRAND, "#38bdf8"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <T v="small" style={{ color: "rgba(255,255,255,0.85)", fontWeight: "700" }}>
           Skydrop Wallet
         </T>

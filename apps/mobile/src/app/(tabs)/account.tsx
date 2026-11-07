@@ -39,7 +39,7 @@ export default function Account() {
         Account
       </T>
 
-      <LinearGradient colors={[BRAND, "#38bdf8"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={styles.avatar}>
           <Icon name="user" size={26} color={BRAND} />
         </View>

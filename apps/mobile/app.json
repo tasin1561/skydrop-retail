@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "skydropretail",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#f6f7fb",
+    "backgroundColor": "#f7f7f4",
     "ios": {
       "bundleIdentifier": "online.skydrop.retail",
       "supportsTablet": false,
@@ -20,7 +20,7 @@
       "package": "online.skydrop.retail",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#0b6bcb",
+        "backgroundColor": "#0b0b0f",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -41,10 +41,10 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#f6f7fb",
+          "backgroundColor": "#f7f7f4",
           "dark": {
             "image": "./assets/images/splash-icon.png",
-            "backgroundColor": "#0b1020"
+            "backgroundColor": "#09090c"
           }
         }
       ],

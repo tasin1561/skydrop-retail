@@ -59,7 +59,7 @@ export const VariantGroup = memo(function VariantGroup({
                   {v.swatch ? (
                     <Image source={{ uri: sized(v.swatch, "SS112") ?? v.swatch }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
                   ) : (
-                    <T v="small" style={{ fontWeight: "800", color: "#334155" }}>
+                    <T v="small" style={{ fontWeight: "800", color: "#3a3a44" }}>
                       {v.value.slice(0, 2)}
                     </T>
                   )}

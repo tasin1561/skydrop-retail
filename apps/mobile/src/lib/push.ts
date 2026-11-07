@@ -49,7 +49,7 @@ export async function registerForPush(): Promise<string | null> {
   if (!N || Platform.OS === "web" || !isOn("push")) return null;
   try {
     if (Platform.OS === "android") {
-      await N.setNotificationChannelAsync?.("default", { name: "Order updates", importance: 4, vibrationPattern: [0, 200, 120, 200], lightColor: "#0b6bcb" });
+      await N.setNotificationChannelAsync?.("default", { name: "Order updates", importance: 4, vibrationPattern: [0, 200, 120, 200], lightColor: "#5b3df5" });
     }
     let p = await N.getPermissionsAsync();
     if (p.status !== "granted" && p.canAskAgain !== false) p = await N.requestPermissionsAsync();

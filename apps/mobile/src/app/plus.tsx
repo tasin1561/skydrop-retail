@@ -71,7 +71,7 @@ export default function PlusScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32, gap: 14 }}>
-      <LinearGradient colors={["#0b1020", "#1e3a8a"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={["#0b0b0f", "#2a1d8f"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <Pill text="SKYDROP PLUS" icon="star" color="#f5c451" bg="rgba(255,255,255,0.08)" />
         <T style={{ color: "#fff8e1", fontSize: 28, lineHeight: 34, fontWeight: "900" }}>Free shipping from India on every order</T>
         {current ? (

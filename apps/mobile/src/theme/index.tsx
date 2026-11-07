@@ -4,54 +4,62 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SystemUI from "expo-system-ui";
 import type { StoreMode } from "@/lib/types";
 
-// Brand tokens mirror apps/web/src/app/globals.css.
-export const BRAND = "#0b6bcb";
-export const CORAL = "#ff6a3d";
+// Brand tokens mirror apps/web/src/app/globals.css ("Midnight Luxe").
+// BRAND is the primary interactive colour (electric violet); BRAND_INK is the
+// near-black brand ink; CORAL is the signal colour (discount badges, parcel, highlights).
+export const BRAND = "#5b3df5";
+export const BRAND_2 = "#a78bfa";
+export const BRAND_INK = "#111114";
+export const CORAL = "#ff4d2e";
 
-export const ACCENTS: Record<StoreMode, { accent: string; accent2: string; heroA: string; heroB: string }> = {
-  all: { accent: BRAND, accent2: "#38bdf8", heroA: "#0b6bcb", heroB: "#38bdf8" },
-  amazon: { accent: "#0f766e", accent2: "#2dd4bf", heroA: "#0f766e", heroB: "#14b8a6" },
-  flipkart: { accent: "#7c3aed", accent2: "#f472b6", heroA: "#6d28d9", heroB: "#db2777" },
-  bigbasket: { accent: "#c2410c", accent2: "#fbbf24", heroA: "#b45309", heroB: "#f59e0b" },
+type Accent = { accent: string; accent2: string; accentDark: string; heroA: string; heroB: string; heroADark: string };
+
+export const ACCENTS: Record<StoreMode, Accent> = {
+  all: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
+  amazon: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
+  flipkart: { accent: "#e11d74", accent2: "#fb7185", accentDark: "#f0468f", heroA: "#1a0b14", heroB: "#e11d74", heroADark: "#1a0b14" },
+  bigbasket: { accent: "#0e9f6e", accent2: "#6ee7b7", accentDark: "#22c08a", heroA: "#06281e", heroB: "#0e9f6e", heroADark: "#06281e" },
 };
 
 const light = {
   dark: false,
-  bg: "#f6f7fb",
+  bg: "#f7f7f4",
   surface: "#ffffff",
-  surface2: "#f0f2f8",
-  ink: "#0f172a",
-  ink2: "#475569",
-  ink3: "#94a3b8",
-  line: "#e5e8f0",
-  good: "#16a34a",
+  surface2: "#f0efe9",
+  ink: "#0b0b0f",
+  ink2: "#55555f",
+  ink3: "#9a9aa3",
+  line: "#e7e5de",
+  good: "#0e9f6e",
   warn: "#d97706",
-  bad: "#dc2626",
+  bad: "#e5363d",
   brand: BRAND,
+  brandInk: BRAND_INK,
   coral: CORAL,
-  shadow: "#0f172a",
-  skeleton: "#e7eaf2",
-  overlay: "rgba(15,23,42,0.45)",
+  shadow: "#14103c",
+  skeleton: "#ebe9e2",
+  overlay: "rgba(11,11,15,0.45)",
 };
 
 export type Palette = typeof light;
 
 const dark: Palette = {
   dark: true,
-  bg: "#0b1020",
-  surface: "#121a2e",
-  surface2: "#19223a",
-  ink: "#e8edf7",
-  ink2: "#a5b0c6",
-  ink3: "#66728c",
-  line: "#24304b",
-  good: "#22c55e",
+  bg: "#09090c",
+  surface: "#131318",
+  surface2: "#1b1b22",
+  ink: "#f4f4f6",
+  ink2: "#a8a8b3",
+  ink3: "#6b6b78",
+  line: "#26262f",
+  good: "#22c08a",
   warn: "#f59e0b",
   bad: "#f87171",
-  brand: "#3b8fe6",
+  brand: "#7c6cff",
+  brandInk: "#f4f4f6",
   coral: CORAL,
   shadow: "#000000",
-  skeleton: "#1c2640",
+  skeleton: "#1f1f27",
   overlay: "rgba(0,0,0,0.6)",
 };
 
@@ -97,7 +105,14 @@ export function useTheme() {
 export function useAccent(mode: StoreMode = "all") {
   const { c } = useTheme();
   const a = ACCENTS[mode];
-  return { ...a, soft: withAlpha(c.dark ? a.accent2 : a.accent, c.dark ? 0.16 : 0.1), ink: c.dark ? a.accent2 : a.accent };
+  const accent = c.dark ? a.accentDark : a.accent;
+  return {
+    ...a,
+    accent,
+    heroA: c.dark ? a.heroADark : a.heroA,
+    soft: withAlpha(accent, c.dark ? 0.16 : 0.11),
+    ink: c.dark ? a.accent2 : a.accent,
+  };
 }
 
 export function withAlpha(hex: string, alpha: number) {
@@ -106,7 +121,7 @@ export function withAlpha(hex: string, alpha: number) {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
-export const radius = { sm: 12, md: 16, lg: 20, pill: 999 };
+export const radius = { sm: 12, md: 16, lg: 20, pill: 999 }; // lg = 20px card radius (Midnight Luxe)
 
 /** Soft card shadow that works on both platforms. */
 export function shadow(c: Palette, level: 1 | 2 = 1) {
@@ -118,6 +133,10 @@ export function shadow(c: Palette, level: 1 | 2 = 1) {
       shadowOffset: { width: 0, height: level === 1 ? 2 : 8 },
     },
     android: { elevation: level === 1 ? 2 : 6, shadowColor: c.shadow },
-    default: { boxShadow: level === 1 ? "0 2px 8px rgba(15,23,42,.06)" : "0 8px 24px rgba(15,23,42,.1)" },
+    default: {
+      boxShadow: c.dark
+        ? level === 1 ? "0 1px 2px rgba(0,0,0,.5)" : "0 10px 36px rgba(0,0,0,.55)"
+        : level === 1 ? "0 1px 1px rgba(0,0,0,.04), 0 6px 20px rgba(20,16,60,.06)" : "0 2px 6px rgba(20,16,60,.06), 0 18px 44px rgba(20,16,60,.12)",
+    },
   }) as object;
 }

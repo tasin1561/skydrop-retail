@@ -121,7 +121,7 @@ export function RouteCard({ tracking }: { tracking: Tracking }) {
               {p.short}
             </SvgText>
           ))}
-          {!cancelled && (rider ? <Pulse x={rider.x} y={rider.y} color="#ff6a3d" /> : <Pulse x={here.x} y={here.y} color={c.brand} />)}
+          {!cancelled && (rider ? <Pulse x={rider.x} y={rider.y} color={c.coral} /> : <Pulse x={here.x} y={here.y} color={c.brand} />)}
         </Svg>
       </View>
 

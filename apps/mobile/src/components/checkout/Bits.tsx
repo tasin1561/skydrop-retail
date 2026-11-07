@@ -162,12 +162,12 @@ export function VanDrive({ label }: { label: string }) {
           <Svg width={84} height={50} viewBox="0 0 84 50">
             <Rect x={2} y={8} width={50} height={30} rx={6} fill={BRAND} />
             <Path d="M52 16h14l12 12v10H52z" fill={BRAND} />
-            <Path d="M56 19h9l8 8H56z" fill="#cfe5fb" />
+            <Path d="M56 19h9l8 8H56z" fill="#e4defe" />
             <Rect x={10} y={16} width={30} height={10} rx={3} fill={CORAL} />
-            <Circle cx={18} cy={40} r={7} fill="#0f172a" />
-            <Circle cx={18} cy={40} r={3} fill="#e2e8f0" />
-            <Circle cx={64} cy={40} r={7} fill="#0f172a" />
-            <Circle cx={64} cy={40} r={3} fill="#e2e8f0" />
+            <Circle cx={18} cy={40} r={7} fill="#0b0b0f" />
+            <Circle cx={18} cy={40} r={3} fill="#e7e5de" />
+            <Circle cx={64} cy={40} r={7} fill="#0b0b0f" />
+            <Circle cx={64} cy={40} r={3} fill="#e7e5de" />
           </Svg>
         </Animated.View>
       </View>
