@@ -39,6 +39,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // dev-only badge: keep it off the mobile tab bar and the floating launchers (bottom corners)
+  devIndicators: { position: "top-right" },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

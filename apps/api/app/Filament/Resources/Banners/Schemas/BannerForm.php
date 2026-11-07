@@ -51,8 +51,8 @@ class BannerForm
 
     public static function preview(?string $title, ?string $subtitle, ?string $cta, ?string $image): HtmlString
     {
-        $bg = $image ? 'background-image:linear-gradient(90deg,rgba(11,16,32,.75),rgba(11,16,32,.1)),url('.e($image).');background-size:cover;background-position:center'
-            : 'background:linear-gradient(120deg,#0b6bcb,#38bdf8)';
+        $bg = $image ? 'background-image:linear-gradient(90deg,rgba(11,11,15,.75),rgba(11,11,15,.1)),url('.e($image).');background-size:cover;background-position:center'
+            : 'background:linear-gradient(120deg,#0b0b0f,#5b3df5)';
 
         return new HtmlString('<div style="'.$bg.';color:#fff;border-radius:1rem;padding:2rem;min-height:10rem;display:flex;flex-direction:column;justify-content:flex-end;gap:.4rem;max-width:56rem">'
             .'<strong style="font-size:1.5rem;line-height:1.2">'.e($title ?: 'Banner title').'</strong>'

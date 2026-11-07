@@ -52,7 +52,7 @@ class AssistantConversationInfolist
             }
             $html .= '<div style="margin:.4rem 0;display:flex;justify-content:'.($user ? 'flex-end' : 'flex-start').'">'
                 .'<div style="max-width:80%;padding:.55rem .75rem;border-radius:.75rem;white-space:pre-wrap;font-size:.875rem;'
-                .($user ? 'background:rgba(11,107,203,.12)' : 'background:rgba(127,127,127,.1)').'">'
+                .($user ? 'background:rgba(91,61,245,.12)' : 'background:rgba(127,127,127,.1)').'">'
                 .e($m->content)
                 .'<div style="margin-top:.3rem;font-size:.7rem;opacity:.65">'.e(implode(' · ', array_filter($meta))).'</div></div></div>';
         }

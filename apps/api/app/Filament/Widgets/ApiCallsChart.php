@@ -68,8 +68,8 @@ class ApiCallsChart extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Successful', 'data' => $ok, 'backgroundColor' => '#0b6bcb', 'stack' => 'calls'],
-                ['label' => 'Failed', 'data' => $failed, 'backgroundColor' => '#ff6a3d', 'stack' => 'calls'],
+                ['label' => 'Successful', 'data' => $ok, 'backgroundColor' => '#5b3df5', 'stack' => 'calls'],
+                ['label' => 'Failed', 'data' => $failed, 'backgroundColor' => '#ff4d2e', 'stack' => 'calls'],
                 ['label' => 'Cost (USD)', 'data' => $cost, 'type' => 'line', 'borderColor' => '#64748b', 'backgroundColor' => '#64748b', 'yAxisID' => 'cost', 'tension' => 0.3, 'pointRadius' => 2],
             ],
             'labels' => $labels,

@@ -44,7 +44,7 @@
             <tbody>
             @forelse ($d['worst'] as $o)
                 <tr>
-                    <td><a href="{{ ($d['orderUrl'])($o['order_id']) }}" style="color:#0b6bcb;font-weight:600">{{ $o['order_id'] }}</a>@if ($o['estimated']) <span title="Purchase cost not entered yet; uses the catalog INR price" style="opacity:.6">est.</span>@endif</td>
+                    <td><a href="{{ ($d['orderUrl'])($o['order_id']) }}" style="color:#5b3df5;font-weight:600">{{ $o['order_id'] }}</a>@if ($o['estimated']) <span title="Purchase cost not entered yet; uses the catalog INR price" style="opacity:.6">est.</span>@endif</td>
                     <td>{{ $o['date'] }}</td>
                     <td>৳{{ number_format($o['revenue']) }}</td>
                     <td>৳{{ number_format($o['cogs']) }}</td>

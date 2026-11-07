@@ -7,7 +7,7 @@
 <style>
     @page { size: 100mm 150mm; margin: 0; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #000; background: #e5e7eb; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #000; background: #f0efe9; }
     .label { width: 100mm; height: 150mm; padding: 6mm; background: #fff; margin: 8mm auto; display: flex; flex-direction: column; gap: 3mm; page-break-after: always; border: 1px solid #000; }
     .row { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; }
     .brand { font-weight: 800; font-size: 13pt; }

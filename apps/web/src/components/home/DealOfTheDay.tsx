@@ -71,7 +71,7 @@ export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) 
             <span className="text-sm text-ink-3 line-through">{formatBdt(mrpBdt(p))}</span>
             <span className="text-sm font-bold text-good">Save {formatBdt(mrpBdt(p) - priceBdt(p))}</span>
           </div>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-4 sm:justify-start sm:gap-8">
             <FlipCountdown to={to} label={ownEnd ? "Store deal ends in" : "Next pick in"} onEnd={onEnd} />
             <Link href={`/p/${p.id}`} prefetch={false} className="btn btn-primary px-5">
               See the deal <Icon name="arrow" size={18} className="arrow" />

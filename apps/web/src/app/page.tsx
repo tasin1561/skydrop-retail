@@ -35,7 +35,7 @@ export default async function Home() {
       <StoreHero scenes={scenes} />
       <CategoryChips mode="all" />
       <SafeSection label="Deal of the day" quiet>
-        <DealOfTheDay items={dealItems} now={renderedAt()} />
+        <DealOfTheDay items={[...dealItems, ...popular.flat()]} now={renderedAt()} />
       </SafeSection>
       <CmsHero store="all" />
       <StoreCards />

@@ -69,17 +69,22 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
               How it works
             </Link>
           </div>
-          <div className="mt-5 flex gap-2 md:hidden" aria-hidden>
+          {/* phones: a small fanned stack in its own row, clipped tiles, so nothing overlaps the copy */}
+          <div className="mt-6 flex items-center pl-1 md:hidden" aria-hidden>
             {scene.images.slice(0, 3).map((src, i) =>
               src ? (
-                <span key={i} className="float grid h-16 w-16 place-items-center rounded-2xl bg-white p-1.5 shadow-lg" style={{ animationDelay: `${i * 0.6}s` }}>
+                <span
+                  key={i}
+                  className="-ml-3 grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-[18px] bg-white p-2 shadow-[0_10px_24px_-8px_rgb(0_0_0/0.45)] ring-2 ring-white/20 first:ml-0"
+                  style={{ rotate: `${[-6, 0, 6][i]}deg`, translate: `0 ${[4, -2, 4][i]}px`, zIndex: i === 1 ? 2 : 1 }}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="h-full w-full object-contain" />
+                  <img src={src} alt="" className="max-h-full max-w-full object-contain" />
                 </span>
               ) : null,
             )}
           </div>
-          <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/85">
+          <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-white/85">
             <span className="inline-flex items-center gap-1">
               <Icon name="truck" size={14} /> 7-12 day door delivery
             </span>

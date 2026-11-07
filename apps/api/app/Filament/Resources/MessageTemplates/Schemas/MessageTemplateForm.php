@@ -71,7 +71,7 @@ class MessageTemplateForm
         if ($channel === 'email') {
             $html = view('emails.branded', BrandedMessage::viewData($s, $b, ['cta' => ['label' => 'View details', 'url' => '#']], $locale ?: 'en'))->render();
 
-            return new HtmlString('<iframe title="Email preview" sandbox srcdoc="'.e($html).'" style="width:100%;height:560px;border:1px solid rgba(127,127,127,.25);border-radius:.75rem;background:#f2f5f9"></iframe>');
+            return new HtmlString('<iframe title="Email preview" sandbox srcdoc="'.e($html).'" style="width:100%;height:560px;border:1px solid rgba(127,127,127,.25);border-radius:.75rem;background:#f7f7f4"></iframe>');
         }
         if ($channel === 'push') {
             return new HtmlString('<div style="display:flex;gap:.6rem;padding:.75rem;border-radius:1rem;background:rgba(127,127,127,.1);align-items:flex-start">'

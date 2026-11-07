@@ -16,7 +16,7 @@ class OrdersByStatusChart extends ChartWidget
 
     protected ?string $maxHeight = '280px';
 
-    private const HEX = ['gray' => '#94a3b8', 'info' => '#0ea5e9', 'primary' => '#0b6bcb', 'warning' => '#f59e0b', 'success' => '#10b981', 'danger' => '#ff6a3d'];
+    private const HEX = ['gray' => '#a1a1aa', 'info' => '#0ea5e9', 'primary' => '#5b3df5', 'warning' => '#f59e0b', 'success' => '#10b981', 'danger' => '#e5363d'];
 
     protected function getData(): array
     {

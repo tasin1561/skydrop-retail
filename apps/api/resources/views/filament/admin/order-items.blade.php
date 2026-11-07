@@ -5,8 +5,8 @@
 <div style="display:grid;gap:1rem">
     @foreach ($groups as $market => $items)
         <div style="border:1px solid rgba(127,127,127,.25);border-radius:.75rem;overflow:hidden">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;background:rgba(11,107,203,.08)">
-                <strong style="color:#0b6bcb">{{ Admin::marketLabel($market) }}</strong>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;background:rgba(91,61,245,.08)">
+                <strong style="color:#5b3df5">{{ Admin::marketLabel($market) }}</strong>
                 <span style="font-size:.8rem;opacity:.7">{{ $items->sum('qty') }} item(s) · ₹{{ number_format($items->sum(fn ($i) => $i->unit_inr * $i->qty)) }} · {{ Admin::bdt($items->sum(fn ($i) => $i->unit_bdt * $i->qty)) }}</span>
             </div>
             @foreach ($items as $i)
@@ -17,7 +17,7 @@
                         <div style="width:56px;height:56px;border-radius:.4rem;background:rgba(127,127,127,.15);flex:none"></div>
                     @endif
                     <div style="flex:1;min-width:0">
-                        <a href="{{ Admin::sourceUrl($i->market, $i->product_id) }}" target="_blank" rel="noopener" style="font-weight:600;color:inherit;text-decoration:underline;text-decoration-color:rgba(11,107,203,.5)">{{ $i->title }} ↗</a>
+                        <a href="{{ Admin::sourceUrl($i->market, $i->product_id) }}" target="_blank" rel="noopener" style="font-weight:600;color:inherit;text-decoration:underline;text-decoration-color:rgba(91,61,245,.5)">{{ $i->title }} ↗</a>
                         <div style="font-size:.8rem;opacity:.7;margin-top:.15rem">
                             {{ $i->product_id }}@if ($i->variant) · {{ $i->variant }}@endif · {{ rtrim(rtrim(number_format($i->weight_kg, 3), '0'), '.') }} kg
                         </div>

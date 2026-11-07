@@ -7,19 +7,19 @@
         .hub-video { position: relative; overflow: hidden; border-radius: .75rem; background: #000; aspect-ratio: 4 / 3; }
         .hub-video video { width: 100%; height: 100%; object-fit: cover; }
         .hub-video .hub-aim { position: absolute; inset: 25% 10%; border: 2px solid rgba(255,255,255,.85); border-radius: .5rem; box-shadow: 0 0 0 999px rgba(0,0,0,.35); }
-        .hub-video .hub-aim::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: #ff6a3d; animation: hub-sweep 1.6s ease-in-out infinite alternate; transform-origin: center; }
+        .hub-video .hub-aim::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: #ff4d2e; animation: hub-sweep 1.6s ease-in-out infinite alternate; transform-origin: center; }
         @keyframes hub-sweep { from { transform: translateY(-2.5rem); } to { transform: translateY(2.5rem); } }
         @media (prefers-reduced-motion: reduce) { .hub-video .hub-aim::after { animation: none; } }
         .hub-item { display: flex; gap: .75rem; align-items: center; width: 100%; min-height: 64px; padding: .6rem .75rem; text-align: left;
             border-radius: .75rem; border: 1px solid rgba(127,127,127,.25); background: transparent; }
-        .hub-item:hover, .hub-item:focus-visible { border-color: #0b6bcb; outline: none; }
-        .hub-item[aria-pressed="true"] { border-color: #0b6bcb; box-shadow: 0 0 0 2px rgba(11,107,203,.25); }
+        .hub-item:hover, .hub-item:focus-visible { border-color: #5b3df5; outline: none; }
+        .hub-item[aria-pressed="true"] { border-color: #5b3df5; box-shadow: 0 0 0 2px rgba(91,61,245,.25); }
         .hub-item img { width: 52px; height: 52px; object-fit: contain; background: #fff; border-radius: .5rem; flex: none; }
         .hub-meta { font-size: .78rem; opacity: .75; }
         .hub-pill { display: inline-flex; align-items: center; gap: .25rem; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 600; }
         .hub-pill.ok { background: rgba(16,185,129,.15); color: rgb(5,150,105); }
         .hub-pill.warn { background: rgba(245,158,11,.18); color: rgb(180,83,9); }
-        .hub-pill.info { background: rgba(11,107,203,.12); color: #0b6bcb; }
+        .hub-pill.info { background: rgba(91,61,245,.12); color: #5b3df5; }
     </style>
 
     <div class="hub-wrap" x-data="{

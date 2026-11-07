@@ -311,7 +311,7 @@
     pointer-events: none;
   }
   .dd-img {
-    animation: float 5s var(--ease-in-out) infinite alternate;
+    animation: dd-bob 4s var(--ease-in-out) infinite alternate;
   }
   .dd-digits {
     display: inline-flex;
@@ -595,6 +595,11 @@
   50% {
     transform: scale(1.1);
     opacity: 1;
+  }
+}
+@keyframes dd-bob {
+  to {
+    transform: translateY(-6px);
   }
 }
 @keyframes dd-in {

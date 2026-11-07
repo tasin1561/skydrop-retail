@@ -122,7 +122,7 @@ export function Viewer({
       aria-modal="true"
       aria-label={`Photos and videos: ${p.title}`}
     >
-      <div className="pd-backdrop absolute inset-0 bg-[#060a14]/80 backdrop-blur-md" onClick={close} />
+      <div className="pd-backdrop absolute inset-0 bg-[#09090c]/80 backdrop-blur-md" onClick={close} />
       <div className="pd-panel sheet-enter absolute inset-x-0 bottom-0 top-0 flex flex-col bg-surface md:inset-6 md:rounded-[20px] md:shadow-[var(--shadow-2)]">
         <div className="flex items-center gap-3 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <p className="min-w-0 flex-1 truncate pl-1 text-sm font-semibold text-ink-2">{p.title}</p>

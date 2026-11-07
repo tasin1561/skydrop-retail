@@ -58,8 +58,8 @@ export function VanButton({
           <path d="M29 8h7l5 6v5H29z" fill="#fff" />
           <path d="M31 10h4.2l3 3.6H31z" fill="var(--brand-2)" opacity=".55" />
           <path d="M12 9h12" stroke="var(--brand-2)" strokeWidth="1.6" strokeLinecap="round" />
-          <circle className="wheel" cx="15" cy="20" r="3.4" fill="#1e293b" stroke="#fff" strokeWidth="1.4" strokeDasharray="3 2" />
-          <circle className="wheel" cx="35" cy="20" r="3.4" fill="#1e293b" stroke="#fff" strokeWidth="1.4" strokeDasharray="3 2" />
+          <circle className="wheel" cx="15" cy="20" r="3.4" fill="#111114" stroke="#fff" strokeWidth="1.4" strokeDasharray="3 2" />
+          <circle className="wheel" cx="35" cy="20" r="3.4" fill="#111114" stroke="#fff" strokeWidth="1.4" strokeDasharray="3 2" />
         </svg>
       </button>
       <span className="sr-only" aria-live="polite">

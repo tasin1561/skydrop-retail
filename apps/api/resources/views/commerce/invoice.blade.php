@@ -9,13 +9,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Invoice {{ $order->id }} · Skydrop Retail</title>
 <style>
-  :root { --ink:#0f172a; --ink2:#475569; --line:#e2e8f0; --accent:#0e7c66; --bg:#ffffff; --soft:#f1f5f9; }
+  :root { --ink:#0b0b0f; --ink2:#55555f; --line:#e7e5de; --accent:#5b3df5; --coral:#ff4d2e; --bg:#ffffff; --soft:#f7f7f4; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--soft); color:var(--ink); font:14px/1.5 -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif; }
-  .page { max-width:820px; margin:24px auto; background:var(--bg); padding:40px; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  body { margin:0; background:var(--soft); color:var(--ink); font:14px/1.5 "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif; }
+  .page { max-width:820px; margin:24px auto; background:var(--bg); padding:40px; border-radius:20px; box-shadow:0 1px 1px rgba(0,0,0,.04), 0 6px 20px rgba(20,16,60,.06); }
   header { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; border-bottom:3px solid var(--accent); padding-bottom:20px; }
   .brand { font-size:24px; font-weight:800; letter-spacing:-.02em; }
-  .brand span { color:var(--accent); }
+  .brand span { color:var(--coral); }
   .muted { color:var(--ink2); }
   h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink2); margin:0 0 6px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px; margin:24px 0; }

@@ -73,7 +73,7 @@ class OrderActions
                     ->compact()
                     ->schema($items->map(fn ($i) => TextInput::make("refs.{$i->id}")
                         ->label(str($i->title)->limit(70).' × '.$i->qty.($i->variant ? " ({$i->variant})" : ''))
-                        ->helperText(new HtmlString('<a href="'.e(Admin::sourceUrl($i->market, $i->product_id)).'" target="_blank" rel="noopener" style="color:#0b6bcb">Open '.e($i->product_id).' on source ↗</a>'))
+                        ->helperText(new HtmlString('<a href="'.e(Admin::sourceUrl($i->market, $i->product_id)).'" target="_blank" rel="noopener" style="color:#5b3df5">Open '.e($i->product_id).' on source ↗</a>'))
                         ->placeholder('e.g. 403-1234567-1234567')
                         ->required())->all()))->values()->all(),
                 Textarea::make('note')->rows(2),

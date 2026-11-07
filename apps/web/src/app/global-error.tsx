@@ -8,7 +8,7 @@ export default function GlobalError({ retry }: { error: unknown; retry: () => vo
         <title>Skydrop Retail</title>
         <main style={{ maxWidth: 420, margin: "0 auto", padding: "64px 16px", textAlign: "center" }}>
           <h1 style={{ fontSize: 24, margin: "0 0 8px" }}>We&apos;ll be right back</h1>
-          <p style={{ color: "#475569", fontSize: 14 }}>Skydrop Retail hit a temporary problem. Please try again.</p>
+          <p style={{ color: "#55555f", fontSize: 14 }}>Skydrop Retail hit a temporary problem. Please try again.</p>
           <button
             type="button"
             onClick={() => retry()}

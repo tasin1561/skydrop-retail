@@ -143,7 +143,7 @@ class ProductInfolist
         return [
             'option' => $option,
             'value' => (string) $value,
-            'link' => is_string($id) ? '<a href="'.e(Admin::sourceUrl($market, $id)).'" target="_blank" rel="noopener" style="color:#0b6bcb">'.e($id).' ↗</a>' : null,
+            'link' => is_string($id) ? '<a href="'.e(Admin::sourceUrl($market, $id)).'" target="_blank" rel="noopener" style="color:#5b3df5">'.e($id).' ↗</a>' : null,
             'price' => is_numeric($price) ? '₹'.number_format((float) $price) : null,
         ];
     }

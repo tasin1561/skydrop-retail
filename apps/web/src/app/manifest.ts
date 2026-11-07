@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Shop Indian stores from Bangladesh, delivered to your door by Skydrop.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f7fb",
+    background_color: "#f7f7f4",
     theme_color: "#0b0b0f",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };

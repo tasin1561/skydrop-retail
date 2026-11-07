@@ -46,7 +46,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(90deg, rgb(11 16 32 / 0.78), rgb(11 16 32 / 0.25) 65%, transparent);
+  background: linear-gradient(90deg, rgb(11 11 15 / 0.78), rgb(11 11 15 / 0.25) 65%, transparent);
 }
 .hc-slide .hc-shot {
   transform: translateY(8px) rotate(-3deg) scale(0.96);

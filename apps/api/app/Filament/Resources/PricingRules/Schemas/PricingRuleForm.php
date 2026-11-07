@@ -64,7 +64,7 @@ class PricingRuleForm
             .$row('Import / customs', Admin::bdt(round($importBdt)))
             .$row('Service (margin)', Admin::bdt($service))
             ."<hr style='opacity:.2'>"
-            ."<div style='display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700'><span>Shopper pays</span><span style='color:#0b6bcb'>".Admin::bdt($total).'</span></div>'
+            ."<div style='display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700'><span>Shopper pays</span><span style='color:#5b3df5'>".Admin::bdt($total).'</span></div>'
             .$row('Our gross margin', Admin::bdt(round($profit)).($total > 0 ? ' ('.round($profit / $total * 100, 1).'%)' : ''))
             ."<div style='opacity:.6;font-size:.75rem'>Shipping is added at checkout per kg.</div>"
             .'</div>'

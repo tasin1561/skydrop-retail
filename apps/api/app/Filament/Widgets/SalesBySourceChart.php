@@ -39,8 +39,8 @@ class SalesBySourceChart extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Sales (BDT)', 'data' => array_map(fn ($r) => round($r['bdt']), array_values($rows)), 'backgroundColor' => '#ff6a3d', 'xAxisID' => 'x'],
-                ['label' => 'Orders', 'data' => array_map(fn ($r) => $r['orders'], array_values($rows)), 'backgroundColor' => '#0b6bcb', 'xAxisID' => 'orders'],
+                ['label' => 'Sales (BDT)', 'data' => array_map(fn ($r) => round($r['bdt']), array_values($rows)), 'backgroundColor' => '#ff4d2e', 'xAxisID' => 'x'],
+                ['label' => 'Orders', 'data' => array_map(fn ($r) => $r['orders'], array_values($rows)), 'backgroundColor' => '#5b3df5', 'xAxisID' => 'orders'],
             ],
             'labels' => array_map(fn ($l) => mb_strimwidth($l, 0, 40, '…'), array_keys($rows)),
         ];

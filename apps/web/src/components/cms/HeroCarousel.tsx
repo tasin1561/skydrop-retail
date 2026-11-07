@@ -182,7 +182,7 @@ function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: b
           )}
           {b.link && (
             <span
-              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-[#0f172a] shadow-[0_8px_24px_rgb(0_0_0/0.18)]"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0f] shadow-[0_8px_24px_rgb(0_0_0/0.18)]"
               style={{ ["--d" as string]: 3 }}
             >
               {b.cta || "Shop now"} <Icon name="arrow" size={16} />

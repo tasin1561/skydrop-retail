@@ -15,6 +15,14 @@
   .sc-wrap[data-lift="true"] {
     bottom: calc(160px + env(safe-area-inset-bottom));
   }
+  /* lift only while a sticky buy/checkout bar is actually on screen */
+  body:not(:has(.pd-sticky[data-show="true"], .co-bottom-bar)) .sc-wrap[data-lift="true"] {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  .sc-main {
+    width: 52px;
+    height: 52px;
+  }
 }
 @media (min-width: 768px) {
   .sc-wrap {
@@ -31,9 +39,10 @@
   width: 56px;
   height: 56px;
   border-radius: 999px;
-  color: #fff;
-  background: linear-gradient(135deg, #25d366, #128c7e);
-  box-shadow: 0 10px 28px rgb(18 140 126 / 0.4);
+  /* on-theme: ink pill (light) / bright pill (dark) with a soft violet glow */
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 78%, var(--accent)));
+  box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--accent) 45%, transparent), 0 2px 6px rgb(0 0 0 / 0.18);
   transition: transform 0.3s var(--spring);
   animation: sc-in 0.5s var(--spring) 0.8s both;
 }

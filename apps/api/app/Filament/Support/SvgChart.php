@@ -7,7 +7,7 @@ use Illuminate\Support\HtmlString;
 /** Dependency-free inline SVG charts for report pages (light/dark friendly: uses currentColor for text). */
 class SvgChart
 {
-    private const POS = '#0b6bcb';
+    private const POS = '#5b3df5';
 
     private const NEG = '#e11d48';
 

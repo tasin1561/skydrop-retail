@@ -26,8 +26,8 @@ class OrdersByMarketplaceChart extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Orders', 'data' => array_map(fn ($m) => (int) ($rows[$m]->orders ?? 0), $markets), 'backgroundColor' => '#0b6bcb', 'yAxisID' => 'y'],
-                ['label' => 'Sales (BDT)', 'data' => array_map(fn ($m) => round((float) ($rows[$m]->bdt ?? 0)), $markets), 'backgroundColor' => '#ff6a3d', 'yAxisID' => 'bdt'],
+                ['label' => 'Orders', 'data' => array_map(fn ($m) => (int) ($rows[$m]->orders ?? 0), $markets), 'backgroundColor' => '#5b3df5', 'yAxisID' => 'y'],
+                ['label' => 'Sales (BDT)', 'data' => array_map(fn ($m) => round((float) ($rows[$m]->bdt ?? 0)), $markets), 'backgroundColor' => '#ff4d2e', 'yAxisID' => 'bdt'],
             ],
             'labels' => ['Mega Store', 'Style Bazaar', 'Daily Basket'],
         ];

@@ -35,7 +35,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         S
       </div>
       <div style={{ display: "flex", fontSize: 30, fontWeight: 800, color: "#0b0b0f" }}>
-        Skydrop<span style={{ color: "#5b3df5", marginLeft: 8 }}>Retail</span>
+        Skydrop<span style={{ color: "#ff4d2e", marginLeft: 8 }}>Retail</span>
       </div>
     </div>
   );
@@ -43,7 +43,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   if (!p) {
     return new ImageResponse(
       (
-        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#f6f7fb", gap: 24 }}>
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#f7f7f4", gap: 24 }}>
           {brand}
           <div style={{ fontSize: 56, fontWeight: 800, color: "#0b0b0f" }}>Shop Indian stores from Bangladesh</div>
         </div>
@@ -60,7 +60,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(135deg, #f6f7fb 0%, #e8f1fb 100%)", padding: 48, gap: 48 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(135deg, #f7f7f4 0%, #ece8fe 100%)", padding: 48, gap: 48 }}>
         <div
           style={{
             width: 534,
@@ -90,14 +90,14 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               </div>
             </div>
             <div style={{ fontSize: title.length > 70 ? 38 : 46, fontWeight: 800, color: "#0b0b0f", lineHeight: 1.15 }}>{title}</div>
-            {p.brand ? <div style={{ fontSize: 24, color: "#475569", fontWeight: 600 }}>{p.brand}</div> : null}
+            {p.brand ? <div style={{ fontSize: 24, color: "#55555f", fontWeight: 600 }}>{p.brand}</div> : null}
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 22, color: "#475569", fontWeight: 600 }}>Delivered to Bangladesh</div>
+              <div style={{ fontSize: 22, color: "#55555f", fontWeight: 600 }}>Delivered to Bangladesh</div>
               <div style={{ fontSize: 64, fontWeight: 800, color: "#5b3df5" }}>{bdt(price)}</div>
             </div>
-            <div style={{ display: "flex", fontSize: 20, color: "#475569", fontWeight: 600 }}>Price verified at checkout</div>
+            <div style={{ display: "flex", fontSize: 20, color: "#55555f", fontWeight: 600 }}>Price verified at checkout</div>
           </div>
         </div>
       </div>

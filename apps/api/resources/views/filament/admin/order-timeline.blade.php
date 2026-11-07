@@ -1,7 +1,7 @@
 @php
     use App\Filament\Support\Admin;
     $events = $record->events;
-    $colors = ['gray' => '#64748b', 'info' => '#0284c7', 'primary' => '#0b6bcb', 'warning' => '#d97706', 'success' => '#059669', 'danger' => '#e11d48'];
+    $colors = ['gray' => '#71717a', 'info' => '#0284c7', 'primary' => '#5b3df5', 'warning' => '#d97706', 'success' => '#059669', 'danger' => '#e11d48'];
 @endphp
 <ol style="list-style:none;margin:0;padding:0;display:grid;gap:.1rem">
     @forelse ($events as $e)
