@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Catalog\RetailSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -32,7 +33,7 @@ class Product extends Model
     {
         $dealLive = ! $this->deal_ends_at || $this->deal_ends_at->isFuture();
         if ($dealLive && $this->effective_price_inr && $this->effective_price_inr > 0
-            && (bool) Setting::get('pass_coupons', config('retail.offers.pass_coupons', true))) {
+            && RetailSettings::bool('pass_coupons', (bool) config('retail.offers.pass_coupons', true))) {
             return (float) $this->effective_price_inr;
         }
 
