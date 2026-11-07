@@ -30,20 +30,21 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
   // fetch it from the server so the shopper always sees their order.
   const local = orders.find((o) => o.id === orderId);
   const [remote, setRemote] = useState<Order | null>(null);
-  const [lookup, setLookup] = useState<"idle" | "loading" | "done">("idle");
+  const [lookedUp, setLookedUp] = useState(false);
+  const needsLookup = ready && !local && !!orderId && apiEnabled && !!user;
+  const lookup = needsLookup && !lookedUp ? "loading" : "done";
   useEffect(() => {
-    if (!ready || local || !orderId || !apiEnabled || !user) return;
+    if (!needsLookup) return;
     let alive = true;
-    setLookup("loading");
     api
       .order(orderId)
       .then((r) => alive && setRemote(r.order as Order))
       .catch(() => {})
-      .finally(() => alive && setLookup("done"));
+      .finally(() => alive && setLookedUp(true));
     return () => {
       alive = false;
     };
-  }, [ready, local, orderId, user]);
+  }, [needsLookup, orderId]);
   const [retryError, setRetryError] = useState<string | null>(null);
 
   if (!ready || lookup === "loading") {
