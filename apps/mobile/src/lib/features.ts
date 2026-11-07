@@ -5,8 +5,13 @@ import { http, isDemo, resolveMode } from "@/api/client";
 
 export type Features = Record<string, boolean>;
 
+/** Storefront maintenance (Admin → System → Settings), from the same GET /features response. */
+export type Maintenance = { on: boolean; message: string; since?: string | null };
+
 const DEFAULTS: Features = { "pay.emi": false, membership: false };
+const NO_MAINTENANCE: Maintenance = { on: false, message: "" };
 let features: Features = {};
+let maintenance: Maintenance = NO_MAINTENANCE;
 let loading: Promise<Features> | null = null;
 const subs = new Set<() => void>();
 
@@ -15,7 +20,11 @@ export function loadFeatures(): Promise<Features> {
   loading ??= (async () => {
     try {
       await resolveMode();
-      if (!isDemo()) features = (await http<{ features: Features }>("GET", "/features")).features ?? {};
+      if (!isDemo()) {
+        const res = await http<{ features: Features; maintenance?: Maintenance }>("GET", "/features");
+        features = res.features ?? {};
+        maintenance = res.maintenance ?? NO_MAINTENANCE;
+      }
     } catch {
       /* keep defaults */
     }
@@ -23,6 +32,20 @@ export function loadFeatures(): Promise<Features> {
     return features;
   })();
   return loading;
+}
+
+/** Fetches the switches again (maintenance screen "Try again"). */
+export function reloadFeatures(): Promise<Features> {
+  loading = null;
+  return loadFeatures();
+}
+
+export function getMaintenance() {
+  return maintenance;
+}
+
+export function useMaintenance(): Maintenance {
+  return useSyncExternalStore(subscribe, getMaintenance, getMaintenance);
 }
 
 export function isOn(key: string) {

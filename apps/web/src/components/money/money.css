@@ -1,7 +1,7 @@
 /* Money module: wallet, gift cards, Skydrop Plus, EMI. Motion uses transform/opacity only. */
 
 :root {
-  --plus-a: #0b1020;
+  --plus-a: #0b0b0f;
   --plus-b: #1e3a8a;
   --plus-gold: #f5c451;
   --plus-ink: #fff8e1;
@@ -39,7 +39,7 @@
   animation: gc-sheen 4.5s var(--ease) infinite;
   z-index: -1;
 }
-.gc-card[data-design="classic"] { background: linear-gradient(135deg, var(--brand), #38bdf8); }
+.gc-card[data-design="classic"] { background: linear-gradient(135deg, #0b0b0f, #5b3df5); }
 .gc-card[data-design="eid"] { background: linear-gradient(135deg, #065f46, #10b981); }
 .gc-card[data-design="birthday"] { background: linear-gradient(135deg, #be185d, #f472b6); }
 .gc-card[data-design="thanks"] { background: linear-gradient(135deg, #b45309, #f59e0b); }

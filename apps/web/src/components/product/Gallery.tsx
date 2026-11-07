@@ -231,7 +231,7 @@ function VideoThumb({ thumb, size }: { thumb: string | null; size: "lg" | "sm" }
       <span className="pd-play relative h-16 w-16">
         <Icon name="play" size={size === "lg" ? 26 : 14} fill="currentColor" stroke={1} className="translate-x-0.5" />
       </span>
-      <span className="absolute bottom-3 left-3 rounded-full bg-[#0b1020]/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+      <span className="absolute bottom-3 left-3 rounded-full bg-[#0b0b0f]/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
         Video
       </span>
     </span>

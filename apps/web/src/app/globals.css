@@ -3,32 +3,33 @@
 
 /* ---------- Skydrop Retail tokens ---------- */
 :root {
-  --bg: #f6f7fb;
+  /* Midnight Luxe: warm off-white, near-black ink, electric violet. */
+  --bg: #f7f7f4;
   --surface: #ffffff;
-  --surface-2: #f0f2f8;
-  --ink: #0f172a;
-  --ink-2: #475569;
-  --ink-3: #94a3b8;
-  --line: #e5e8f0;
-  --good: #16a34a;
+  --surface-2: #f0efe9;
+  --ink: #0b0b0f;
+  --ink-2: #55555f;
+  --ink-3: #9a9aa3;
+  --line: #e7e5de;
+  --good: #0e9f6e;
   --warn: #d97706;
-  --bad: #dc2626;
-  --brand: #0b6bcb; /* Skydrop Retail blue */
-  --brand-2: #ff6a3d; /* Skydrop coral */
+  --bad: #e5363d;
+  --brand: #111114; /* Skydrop Retail ink */
+  --brand-2: #ff4d2e; /* Skydrop signal coral */
 
-  /* store mode accent (overridden per store) */
-  --accent: var(--brand);
-  --accent-2: #38bdf8;
+  /* Store-mode accent (overridden per store) */
+  --accent: #5b3df5;
+  --accent-2: #a78bfa;
   --accent-ink: #ffffff;
-  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
-  --hero-a: #0b6bcb;
-  --hero-b: #38bdf8;
+  --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
+  --hero-a: #0b0b0f;
+  --hero-b: #5b3df5;
 
-  --radius: 16px;
-  --shadow-1: 0 1px 2px rgb(15 23 42 / 0.06), 0 2px 8px rgb(15 23 42 / 0.05);
-  --shadow-2: 0 4px 12px rgb(15 23 42 / 0.08), 0 16px 32px rgb(15 23 42 / 0.08);
-  --glow: 0 8px 24px color-mix(in srgb, var(--accent) 28%, transparent);
-  /* motion: one easing family (out + in-out) and one spring. See app/motion.css. */
+  --radius: 20px;
+  --shadow-1: 0 1px 1px rgb(0 0 0 / 0.04), 0 6px 20px rgb(20 16 60 / 0.06);
+  --shadow-2: 0 2px 6px rgb(20 16 60 / 0.06), 0 18px 44px rgb(20 16 60 / 0.12);
+  --glow: 0 10px 30px color-mix(in srgb, var(--accent) 35%, transparent);
+
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.25, 1);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -37,35 +38,44 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0b1020;
-  --surface: #121a2e;
-  --surface-2: #19223a;
-  --ink: #e8edf7;
-  --ink-2: #a5b0c6;
-  --ink-3: #66728c;
-  --line: #24304b;
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-2: 0 8px 28px rgb(0 0 0 / 0.45);
+  --bg: #09090c;
+  --surface: #131318;
+  --surface-2: #1b1b22;
+  --ink: #f4f4f6;
+  --ink-2: #a8a8b3;
+  --ink-3: #6b6b78;
+  --line: #26262f;
+  --brand: #f4f4f6;
+  --accent: #7c6cff;
+  --accent-2: #b4a7ff;
+  --hero-a: #16132b;
+  --hero-b: #5b3df5;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-2: 0 10px 36px rgb(0 0 0 / 0.55);
 }
 
 [data-store="amazon"] {
-  --accent: #0f766e;
-  --accent-2: #2dd4bf;
-  --hero-a: #0f766e;
-  --hero-b: #14b8a6;
+  --accent: #5b3df5;
+  --accent-2: #a78bfa;
+  --hero-a: #0b0b0f;
+  --hero-b: #5b3df5;
 }
 [data-store="flipkart"] {
-  --accent: #7c3aed;
-  --accent-2: #f472b6;
-  --hero-a: #6d28d9;
-  --hero-b: #db2777;
+  --accent: #e11d74;
+  --accent-2: #fb7185;
+  --hero-a: #1a0b14;
+  --hero-b: #e11d74;
 }
 [data-store="bigbasket"] {
-  --accent: #c2410c;
-  --accent-2: #fbbf24;
-  --hero-a: #b45309;
-  --hero-b: #f59e0b;
+  --accent: #0e9f6e;
+  --accent-2: #6ee7b7;
+  --hero-a: #06281e;
+  --hero-b: #0e9f6e;
 }
+
+[data-theme="dark"][data-store="amazon"], [data-theme="dark"] [data-store="amazon"] { --accent: #7c6cff; }
+[data-theme="dark"][data-store="flipkart"], [data-theme="dark"] [data-store="flipkart"] { --accent: #f0468f; }
+[data-theme="dark"][data-store="bigbasket"], [data-theme="dark"] [data-store="bigbasket"] { --accent: #22c08a; }
 
 @theme inline {
   --color-bg: var(--bg);
@@ -82,7 +92,7 @@
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
 }
 
 html {

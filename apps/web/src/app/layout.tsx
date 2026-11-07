@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/state/store";
 import { FeaturesProvider } from "@/components/features/FeaturesProvider";
@@ -18,6 +19,9 @@ import { MotionRuntime } from "@/components/motion/MotionRuntime";
 import { RouteProgress } from "@/components/motion/RouteProgress";
 import { PageTransition } from "@/components/motion/PageTransition";
 
+// Self-hosted at build time (no runtime request to Google), swapped in without layout shift.
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-jakarta" });
+
 export const metadata: Metadata = {
   title: { default: "Skydrop Retail: shop Indian stores from Bangladesh", template: "%s · Skydrop Retail" },
   description:
@@ -29,15 +33,15 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1020" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090c" },
   ],
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { features, maintenance } = await getFeaturesResponse();
   return (
-    <html lang="en" data-store="all" suppressHydrationWarning>
+    <html lang="en" data-store="all" className={jakarta.variable} suppressHydrationWarning>
       <body className="min-h-dvh">
         <svg width="0" height="0" aria-hidden="true" className="absolute">
           <defs>

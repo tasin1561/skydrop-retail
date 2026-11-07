@@ -151,7 +151,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         placeholder={store === "all" ? "Search Indian stores" : `Search ${STORES[store].name}`}
         aria-label={store === "all" ? "Search Indian stores" : `Search ${STORES[store].name}`}
         className={
-          "min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-3 " +
+          "w-0 min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-3 " +
           (idle ? "placeholder:text-transparent" : "")
         }
         role="combobox"

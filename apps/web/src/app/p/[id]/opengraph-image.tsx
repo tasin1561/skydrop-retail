@@ -31,11 +31,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const p = await getProduct(decodeURIComponent(id));
   const brand = (
     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: "#ff6a3d", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 800 }}>
+      <div style={{ width: 46, height: 46, borderRadius: 14, background: "#ff4d2e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 800 }}>
         S
       </div>
-      <div style={{ display: "flex", fontSize: 30, fontWeight: 800, color: "#0b1020" }}>
-        Skydrop<span style={{ color: "#0b6bcb", marginLeft: 8 }}>Retail</span>
+      <div style={{ display: "flex", fontSize: 30, fontWeight: 800, color: "#0b0b0f" }}>
+        Skydrop<span style={{ color: "#5b3df5", marginLeft: 8 }}>Retail</span>
       </div>
     </div>
   );
@@ -45,7 +45,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       (
         <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#f6f7fb", gap: 24 }}>
           {brand}
-          <div style={{ fontSize: 56, fontWeight: 800, color: "#0b1020" }}>Shop Indian stores from Bangladesh</div>
+          <div style={{ fontSize: 56, fontWeight: 800, color: "#0b0b0f" }}>Shop Indian stores from Bangladesh</div>
         </div>
       ),
       size,
@@ -85,17 +85,17 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           {brand}
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 18px", borderRadius: 999, background: "#0b1020", color: "#fff", fontSize: 22, fontWeight: 700 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 18px", borderRadius: 999, background: "#0b0b0f", color: "#fff", fontSize: 22, fontWeight: 700 }}>
                 {store.name} · from {store.source}
               </div>
             </div>
-            <div style={{ fontSize: title.length > 70 ? 38 : 46, fontWeight: 800, color: "#0b1020", lineHeight: 1.15 }}>{title}</div>
+            <div style={{ fontSize: title.length > 70 ? 38 : 46, fontWeight: 800, color: "#0b0b0f", lineHeight: 1.15 }}>{title}</div>
             {p.brand ? <div style={{ fontSize: 24, color: "#475569", fontWeight: 600 }}>{p.brand}</div> : null}
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 22, color: "#475569", fontWeight: 600 }}>Delivered to Bangladesh</div>
-              <div style={{ fontSize: 64, fontWeight: 800, color: "#0b6bcb" }}>{bdt(price)}</div>
+              <div style={{ fontSize: 64, fontWeight: 800, color: "#5b3df5" }}>{bdt(price)}</div>
             </div>
             <div style={{ display: "flex", fontSize: 20, color: "#475569", fontWeight: 600 }}>Price verified at checkout</div>
           </div>

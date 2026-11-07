@@ -9,6 +9,7 @@ import { ThemeProvider, useTheme } from "@/theme";
 import { StoreProvider, useStore } from "@/state/store";
 import { ToastProvider } from "@/components/Toast";
 import { listenForTaps } from "@/lib/push";
+import { MaintenanceOverlay } from "@/components/system/MaintenanceScreen";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -84,6 +85,7 @@ function Nav() {
         <Stack.Screen name="profile" options={{ title: "Profile" }} />
         <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
       </Stack>
+      <MaintenanceOverlay />
     </NavTheme>
   );
 }

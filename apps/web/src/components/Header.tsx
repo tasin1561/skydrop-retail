@@ -99,7 +99,7 @@ export function Header() {
         </Link>
         {!checkout && <MegaMenu />}
         {!checkout && (
-          <div className="hidden flex-1 md:block">
+          <div className="hidden min-w-0 flex-1 md:block">
             <SearchBox />
           </div>
         )}
