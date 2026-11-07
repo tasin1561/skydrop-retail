@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ProductReviews\Pages;
 
 use App\Filament\Resources\ProductReviews\ProductReviewResource;
-use Filament\Actions\EditAction;
+use App\Filament\Resources\ProductReviews\Tables\ProductReviewsTable;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewProductReview extends ViewRecord
@@ -12,8 +12,6 @@ class ViewProductReview extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            EditAction::make(),
-        ];
+        return [ProductReviewsTable::approve(), ProductReviewsTable::reject()];
     }
 }

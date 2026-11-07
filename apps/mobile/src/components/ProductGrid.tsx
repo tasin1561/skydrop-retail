@@ -1,12 +1,14 @@
 // Infinite two-column product grid backed by /search, with pull to refresh and skeletons.
 import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, View, useWindowDimensions } from "react-native";
-import { api } from "@/api/client";
+import { useIsFocused } from "expo-router";
+import { api, waitForJob } from "@/api/client";
 import type { SearchParams } from "@/api/types";
 import type { Product } from "@/lib/types";
 import { useTheme } from "@/theme";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
 import { Empty, T } from "./ui";
+import { FetchingLive } from "./product/Extras";
 
 export function ProductGrid({ params, header, onTotal }: { params: SearchParams; header?: ReactElement; onTotal?: (n: number) => void }) {
   const { c } = useTheme();
@@ -20,6 +22,8 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reqId = useRef(0);
+  const [job, setJob] = useState<string | null>(null);
+  const focused = useIsFocused();
   const key = JSON.stringify(params);
 
   const load = useCallback(
@@ -35,8 +39,8 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
         setPages(r.pages);
         setError(null);
         onTotal?.(r.total);
-        // pending: the API is fetching fresh results from the store; poll once more shortly.
-        if (r.status === "pending" && pg === 1) setTimeout(() => id === reqId.current && load(1), 2500);
+        // pending: the API is fetching fresh results from the store; poll the job, then reload.
+        if (pg === 1) setJob(r.status === "pending" ? (r.jobId ?? null) : null);
       } catch (e) {
         if (id === reqId.current) setError((e as Error).message);
       } finally {
@@ -54,6 +58,20 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
     load(1);
   }, [load]);
 
+  // Poll GET /jobs/{id} while the screen is focused; stop when it blurs.
+  useEffect(() => {
+    if (!job || !focused) return;
+    const ctrl = new AbortController();
+    waitForJob(job, ctrl.signal).then((done) => {
+      if (ctrl.signal.aborted) return;
+      setJob(null);
+      if (done) load(1);
+    });
+    return () => ctrl.abort();
+  }, [job, focused, load]);
+
+  const store = params.store && params.store !== "all" ? params.store : null;
+
   return (
     <FlatList
       data={loading ? [] : items}
@@ -62,7 +80,19 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
       columnWrapperStyle={{ gap: 12 }}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: 40 }}
       renderItem={({ item }) => <ProductCard p={item} width={W} />}
-      ListHeaderComponent={header}
+      ListHeaderComponent={
+        header || job ? (
+          <View style={{ gap: 8 }}>
+            {header}
+            {job && store && <FetchingLive market={store} />}
+            {job && !store && (
+              <T v="tiny" tone="ink3">
+                Fetching live results from the stores…
+              </T>
+            )}
+          </View>
+        ) : undefined
+      }
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
       onEndReachedThreshold={0.6}

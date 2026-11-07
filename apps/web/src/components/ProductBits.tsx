@@ -4,6 +4,7 @@ import { STORES } from "@/lib/markets";
 import { discountPct, formatBdt, mrpBdt, priceBdt } from "@/lib/pricing";
 import { Icon } from "./Icon";
 import { WishButton } from "./WishButton";
+import { QuickAdd } from "./QuickAdd";
 import { Countdown } from "./offers/Countdown";
 import { headlineDeal } from "./offers/offerMeta";
 
@@ -87,6 +88,11 @@ export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const deal = headlineDeal(p);
   const offerCount = p.offers?.length ?? 0;
+  // Each store mode has its own card personality: dense deals (Mega Store), editorial fashion
+  // (Style Bazaar), quick-add basket (Daily Basket).
+  const fashion = p.market === "flipkart";
+  const grocery = p.market === "bigbasket";
+  const sizes = fashion ? (p.variants ?? []).map((v) => v.label).filter(Boolean).slice(0, 4) : [];
   return (
     <article
       data-store={p.market}
@@ -94,17 +100,33 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       style={{ ["--i" as string]: i % 12 }}
     >
       <Link href={`/p/${p.id}`} className="flex flex-1 flex-col" prefetch={false}>
-        <div className="relative aspect-square bg-white p-3">
+        <div className={"relative bg-white " + (fashion ? "aspect-[4/5] p-2" : grocery ? "aspect-[5/4] p-3" : "aspect-square p-3")}>
           <ProductImage p={p} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]" />
           {discountPct(p) >= 10 && (
             <span className="absolute left-2 top-2 rounded-full bg-brand-2 px-2 py-0.5 text-[11px] font-bold text-white shadow">
               -{discountPct(p)}%
             </span>
           )}
+          {p.bestSeller && !fashion && (
+            <span className="absolute bottom-2 left-2 rounded-md bg-ink/85 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              Best seller
+            </span>
+          )}
         </div>
         <div className="flex flex-1 flex-col gap-1.5 p-3">
           <OriginTag market={p.market} compact />
-          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-ink sm:text-sm">{p.title}</h3>
+          {fashion && p.brand && <p className="text-[11px] font-extrabold uppercase tracking-wider text-ink-2">{p.brand}</p>}
+          <h3 className={"line-clamp-2 leading-snug text-ink " + (fashion ? "text-[13px] font-normal" : "text-[13px] font-medium sm:text-sm")}>{p.title}</h3>
+          {grocery && p.weight && <p className="w-fit rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-2">{p.weight}</p>}
+          {sizes.length > 0 && (
+            <div className="flex flex-wrap gap-1" aria-label="Sizes">
+              {sizes.map((s) => (
+                <span key={s} className="rounded-md border border-line px-1.5 py-0.5 text-[10px] font-semibold text-ink-2">
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
           <Stars rating={p.rating} reviews={p.reviews} size={12} />
           {deal && (
             <span className="inline-flex w-fit items-center gap-1 rounded-md bg-bad px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
@@ -126,12 +148,18 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
                 <Icon name="tag" size={12} stroke={2.2} /> {offerCount} {offerCount === 1 ? "offer" : "offers"} on the source store
               </p>
             ) : null}
+            {p.market === "amazon" && p.salesVolume && <p className="mt-0.5 text-[11px] font-semibold text-ink-2">{p.salesVolume}</p>}
             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-2">
               <Icon name="truck" size={13} /> Home delivery in 7-12 days
             </p>
           </div>
         </div>
       </Link>
+      {grocery && (
+        <div className="px-3 pb-3">
+          <QuickAdd p={p} />
+        </div>
+      )}
       <div className="absolute right-2 top-2">
         <WishButton id={p.id} small />
       </div>

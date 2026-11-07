@@ -16,11 +16,14 @@ import type { MarketId, StoreMode } from "@/lib/types";
 export default function Home() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
-  const { mode, setMode, enabled, demo, totals } = useStore();
+  const { mode, setMode, enabled, demo, totals, recent } = useStore();
   const [refreshing, setRefreshing] = useState(false);
 
   const popular = useAsync(() => api.rail(mode, "popular"), [mode]);
   const deals = useAsync(() => api.rail(mode, "deals"), [mode]);
+  const live = useAsync(() => api.offers(mode, 12), [mode]);
+  const recentKey = recent.join(",");
+  const viewed = useAsync(() => api.products(recent), [recentKey]);
   const firstCat = STORES[mode].categories[0]?.slug;
   const catRail = useAsync(() => api.rail(mode, "popular", firstCat), [mode, firstCat]);
 
@@ -29,8 +32,9 @@ export default function Home() {
     popular.reload();
     deals.reload();
     catRail.reload();
+    live.reload();
     setTimeout(() => setRefreshing(false), 700);
-  }, [popular, deals, catRail]);
+  }, [popular, deals, catRail, live]);
 
   const markets = enabled.filter((m): m is MarketId => m !== "all");
 
@@ -50,6 +54,7 @@ export default function Home() {
           </T>
         </View>
         {demo && <Pill text="Demo data" icon="info" />}
+        <IconButton icon="zap" label="Live deals and offers" tint={c.coral} onPress={() => router.push({ pathname: "/deals", params: { store: mode } })} />
         <IconButton icon="shopping-cart" label={`Cart, ${totals.count} items`} badge={totals.count} onPress={() => router.navigate("/cart")} />
       </View>
 
@@ -77,6 +82,12 @@ export default function Home() {
       )}
 
       <Rail
+        title="Live deals and offers"
+        items={live.data ?? []}
+        loading={live.loading}
+        onMore={() => router.push({ pathname: "/deals", params: { store: mode } })}
+      />
+      <Rail
         title={mode === "all" ? "Popular across India" : `Popular on ${STORES[mode].name}`}
         items={popular.data ?? []}
         loading={popular.loading}
@@ -89,6 +100,16 @@ export default function Home() {
           items={catRail.data ?? []}
           loading={catRail.loading}
           onMore={() => router.push({ pathname: "/search", params: { store: mode, category: firstCat } })}
+        />
+      )}
+      {recent.length > 0 && (
+        <Rail
+          title="Recently viewed"
+          // keep the viewing order and the current store filter
+          items={recent
+            .map((id) => viewed.data?.find((p) => p.id === id))
+            .filter((p): p is NonNullable<typeof p> => !!p && (mode === "all" || p.market === mode))}
+          loading={viewed.loading && !viewed.data}
         />
       )}
       <HowItWorks mode={mode} />

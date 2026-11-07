@@ -5,7 +5,7 @@ import { api, isDemo, onModeChange, resolveMode, tokenStore } from "@/api/client
 import type { CartItem, StoreMode, User } from "@/lib/types";
 import { cartKey, computeTotals, findCoupon, type Coupon, type Totals } from "@/lib/cart";
 
-const K = { cart: "sr:cart", coupon: "sr:coupon", wish: "sr:wish", store: "sr:store" };
+const K = { cart: "sr:cart", coupon: "sr:coupon", wish: "sr:wish", store: "sr:store", recent: "sr:recent", watches: "sr:watches" };
 
 type Store = {
   ready: boolean;
@@ -26,6 +26,11 @@ type Store = {
   // wishlist
   wish: string[];
   toggleWish: (id: string) => boolean;
+  // recently viewed (last 20, local only) and price/stock alerts
+  recent: string[];
+  markViewed: (id: string) => void;
+  watches: string[];
+  setWatching: (id: string, on: boolean) => void;
   // session
   user: User | null;
   signIn: (u: User) => void;
@@ -44,12 +49,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [couponCode, setCouponCode] = useState("");
   const [wish, setWish] = useState<string[]>([]);
   const [user, setUserState] = useState<User | null>(null);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [watches, setWatches] = useState<string[]>([]);
   const loaded = useRef(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [c, cp, w, s] = await AsyncStorage.multiGet([K.cart, K.coupon, K.wish, K.store]);
+        const [c, cp, w, s, r, wt] = await AsyncStorage.multiGet([K.cart, K.coupon, K.wish, K.store, K.recent, K.watches]);
+        if (r[1]) setRecent(JSON.parse(r[1]));
+        if (wt[1]) setWatches(JSON.parse(wt[1]));
         if (c[1]) setCart(JSON.parse(c[1]));
         if (cp[1]) setCouponCode(cp[1]);
         if (w[1]) setWish(JSON.parse(w[1]));
@@ -91,6 +100,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loaded.current) AsyncStorage.setItem(K.wish, JSON.stringify(wish)).catch(() => {});
   }, [wish]);
+
+  useEffect(() => {
+    if (loaded.current) AsyncStorage.setItem(K.recent, JSON.stringify(recent)).catch(() => {});
+  }, [recent]);
+  useEffect(() => {
+    if (loaded.current) AsyncStorage.setItem(K.watches, JSON.stringify(watches)).catch(() => {});
+  }, [watches]);
+
+  const markViewed = useCallback((id: string) => {
+    setRecent((cur) => (cur[0] === id ? cur : [id, ...cur.filter((x) => x !== id)].slice(0, 20)));
+  }, []);
+  const setWatching = useCallback((id: string, on: boolean) => {
+    setWatches((cur) => (on ? Array.from(new Set([...cur, id])) : cur.filter((x) => x !== id)));
+  }, []);
 
   const setMode = useCallback((m: StoreMode) => {
     setModeState(m);
@@ -167,6 +190,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     totals,
     wish,
     toggleWish,
+    recent,
+    markViewed,
+    watches,
+    setWatching,
     user,
     signIn,
     signOut,

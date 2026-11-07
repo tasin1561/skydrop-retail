@@ -54,7 +54,15 @@ export type QuoteResponse = {
 
 export type PaymentMethod = "bkash" | "nagad" | "card" | "advance50";
 
-export type OrderRequest = { items: CheckoutItem[]; addressId: string; payment: PaymentMethod; coupon?: string };
+export type OrderRequest = {
+  items: CheckoutItem[];
+  addressId: string;
+  payment: PaymentMethod;
+  coupon?: string;
+  redeemPoints?: number;
+  /** Where the payment gateway sends the shopper back (deep link into the app). */
+  returnUrl?: string;
+};
 export type OrderResponse = { order: Order; payment: { status: "pending" | "redirect" | "paid"; redirectUrl?: string } };
 
 export type OtpRequestResponse = { ok: true; expiresIn: number; demoCode?: string };
@@ -62,3 +70,12 @@ export type OtpVerifyResponse = { token: string; user: User; isNew: boolean };
 
 export type ApiErrorBody = { message: string; errors?: Record<string, string[]> };
 export type { Address };
+
+export type PointsEntryType = "earn" | "pending" | "redeem" | "bonus" | "refund" | "expire" | "adjust";
+export type PointsResponse = {
+  balance: number;
+  pending: number;
+  valueBdt?: number;
+  history: { type: PointsEntryType; points: number; note: string; at: string; orderId?: string }[];
+};
+export type WatchType = "price_drop" | "back_in_stock";

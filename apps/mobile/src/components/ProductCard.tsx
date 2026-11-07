@@ -10,6 +10,7 @@ import { radius, shadow, useAccent, useTheme } from "@/theme";
 import { useStore } from "@/state/store";
 import { haptic } from "@/lib/haptics";
 import { Icon } from "./Icon";
+import { DealBadge, OfferHint } from "./offers/offers";
 import { ProductImage, Skeleton, Stars, T, Tap } from "./ui";
 
 export const ProductCard = memo(function ProductCard({ p, width }: { p: Product; width: number }) {
@@ -60,6 +61,7 @@ export const ProductCard = memo(function ProductCard({ p, width }: { p: Product;
           {p.title}
         </T>
         {p.rating > 0 && <Stars rating={p.rating} count={p.reviews} />}
+        <DealBadge p={p} />
         <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
           <T v="h3" style={{ fontWeight: "800" }}>
             {formatBdt(price)}
@@ -70,6 +72,7 @@ export const ProductCard = memo(function ProductCard({ p, width }: { p: Product;
             </T>
           )}
         </View>
+        <OfferHint p={p} />
       </View>
     </Tap>
   );

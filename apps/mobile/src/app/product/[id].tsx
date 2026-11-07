@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, { FadeIn, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, Extrapolation } from "react-native-reanimated";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { api } from "@/api/client";
+import { api, waitForJob } from "@/api/client";
 import { useStore } from "@/state/store";
 import type { Product } from "@/lib/types";
 import { STORES } from "@/lib/markets";
@@ -20,6 +20,8 @@ import { useToast } from "@/components/Toast";
 import { Gallery, type Media } from "@/components/product/Gallery";
 import { VariantGroup } from "@/components/product/Variants";
 import { DeliveryRoute, PriceBreakdown, Reviews, Specs } from "@/components/product/Details";
+import { FetchingLive, ProductExtras } from "@/components/product/Extras";
+import { OffersSection, Countdown, headlineDeal } from "@/components/offers/offers";
 
 type Phase = "idle" | "busy" | "done";
 
@@ -29,6 +31,8 @@ export default function ProductScreen() {
   const [p, setP] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const { markViewed } = useStore();
 
   useEffect(() => {
     let live = true;
@@ -40,12 +44,40 @@ export default function ProductScreen() {
         if (!live) return;
         setP(r.product);
         setPending(r.status === "pending");
+        setJobId(r.status === "pending" ? (r.jobId ?? null) : null);
       })
       .catch((e: Error) => live && setError(e.message));
+    markViewed(id);
     return () => {
       live = false;
     };
-  }, [id]);
+  }, [id, markViewed]);
+
+  // Pending listing: poll the refresh job while this screen is focused, then reload.
+  useFocusEffect(
+    useCallback(() => {
+      if (!pending || !jobId) return;
+      const ctrl = new AbortController();
+      waitForJob(jobId, ctrl.signal).then(async (done) => {
+        if (ctrl.signal.aborted) return;
+        if (done) {
+          try {
+            const r = await api.product(id);
+            if (ctrl.signal.aborted) return;
+            setP(r.product);
+            setPending(r.status === "pending" && !!r.jobId && r.jobId !== jobId);
+            setJobId(r.status === "pending" ? (r.jobId ?? null) : null);
+            return;
+          } catch {
+            /* keep cached data */
+          }
+        }
+        setPending(false);
+        setJobId(null);
+      });
+      return () => ctrl.abort();
+    }, [pending, jobId, id]),
+  );
 
   if (error)
     return (
@@ -117,6 +149,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
   const current = variants.find((v) => Object.entries(sel).every(([k, val]) => v.dimensions[k] === val));
   const variantLabel = current?.label ?? (Object.values(sel).length ? Object.values(sel).join(" / ") : undefined);
   const wished = wish.includes(p.id);
+  const deal = headlineDeal(p);
 
   const pick = useCallback(
     async (key: string, value: string) => {
@@ -201,8 +234,8 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
             <Pill text={store.name} />
             {p.bestSeller && <Pill text="Best seller" icon="star" />}
             {p.demo && <Pill text="Demo product" icon="info" />}
-            {pending && <Pill text="Refreshing from store" icon="refresh-cw" />}
           </View>
+          {pending && <FetchingLive market={p.market} />}
           {!!p.brand && (
             <T v="small" style={{ color: a.ink, fontWeight: "800" }}>
               {p.brand}
@@ -230,15 +263,32 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
               </View>
             )}
           </View>
+          {deal && (
+            <View style={[styles.deal, { backgroundColor: c.bad }]}>
+              <Icon name="zap" size={13} color="#fff" />
+              <T v="small" tone="white" style={{ fontWeight: "800" }}>
+                {deal.label}
+              </T>
+              {deal.endsAt && <Countdown endsAt={deal.endsAt} color="#fff" size="small" />}
+            </View>
+          )}
+          {!!p.couponInr && (
+            <T v="small" style={{ color: c.good, fontWeight: "800" }}>
+              ₹{Math.round(p.couponInr)} coupon from {store.source} already applied
+            </T>
+          )}
           <T v="tiny" tone="ink2">
             Import duty and Skydrop service included. Shipping added per store in your cart.
           </T>
+          <ProductExtras id={p.id} market={p.market} priceBdt={price} inStock={available} />
           {!available && (
             <T v="small" tone="bad" style={{ fontWeight: "700" }}>
               Currently unavailable on {store.source}
             </T>
           )}
         </Animated.View>
+
+        <OffersSection p={p} />
 
         {groups.length > 0 && (
           <View style={{ paddingHorizontal: 16, gap: 16, marginBottom: 16 }}>
@@ -327,6 +377,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
 
 const styles = StyleSheet.create({
   off: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  deal: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
   header: { position: "absolute", top: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingBottom: 8 },
   bar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
   addBtn: { flex: 1, minHeight: 50, borderRadius: 16, alignItems: "center", justifyContent: "center" },

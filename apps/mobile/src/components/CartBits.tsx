@@ -93,8 +93,17 @@ export function SummaryLines({ t }: { t: Totals }) {
       {row(`Skydrop shipping (${t.groups.length} ${t.groups.length === 1 ? "store" : "stores"})`, t.shipping ? formatBdt(t.shipping) : "Free")}
       {t.itemDiscount > 0 && row("Coupon discount", "-" + formatBdt(t.itemDiscount), c.good)}
       {t.shipDiscount > 0 && row("Free shipping coupon", "-" + formatBdt(t.shipDiscount), c.good)}
+      {t.pointsDiscount > 0 && row(`${t.pointsRedeemed} Skydrop Points`, "-" + formatBdt(t.pointsDiscount), c.good)}
       <Divider style={{ marginVertical: 4 }} />
       {row("Total", formatBdt(t.total), undefined, true)}
+      {t.pointsToEarn > 0 && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Icon name="star" size={13} color={c.brand} />
+          <T v="tiny" style={{ color: c.brand, fontWeight: "800" }}>
+            You'll earn {t.pointsToEarn} Skydrop Points when it's delivered
+          </T>
+        </View>
+      )}
       <T v="tiny" tone="ink3">
         Import duty included. Prices are verified live with the Indian stores at checkout.
       </T>

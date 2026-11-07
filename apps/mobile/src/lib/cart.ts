@@ -2,6 +2,7 @@
 import type { CartItem, MarketId, Product } from "./types";
 import { MARKET_IDS } from "./markets";
 import { PRICING, groupByMarket, mrpBdt, priceBdt, shippingFor } from "./pricing";
+import { pointsToEarn, pointsValueBdt } from "./points";
 
 export type Coupon = { code: string; label: string; kind: "percent" | "freeship" };
 
@@ -41,9 +42,13 @@ export type Totals = {
   shipDiscount: number;
   discount: number;
   total: number;
+  pointsRedeemed: number;
+  pointsDiscount: number;
+  pointsToEarn: number;
 };
 
-export function computeTotals(items: CartItem[], coupon: Coupon | null): Totals {
+/** redeemPoints: points the shopper chose to use (already capped by maxRedeem). */
+export function computeTotals(items: CartItem[], coupon: Coupon | null, redeemPoints = 0): Totals {
   const map = groupByMarket(items);
   const groups: Group[] = MARKET_IDS.filter((m) => map[m]?.length).map((m) => {
     const list = map[m]!;
@@ -61,8 +66,12 @@ export function computeTotals(items: CartItem[], coupon: Coupon | null): Totals 
   const shipping = groups.reduce((s, g) => s + g.shipping, 0);
   const itemDiscount = coupon?.kind === "percent" ? Math.min(1000, Math.round(subtotal * 0.1)) : 0;
   const shipDiscount = coupon?.kind === "freeship" ? shipping : 0;
-  const discount = itemDiscount + shipDiscount;
+  const pointsDiscount = pointsValueBdt(redeemPoints);
+  const discount = itemDiscount + shipDiscount + pointsDiscount;
   return {
+    pointsRedeemed: pointsDiscount > 0 ? redeemPoints : 0,
+    pointsDiscount,
+    pointsToEarn: pointsToEarn(subtotal - itemDiscount - pointsDiscount),
     groups,
     count: groups.reduce((n, g) => n + g.count, 0),
     subtotal,

@@ -15,6 +15,8 @@ import type {
   OrderResponse,
   OtpRequestResponse,
   OtpVerifyResponse,
+  PointsResponse,
+  WatchType,
   ProductResponse,
   QuoteResponse,
   SearchParams,
@@ -198,6 +200,27 @@ export const api = {
       () => demo.related(p),
     ),
 
+  /** Live deals and offers feed (GET /offers). */
+  offers: (store: StoreMode, limit = 40) =>
+    either(
+      () => http<{ items: Product[] }>("GET", "/offers", { query: { store, limit } }).then((r) => r.items),
+      () => demo.offers(store, limit),
+    ),
+
+  /** Skydrop Points balance and ledger (GET /points). */
+  points: () =>
+    either(
+      () => http<PointsResponse>("GET", "/points"),
+      () => demo.points(),
+    ),
+
+  /** Price-drop / back-in-stock alert (POST /watches). Demo keeps it on the device. */
+  watch: (productId: string, type: WatchType, targetBdt?: number) =>
+    either(
+      () => http<unknown>("POST", "/watches", { body: { productId, type, targetBdt } }).then(() => undefined),
+      () => demo.setWatch(productId, true, type),
+    ),
+
   job: (id: string) => either(() => http<Job>("GET", `/jobs/${id}`), () => ({ id, status: "done" as const, type: "demo" })),
 
   // auth
@@ -276,16 +299,26 @@ export const api = {
       () => http<VerifyResponse>("POST", "/checkout/verify", { body: { items: items.map(stripWeight) } }),
       () => demo.verify(items),
     ),
-  quote: (items: CheckoutItem[], coupon?: string) =>
+  quote: (items: CheckoutItem[], coupon?: string, redeemPoints?: number) =>
     either(
-      () => http<QuoteResponse>("POST", "/checkout/quote", { body: { items: items.map(stripWeight), coupon } }),
-      () => demo.quote(items, coupon),
+      () => http<QuoteResponse>("POST", "/checkout/quote", { body: { items: items.map(stripWeight), coupon, redeemPoints } }),
+      () => demo.quote(items, coupon, redeemPoints),
     ),
 
   // orders
   placeOrder: (req: OrderRequest, address: Address) =>
     either(
-      () => http<OrderResponse>("POST", "/orders", { body: { ...req, items: req.items.map(stripWeight) } }),
+      () =>
+        http<OrderResponse>("POST", "/orders", {
+          body: {
+            ...req,
+            items: req.items.map(stripWeight),
+            // Server-side ids are numeric; anything else is a local draft the API can't resolve.
+            addressId: /^\d+$/.test(req.addressId) ? Number(req.addressId) : req.addressId,
+            address: /^\d+$/.test(req.addressId) ? undefined : address,
+            redeemPoints: req.redeemPoints || undefined,
+          },
+        }),
       () => demo.placeOrder(req, address),
     ),
   orders: () =>
@@ -308,6 +341,26 @@ export const api = {
       () => demo.cancelOrder(id),
     ),
 };
+
+/**
+ * Polls GET /jobs/{id} every 1.5 s until done/failed, the timeout passes (~25 s) or the
+ * signal aborts (e.g. the screen blurred). Resolves true when the job finished successfully.
+ */
+export async function waitForJob(id: string, signal: AbortSignal, timeoutMs = 25000): Promise<boolean> {
+  const until = Date.now() + timeoutMs;
+  while (!signal.aborted && Date.now() < until) {
+    await new Promise((r) => setTimeout(r, 1500));
+    if (signal.aborted) return false;
+    try {
+      const j = await api.job(id);
+      if (j.status === "done") return true;
+      if (j.status === "failed") return false;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 function stripWeight({ weightKg: _w, ...rest }: CheckoutItem) {
   return rest;

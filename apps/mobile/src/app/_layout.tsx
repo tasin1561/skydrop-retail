@@ -64,7 +64,10 @@ function Nav() {
         <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="store/[market]" options={{ headerShown: false }} />
         <Stack.Screen name="search" options={{ headerShown: false, animation: "fade" }} />
-        <Stack.Screen name="checkout" options={{ title: "Checkout" }} />
+        <Stack.Screen name="checkout/index" options={{ title: "Checkout" }} />
+        <Stack.Screen name="checkout/success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
+        <Stack.Screen name="deals" options={{ headerShown: false }} />
+        <Stack.Screen name="points" options={{ title: "Skydrop Points" }} />
         <Stack.Screen name="success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
         <Stack.Screen name="order/[id]" options={{ title: "Order" }} />
         <Stack.Screen name="login" options={{ title: "Sign in", presentation: "modal" }} />

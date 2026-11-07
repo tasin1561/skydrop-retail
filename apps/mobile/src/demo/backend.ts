@@ -6,6 +6,7 @@ import type { Address, CartItem, MarketId, Order, Product, StoreMode, User } fro
 import { MARKET_IDS, STORES } from "@/lib/markets";
 import { priceBdt } from "@/lib/pricing";
 import { computeTotals, findCoupon } from "@/lib/cart";
+import { demoLedger } from "@/lib/points";
 import { STAGES, currentStatus, DEMO_STAGE_MS } from "@/lib/orderStatus";
 import type {
   CheckoutItem,
@@ -16,6 +17,8 @@ import type {
   SearchResponse,
   Suggestion,
   VerifyResponse,
+  PointsResponse,
+  WatchType,
 } from "@/api/types";
 
 const ALL = (data as unknown as { products: Product[] }).products;
@@ -26,6 +29,7 @@ const K = {
   wishlist: "sr:demo:wishlist",
   orders: "sr:demo:orders",
   user: "sr:demo:user",
+  watches: "sr:demo:watches",
 };
 
 async function read<T>(key: string, fallback: T): Promise<T> {
@@ -125,6 +129,14 @@ export function related(p: Product, limit = 8) {
     .slice(0, limit);
 }
 
+/** Live deals feed: products with any offer first, then the deepest discounts (as apps/web/src/lib/data.ts). */
+export function offers(store: StoreMode, limit = 40): Product[] {
+  const withOffers = search({ store, perPage: 400 }).items.filter((p) => (p.offers?.length ?? 0) > 0);
+  const discounted = rail(store, "deals", undefined, limit);
+  const seen = new Set<string>();
+  return [...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit);
+}
+
 export function marketplaces(): Marketplace[] {
   return MARKET_IDS.map((id) => ({ id, name: STORES[id].name, source: STORES[id].source, enabled: true }));
 }
@@ -158,8 +170,8 @@ function toCart(items: CheckoutItem[]): CartItem[] {
   });
 }
 
-export function quote(items: CheckoutItem[], coupon?: string): QuoteResponse {
-  const t = computeTotals(toCart(items), findCoupon(coupon));
+export function quote(items: CheckoutItem[], coupon?: string, redeemPoints = 0): QuoteResponse {
+  const t = computeTotals(toCart(items), findCoupon(coupon), redeemPoints);
   return {
     groups: t.groups.map((g) => ({ market: g.market, subtotal: g.sub, shipping: g.shipping })),
     subtotal: t.subtotal,
@@ -251,7 +263,8 @@ export async function order(id: string) {
 
 export async function placeOrder(req: OrderRequest, address: Address) {
   await wait(1400);
-  const q = quote(req.items, req.coupon);
+  const q = quote(req.items, req.coupon, req.redeemPoints ?? 0);
+  const t = computeTotals(toCart(req.items), findCoupon(req.coupon), req.redeemPoints ?? 0);
   const id = "SR-" + Math.random().toString(36).slice(2, 8).toUpperCase();
   const now = new Date().toISOString();
   const o: Order = {
@@ -268,6 +281,9 @@ export async function placeOrder(req: OrderRequest, address: Address) {
     status: "placed",
     trackingCode: "SKD" + Math.floor(1e8 + Math.random() * 9e8),
     timeline: [{ status: "placed", at: now }],
+    pointsRedeemed: t.pointsRedeemed,
+    pointsDiscount: t.pointsDiscount,
+    pointsEarned: t.pointsToEarn,
   };
   const list = await read<Order[]>(K.orders, []);
   await write(K.orders, [o, ...list]);
@@ -279,6 +295,24 @@ export async function cancelOrder(id: string) {
   const next = list.map((o) => (o.id === id ? { ...o, status: "cancelled" as const } : o));
   await write(K.orders, next);
   return next.find((o) => o.id === id) ?? null;
+}
+
+// ---------- points ----------
+export async function points(): Promise<PointsResponse> {
+  const user = await me();
+  const list = await orders();
+  // Welcome bonus once signed in; the date is unknown in demo, so it sorts last.
+  const l = demoLedger(list, user ? "1970-01-01T00:00:00.000Z" : undefined);
+  return { balance: l.balance, pending: l.pending, history: l.history };
+}
+
+// ---------- watches (price drop / back in stock) ----------
+export async function watchIds() {
+  return read<string[]>(K.watches, []);
+}
+export async function setWatch(productId: string, on: boolean, _type?: WatchType) {
+  const list = (await watchIds()).filter((x) => x !== productId);
+  await write(K.watches, on ? [...list, productId] : list);
 }
 
 export async function signOut() {

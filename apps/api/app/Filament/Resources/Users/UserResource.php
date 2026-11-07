@@ -72,6 +72,16 @@ class UserResource extends Resource
         return ['name', 'phone', 'email'];
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\OrdersRelationManager::class,
+            RelationManagers\PointsRelationManager::class,
+            RelationManagers\ReviewsRelationManager::class,
+            RelationManagers\SupportRequestsRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [

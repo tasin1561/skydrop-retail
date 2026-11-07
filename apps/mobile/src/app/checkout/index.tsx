@@ -3,13 +3,15 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type Scro
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
+import * as WebBrowser from "expo-web-browser";
 import { api } from "@/api/client";
 import type { PaymentMethod } from "@/api/types";
 import { useStore } from "@/state/store";
 import type { Address, CartItem } from "@/lib/types";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow, formatBdt } from "@/lib/pricing";
-import { addDays, cartKey } from "@/lib/cart";
+import { addDays, cartKey, computeTotals } from "@/lib/cart";
+import { maxRedeem } from "@/lib/points";
 import { prettyPhone } from "@/lib/phone";
 import { sized } from "@/lib/variants";
 import { radius, useTheme, withAlpha } from "@/theme";
@@ -30,11 +32,17 @@ const PAYMENTS: { id: PaymentMethod; label: string; icon: string; desc: string }
 
 type Phase = "idle" | "verifying" | "placing";
 
+const RETURN_URL = "skydropretail://checkout/success";
+
 export default function Checkout() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const toast = useToast();
-  const { cart, totals, coupon, user, demo, clearCart, setQty, removeItem, addToCart } = useStore();
+  const { cart, totals: baseTotals, coupon, setCoupon, user, demo, clearCart, removeItem, addToCart } = useStore();
+  const [usePoints, setUsePoints] = useState(false);
+  const [pointsBalance, setPointsBalance] = useState(0);
+  const redeemable = maxRedeem(pointsBalance, baseTotals.subtotal);
+  const totals = usePoints && redeemable.points > 0 ? computeTotals(cart, coupon, redeemable.points) : baseTotals;
   const [step, setStep] = useState(0);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressId, setAddressId] = useState<string | null>(null);
@@ -60,6 +68,16 @@ export default function Checkout() {
       .catch(() => {});
   }, [user, demo]);
   useFocusEffect(loadAddresses);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user && !demo) return;
+      api
+        .points()
+        .then((p) => setPointsBalance(p.balance))
+        .catch(() => setPointsBalance(0));
+    }, [user, demo]),
+  );
 
   // Any cart change invalidates a previous verification.
   const cartSig = cart.map((i) => cartKey(i) + i.qty + ":" + i.unitBdt).join(",");
@@ -148,12 +166,36 @@ export default function Checkout() {
           addressId: address.id,
           payment,
           coupon: coupon?.code,
+          redeemPoints: totals.pointsRedeemed || undefined,
+          // The API appends ?order=<id>; the app handles it at /checkout/success.
+          returnUrl: RETURN_URL,
         },
         address,
       );
-      haptic.success();
       clearCart();
-      router.replace({ pathname: "/success", params: { id: r.order.id, total: String(r.order.total) } });
+      setCoupon("");
+      const order = r.order;
+      if (r.payment.redirectUrl) {
+        // Gateway page in an auth session; it closes itself when it reaches the return URL.
+        const res = await WebBrowser.openAuthSessionAsync(r.payment.redirectUrl, RETURN_URL);
+        let fresh = order;
+        try {
+          fresh = await api.order(order.id);
+        } catch {
+          /* show what we have */
+        }
+        if (res.type === "success" || fresh.paymentStatus === "paid") {
+          haptic.success();
+          router.replace({ pathname: "/success", params: { id: fresh.id, total: String(fresh.total), paid: fresh.paymentStatus ?? "" } });
+        } else {
+          haptic.warn();
+          toast({ kind: "info", title: "Payment not finished", body: "Your order is saved. You can pay or cancel it from the order page." });
+          router.replace(`/order/${order.id}`);
+        }
+        return;
+      }
+      haptic.success();
+      router.replace({ pathname: "/success", params: { id: order.id, total: String(order.total) } });
     } catch (e) {
       haptic.error();
       toast({ kind: "error", title: "Couldn't place the order", body: (e as Error).message });
@@ -364,6 +406,37 @@ export default function Checkout() {
                   </View>
                 ))}
               </Card>
+              {pointsBalance >= 100 && (
+                <Tap
+                  onPress={() => {
+                    if (redeemable.points === 0) return;
+                    haptic.tap();
+                    setUsePoints(!usePoints);
+                  }}
+                  disabled={redeemable.points === 0 || phase !== "idle"}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: usePoints, disabled: redeemable.points === 0 }}
+                  accessibilityLabel={`Use ${redeemable.points} Skydrop Points, save ${formatBdt(redeemable.valueBdt)}`}
+                  scaleTo={0.98}
+                >
+                  <Card style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderColor: usePoints ? c.brand : "transparent" }}>
+                    <IconChip icon="star" />
+                    <View style={{ flex: 1 }}>
+                      <T v="h3" style={{ fontSize: 15 }}>
+                        Use {redeemable.points} Skydrop Points
+                      </T>
+                      <T v="tiny" tone="ink2">
+                        {redeemable.points > 0 ? `Save ${formatBdt(redeemable.valueBdt)} · you have ${pointsBalance} points` : `You have ${pointsBalance} points; add more items to use them`}
+                      </T>
+                    </View>
+                    <View style={[styles.onoff, { backgroundColor: usePoints ? c.brand : c.surface2 }]}>
+                      <T v="tiny" style={{ fontWeight: "800", color: usePoints ? "#fff" : c.ink2 }}>
+                        {usePoints ? "ON" : "OFF"}
+                      </T>
+                    </View>
+                  </Card>
+                </Tap>
+              )}
               <Card>
                 <CouponField />
               </Card>
@@ -425,5 +498,6 @@ const styles = StyleSheet.create({
   demo: { flexDirection: "row", gap: 8, alignItems: "flex-start", padding: 12, borderRadius: radius.md },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: "center", justifyContent: "center", marginTop: 2 },
   radioDot: { width: 10, height: 10, borderRadius: 5 },
+  onoff: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
   bar: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
 });

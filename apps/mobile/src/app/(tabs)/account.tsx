@@ -69,6 +69,8 @@ export default function Account() {
         {user && <Divider style={{ marginLeft: 60 }} />}
         {row("map-pin", "Addresses", "Where Skydrop delivers your parcels", () => (user ? router.push("/addresses") : router.push("/login")))}
         <Divider style={{ marginLeft: 60 }} />
+        {row("star", "Skydrop Points", "Earn on every order, save at checkout", () => (user ? router.push("/points") : router.push({ pathname: "/login", params: { next: "/points" } })))}
+        <Divider style={{ marginLeft: 60 }} />
         {row("heart", "Wishlist", `${wish.length} saved`, () => router.push("/wishlist"))}
         <Divider style={{ marginLeft: 60 }} />
         {row("package", "Orders", "Track from India to your door", () => router.navigate("/orders"))}

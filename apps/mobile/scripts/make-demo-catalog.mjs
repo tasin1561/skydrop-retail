@@ -1,6 +1,7 @@
 // Builds the offline demo catalog for the app from the web storefront's catalog.
 // Usage (from apps/mobile): node scripts/make-demo-catalog.mjs
-// Keeps every detailed product and every flipkart/bigbasket demo item, then fills up to
+// Keeps every detailed product, every product with offers or a deal, and every flipkart/bigbasket
+// demo item, then fills up to
 // ~80 products with the most-reviewed amazon.in listings, spread across categories.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -14,7 +15,8 @@ const TARGET = 80;
 const data = JSON.parse(readFileSync(src, "utf8"));
 const all = data.products;
 
-const keep = all.filter((p) => p.detailed || p.market !== "amazon");
+const hasDeal = (p) => (p.offers?.length ?? 0) > 0 || !!p.dealBadge || !!p.couponInr || !!p.dealEndsAt;
+const keep = all.filter((p) => p.detailed || p.market !== "amazon" || hasDeal(p));
 const ids = new Set(keep.map((p) => p.id));
 
 // Round-robin over categories so rails on every store have something to show.

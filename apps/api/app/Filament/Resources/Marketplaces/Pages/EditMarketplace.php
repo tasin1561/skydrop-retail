@@ -3,19 +3,14 @@
 namespace App\Filament\Resources\Marketplaces\Pages;
 
 use App\Filament\Resources\Marketplaces\MarketplaceResource;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditMarketplace extends EditRecord
 {
     protected static string $resource = MarketplaceResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            ViewAction::make(),
-            DeleteAction::make(),
-        ];
+        return static::getResource()::getUrl('index');
     }
 }
