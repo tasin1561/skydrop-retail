@@ -18,8 +18,6 @@ class ProductFeed
         'home' => 'Home & Garden',
     ];
 
-    public const STORE_BRAND = ['amazon' => 'Mega Store', 'flipkart' => 'Style Bazaar', 'bigbasket' => 'Daily Basket'];
-
     public function __construct(private PricingService $pricing) {}
 
     /**
@@ -58,7 +56,7 @@ class ProductFeed
                 'sale_price' => $mrp > $sale ? $sale.' BDT' : '',
                 'link' => $web.'/p/'.rawurlencode((string) $p->id),
                 'image_link' => (string) ($p->image ?? ''),
-                'brand' => trim((string) $p->brand) ?: (self::STORE_BRAND[$p->market] ?? 'Skydrop Retail'),
+                'brand' => trim((string) $p->brand) ?: 'Skydrop Retail' /* never the store's name: Amazon/Flipkart/BigBasket are not the product brand */,
                 'google_product_category' => self::GOOGLE_CATEGORY[$p->category] ?? '',
                 'product_type' => is_array($path) && $path ? implode(' > ', array_map('strval', $path)) : ucfirst((string) $p->category),
                 'custom_label_0' => (string) $p->market,

@@ -50,9 +50,9 @@ export default async function TermsPage() {
                 reseller, agent or representative.
               </p>
               <p>
-                &quot;Mega Store&quot;, &quot;Style Bazaar&quot; and &quot;Daily Basket&quot; are our own store sections. We mention amazon.in,
-                flipkart.com and bigbasket.com only to tell you which Indian store we buy your item from. Amazon, Flipkart, BigBasket and their logos
-                are trademarks of their respective owners.
+                Amazon, Flipkart and BigBasket are named on this site, in plain text, only to tell you which Indian store we buy
+                your item from; the store sections and pages on this site are run by us, not by them. Amazon, Flipkart, BigBasket and their logos
+                are trademarks of their respective owners, and we do not use their logos.
               </p>
               <p>
                 Your contract is with us, not with those stores. Their customer service, return, warranty and protection programmes do not apply to
@@ -272,9 +272,9 @@ function TermsBn() {
                 সহযোগী, অনুমোদিত, স্পনসরকৃত বা সমর্থিত নয়</strong>। আমরা তাদের অফিশিয়াল পার্টনার, বিক্রেতা, রিসেলার, এজেন্ট বা প্রতিনিধি নই।
               </p>
               <p>
-                &quot;Mega Store&quot;, &quot;Style Bazaar&quot; আর &quot;Daily Basket&quot; আমাদের নিজস্ব স্টোর সেকশন। আপনার পণ্য কোন ইন্ডিয়ান স্টোর
-                থেকে কিনছি শুধু সেটা জানাতে amazon.in, flipkart.com আর bigbasket.com-এর নাম উল্লেখ করি। Amazon, Flipkart, BigBasket আর তাদের
-                লোগো নিজ নিজ মালিকের ট্রেডমার্ক।
+                আপনার পণ্য কোন ইন্ডিয়ান স্টোর থেকে কিনছি শুধু সেটা জানাতে এই সাইটে Amazon, Flipkart আর BigBasket-এর নাম সাধারণ লেখায়
+                উল্লেখ করা হয়; এই সাইটের স্টোর সেকশন ও পেজগুলো আমরা চালাই, তারা নয়। Amazon, Flipkart, BigBasket আর তাদের লোগো নিজ নিজ মালিকের
+                ট্রেডমার্ক, আমরা তাদের লোগো ব্যবহার করি না।
               </p>
               <p>
                 আপনার চুক্তি আমাদের সাথে, ওই স্টোরগুলোর সাথে নয়। Skydrop Retail-এর মাধ্যমে দেওয়া অর্ডারে তাদের কাস্টমার সার্ভিস, রিটার্ন, ওয়ারেন্টি

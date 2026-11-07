@@ -57,8 +57,8 @@ class MessagingFlowTest extends TestCase
         Mail::assertSent(BrandedMessage::class, function (BrandedMessage $m) use ($o) {
             $html = $m->render();
 
-            return $m->hasTo('rahim@example.com') && str_contains($html, $o->id) && str_contains($html, 'Mega Store')
-                && str_contains($html, 'Style Bazaar') && str_contains($html, 'invoices/') && $m->hasReplyTo(config('messaging.mail.reply_to'));
+            return $m->hasTo('rahim@example.com') && str_contains($html, $o->id) && str_contains($html, 'Amazon')
+                && str_contains($html, 'Flipkart') && str_contains($html, 'invoices/') && $m->hasReplyTo(config('messaging.mail.reply_to'));
         });
         Http::assertSent(function ($r) use ($o) {
             $m = json_decode($r->body(), true)[0] ?? [];

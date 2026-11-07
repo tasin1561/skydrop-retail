@@ -249,7 +249,7 @@ class TrackingTest extends TestCase
         $this->assertSame('Great sound Long battery', $byId['A1']['description']);
         $this->assertSame('', $byId['F1']['sale_price']);
         $this->assertSame('out of stock', $byId['F1']['availability']);
-        $this->assertSame('Style Bazaar', $byId['F1']['brand']);
+        $this->assertSame('Skydrop Retail', $byId['F1']['brand']); // no product brand: never the store's name (Amazon/Flipkart/BigBasket aren't the brand)
         $this->assertSame('flipkart', $byId['F1']['custom_label_0']);
 
         $xml = $this->get('/api/v1/feeds/google.xml?store=amazon&key=feed-test-key')->assertOk()->getContent();

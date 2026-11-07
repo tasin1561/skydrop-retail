@@ -21,7 +21,7 @@ export function useEnabledModes(): StoreMode[] {
   return STORE_MODES.filter((m) => m === "all" || (enabled[m] && isOn(f, `store.${m}` as FeatureKey)));
 }
 
-// ---- screen-reader announcement ("Now shopping at Style Bazaar"), one polite live region in the header ----
+// ---- screen-reader announcement ("Now shopping at Flipkart"), one polite live region in the header ----
 let said = "";
 const hear = new Set<() => void>();
 export function announce(text: string) {
@@ -161,7 +161,7 @@ function StoreSegmented() {
   );
 }
 
-/** Phone: "Shopping at: Mega Store ▾" button that opens a bottom sheet with the choices. */
+/** Phone: "Shopping at: Amazon ▾" button that opens a bottom sheet with the choices. */
 function StoreSwitchButton() {
   const mode = useCurrentMode();
   const modes = useEnabledModes();

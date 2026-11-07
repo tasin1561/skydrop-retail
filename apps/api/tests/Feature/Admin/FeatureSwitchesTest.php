@@ -116,7 +116,7 @@ class FeatureSwitchesTest extends TestCase
 
     public function test_store_switch_and_marketplace_stay_in_sync_and_live_fetch_is_global(): void
     {
-        $m = Marketplace::query()->create(['id' => 'flipkart', 'name' => 'Style Bazaar', 'source' => 'flipkart.com', 'enabled' => true, 'live_fetch' => true]);
+        $m = Marketplace::query()->create(['id' => 'flipkart', 'name' => 'Flipkart', 'source' => 'flipkart.com', 'enabled' => true, 'live_fetch' => true]);
 
         Features::set('store.flipkart', false);
         $this->assertFalse($m->refresh()->enabled);

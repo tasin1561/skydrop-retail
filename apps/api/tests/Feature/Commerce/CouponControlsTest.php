@@ -136,7 +136,7 @@ class CouponControlsTest extends TestCase
         $this->coupon(['code' => 'STYLEMIN', 'store' => 'flipkart', 'min_subtotal_bdt' => 100000]);
 
         $this->quote([['productId' => 'A1', 'qty' => 1]], 'STYLE10')->assertStatus(422)
-            ->assertJsonPath('errors.coupon.0', 'This coupon only works on Style Bazaar (flipkart.com) items.');
+            ->assertJsonPath('errors.coupon.0', 'This coupon only works on Flipkart (flipkart.com) items.');
 
         $both = [['productId' => 'A1', 'qty' => 1], ['productId' => 'F1', 'qty' => 1]];
         $r = $this->quote($both, 'STYLE10')->assertOk()->assertJsonPath('coupon.store', 'flipkart');
@@ -148,7 +148,7 @@ class CouponControlsTest extends TestCase
         $this->assertLessThan($r->json('shipping'), $r->json('shipDiscount') + 1); // amazon shipping still charged
 
         $this->quote($both, 'STYLEMIN')->assertStatus(422);
-        $this->assertStringContainsString('from Style Bazaar', $this->quote($both, 'STYLEMIN')->json('errors.coupon.0'));
+        $this->assertStringContainsString('from Flipkart', $this->quote($both, 'STYLEMIN')->json('errors.coupon.0'));
         $this->assertGreaterThan(0, $this->bdt($a));
     }
 

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\URL;
  */
 class Notifier
 {
-    public const MARKETS = ['amazon' => 'Mega Store · amazon.in', 'flipkart' => 'Style Bazaar · flipkart.com', 'bigbasket' => 'Daily Basket · bigbasket.com'];
+    public const MARKETS = ['amazon' => 'Amazon · amazon.in', 'flipkart' => 'Flipkart · flipkart.com', 'bigbasket' => 'BigBasket · bigbasket.com'];
 
     private const L = [
         'en' => ['subtotal' => 'Items', 'shipping' => 'Shipping (India → BD)', 'coupon' => 'Coupon', 'points' => 'Points used', 'total' => 'Total',

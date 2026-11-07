@@ -58,16 +58,16 @@ class CategoryForm
                 Section::make('Where it is sold')->columnSpanFull()->visible($tree)->columns(3)
                     ->description('Leave a store\'s query empty when that store does not sell this category.')
                     ->schema([
-                        Fieldset::make('Mega Store (amazon.in)')->columns(1)->columnSpan(1)->schema([
+                        Fieldset::make('Amazon (amazon.in)')->columns(1)->columnSpan(1)->schema([
                             TextInput::make('sources.amazon.query')->label('Search query'),
                             Select::make('sources.amazon.search_alias')->label('Search alias')->options(array_combine(CategoryAdmin::AMAZON_ALIASES, CategoryAdmin::AMAZON_ALIASES)),
                             TextInput::make('sources.amazon.node')->label('Browse node id')->helperText('Filled by retail:import-amazon-nodes.'),
                         ]),
-                        Fieldset::make('Style Bazaar (flipkart.com)')->columns(1)->columnSpan(1)->schema([
+                        Fieldset::make('Flipkart (flipkart.com)')->columns(1)->columnSpan(1)->schema([
                             TextInput::make('sources.flipkart.query')->label('Search query'),
                             TextInput::make('sources.flipkart.path')->label('Category path (optional)'),
                         ]),
-                        Fieldset::make('Daily Basket (bigbasket.com)')->columns(1)->columnSpan(1)->schema([
+                        Fieldset::make('BigBasket (bigbasket.com)')->columns(1)->columnSpan(1)->schema([
                             TextInput::make('sources.bigbasket.query')->label('Search query'),
                             TextInput::make('sources.bigbasket.slug')->label('Category slug (optional)'),
                         ]),

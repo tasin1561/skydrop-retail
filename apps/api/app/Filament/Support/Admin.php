@@ -17,7 +17,7 @@ class Admin
     /** Legacy users.role values (fallback when a staff member has no roles assigned). */
     public const ROLES = ['admin' => 'Admin', 'manager' => 'Manager', 'support' => 'Support', 'hub' => 'Hub staff'];
 
-    public const MARKETS = ['amazon' => 'Mega Store (amazon.in)', 'flipkart' => 'Style Bazaar (flipkart.com)', 'bigbasket' => 'Daily Basket (bigbasket.com)'];
+    public const MARKETS = ['amazon' => 'Amazon (amazon.in)', 'flipkart' => 'Flipkart (flipkart.com)', 'bigbasket' => 'BigBasket (bigbasket.com)'];
 
     public const ORDER_STATUS_LABELS = [
         'placed' => 'Placed', 'verified' => 'Verified', 'purchased' => 'Bought in India', 'india_hub' => 'At Kolkata hub',

@@ -11,9 +11,9 @@ class MarketplaceSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            ['id' => 'amazon', 'name' => 'Mega Store', 'source' => 'amazon.in'],
-            ['id' => 'flipkart', 'name' => 'Style Bazaar', 'source' => 'flipkart.com'],
-            ['id' => 'bigbasket', 'name' => 'Daily Basket', 'source' => 'bigbasket.com'],
+            ['id' => 'amazon', 'name' => 'Amazon', 'source' => 'amazon.in'],
+            ['id' => 'flipkart', 'name' => 'Flipkart', 'source' => 'flipkart.com'],
+            ['id' => 'bigbasket', 'name' => 'BigBasket', 'source' => 'bigbasket.com'],
         ] as $m) {
             Marketplace::query()->updateOrCreate(['id' => $m['id']], $m + [
                 'enabled' => true, 'live_fetch' => false, 'pincode' => config('retail.pincode', '700001'),

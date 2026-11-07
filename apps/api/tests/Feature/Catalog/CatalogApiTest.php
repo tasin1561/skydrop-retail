@@ -28,7 +28,7 @@ class CatalogApiTest extends TestCase
     public function test_marketplaces(): void
     {
         $this->getJson('/api/v1/marketplaces')->assertOk()
-            ->assertJsonPath('items.0', ['id' => 'amazon', 'name' => 'Mega Store', 'source' => 'amazon.in', 'enabled' => true, 'liveFetch' => false])
+            ->assertJsonPath('items.0', ['id' => 'amazon', 'name' => 'Amazon', 'source' => 'amazon.in', 'enabled' => true, 'liveFetch' => false])
             ->assertJsonCount(3, 'items');
     }
 

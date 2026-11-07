@@ -13,7 +13,7 @@ use App\Support\BizTime;
  */
 class CouponRules
 {
-    public const STORE_NAMES = ['amazon' => 'Mega Store (amazon.in)', 'flipkart' => 'Style Bazaar (flipkart.com)', 'bigbasket' => 'Daily Basket (bigbasket.com)'];
+    public const STORE_NAMES = ['amazon' => 'Amazon (amazon.in)', 'flipkart' => 'Flipkart (flipkart.com)', 'bigbasket' => 'BigBasket (bigbasket.com)'];
 
     /** Active, in its schedule, uses left. */
     public function assertAvailable(Coupon $c): void

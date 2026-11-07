@@ -97,7 +97,7 @@ export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
   );
 }
 
-/** Mega Store cards lead with a couple of short specs when the listing carries them. */
+/** Amazon cards lead with a couple of short specs when the listing carries them. */
 function keySpecs(p: Product): string[] {
   const out: string[] = [];
   for (const [k, v] of Object.entries(p.specs ?? {})) {
@@ -112,8 +112,8 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const offerCount = p.offers?.length ?? 0;
   const { t, digits, inr } = useT();
   const deal = headlineDeal(p, t);
-  // Each store mode has its own card personality: dense deals (Mega Store), editorial fashion
-  // (Style Bazaar), quick-add basket (Daily Basket).
+  // Each store mode has its own card personality: dense deals (Amazon), editorial fashion
+  // (Flipkart), quick-add basket (BigBasket).
   const fashion = p.market === "flipkart";
   const grocery = p.market === "bigbasket";
   const sizes = fashion ? (p.variants ?? []).map((v) => v.label).filter(Boolean).slice(0, 4) : [];

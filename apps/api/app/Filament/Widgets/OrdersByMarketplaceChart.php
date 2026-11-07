@@ -29,7 +29,7 @@ class OrdersByMarketplaceChart extends ChartWidget
                 ['label' => 'Orders', 'data' => array_map(fn ($m) => (int) ($rows[$m]->orders ?? 0), $markets), 'backgroundColor' => '#5b3df5', 'yAxisID' => 'y'],
                 ['label' => 'Sales (BDT)', 'data' => array_map(fn ($m) => round((float) ($rows[$m]->bdt ?? 0)), $markets), 'backgroundColor' => '#ff4d2e', 'yAxisID' => 'bdt'],
             ],
-            'labels' => ['Mega Store', 'Style Bazaar', 'Daily Basket'],
+            'labels' => ['Amazon', 'Flipkart', 'BigBasket'],
         ];
     }
 

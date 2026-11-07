@@ -84,8 +84,8 @@ class AdminPanelTest extends TestCase
 
     private function seedData(): Order
     {
-        Marketplace::query()->create(['id' => 'amazon', 'name' => 'Mega Store', 'source' => 'amazon.in', 'enabled' => true]);
-        Marketplace::query()->create(['id' => 'flipkart', 'name' => 'Style Bazaar', 'source' => 'flipkart.com', 'enabled' => false]);
+        Marketplace::query()->create(['id' => 'amazon', 'name' => 'Amazon', 'source' => 'amazon.in', 'enabled' => true]);
+        Marketplace::query()->create(['id' => 'flipkart', 'name' => 'Flipkart', 'source' => 'flipkart.com', 'enabled' => false]);
         Product::query()->create(['id' => 'B0TEST0001', 'market' => 'amazon', 'category' => 'electronics', 'title' => 'Wireless earbuds', 'price_inr' => 1999, 'mrp_inr' => 2999, 'image' => 'https://example.com/a.jpg']);
         ProductDetail::query()->create(['product_id' => 'B0TEST0001', 'images' => ['https://example.com/b.jpg'],
             'variants' => ['color' => [['value' => 'Black', 'asin' => 'B0TEST0001'], ['value' => 'White', 'asin' => 'B0TEST0002']]],

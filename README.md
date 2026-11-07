@@ -5,9 +5,9 @@ Shop Indian stores from Bangladesh. Shoppers browse products from **amazon.in**,
 | Store mode | Source | Status |
 | --- | --- | --- |
 | All Stores | every enabled store | combined search and home |
-| Mega Store | amazon.in | real product data from the Oxylabs test (255 products, 12 fully detailed) |
-| Style Bazaar | flipkart.com | demo products until the Flipkart provider is connected |
-| Daily Basket | bigbasket.com | demo products until the BigBasket provider is connected |
+| Amazon | amazon.in | real product data from the Oxylabs test (255 products, 12 fully detailed) |
+| Flipkart | flipkart.com | demo products until the Flipkart provider is connected |
+| BigBasket | bigbasket.com | demo products until the BigBasket provider is connected |
 
 ## Monorepo
 

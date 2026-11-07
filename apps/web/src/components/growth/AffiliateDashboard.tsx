@@ -432,7 +432,7 @@ function LinkBuilder({ code }: { code: string }) {
         {[
           [t("nav.home"), "/"],
           [t("nav.deals"), "/deals"],
-          ["Mega Store", "/store/amazon"],
+          ["Amazon", "/store/amazon"],
         ].map(([label, p]) => (
           <button key={p} type="button" className="ac-chip min-h-11 px-3" onClick={() => setInput(origin + p)}>
             + {label}

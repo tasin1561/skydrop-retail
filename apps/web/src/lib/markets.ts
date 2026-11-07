@@ -33,8 +33,8 @@ export const STORES: Record<StoreMode, StoreInfo> = {
   },
   amazon: {
     id: "amazon",
-    name: "Mega Store",
-    short: "Mega",
+    name: "Amazon",
+    short: "Amazon",
     source: "amazon.in",
     tagline: "Electronics, beauty and everything else, sourced from amazon.in",
     heroTitle: "Millions of products from amazon.in, priced in taka",
@@ -48,8 +48,8 @@ export const STORES: Record<StoreMode, StoreInfo> = {
   },
   flipkart: {
     id: "flipkart",
-    name: "Style Bazaar",
-    short: "Style",
+    name: "Flipkart",
+    short: "Flipkart",
     source: "flipkart.com",
     tagline: "Fashion, gadgets and home, sourced from flipkart.com",
     heroTitle: "India's trending fashion and gadgets, now in Bangladesh",
@@ -63,8 +63,8 @@ export const STORES: Record<StoreMode, StoreInfo> = {
   },
   bigbasket: {
     id: "bigbasket",
-    name: "Daily Basket",
-    short: "Basket",
+    name: "BigBasket",
+    short: "BigBasket",
     source: "bigbasket.com",
     tagline: "Indian groceries and kitchen staples, sourced from bigbasket.com",
     heroTitle: "The Indian pantry you miss, delivered to Bangladesh",
@@ -83,7 +83,7 @@ const CAT_KEYS: Record<string, MsgKey> = {
   "Staples & Snacks": "store.cat.staples", Household: "store.cat.household", "Personal care": "store.cat.personal",
 };
 
-/** STORES[m] in the shopper's language. Store names (Mega Store, …) and source domains stay in English. */
+/** STORES[m] in the shopper's language. Store names (Amazon, Flipkart, BigBasket) and source domains stay in English; shown as plain text, never logos. */
 export function storeText(m: StoreMode, t: TFn): StoreInfo {
   const s = STORES[m];
   return {

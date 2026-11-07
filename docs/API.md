@@ -237,7 +237,7 @@ Rules (quote pre-checks, `POST /orders` re-checks under a row lock on the coupon
 | inactive / unknown | "This coupon is no longer available." / "This coupon code is not valid." |
 | before `starts_at` / after end | "This coupon starts on 8 Nov, 12:00 PM (Bangladesh time)." / "This coupon has expired." |
 | `max_uses` reached | "This coupon has been fully used." (race at order time: "This coupon has just run out.") |
-| store restriction, no items from it | "This coupon only works on Style Bazaar (flipkart.com) items." |
+| store restriction, no items from it | "This coupon only works on Flipkart (flipkart.com) items." |
 | min subtotal | "Add ৳X more [from <store>] to use this coupon." |
 | phone list or first-order-only, guest quote | "Sign in to use this coupon." |
 | phone not in list | "This coupon is not available for your account." |
@@ -622,7 +622,7 @@ empty when there is no other listing). `savingBdt` = this listing's price minus 
 - Pairs come from `product_matches` (filled daily at 03:40 by `MatchProducts` and from the admin): same normalised brand, then
   GTIN/EAN/UPC from specs (different barcodes never match), else a model number from specs/title (sizes such as 128GB/256GB must not
   conflict), else same category + title trigram similarity ≥ 0.62. Shown: admin-confirmed pairs and pending pairs with score ≥ 0.82;
-  rejected pairs never. Admin decisions survive re-runs. Delivery estimate: Mega Store 7-12, Style Bazaar 8-13, Daily Basket 6-10 days (−1 for Prime).
+  rejected pairs never. Admin decisions survive re-runs. Delivery estimate: Amazon 7-12, Flipkart 8-13, BigBasket 6-10 days (−1 for Prime).
 - `POST /checkout/alternatives { items }` (same item rules as quote) → `{ items: [{ productId, variant, qty, title, market, unitBdt,
   alternativeId, alternativeMarket, alternativeBdt, savingBdt (× qty), delivery, alternative: Product }] }` — cheaper identical in-stock
   listings not already in the cart, saving ≥ ৳20.
