@@ -33,14 +33,26 @@ const bez = (a: Pt, c: Pt, b: Pt, t: number): Pt => {
   return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y };
 };
 
-function Leg({ d, offset, delay, color }: { d: string; offset: number; delay: number; color: string }) {
+/** Arc length of the quadratic leg (sampled; react-native-svg has no pathLength). */
+function lengthOf(a: Pt, c: Pt, b: Pt) {
+  let len = 0;
+  let prev = a;
+  for (let i = 1; i <= 24; i++) {
+    const p = bez(a, c, b, i / 24);
+    len += Math.hypot(p.x - prev.x, p.y - prev.y);
+    prev = p;
+  }
+  return len;
+}
+
+function Leg({ d, len, offset, delay, color }: { d: string; len: number; offset: number; delay: number; color: string }) {
   const reduce = useReducedMotion();
   const off = useSharedValue(reduce ? offset : 1);
   useEffect(() => {
     off.value = reduce ? offset : withTiming(offset, { duration: 1100 + delay, easing: Easing.out(Easing.cubic) });
   }, [offset, delay, reduce, off]);
-  const props = useAnimatedProps(() => ({ strokeDashoffset: off.value }));
-  return <APath d={d} fill="none" stroke={color} strokeWidth={4} strokeLinecap="round" strokeDasharray={[1, 1]} pathLength={1} animatedProps={props} />;
+  const props = useAnimatedProps(() => ({ strokeDashoffset: off.value * len }));
+  return <APath d={d} fill="none" stroke={color} strokeWidth={4} strokeLinecap="round" strokeDasharray={[len, len]} animatedProps={props} />;
 }
 
 function Pulse({ x, y, color }: { x: number; y: number; color: string }) {
@@ -96,7 +108,7 @@ export function RouteCard({ tracking }: { tracking: Tracking }) {
           {!cancelled &&
             legs.map((l, i) => {
               const off = i < li || tracking.progress >= 1 ? 0 : i === li ? 1 - f : 1;
-              return off >= 1 ? null : <Leg key={"p" + i} d={l.d} offset={off} delay={i * 300} color={c.brand} />;
+              return off >= 1 ? null : <Leg key={"p" + i} d={l.d} len={lengthOf(l.a, l.k, l.b)} offset={off} delay={i * 300} color={c.brand} />;
             })}
           {pts.map((p, i) => {
             const on = !cancelled && tracking.currentLeg !== null && tracking.progress >= i / legs.length - 1e-6;
