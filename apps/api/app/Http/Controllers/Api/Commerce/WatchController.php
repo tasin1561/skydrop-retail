@@ -29,7 +29,7 @@ class WatchController extends Controller
         $p = Product::query()->findOrFail($data['productId']);
         $watch = ProductWatch::query()->updateOrCreate(
             ['user_id' => $request->user()->id, 'product_id' => $p->id, 'type' => $data['type']],
-            ['target_bdt' => $data['targetBdt'] ?? null, 'baseline_bdt' => $pricing->priceBdt((float) $p->price_inr, (string) $p->category),
+            ['target_bdt' => $data['targetBdt'] ?? null, 'baseline_bdt' => $pricing->productBdt($p),
                 'active' => true, 'notified_at' => null],
         );
 

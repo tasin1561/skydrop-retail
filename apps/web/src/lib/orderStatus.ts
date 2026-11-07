@@ -1,3 +1,4 @@
+import { apiEnabled } from "./apiClient";
 import type { MarketId, Order, OrderStatus } from "./types";
 import { STORES } from "./markets";
 import { deliveryWindow } from "./pricing";
@@ -33,6 +34,7 @@ export function stageIndex(status: OrderStatus): number {
  * tracking API / webhooks and this function simply returns order.status.
  */
 export function currentStatus(order: Pick<Order, "status" | "createdAt">, now: number): OrderStatus {
+  if (apiEnabled) return order.status;
   if (order.status === "cancelled") return "cancelled";
   const real = Math.max(0, stageIndex(order.status));
   const created = Date.parse(order.createdAt);

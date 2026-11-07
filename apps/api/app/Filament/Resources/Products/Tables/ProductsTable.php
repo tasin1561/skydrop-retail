@@ -39,7 +39,7 @@ class ProductsTable
                 TextColumn::make('category')->sortable()->toggleable(),
                 TextColumn::make('price_inr')->label('Price ₹')->numeric()->sortable(),
                 TextColumn::make('price_bdt')->label('Price ৳')
-                    ->state(fn (Product $r) => app(PricingService::class)->priceBdt($r->price_inr, $r->category))->numeric(),
+                    ->state(fn (Product $r) => app(PricingService::class)->productBdt($r))->numeric(),
                 TextColumn::make('rating')->numeric(1)->sortable()->toggleable(),
                 IconColumn::make('in_stock')->boolean()->label('Stock'),
                 IconColumn::make('detailed')->boolean()->toggleable(),

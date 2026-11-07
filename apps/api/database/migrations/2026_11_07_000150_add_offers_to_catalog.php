@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 // Catalog: store offers (coupons, deals, bank offers) and the effective price we can buy at.
@@ -20,6 +21,11 @@ return new class extends Migration
             $table->timestamp('deal_ends_at')->nullable()->index();
             $table->decimal('saving_inr', 12, 2)->default(0)->index(); // MRP/list minus effective price, for "Live deals"
         });
+
+        // A gzipped amazon.in page is ~400 KB; MySQL BLOB stops at 64 KB.
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement('ALTER TABLE raw_pages MODIFY html_gz LONGBLOB NOT NULL');
+        }
     }
 
     public function down(): void

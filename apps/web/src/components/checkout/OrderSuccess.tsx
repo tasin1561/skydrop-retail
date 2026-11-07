@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { api, ApiError } from "@/lib/apiClient";
 import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow, formatBdt, groupByMarket } from "@/lib/pricing";
@@ -19,8 +21,10 @@ const CONFETTI = [
   [140, -30, "var(--good)"],
 ] as const;
 
-export function OrderSuccess({ orderId }: { orderId: string }) {
+export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatus?: "paid" | "failed" | "cancelled" }) {
   const { orders, ready } = useStore();
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
 
   if (!ready) {
     return (
@@ -59,6 +63,46 @@ export function OrderSuccess({ orderId }: { orderId: string }) {
           </Link>
           <Link href="/" className="btn btn-ghost">
             Continue shopping
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (payStatus === "failed" || payStatus === "cancelled") {
+    const retry = async () => {
+      setRetrying(true);
+      setRetryError(null);
+      try {
+        const res = await api.payOrder(order.id, `${window.location.origin}/checkout/success`);
+        if (res.payment.redirectUrl) window.location.assign(res.payment.redirectUrl);
+        else window.location.assign(`/checkout/success?order=${order.id}&status=paid`);
+      } catch (e) {
+        setRetryError(e instanceof ApiError ? e.message : "Couldn't reach the payment gateway. Please try again.");
+        setRetrying(false);
+      }
+    };
+    return (
+      <section className="fade-in mx-auto max-w-md px-4 py-14 text-center" aria-labelledby="pay-h">
+        <span className="chip-icon mx-auto h-14 w-14 rounded-2xl" style={{ background: "color-mix(in oklab, var(--bad) 14%, transparent)", color: "var(--bad)" }}>
+          <Icon name="wallet" size={26} />
+        </span>
+        <h1 id="pay-h" className="mt-4 text-2xl font-extrabold tracking-tight">
+          Payment {payStatus === "cancelled" ? "cancelled" : "not completed"}
+        </h1>
+        <p className="mt-2 text-sm text-ink-2">
+          Order <b className="text-ink">{order.id}</b> is saved, but nothing was charged. We will start buying your items in India as soon as the
+          payment goes through.
+        </p>
+        <p role="status" aria-live="polite" className="mt-3 min-h-5 text-sm font-semibold text-bad">
+          {retryError}
+        </p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <button type="button" className="btn btn-primary" onClick={retry} disabled={retrying} aria-busy={retrying}>
+            <Icon name="wallet" size={18} /> {retrying ? "Opening payment..." : "Try payment again"}
+          </button>
+          <Link href={`/orders/${order.id}`} className="btn btn-ghost">
+            View order
           </Link>
         </div>
       </section>

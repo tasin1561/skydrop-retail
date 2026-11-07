@@ -37,7 +37,7 @@ class ProductInfolist
                         TextEntry::make('price_inr')->label('Price (INR)')->money('INR'),
                         TextEntry::make('mrp_inr')->label('MRP (INR)')->money('INR'),
                         TextEntry::make('price_bdt')->label('Shopper price (BDT)')->weight('bold')->color('primary')
-                            ->state(fn (Product $r) => Admin::bdt(app(PricingService::class)->priceBdt($r->price_inr, $r->category))),
+                            ->state(fn (Product $r) => Admin::bdt(app(PricingService::class)->productBdt($r))),
                         TextEntry::make('rating')->formatStateUsing(fn (Product $r) => $r->rating.' ★ ('.number_format($r->reviews).' reviews)'),
                     ]),
                 Section::make('Status')

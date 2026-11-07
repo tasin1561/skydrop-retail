@@ -38,7 +38,15 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 const post = <T,>(path: string, body: unknown) => call<T>(path, { method: "POST", body: JSON.stringify(body) });
 
 type ApiAddress = Address;
-type ApiOrder = Order & { paymentStatus?: string; timeline?: { status: string; at: string; note?: string }[] };
+type ApiOrder = Order & {
+  paymentStatus?: string;
+  timeline?: { status: string; at: string; note?: string }[];
+  invoiceUrl?: string;
+  canCancel?: boolean;
+  dueOnDelivery?: number;
+};
+/** Body of a 409 price_changed response from POST /orders. */
+export type PriceChange = { productId: string; oldBdt: number; freshBdt: number };
 
 export const api = {
   requestOtp: (phone: string) => post<{ ok: boolean; expiresIn: number; demoCode?: string }>("/auth/otp/request", { phone }),
@@ -60,6 +68,8 @@ export const api = {
 
   orders: () => call<{ items: ApiOrder[] }>("/orders"),
   order: (id: string) => call<{ order: ApiOrder }>(`/orders/${id}`),
+  payOrder: (id: string, returnUrl: string) =>
+    post<{ order: ApiOrder; payment: { status: string; redirectUrl?: string } }>(`/orders/${id}/pay`, { returnUrl }),
   cancelOrder: (id: string) => post<{ order: ApiOrder }>(`/orders/${id}/cancel`, {}),
   createOrder: (input: {
     items: CartItem[];
@@ -72,7 +82,9 @@ export const api = {
     post<{ order: ApiOrder; payment: { status: string; redirectUrl?: string } }>("/orders", {
       items: input.items.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt })),
       ...(/^\d+$/.test(input.address.id) ? { addressId: Number(input.address.id) } : { address: input.address }),
-      payment: input.payment,
+      // API ids: bkash | nagad | card | advance50 (+ paymentVia for the advance)
+      payment: input.payment === "half" ? "advance50" : input.payment,
+      ...(input.payment === "half" ? { paymentVia: "bkash" } : {}),
       coupon: input.coupon || undefined,
       redeemPoints: input.redeemPoints || undefined,
       returnUrl: input.returnUrl,

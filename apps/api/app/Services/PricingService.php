@@ -30,6 +30,25 @@ class PricingService
         ];
     }
 
+    /** INR we actually pay at the store: the effective (coupon/deal) price when it is lower. */
+    public function buyInr(object $p): float
+    {
+        $price = (float) ($p->price_inr ?? 0);
+        $eff = (float) ($p->effective_price_inr ?? 0);
+        // Offers (deal price minus clippable coupon) only count while the deal is live and coupons are passed through.
+        $ends = $p->deal_ends_at ?? null;
+        $expired = $ends !== null && \Illuminate\Support\Carbon::parse($ends)->isPast();
+        $pass = \App\Services\Catalog\RetailSettings::bool('pass_coupons', (bool) config('retail.offers.pass_coupons', true));
+
+        return $pass && ! $expired && $eff > 0 && $eff < $price ? $eff : $price;
+    }
+
+    /** Shopper price for a product row; single source of truth for catalog, checkout and orders. */
+    public function productBdt(object $p): int
+    {
+        return $this->priceBdt($this->buyInr($p), (string) ($p->category ?? ''));
+    }
+
     public function priceBdt(float $inr, string $category): int
     {
         $r = $this->rule($category);

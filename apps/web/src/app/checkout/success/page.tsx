@@ -11,5 +11,6 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const raw = sp.order;
   const orderId = (Array.isArray(raw) ? raw[0] : raw) ?? "";
-  return <OrderSuccess orderId={orderId} />;
+  const st = Array.isArray(sp.status) ? sp.status[0] : sp.status;
+  return <OrderSuccess orderId={orderId} payStatus={st === "failed" || st === "cancelled" ? st : st === "paid" ? "paid" : undefined} />;
 }

@@ -40,6 +40,7 @@ type Ctx = State & {
   setQty: (productId: string, variant: string | undefined, qty: number) => void;
   removeFromCart: (productId: string, variant?: string) => void;
   clearCart: () => void;
+  repriceCart: (prices: { productId: string; freshBdt: number }[]) => void;
   toggleWish: (id: string) => void;
   login: (u: User, token?: string) => void;
   logout: () => void;
@@ -159,6 +160,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       removeFromCart: (id, variant) =>
         update((s) => ({ ...s, cart: s.cart.filter((c) => !(c.productId === id && c.variant === variant)) })),
       clearCart: () => update((s) => ({ ...s, cart: [] })),
+      repriceCart: (prices) =>
+        update((s) => ({
+          ...s,
+          cart: s.cart.map((c) => {
+            const p = prices.find((x) => x.productId === c.productId);
+            return p ? { ...c, unitBdt: p.freshBdt } : c;
+          }),
+        })),
       toggleWish: (id) => {
         if (synced) remote(state.wishlist.includes(id) ? api.wishlistRemove(id) : api.wishlistAdd(id));
         update((s) => ({

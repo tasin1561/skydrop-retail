@@ -38,7 +38,7 @@ class CheckProductWatches implements ShouldQueue
                 continue;
             }
             $available = $p->in_stock && ! $p->hidden;
-            $price = $pricing->priceBdt((float) $p->price_inr, (string) $p->category);
+            $price = $pricing->productBdt($p);
 
             if ($w->type === 'back_in_stock' && $available) {
                 $notifier->backInStock($w->user, $p->title, $p->id);

@@ -36,8 +36,8 @@ class CheckoutService
                 'product_id' => $p->id, 'market' => $p->market, 'category' => $p->category, 'title' => $p->title,
                 'image' => $p->image, 'placeholder' => $p->placeholder, 'variant' => $i['variant'] ?? null,
                 'qty' => (int) $i['qty'], 'client_bdt' => isset($i['unitBdt']) ? (float) $i['unitBdt'] : null,
-                'unit_bdt' => (float) $this->pricing->priceBdt((float) $p->price_inr, (string) $p->category),
-                'unit_inr' => (float) $p->price_inr,
+                'unit_bdt' => (float) $this->pricing->productBdt($p),
+                'unit_inr' => $this->pricing->buyInr($p),
                 'weight_kg' => (float) $this->pricing->weightKg($p->details?->weight, (string) $p->category),
             ];
         }, array_values($items));

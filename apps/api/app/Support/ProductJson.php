@@ -34,7 +34,7 @@ final class ProductJson
         return [
             'id' => $p->id, 'market' => $p->market, 'category' => $p->category, 'title' => $p->title, 'brand' => (string) $p->brand,
             'priceInr' => (float) $p->price_inr, 'mrpInr' => (float) $p->mrp_inr,
-            'priceBdt' => $pricing->priceBdt((float) $p->price_inr, (string) $p->category),
+            'priceBdt' => $pricing->productBdt($p),
             'mrpBdt' => $pricing->priceBdt((float) ($p->mrp_inr ?: $p->price_inr), (string) $p->category),
             'rating' => (float) $p->rating, 'reviews' => (int) $p->reviews, 'image' => $p->image,
             'images' => $p->details?->images ? (array) json_decode(json_encode($p->details->images), true) : array_values(array_filter([$p->image])),

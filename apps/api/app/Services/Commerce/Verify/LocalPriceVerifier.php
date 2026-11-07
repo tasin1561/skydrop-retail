@@ -18,7 +18,7 @@ class LocalPriceVerifier implements PriceVerifier
             if (! $p) {
                 return ['productId' => (string) $i['productId'], 'ok' => false, 'freshBdt' => null, 'changed' => false, 'deliverable' => false, 'reason' => 'not_found', 'provider' => 'local'];
             }
-            $fresh = $this->pricing->priceBdt((float) $p->price_inr, (string) $p->category);
+            $fresh = $this->pricing->productBdt($p);
             $available = $p->in_stock && ! $p->hidden;
 
             return [

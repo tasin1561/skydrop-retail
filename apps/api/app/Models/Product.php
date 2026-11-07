@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Services\Catalog\RetailSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -28,15 +27,4 @@ class Product extends Model
         return $this->hasOne(ProductDetail::class, 'product_id');
     }
 
-    /** INR price used for BDT pricing: deal price minus a clippable coupon when coupons are passed through. */
-    public function buyPriceInr(): float
-    {
-        $dealLive = ! $this->deal_ends_at || $this->deal_ends_at->isFuture();
-        if ($dealLive && $this->effective_price_inr && $this->effective_price_inr > 0
-            && RetailSettings::bool('pass_coupons', (bool) config('retail.offers.pass_coupons', true))) {
-            return (float) $this->effective_price_inr;
-        }
-
-        return (float) $this->price_inr;
-    }
 }

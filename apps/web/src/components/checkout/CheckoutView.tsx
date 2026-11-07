@@ -9,7 +9,7 @@ import { STORES } from "@/lib/markets";
 import { formatBdt } from "@/lib/pricing";
 import type { CartItem, Order } from "@/lib/types";
 import { useStore } from "@/state/store";
-import { api, apiEnabled, ApiError } from "@/lib/apiClient";
+import { api, apiEnabled, ApiError, type PriceChange } from "@/lib/apiClient";
 import { demoLedger, maxRedeem } from "@/lib/points";
 import { AddressStep, addressText } from "./AddressStep";
 import { computeTotals, useCoupon } from "./cart-math";
@@ -145,10 +145,25 @@ export function CheckoutView() {
         else if (alive.current) router.push(`/checkout/success?order=${res.order.id}`);
       } catch (err) {
         if (!alive.current) return;
+        const body = err instanceof ApiError ? (err.data as { prices?: PriceChange[]; items?: { productId: string }[] } | undefined) : undefined;
+        if (err instanceof ApiError && err.status === 409 && body?.prices?.length) {
+          // Store prices moved since the quote: update the cart to the fresh prices and let the shopper re-confirm.
+          store.repriceCart(body.prices);
+          const up = body.prices.filter((x) => x.freshBdt > x.oldBdt).length;
+          setError(
+            `${body.prices.length} ${body.prices.length === 1 ? "price" : "prices"} changed at the source store` +
+              (up ? " (some went up)" : "") +
+              ". Your cart has been updated. Please review the new total and place the order again.",
+          );
+          setPhase("error");
+          return;
+        }
         setError(
           err instanceof ApiError && err.status === 409
             ? "Some prices changed while you were checking out. Please review and try again."
-            : err instanceof ApiError
+            : err instanceof ApiError && err.status === 422 && body?.items?.length
+              ? `${body.items.length} ${body.items.length === 1 ? "item is" : "items are"} no longer available. Remove ${body.items.length === 1 ? "it" : "them"} from your cart and try again.`
+              : err instanceof ApiError
               ? err.message
               : "We couldn't place your order. Nothing was charged. Please try again.",
         );
