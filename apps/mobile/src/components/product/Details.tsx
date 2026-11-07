@@ -4,7 +4,7 @@ import { LayoutAnimation, Pressable, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { useEffect } from "react";
 import type { MarketId, Product } from "@/lib/types";
-import { PRICING, deliveryWindow, formatBdt, priceBdt } from "@/lib/pricing";
+import { PRICING, buyPriceInr, deliveryWindow, formatBdt, priceBdt } from "@/lib/pricing";
 import { STORES } from "@/lib/markets";
 import { addDays } from "@/lib/cart";
 import { useAccent, useTheme } from "@/theme";
@@ -53,13 +53,14 @@ export function Accordion({ title, icon, meta, children, market, initiallyOpen }
 export function PriceBreakdown({ p }: { p: Product }) {
   const source = STORES[p.market].source;
   const total = p.priceBdt ?? priceBdt(p);
-  const converted = p.priceInr * PRICING.fxInrToBdt * (1 + PRICING.fxBuffer);
+  const buyInr = buyPriceInr(p);
+  const converted = buyInr * PRICING.fxInrToBdt * (1 + PRICING.fxBuffer);
   const importPct = PRICING.importPct[p.category] ?? 0.1;
   const duty = converted * importPct;
   const service = total - Math.round(converted) - Math.round(duty);
   const { baseBdt, perKgBdt, freeAboveBdt } = PRICING.shipping;
   const rows = [
-    { icon: "tag", label: `Price on ${source}`, note: `₹${p.priceInr.toLocaleString("en-IN")} at ৳${PRICING.fxInrToBdt.toFixed(2)} per rupee, with FX protection`, value: formatBdt(converted) },
+    { icon: "tag", label: `Price on ${source}`, note: `₹${buyInr.toLocaleString("en-IN")}${buyInr < p.priceInr ? " after store coupon" : ""} at ৳${PRICING.fxInrToBdt.toFixed(2)} per rupee, with FX protection`, value: formatBdt(converted) },
     { icon: "shield", label: "Import duty", note: `${Math.round(importPct * 100)}% for ${p.category}, paid by us at customs`, value: formatBdt(duty) },
     { icon: "star", label: "Skydrop service", note: "Buying in India, checks and packing", value: formatBdt(service) },
   ];

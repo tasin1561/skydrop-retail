@@ -2,18 +2,26 @@
 
 namespace App\Filament\Resources\Orders\Pages;
 
+use App\Filament\Resources\Orders\Actions\OrderActions;
 use App\Filament\Resources\Orders\OrderResource;
-use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewOrder extends ViewRecord
 {
     protected static string $resource = OrderResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Order '.$this->record->id;
+    }
+
     protected function getHeaderActions(): array
     {
-        return [
-            EditAction::make(),
-        ];
+        return OrderActions::record();
+    }
+
+    protected function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    {
+        return parent::resolveRecord($key)->load(['items', 'events', 'payments', 'user', 'verifications']);
     }
 }

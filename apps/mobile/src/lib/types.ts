@@ -17,6 +17,32 @@ export type Review = {
   date: string;
 };
 
+export type OfferType =
+  | "coupon"
+  | "deal"
+  | "lightning"
+  | "bank"
+  | "cashback"
+  | "emi"
+  | "partner"
+  | "combo"
+  | "special_price"
+  | "subscribe"
+  | "exchange"
+  | "other";
+
+export type Offer = {
+  type: OfferType;
+  title: string;
+  detail?: string;
+  savingInr?: number | null;
+  /** true when we can use it when we buy (coupon, deal price): already in the shopper's price */
+  appliesToOurPrice: boolean;
+  endsAt?: string;
+  claimedPct?: number;
+  count?: number;
+};
+
 export type Product = {
   id: string;
   market: MarketId;
@@ -48,10 +74,15 @@ export type Product = {
   starBreakdown?: { rating: number; percentage: number }[];
   deliveryKolkata?: string | null;
   categoryPath?: string[];
-  // Present on API responses (server-side pricing); the demo computes them with lib/pricing.ts.
+  // API responses (server-side pricing); the demo computes these with lib/pricing.ts.
   priceBdt?: number;
   mrpBdt?: number;
   fetchedAt?: string;
+  offers?: Offer[];
+  dealBadge?: string | null;
+  couponInr?: number | null;
+  effectivePriceInr?: number | null;
+  dealEndsAt?: string | null;
 };
 
 export type CartItem = {
@@ -101,7 +132,10 @@ export type Order = {
   status: OrderStatus;
   trackingCode: string;
   paymentStatus?: string;
-  timeline?: { status: OrderStatus; at: string }[];
+  pointsRedeemed?: number;
+  pointsDiscount?: number;
+  pointsEarned?: number;
+  timeline?: { status: string; at: string; note?: string }[];
 };
 
 export type User = { id?: string; name: string; phone: string; email?: string };

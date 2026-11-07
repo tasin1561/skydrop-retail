@@ -1,6 +1,6 @@
 import type { CartItem, MarketId, Product } from "./types";
-
 // Ported verbatim from apps/web/src/lib/pricing.ts. Keep the two files identical.
+
 // All figures are placeholders until the admin pricing rules are live.
 export const PRICING = {
   fxInrToBdt: 1.42, // 1 INR in BDT (update from the FX feed)
@@ -25,8 +25,13 @@ function roundUp10(n: number) {
   return Math.ceil(n / 10) * 10;
 }
 
-export function priceBdt(p: Pick<Product, "priceInr" | "category">) {
-  const base = p.priceInr * PRICING.fxInrToBdt * (1 + PRICING.fxBuffer);
+/** Store price after coupons and deal prices we can use when we buy. */
+export function buyPriceInr(p: Pick<Product, "priceInr" | "effectivePriceInr">) {
+  return p.effectivePriceInr && p.effectivePriceInr > 0 && p.effectivePriceInr < p.priceInr ? p.effectivePriceInr : p.priceInr;
+}
+
+export function priceBdt(p: Pick<Product, "priceInr" | "category" | "effectivePriceInr">) {
+  const base = buyPriceInr(p) * PRICING.fxInrToBdt * (1 + PRICING.fxBuffer);
   const withImport = base * (1 + (PRICING.importPct[p.category] ?? 0.1));
   return roundUp10(withImport * (1 + PRICING.margin));
 }
@@ -36,8 +41,9 @@ export function mrpBdt(p: Pick<Product, "mrpInr" | "category">) {
 }
 
 export function discountPct(p: Product) {
-  if (!p.mrpInr || p.mrpInr <= p.priceInr) return 0;
-  return Math.round((1 - p.priceInr / p.mrpInr) * 100);
+  const buy = buyPriceInr(p);
+  if (!p.mrpInr || p.mrpInr <= buy) return 0;
+  return Math.round((1 - buy / p.mrpInr) * 100);
 }
 
 export function weightKg(p: Pick<Product, "weight" | "category">) {
