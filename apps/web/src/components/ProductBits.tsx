@@ -4,6 +4,8 @@ import { STORES } from "@/lib/markets";
 import { discountPct, formatBdt, mrpBdt, priceBdt } from "@/lib/pricing";
 import { Icon } from "./Icon";
 import { WishButton } from "./WishButton";
+import { Countdown } from "./offers/Countdown";
+import { headlineDeal } from "./offers/offerMeta";
 
 export function ProductImage({
   p,
@@ -83,6 +85,8 @@ export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
 }
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
+  const deal = headlineDeal(p);
+  const offerCount = p.offers?.length ?? 0;
   return (
     <article
       data-store={p.market}
@@ -102,8 +106,26 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <OriginTag market={p.market} compact />
           <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-ink sm:text-sm">{p.title}</h3>
           <Stars rating={p.rating} reviews={p.reviews} size={12} />
+          {deal && (
+            <span className="inline-flex w-fit items-center gap-1 rounded-md bg-bad px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+              <Icon name="bolt" size={11} stroke={2.4} /> {deal.label}
+              {deal.endsAt && (
+                <>
+                  {" · "}
+                  <Countdown endsAt={deal.endsAt} compact />
+                </>
+              )}
+            </span>
+          )}
           <div className="mt-auto pt-1">
             <PriceLine p={p} />
+            {p.couponInr ? (
+              <p className="mt-0.5 text-[11px] font-bold text-good">₹{Math.round(p.couponInr)} coupon already applied</p>
+            ) : offerCount > 0 ? (
+              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-bold text-accent">
+                <Icon name="tag" size={12} stroke={2.2} /> {offerCount} {offerCount === 1 ? "offer" : "offers"} on the source store
+              </p>
+            ) : null}
             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-2">
               <Icon name="truck" size={13} /> Home delivery in 7-12 days
             </p>

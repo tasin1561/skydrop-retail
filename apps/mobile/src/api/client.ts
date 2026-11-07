@@ -242,9 +242,9 @@ export const api = {
     either(
       () =>
         (a.id
-          ? http<{ address: Address }>("PATCH", `/addresses/${a.id}`, { body: a })
-          : http<{ address: Address }>("POST", "/addresses", { body: a })
-        ).then((r) => r.address),
+          ? http<{ address?: Address } & Partial<Address>>("PATCH", `/addresses/${a.id}`, { body: a })
+          : http<{ address?: Address } & Partial<Address>>("POST", "/addresses", { body: a })
+        ).then((r) => (r.address ?? r) as Address),
       () => demo.saveAddress(a),
     ),
   deleteAddress: (id: string) =>

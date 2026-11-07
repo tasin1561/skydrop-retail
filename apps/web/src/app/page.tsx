@@ -1,4 +1,4 @@
-import { byMarket, deals } from "@/lib/data";
+import { byMarket, offersFeed } from "@/lib/data";
 import { MARKET_IDS, STORES } from "@/lib/markets";
 import type { StoreMode } from "@/lib/types";
 import { StoreHero } from "@/components/home/StoreHero";
@@ -20,7 +20,7 @@ export default async function Home() {
   const modes = ["all", ...MARKET_IDS] as StoreMode[];
   const [scenes, dealItems, popular, electronics, grocery] = await Promise.all([
     Promise.all(modes.map(async (mode) => ({ mode, images: await heroImages(mode === "all" ? "amazon" : mode) }))),
-    deals("all", 14),
+    offersFeed("all", 14),
     Promise.all(MARKET_IDS.map((m) => byMarket(m, 14))),
     byMarket("all", 14, "electronics"),
     byMarket("all", 14, "grocery"),
@@ -32,7 +32,7 @@ export default async function Home() {
       <StoreCards />
       <RecentlyViewed />
       <PromoStrip />
-      <EnabledRail title="Today's biggest savings" note="Across every connected store" href="/search?q=&store=all&sort=discount" items={dealItems} />
+      <EnabledRail title="Live deals and offers" note="Coupons, deals and bank offers from every connected store" href="/deals" items={dealItems} />
       <HowItWorks />
       {MARKET_IDS.map((m, i) => (
         <EnabledRail

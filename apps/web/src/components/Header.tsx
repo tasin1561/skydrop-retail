@@ -114,6 +114,12 @@ export function Header() {
             {user ? user.name.split(" ")[0] : "Sign in"}
           </Link>
           <Link
+            href="/deals"
+            className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-bad transition hover:bg-surface-2 md:inline-flex"
+          >
+            <Icon name="bolt" size={19} /> Deals
+          </Link>
+          <Link
             href="/orders"
             className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink lg:inline-flex"
           >

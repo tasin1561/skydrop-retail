@@ -82,3 +82,13 @@ export async function verifyItems(items: { productId: string; unitBdt: number; q
     return null;
   }
 }
+
+export async function offersFeed(store: StoreMode, limit = 40): Promise<Product[]> {
+  const r = await api<{ items: Product[] }>(`/offers?${qs({ store, limit })}`, 120);
+  if (r?.items) return r.items;
+  // demo: products with any offer, then the deepest discounts
+  const withOffers = local.searchProducts({ store, perPage: 400 }).items.filter((p) => (p.offers?.length ?? 0) > 0);
+  const discounted = local.deals(store, limit);
+  const seen = new Set<string>();
+  return [...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit);
+}

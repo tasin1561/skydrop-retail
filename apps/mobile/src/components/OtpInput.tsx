@@ -1,14 +1,14 @@
 // Six segmented code boxes backed by a single hidden TextInput: handles paste, SMS autofill
 // (iOS oneTimeCode / Android sms-otp) and backspace naturally.
 import { useEffect, useRef, useState } from "react";
-import { Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputInstance } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { radius, useTheme } from "@/theme";
 import { T } from "./ui";
 
 export function OtpInput({ value, onChange, error, autoFocus = true }: { value: string; onChange: (v: string) => void; error?: boolean; autoFocus?: boolean }) {
   const { c } = useTheme();
-  const ref = useRef<TextInput>(null);
+  const ref = useRef<TextInputInstance>(null);
   const [focused, setFocused] = useState(false);
   const shake = useSharedValue(0);
   const caret = useSharedValue(1);

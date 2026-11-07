@@ -125,6 +125,20 @@ if h.exists() and "B0FMDLD86P" in products:
     thumbs = re.findall(r'"videoImageUrlUnchanged":"(https://[^"]+?)"', d)
     products["B0FMDLD86P"]["videos"] = [{"hls": v, "thumb": thumbs[i] if i < len(thumbs) else None}
                                          for i, v in enumerate(vids)]
+    # offer cards ("itembox-*") from the same raw page
+    types = {"InstantBankDiscount": "bank", "GCCashback": "cashback", "NoCostEmi": "emi", "Partner": "partner"}
+    offers = []
+    for m in re.finditer(r'id="itembox-([A-Za-z]+)"', d):
+        seg = re.sub(r"<script.*?</script>|<style.*?</style>", " ", d[m.start():m.start() + 2500], flags=re.S)
+        txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", seg.split(">", 1)[1])).strip()
+        mt = re.match(r"(Bank Offer|Cashback|No Cost EMI|Partner Offers)\s+(.+?)\s+(\d+) offers?", txt)
+        if not mt:
+            continue
+        saving = re.search(r"₹\s?([\d,.]+)", mt.group(2))
+        offers.append({"type": types.get(m.group(1), "other"), "title": mt.group(1), "detail": mt.group(2),
+                       "savingInr": float(saving.group(1).replace(",", "")) if saving else None,
+                       "appliesToOurPrice": False, "count": int(mt.group(3))})
+    products["B0FMDLD86P"]["offers"] = offers
 
 amazon = [p for p in products.values() if p.get("priceInr") and not p.get("unavailable")]
 
@@ -138,7 +152,19 @@ def demo(market, cat, idx, title, brand, inr, mrp, rating, reviews, hue, icon, w
         "detailed": True, "weight": weight, "variants": variants or [], "demo": True,
         "bullets": ["Demo product: real listings appear once this store is connected."],
         "specs": {"Brand": brand, "Weight": weight}, "reviewList": [], "starBreakdown": [],
+        "offers": demo_offers(market, idx, inr),
     }
+
+def demo_offers(market, idx, inr):
+    # Demo offers for demo listings only, so the offer UI can be seen before live data arrives.
+    if market == "flipkart":
+        offers = [{"type": "bank", "title": "Bank Offer", "detail": "10% off on select bank credit cards, up to ₹750", "appliesToOurPrice": False}]
+        if idx % 3 == 0:
+            offers.insert(0, {"type": "special_price", "title": "Special Price", "detail": f"Extra ₹{max(20, round(inr * 0.05))} off (price inclusive of discount)", "savingInr": max(20, round(inr * 0.05)), "appliesToOurPrice": True})
+        return offers
+    if market == "bigbasket" and idx % 2 == 0:
+        return [{"type": "combo", "title": "Combo offer", "detail": "Buy 2, save 10% on the second pack", "appliesToOurPrice": False}]
+    return []
 
 def sizes(*labels):
     return [{"id": None, "label": l, "dimensions": {"Size": l}, "swatch": None, "selected": i == 0}

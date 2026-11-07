@@ -12,9 +12,8 @@
       "bundleIdentifier": "online.skydrop.retail",
       "supportsTablet": false,
       "buildNumber": "1",
-      "config": { "usesNonExemptEncryption": false },
-      "infoPlist": {
-        "UIBackgroundModes": []
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -43,7 +42,10 @@
           "imageWidth": 180,
           "resizeMode": "contain",
           "backgroundColor": "#f6f7fb",
-          "dark": { "image": "./assets/images/splash-icon.png", "backgroundColor": "#0b1020" }
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#0b1020"
+          }
         }
       ],
       "expo-image",

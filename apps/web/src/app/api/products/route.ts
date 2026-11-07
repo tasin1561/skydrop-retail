@@ -28,6 +28,11 @@ export async function GET(req: Request) {
       salesVolume: p.salesVolume,
       detailed: p.detailed,
       weight: p.weight ?? null,
+      offers: p.offers,
+      dealBadge: p.dealBadge,
+      couponInr: p.couponInr,
+      effectivePriceInr: p.effectivePriceInr,
+      dealEndsAt: p.dealEndsAt,
     });
   }
   return NextResponse.json({ items }, { headers: { "Cache-Control": "public, max-age=300" } });
