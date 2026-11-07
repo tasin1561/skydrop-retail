@@ -25,6 +25,7 @@ class User extends Authenticatable implements Contracts\PanelUser
             'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'blocked_at' => 'datetime',
             'points_balance' => 'integer',
         ];
     }

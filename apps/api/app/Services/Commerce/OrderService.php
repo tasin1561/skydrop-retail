@@ -35,6 +35,9 @@ class OrderService
      */
     public function place(User $user, array $data): array
     {
+        if ($user->blocked_at) {
+            throw new CommerceException('This account has been blocked and cannot place orders. Please contact support.', 403, [], 'blocked');
+        }
         $items = array_values($data['items']);
         $address = $this->resolveAddress($user, $data);
         $coupon = $this->checkout->coupon($data['coupon'] ?? null);

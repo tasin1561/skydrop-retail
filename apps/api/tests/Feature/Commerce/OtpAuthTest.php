@@ -55,6 +55,19 @@ class OtpAuthTest extends TestCase
         $this->postJson('/api/v1/auth/otp/verify', ['phone' => '01712345678', 'code' => $code])->assertOk()->assertJsonPath('isNew', false);
     }
 
+    public function test_blocked_user_cannot_sign_in_or_order(): void
+    {
+        $u = User::query()->create(['name' => 'Bad', 'phone' => '+8801712345678']);
+        $u->forceFill(['blocked_at' => now()])->save();
+        $code = $this->postJson('/api/v1/auth/otp/request', ['phone' => '01712345678'])->json('demoCode');
+        $this->postJson('/api/v1/auth/otp/verify', ['phone' => '01712345678', 'code' => $code])->assertForbidden()->assertJsonPath('code', 'blocked');
+
+        \Laravel\Sanctum\Sanctum::actingAs($u->refresh());
+        $p = $this->product('A1', 1000);
+        $this->postJson('/api/v1/orders', ['items' => [['productId' => 'A1', 'qty' => 1, 'unitBdt' => $this->bdt($p)]],
+            'address' => $this->addressPayload(), 'payment' => 'bkash'])->assertForbidden()->assertJsonPath('code', 'blocked');
+    }
+
     public function test_rejects_invalid_phone(): void
     {
         $this->postJson('/api/v1/auth/otp/request', ['phone' => '01212345678'])->assertStatus(422)->assertJsonValidationErrors('phone');

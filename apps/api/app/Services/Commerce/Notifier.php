@@ -51,6 +51,19 @@ class Notifier
         $this->toUser($user, 'Back in stock', 'Skydrop Retail: back in stock: '.mb_strimwidth($title, 0, 60, '…').". {$url}");
     }
 
+    /** Free-form message from staff (admin panel). $channel: sms | email | both. Returns false if nothing could be sent. */
+    public function custom(User $user, string $text, string $channel = 'sms'): bool
+    {
+        $phone = in_array($channel, ['sms', 'both'], true) ? $user->phone : null;
+        $email = in_array($channel, ['email', 'both'], true) ? $user->email : null;
+        if (! $phone && ! $email) {
+            return false;
+        }
+        $this->deliver($phone, $email, 'Message from Skydrop Retail', $text);
+
+        return true;
+    }
+
     private function toOrder(Order $order, string $subject, string $text): void
     {
         $order->loadMissing('user');

@@ -78,6 +78,10 @@ class OtpService
         }
 
         $user = User::query()->where('phone', $phone)->first();
+        if ($user && $user->blocked_at) {
+            $otp->update(['used_at' => now()]);
+            throw new CommerceException('This account has been blocked. Please contact Skydrop Retail support.', 403, [], 'blocked');
+        }
         $name = trim((string) $name);
         if (! $user && $name === '') {
             throw new CommerceException('Tell us your name to create your account.', 422, ['errors' => ['name' => ['Your name is required for a new account.']], 'needsName' => true]);
