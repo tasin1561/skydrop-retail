@@ -4,6 +4,7 @@ import * as local from "./catalog";
 import type { SearchParams } from "./catalog";
 import type { Product, StoreMode } from "./types";
 import { demoDecorate } from "./cms";
+import { clientIp } from "./clientIp";
 import { localCategoryPage, localTree, type CatNode, type CategoryPageData } from "./categories";
 
 const API = process.env.API_URL?.replace(/\/$/, "");
@@ -40,12 +41,17 @@ export function lastGoodFor<T>(path: string): T | null {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** The shopper's user agent, forwarded so the API never spends Oxylabs credits on bots/crawlers. */
-async function clientUa(): Promise<Record<string, string>> {
+/**
+ * Who the shopper is, for the API: user agent (bots never trigger paid Oxylabs fetches) and the trusted client IP
+ * (per-shopper rate limits and blocks; without it every shopper shares the server's single bucket).
+ */
+export async function shopperHeaders(): Promise<Record<string, string>> {
   try {
     const { headers } = await import("next/headers");
-    const ua = (await headers()).get("user-agent");
-    return ua ? { "X-Client-UA": ua.slice(0, 300) } : {};
+    const h = await headers();
+    const ua = h.get("user-agent");
+    const ip = clientIp(h);
+    return { ...(ua ? { "X-Client-UA": ua.slice(0, 300) } : {}), ...(ip ? { "X-Client-IP": ip } : {}) };
   } catch {
     return {}; // outside a request (build time): no forwarding
   }
@@ -58,7 +64,7 @@ async function clientUa(): Promise<Record<string, string>> {
 async function apiFetch<T>(path: string, { revalidate = 60, timeoutMs = 8000 }: { revalidate?: number; timeoutMs?: number } = {}): Promise<ApiResult<T>> {
   if (!API) return { ok: false, status: 0 };
   const started = Date.now();
-  const ua = await clientUa();
+  const ua = await shopperHeaders();
   for (let attempt = 0; attempt < 2; attempt++) {
     const left = timeoutMs - (Date.now() - started);
     if (left < 500) break;
@@ -211,7 +217,7 @@ export async function verifyItems(items: { productId: string; unitBdt: number; q
   try {
     const res = await fetch(API + "/checkout/verify", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json", ...internalHeaders },
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...internalHeaders, ...(await shopperHeaders()) },
       body: JSON.stringify({ items }),
       cache: "no-store",
       signal: AbortSignal.timeout(25000),

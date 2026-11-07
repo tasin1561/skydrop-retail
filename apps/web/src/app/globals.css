@@ -340,6 +340,11 @@ body {
   transform: translateY(0);
   opacity: 1;
 }
+/* spinners inside a hidden label do not run */
+.roll [data-on="false"] .pd-spin,
+.roll [data-gone="true"] .pd-spin {
+  animation: none;
+}
 .roll [data-gone="true"] {
   transform: translateY(-40%);
   opacity: 0;

@@ -51,8 +51,9 @@ credential/OTP abuse, admin takeover and data leaks.
 - **Signed URLs**: invoices (`/api/v1/invoices/{id}`, temporary signed route) and mock payment pages. Keep uploads on a
   private disk and serve them through signed temporary URLs.
 - **Headers**: API/admin: HSTS (HTTPS only), `X-Frame-Options: DENY`, CSP `frame-ancestors 'none'` (`default-src 'none'` on
-  the API), `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Web: CSP in `apps/web/next.config.ts` allowing GTM/GA4,
-  Meta, TikTok, Turnstile and the API origin; next/og is same-origin.
+  the API), `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Web: CSP set per request in `apps/web/src/proxy.ts`
+  (fresh nonce + `'strict-dynamic'` for scripts) allowing GTM/GA4, Meta, TikTok, Turnstile and the API origin; next/og is
+  same-origin. Not in `next.config.ts`.
 
 ## 2. Deploy checklist
 
@@ -79,6 +80,12 @@ Fail-closed defaults (security audit 2026-11): OTP echo (`demoCode`) and the moc
 `/feeds/*` needs a key; `POST /checkout/verify` (live Oxylabs calls) needs `X-Internal-Key` or a signed app request;
 `POST /checkout/quote` and `/checkout/alternatives` challenge IPs that quote too many distinct products per minute
 (`security.bot.cart_products_per_minute`, default 120).
+Next.js server calls (valid `X-Internal-Key`) are no longer exempt from limits: the API keys route throttles, catalog
+per-IP/strict buckets, blocks and honeypot hits on the shopper IP the web forwards in `X-Client-IP` (trusted only with the
+key, and only when it is a public routable address). Without a usable `X-Client-IP` the calls share one server bucket
+(20x the route limit for route throttles; `security.limits.internal` for the catalog). The honeypot never blocks a
+missing/private/loopback `X-Client-IP`. Payment `returnUrl` must be the `WEB_URL` origin (same scheme, host, port, no
+credentials) or `skydropretail://`.
 - `.env` lives outside the web root (`public/` is the only document root). Deny dotfiles in nginx:
   `location ~ /\. { deny all; }`. Never commit `.env`; `chmod 600 .env`, owned by the deploy user.
 - Run `php artisan config:cache route:cache`.

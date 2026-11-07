@@ -4,7 +4,7 @@ import * as local from "../catalog";
 import { demoDecorate } from "../cms";
 import { priceBdt } from "../pricing";
 import type { CartItem, Product } from "../types";
-import { pathSeg } from "../data";
+import { internalHeaders, pathSeg, shopperHeaders } from "../data";
 import { compareProducts, deliveryFor, normTitle, similarity } from "./match";
 import type { Alternative, BoughtTogether, Bundle, CompareResult, CompareRow } from "./types";
 
@@ -13,7 +13,9 @@ const API = process.env.API_URL?.replace(/\/$/, "");
 async function api<T>(path: string, revalidate = 300, init?: RequestInit): Promise<T | null> {
   if (!API) return null;
   try {
-    const res = await fetch(API + path, { headers: { Accept: "application/json", "Content-Type": "application/json" }, next: { revalidate }, ...init });
+    // Server-to-server with the internal key: compare / bought-together / bundles are guarded catalog-like reads.
+    const headers = { Accept: "application/json", "Content-Type": "application/json", ...internalHeaders, ...(await shopperHeaders()) };
+    const res = await fetch(API + path, { next: { revalidate }, ...init, headers, signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {

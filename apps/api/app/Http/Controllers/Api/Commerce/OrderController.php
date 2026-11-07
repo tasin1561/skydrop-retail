@@ -105,18 +105,27 @@ class OrderController extends Controller
         if (! $url) {
             return true;
         }
-        $u = parse_url($url);
-        if ($u === false || empty($u['scheme'])) {
+        // Strict allowlist: the storefront origin (WEB_URL: same scheme, host and port) or the app deep link scheme
+        // (skydropretail://...). No credentials, backslashes, whitespace or control characters (parser/browser confusion).
+        if (preg_match('/[\\\\\s\x00-\x1f\x7f]/', $url)) {
             return false;
         }
-        // Mobile app deep links (skydropretail://checkout/success).
-        if (in_array(strtolower($u['scheme']), self::APP_SCHEMES, true)) {
-            return true;
+        $u = parse_url($url);
+        if ($u === false || empty($u['scheme']) || isset($u['user']) || isset($u['pass'])) {
+            return false;
+        }
+        foreach (self::APP_SCHEMES as $scheme) {
+            if (str_starts_with(strtolower($url), $scheme.'://')) {
+                return strtolower($u['scheme']) === $scheme;
+            }
         }
         $web = parse_url((string) config('retail.web_url'));
+        if (! isset($web['host'], $u['host']) || ! in_array(strtolower($u['scheme']), ['http', 'https'], true)) {
+            return false;
+        }
 
-        return isset($u['host'], $web['host']) && strcasecmp($u['host'], $web['host']) === 0
-            && ($u['scheme'] ?? '') === ($web['scheme'] ?? 'https') && ($u['port'] ?? null) === ($web['port'] ?? null);
+        return strcasecmp($u['host'], $web['host']) === 0 && strtolower($u['scheme']) === strtolower($web['scheme'] ?? 'https')
+            && ($u['port'] ?? null) === ($web['port'] ?? null);
     }
 
     private function own(Request $request, string $id): Order

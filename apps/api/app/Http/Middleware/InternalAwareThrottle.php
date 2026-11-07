@@ -37,7 +37,7 @@ class InternalAwareThrottle extends ThrottleRequests
     protected function resolveRequestSignature($request)
     {
         if ($request instanceof Request && ! $request->user() && $route = $request->route()) {
-            return $this->formatIdentifier($route->getDomain().'|'.ClientIdentity::ip($request));
+            return sha1($route->getDomain().'|'.ClientIdentity::ip($request));
         }
 
         return parent::resolveRequestSignature($request);
