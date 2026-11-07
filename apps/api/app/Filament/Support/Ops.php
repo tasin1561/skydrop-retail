@@ -76,7 +76,15 @@ class Ops
             }
         }
 
-        return $order->status === 'purchased' ? $order : self::transition($order, 'purchased', $note ?: 'Bought from the source stores');
+        if ($order->status === 'purchased') {
+            return $order;
+        }
+        if ($order->status === 'placed') {
+            // Keep the pipeline linear for OrderWorkflow: buying at the live price is the verification.
+            $order = self::transition($order, 'verified', 'Price and stock confirmed at purchase');
+        }
+
+        return self::transition($order, 'purchased', $note ?: 'Bought from the source stores');
     }
 
     /** Create the Skydrop consignment and move the order to the Kolkata hub stage. */
