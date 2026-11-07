@@ -2,8 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Ops: honeypot, bot challenge, QR codes (security module). Registered before the catalog so
+// products/export is not taken by products/{id}.
+require __DIR__.'/api_ops.php';
+
 // Catalog: marketplaces, search, products, suggestions, fetch jobs (owned by the catalog module).
-require __DIR__.'/api_catalog.php';
+// catalog.guard: only the Next.js server (X-Internal-Key) or signed app clients (X-App-Key + HMAC); see docs/SECURITY.md.
+Route::middleware('catalog.guard')->group(fn () => require __DIR__.'/api_catalog.php');
 
 // Commerce: auth (OTP), account, addresses, wishlist, checkout, orders, payments, webhooks.
 require __DIR__.'/api_commerce.php';

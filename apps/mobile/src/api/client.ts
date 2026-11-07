@@ -368,4 +368,4 @@ function stripWeight({ weightKg: _w, ...rest }: CheckoutItem) {
   return rest;
 }
 
-export { resolveMode };
+export { http, resolveMode };

@@ -16,6 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // API clients get a 401 JSON instead of a redirect to a login page.
         $middleware->alias(['feature' => \App\Http\Middleware\RequireFeature::class]);
+        // Security module (docs/SECURITY.md): headers everywhere, blocklist + OTP abuse guard on the API,
+        // "catalog.guard" (signed clients, bot detection, progressive rate limits) wraps the catalog routes.
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->appendToGroup('api', \App\Http\Middleware\ApiShield::class);
+        $middleware->group('catalog.guard', [
+            \App\Http\Middleware\CatalogGuard::class,
+            \App\Http\Middleware\BotGuard::class,
+            \App\Http\Middleware\CatalogThrottle::class,
+        ]);
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/admin/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
