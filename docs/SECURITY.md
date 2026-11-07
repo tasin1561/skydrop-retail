@@ -69,7 +69,16 @@ ADMIN_IP_ALLOWLIST=             # optional, e.g. office IP / VPN egress
 SESSION_SECURE_COOKIE=true
 SESSION_ENCRYPT=true
 STEADFAST_API_KEY=... STEADFAST_SECRET_KEY=...
+OTP_DRIVER=sslwireless          # a real SMS gateway; "log" (the default) refuses sign-in when APP_ENV=production
+PAYMENTS_MODE=live              # "mock" (the default) is refused when APP_ENV=production (PAYMENTS_ALLOW_MOCK=true only on staging)
+FEED_KEY=<32 random chars>      # product feeds are off (404) until a key is set; give Meta/Google the URL with ?key=
+TRUST_CF_CONNECTING_IP=true     # only after the origin firewall accepts Cloudflare ranges only
+SANCTUM_EXPIRATION=             # optional: shopper token lifetime in minutes (unset = tokens live until sign-out)
 ```
+Fail-closed defaults (security audit 2026-11): OTP echo (`demoCode`) and the mock payment page never work in production;
+`/feeds/*` needs a key; `POST /checkout/verify` (live Oxylabs calls) needs `X-Internal-Key` or a signed app request;
+`POST /checkout/quote` and `/checkout/alternatives` challenge IPs that quote too many distinct products per minute
+(`security.bot.cart_products_per_minute`, default 120).
 - `.env` lives outside the web root (`public/` is the only document root). Deny dotfiles in nginx:
   `location ~ /\. { deny all; }`. Never commit `.env`; `chmod 600 .env`, owned by the deploy user.
 - Run `php artisan config:cache route:cache`.

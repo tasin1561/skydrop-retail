@@ -125,7 +125,7 @@ export function Viewer({
       aria-label={t("view.aria", { title: p.title })}
     >
       <div className="pd-backdrop absolute inset-0 bg-[#09090c]/80 backdrop-blur-md" onClick={close} />
-      <div className="pd-panel sheet-enter absolute inset-x-0 bottom-0 top-0 flex flex-col bg-surface md:inset-6 md:rounded-[20px] md:shadow-[var(--shadow-2)]">
+      <div className="pd-panel sheet-enter absolute inset-x-0 bottom-0 top-0 flex flex-col bg-surface md:inset-6 md:rounded-[12px] md:shadow-[var(--shadow-2)]">
         <div className="flex items-center gap-3 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <p className="min-w-0 flex-1 truncate pl-1 text-sm font-semibold text-ink-2">{p.title}</p>
           <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-bold tabular-nums text-ink-2" aria-live="polite">
@@ -136,7 +136,7 @@ export function Viewer({
             type="button"
             onClick={close}
             aria-label={t("view.close")}
-            className="grid h-11 w-11 place-items-center rounded-full bg-surface-2 text-ink transition hover:bg-[var(--accent-soft)] hover:text-accent active:scale-95"
+            className="grid h-11 w-11 place-items-center rounded-full bg-surface-2 text-ink transition hover:bg-[var(--accent-soft)] hover:text-accent active:scale-[0.98]"
           >
             <Icon name="x" size={20} />
           </button>
@@ -192,7 +192,7 @@ export function Viewer({
                 onClick={() => go(idx - 1)}
                 disabled={idx === 0}
                 aria-label={t("common.previous")}
-                className="absolute left-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-2)] transition hover:scale-105 hover:text-accent active:scale-95 disabled:opacity-0 md:grid"
+                className="absolute left-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-2)] transition hover:bg-surface hover:text-accent active:scale-[0.98] disabled:opacity-0 md:grid"
               >
                 <Icon name="left" size={22} />
               </button>
@@ -201,7 +201,7 @@ export function Viewer({
                 onClick={() => go(idx + 1)}
                 disabled={idx === count - 1}
                 aria-label={t("common.next")}
-                className="absolute right-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-2)] transition hover:scale-105 hover:text-accent active:scale-95 disabled:opacity-0 md:grid"
+                className="absolute right-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-2)] transition hover:bg-surface hover:text-accent active:scale-[0.98] disabled:opacity-0 md:grid"
               >
                 <Icon name="right" size={22} />
               </button>
@@ -226,7 +226,7 @@ export function Viewer({
                   aria-label={m.kind === "video" ? t("view.showVideo", { n: i + 1 }) : t("view.showImage", { n: i + 1 })}
                   aria-current={i === idx}
                   className={
-                    "relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white transition duration-300 active:scale-95 " +
+                    "relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white transition duration-200 active:scale-[0.98] " +
                     (i === idx ? "opacity-100 shadow-[0_0_0_2px_var(--accent)]" : "opacity-55 hover:opacity-90")
                   }
                 >

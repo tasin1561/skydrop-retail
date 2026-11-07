@@ -135,10 +135,11 @@ class NagadGateway implements Gateway
     public function confirm(Payment $payment, Request $request): GatewayResult
     {
         $ref = (string) $request->input('payment_ref_id');
-        if ($ref === '' || ($payment->gateway_ref && $ref !== $payment->gateway_ref)) {
+        // Security: only the reference Nagad issued for THIS payment at initialize. A payment without one (initialize
+        // failed) must not adopt a reference from the callback, or one paid Nagad transaction could settle other orders.
+        if ($ref === '' || ! $payment->gateway_ref || ! hash_equals((string) $payment->gateway_ref, $ref)) {
             throw new InvalidCallback('payment_ref_id does not match');
         }
-        $payment->gateway_ref = $ref;
 
         return $this->query($payment);
     }
@@ -153,6 +154,9 @@ class NagadGateway implements Gateway
         $res = $this->http()->get($this->base().'/api/dfs/verify/payment/'.$payment->gateway_ref);
         $body = $res->json() ?? [];
         if (($body['status'] ?? null) === 'Success') {
+            if (isset($body['orderId']) && (string) $body['orderId'] !== self::orderRef($payment)) {
+                return GatewayResult::failed('Nagad payment belongs to another order.', ['verify' => $body]);
+            }
             if (abs((float) ($body['amount'] ?? 0) - $payment->amount_bdt) > 0.01) {
                 return GatewayResult::failed('Paid amount does not match the order.', ['verify' => $body]);
             }

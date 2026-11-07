@@ -57,7 +57,7 @@ export default async function BundlePage({ params }: Props) {
       <ol className="mt-5 flex flex-col gap-3">
         {items.map(({ product: p, qty }, i) => (
           <li key={p.id} className="rise" style={{ ["--i" as string]: i }}>
-            <Link href={`/p/${encodeURIComponent(p.id)}`} className="card flex items-center gap-4 p-3 transition-transform duration-300 hover:-translate-y-0.5 sm:p-4">
+            <Link href={`/p/${encodeURIComponent(p.id)}`} className="card flex items-center gap-4 p-3 transition-transform duration-200 hover:-translate-y-0.5 sm:p-4">
               <span className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white p-1.5">
                 <ProductImage p={p} className="h-full w-full" />
               </span>

@@ -74,7 +74,7 @@ export async function ProductDetail({
   const badges = (
     <>
       {discountPct(p) >= 10 && (
-        <span className="rounded-full bg-brand-2 px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_6px_16px_rgb(255_106_61/0.35)]">-{digits(discountPct(p))}%</span>
+        <span className="rounded-full bg-brand-2 px-2.5 py-1 text-[11px] font-bold text-white shadow-[var(--glow)]">-{digits(discountPct(p))}%</span>
       )}
       {p.bestSeller && (
         <span className="inline-flex items-center gap-1 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink shadow-[var(--shadow-1)] backdrop-blur">

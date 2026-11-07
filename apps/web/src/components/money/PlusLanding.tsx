@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { ApiError, apiEnabled } from "@/lib/apiClient";
+import { ApiError, apiEnabled, goToPayment } from "@/lib/apiClient";
 import { DEMO_PLANS, PERIOD_LABEL, money, type PlusMembership, type PlusPeriod, type PlusPlan, type PlusSavings } from "@/lib/money";
 import { useStore } from "@/state/store";
 import "./money.css";
@@ -85,7 +85,7 @@ export function PlusLanding({ renew }: { renew?: string }) {
     setError(null);
     try {
       const r = await money.buyMembership(plan.slug, pay, `${window.location.origin}/plus/success`);
-      if (r.payment.redirectUrl) window.location.assign(r.payment.redirectUrl);
+      if (r.payment.redirectUrl) goToPayment(r.payment.redirectUrl);
       else router.push(`/plus/success?order=${r.order.id}&status=${r.payment.status === "paid" ? "paid" : "failed"}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("gc.payFail"));
@@ -131,7 +131,7 @@ export function PlusLanding({ renew }: { renew?: string }) {
       {!loaded ? (
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="skeleton h-80 rounded-[20px]" />
+            <div key={i} className="skeleton h-80 rounded-[12px]" />
           ))}
         </div>
       ) : plans.length === 0 ? (

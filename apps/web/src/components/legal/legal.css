@@ -74,7 +74,7 @@
   border-radius: 10px;
   font-size: 13px;
   color: var(--ink-2);
-  transition: color 0.2s, background 0.2s;
+  transition: color var(--dur-2), background var(--dur-2);
 }
 .lg-toc a:hover {
   color: var(--ink);
@@ -93,7 +93,7 @@
   border-radius: 3px;
   background: var(--accent);
   transform: translateY(var(--y, 0px));
-  transition: transform 0.4s var(--spring), opacity 0.2s;
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-2);
 }
 
 /* FAQ accordion: grid-rows open/close (see .acc in globals.css) */
@@ -101,7 +101,7 @@
   transform: rotate(45deg);
 }
 .faq-plus {
-  transition: transform 0.3s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .faq mark {
   background: color-mix(in srgb, var(--accent) 22%, transparent);

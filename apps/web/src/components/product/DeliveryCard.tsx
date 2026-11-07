@@ -37,7 +37,7 @@ export async function DeliveryCard({ source, kolkata, weightKg }: { source: stri
 
       <ol className="relative grid grid-cols-3 gap-1" data-reveal="fade" data-loop="" suppressHydrationWarning>
         <span aria-hidden className="pd-route-line absolute left-[16.6%] right-[16.6%] top-[19px] h-[2px]" />
-        <span aria-hidden className="mo-route-fill absolute left-[16.6%] right-[16.6%] top-[19px] h-[2px] rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] opacity-70" />
+        <span aria-hidden className="mo-route-fill absolute left-[16.6%] right-[16.6%] top-[19px] h-[2px] rounded-full bg-accent opacity-70" />
         <span aria-hidden className="absolute left-1/3 top-[11px] -ml-2 text-accent">
           <span className="pd-route-plane inline-block">
             <Icon name="plane" size={16} />
@@ -47,7 +47,7 @@ export async function DeliveryCard({ source, kolkata, weightKg }: { source: stri
           <li key={s.title} className="mo-route-step relative flex flex-col items-center text-center" style={{ ["--i" as string]: i }}>
             <span
               className={
-                "relative z-[1] grid h-10 w-10 place-items-center rounded-[14px] shadow-[var(--shadow-1)] " +
+                "relative z-[1] grid h-10 w-10 place-items-center rounded-[10px] shadow-[var(--shadow-1)] " +
                 (i === 2 ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-accent")
               }
             >

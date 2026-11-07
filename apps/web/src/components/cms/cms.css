@@ -7,7 +7,7 @@
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  border-radius: 24px;
+  border-radius: 16px;
   -webkit-overflow-scrolling: touch;
 }
 .hc-track::-webkit-scrollbar {
@@ -22,7 +22,7 @@
   overflow: hidden;
   min-height: 188px;
   color: #fff;
-  background: linear-gradient(120deg, var(--hero-a), var(--hero-b));
+  background: var(--hero-a);
 }
 @media (min-width: 640px) {
   .hc-slide {
@@ -36,11 +36,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.06);
-  transition: transform 6s var(--ease);
-}
-.hc-slide[data-active="true"] .hc-cover {
-  transform: scale(1);
 }
 .hc-slide .hc-scrim {
   position: absolute;
@@ -49,19 +44,17 @@
   background: linear-gradient(90deg, rgb(11 11 15 / 0.78), rgb(11 11 15 / 0.25) 65%, transparent);
 }
 .hc-slide .hc-shot {
-  transform: translateY(8px) rotate(-3deg) scale(0.96);
+  transform: translateY(4px);
   opacity: 0;
-  transition: transform 0.7s var(--spring), opacity 0.5s var(--ease);
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-3) var(--ease);
 }
 .hc-slide[data-active="true"] .hc-shot {
   transform: none;
   opacity: 1;
 }
 .hc-slide .hc-copy > * {
-  transform: translateY(10px);
   opacity: 0;
-  transition: transform 0.55s var(--ease), opacity 0.45s var(--ease);
-  transition-delay: calc(var(--d, 0) * 70ms + 80ms);
+  transition: opacity var(--dur-3) var(--ease);
 }
 .hc-slide[data-active="true"] .hc-copy > * {
   transform: none;
@@ -71,15 +64,8 @@
   position: absolute;
   z-index: -1;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.14);
-  animation: hc-drift 14s var(--ease-in-out) infinite alternate;
+  display: none; /* decorative blobs retired */
 }
-@keyframes hc-drift {
-  to {
-    transform: translate(-24px, 16px) scale(1.12);
-  }
-}
-
 /* travelling dots: a bead follows the scroll position (set as --hc-pos, in slides) */
 .hc-dots {
   position: relative;
@@ -98,7 +84,7 @@
   border-radius: 999px;
   background: var(--ink-3);
   opacity: 0.45;
-  transition: opacity 0.2s;
+  transition: opacity var(--dur-2);
 }
 .hc-dot:hover > span {
   opacity: 0.8;
@@ -134,29 +120,12 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: 24px;
-  background:
-    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--brand-2) 22%, transparent), transparent 60%),
-    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%),
-    var(--surface);
+  border-radius: 16px;
+  background: var(--surface);
   box-shadow: var(--shadow-1);
 }
 .fs-bolt {
-  animation: fs-zap 2.4s var(--ease) infinite;
-}
-@keyframes fs-zap {
-  0%,
-  70%,
-  100% {
-    transform: none;
-    opacity: 1;
-  }
-  76% {
-    transform: scale(1.18) rotate(-8deg);
-  }
-  82% {
-    opacity: 0.55;
-  }
+  animation: none; /* decorative loop retired */
 }
 .fs-digits {
   display: inline-flex;
@@ -187,7 +156,7 @@
 }
 .fs-tick {
   display: inline-block;
-  animation: fs-tick 0.35s var(--ease) both;
+  animation: fs-tick var(--dur-3) var(--ease) both;
 }
 @keyframes fs-tick {
   from {
@@ -198,17 +167,11 @@
 .fs-sep {
   font-weight: 800;
   opacity: 0.5;
-  animation: fs-blink 1s steps(2, start) infinite;
+  animation: none; /* decorative loop retired */
 }
-@keyframes fs-blink {
-  to {
-    opacity: 0.15;
-  }
-}
-
 /* ---------- restriction notice ---------- */
 .rx-note {
-  animation: rise 0.45s var(--ease) both;
+  animation: rise var(--dur-3) var(--ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

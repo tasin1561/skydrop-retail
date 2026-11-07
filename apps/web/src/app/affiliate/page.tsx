@@ -53,7 +53,7 @@ export default async function AffiliateLanding() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 md:pb-12">
-      <section className="rise relative overflow-hidden rounded-[24px] p-6 text-white shadow-[var(--glow)] sm:p-10" style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}>
+      <section className="rise relative overflow-hidden rounded-[16px] p-6 text-white shadow-[var(--glow)] sm:p-10" style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}>
         <div aria-hidden className="gr-float absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10" />
         <div aria-hidden className="gr-float absolute -bottom-16 right-24 h-36 w-36 rounded-full bg-white/10" style={{ animationDelay: "1.5s" }} />
         <div className="relative max-w-xl">

@@ -6,7 +6,7 @@
   gap: 0.6rem;
   min-height: 44px;
   padding: 0.5rem 0.5rem 0.5rem 0.85rem;
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--surface-2);
   border: 1px solid var(--line);
 }
@@ -24,13 +24,13 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 0.25rem;
-  border-radius: 16px;
+  border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink-2);
-  animation: sh-in 0.42s var(--spring) both;
-  animation-delay: calc(var(--i, 0) * 45ms + 80ms);
-  transition: transform 0.18s var(--ease, ease), background-color 0.18s ease;
+  animation: sh-in var(--dur-3) var(--ease) both;
+  animation-delay: calc(min(var(--i, 0), 4) * 30ms);
+  transition: transform var(--dur-2) var(--ease, ease), background-color var(--dur-2) ease;
 }
 .sh-target:hover {
   background: var(--surface-2);
@@ -51,7 +51,7 @@
   place-items: center;
   border-radius: 999px;
   color: #fff;
-  box-shadow: 0 8px 18px -8px currentColor;
+  box-shadow: var(--glow);
 }
 
 /* Copy link: the label and icon morph to "Copied" without changing the button's size. */
@@ -60,8 +60,8 @@
   overflow: hidden;
   min-width: 104px;
   transition:
-    background-color 0.25s var(--ease),
-    color 0.25s var(--ease);
+    background-color var(--dur-3) var(--ease),
+    color var(--dur-3) var(--ease);
 }
 .sh-copy[data-done="true"] {
   background: var(--good);
@@ -72,8 +72,8 @@
   align-items: center;
   gap: 0.35rem;
   transition:
-    transform 0.32s var(--spring),
-    opacity 0.2s var(--ease);
+    transform var(--dur-3) var(--ease),
+    opacity var(--dur-2) var(--ease);
 }
 .sh-copy-face[data-face="done"] {
   position: absolute;
@@ -92,13 +92,13 @@
 }
 
 .sh-qr {
-  animation: sh-reveal 0.32s var(--ease, ease) both;
+  animation: sh-reveal var(--dur-3) var(--ease, ease) both;
 }
 
 @keyframes sh-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.9);
+    transform: translateY(6px);
   }
 }
 @keyframes sh-reveal {
@@ -110,7 +110,7 @@
 
 /* Link builder result (affiliate dashboard) */
 .sh-result {
-  animation: sh-reveal 0.36s var(--spring) both;
+  animation: sh-reveal var(--dur-3) var(--ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

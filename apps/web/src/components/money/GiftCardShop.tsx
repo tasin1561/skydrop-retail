@@ -6,7 +6,7 @@ import { useEffect, useId, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { ApiError, apiEnabled } from "@/lib/apiClient";
+import { ApiError, apiEnabled, goToPayment } from "@/lib/apiClient";
 import { DEMO_GIFT_CONFIG, money, type GiftCard, type GiftCardConfig } from "@/lib/money";
 import { useStore } from "@/state/store";
 import { RedeemGiftCard } from "./RedeemGiftCard";
@@ -115,7 +115,7 @@ export function GiftCardShop({ redeem }: { redeem?: boolean }) {
         payment: pay,
         returnUrl: `${window.location.origin}/gift-cards/success`,
       });
-      if (r.payment.redirectUrl) window.location.assign(r.payment.redirectUrl);
+      if (r.payment.redirectUrl) goToPayment(r.payment.redirectUrl);
       else router.push(`/gift-cards/success?order=${r.order.id}&status=${r.payment.status === "paid" ? "paid" : "failed"}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("gc.payFail"));

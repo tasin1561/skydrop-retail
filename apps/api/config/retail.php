@@ -79,7 +79,8 @@ return [
     ],
 
     'payments' => [
-        'mode' => env('PAYMENTS_MODE', 'mock'), // mock | sandbox | live
+        'mode' => env('PAYMENTS_MODE', 'mock'), // mock | sandbox | live (mock is refused when APP_ENV=production)
+        'allow_mock' => (bool) env('PAYMENTS_ALLOW_MOCK', false), // staging on APP_ENV=production only
         'bkash' => ['app_key' => env('BKASH_APP_KEY'), 'app_secret' => env('BKASH_APP_SECRET'), 'username' => env('BKASH_USERNAME'), 'password' => env('BKASH_PASSWORD'),
             'sandbox_url' => 'https://tokenized.sandbox.bka.sh/v1.2.0-beta', 'live_url' => env('BKASH_LIVE_URL', 'https://tokenized.pay.bka.sh/v1.2.0-beta')],
         'nagad' => ['merchant_id' => env('NAGAD_MERCHANT_ID'), 'public_key' => env('NAGAD_PUBLIC_KEY'), 'private_key' => env('NAGAD_PRIVATE_KEY'),

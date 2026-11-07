@@ -282,10 +282,10 @@ function CartSkeleton() {
       <div className="grid gap-6 md:grid-cols-[1fr_340px]">
         <div className="space-y-4">
           {[0, 1].map((i) => (
-            <div key={i} className="skeleton h-48 rounded-[20px]" />
+            <div key={i} className="skeleton h-48 rounded-[12px]" />
           ))}
         </div>
-        <div className="skeleton hidden h-80 rounded-[20px] md:block" />
+        <div className="skeleton hidden h-80 rounded-[12px] md:block" />
       </div>
     </div>
   );

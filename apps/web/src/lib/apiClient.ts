@@ -30,6 +30,18 @@ export function getApiToken() {
   return currentToken();
 }
 
+/** Leave for the payment gateway. http(s) only: a javascript: URL here would run on our origin with the session token in reach. */
+export function goToPayment(url: string) {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    throw new Error("payment redirect is not an http(s) URL"); // generic, localised error in the caller
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error("payment redirect is not an http(s) URL"); // generic, localised error in the caller
+  window.location.assign(u.href);
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,

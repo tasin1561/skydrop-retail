@@ -50,12 +50,12 @@ export function PointsView() {
       </Link>
 
       <section
-        className="rise relative mt-2 overflow-hidden rounded-[24px] p-6 text-white shadow-[var(--glow)]"
-        style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
+        className="rise relative mt-2 overflow-hidden rounded-[16px] p-6 text-white shadow-[var(--glow)]"
+        style={{ background: "linear-gradient(135deg, var(--hero-a) 0%, var(--hero-a) 55%, color-mix(in srgb, var(--hero-a) 72%, var(--hero-b)) 100%)" }}
       >
         <span aria-hidden className="float absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/15" />
         <p className="text-sm font-semibold text-white/85">{t("acc.points")}</p>
-        <p className="mt-1 text-5xl font-black tracking-tight tabular-nums">{num(data.balance)}</p>
+        <p className="mt-1 text-5xl font-extrabold tracking-tight tabular-nums">{num(data.balance)}</p>
         <p className="mt-1 text-sm text-white/90">{t("pv.worth", { amount: bdt(pointsValueBdt(data.balance)) })}</p>
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
           <span className="rounded-full bg-white/20 px-3 py-1">{t("pv.pendingCount", { n: num(data.pending) })}</span>
@@ -63,7 +63,7 @@ export function PointsView() {
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25" aria-hidden>
           <div
-            className="h-full origin-left rounded-full bg-white transition-transform duration-700"
+            className="h-full origin-left rounded-full bg-white transition-transform duration-200"
             style={{ transform: `scaleX(${(data.balance % POINTS.blockPoints) / POINTS.blockPoints})` }}
           />
         </div>

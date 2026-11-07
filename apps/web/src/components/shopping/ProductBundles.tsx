@@ -30,7 +30,7 @@ export async function ProductBundles({ bundles }: { bundles: Bundle[] }) {
 export async function BundleCard({ b }: { b: Bundle }) {
   const { t, bdt } = await getT();
   return (
-    <Link href={`/bundles/${b.slug}`} className="group flex h-full flex-col gap-3 rounded-2xl bg-surface-2/70 p-3 transition-transform duration-300 hover:-translate-y-0.5">
+    <Link href={`/bundles/${b.slug}`} className="group flex h-full flex-col gap-3 rounded-2xl bg-surface-2/70 p-3 transition-transform duration-200 hover:-translate-y-0.5">
       {b.items && b.items.length > 0 && (
         <div className="flex -space-x-3">
           {b.items.slice(0, 4).map(({ product }) => (

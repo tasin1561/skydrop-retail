@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Shopping\GroupBuyController;
 use App\Http\Controllers\Api\Shopping\PreorderController;
 use App\Http\Controllers\Api\Shopping\PriceHistoryController;
 use App\Http\Controllers\Api\Shopping\ProductRequestController;
+use App\Http\Middleware\CartLookupGuard;
 use Illuminate\Support\Facades\Route;
 
 $shoppingId = '[A-Za-z0-9_-]{2,40}';
@@ -19,7 +20,7 @@ Route::middleware('feature:price_history')->group(function () use ($shoppingId) 
 
 Route::middleware('feature:compare_stores')->group(function () use ($shoppingId) {
     Route::get('products/{id}/compare', [CompareController::class, 'show'])->where('id', $shoppingId)->middleware('throttle:120,1');
-    Route::post('checkout/alternatives', [CompareController::class, 'alternatives'])->middleware('throttle:60,1');
+    Route::post('checkout/alternatives', [CompareController::class, 'alternatives'])->middleware([CartLookupGuard::class, 'throttle:60,1']);
 });
 
 Route::middleware('feature:bundles')->group(function () use ($shoppingId) {

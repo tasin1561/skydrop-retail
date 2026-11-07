@@ -24,10 +24,10 @@ export function StoreCards() {
               key={m}
               href={`/store/${m}`}
               data-store={m}
-              className="rise group relative w-[78vw] max-w-[320px] shrink-0 overflow-hidden rounded-3xl p-4 text-white sm:w-auto sm:max-w-none shadow-[var(--shadow-1)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2)]"
+              className="rise group relative w-[78vw] max-w-[320px] shrink-0 overflow-hidden rounded-3xl p-4 text-white sm:w-auto sm:max-w-none shadow-[var(--shadow-1)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
               style={{ ["--i" as string]: i, background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
             >
-              <span aria-hidden className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 transition-transform duration-500 group-hover:scale-125" />
+              <span aria-hidden className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 transition-transform duration-200 group-hover:scale-100" />
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/20">
                 <Icon name={s.icon} size={22} stroke={2} />
               </span>

@@ -21,6 +21,7 @@ export function Tracking() {
   const enabled = useFeature("tracking");
   const consent = useSyncExternalStore(subscribeConsent, getConsent, () => SSR);
   const [ids, setIds] = useState<TrackingIds | null>(null);
+  const [nonce, setNonce] = useState<string | undefined>(undefined);
   const [reopened, setReopened] = useState(false);
 
   useEffect(() => {
@@ -47,6 +48,8 @@ export function Tracking() {
       if (!alive) return;
       activateTracking(next);
       if (hasAnyTag(next)) setIds(next);
+      // CSP nonce (src/proxy.ts) for the vendor tags, so GTM can pass it on to Custom HTML tags
+      setNonce(document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce || undefined);
     });
     return () => {
       alive = false;
@@ -60,15 +63,15 @@ export function Tracking() {
       <Suspense fallback={null}>
         <RouteViews />
       </Suspense>
-      {tags?.metaPixelId && <Script id="sr-meta" src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" />}
+      {tags?.metaPixelId && <Script id="sr-meta" nonce={nonce} src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" />}
       {tags?.ga4Id && (
-        <Script id="sr-ga4" src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tags.ga4Id)}`} strategy="afterInteractive" />
+        <Script id="sr-ga4" nonce={nonce} src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tags.ga4Id)}`} strategy="afterInteractive" />
       )}
       {tags?.gtmId && (
-        <Script id="sr-gtm" src={`https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(tags.gtmId)}`} strategy="afterInteractive" />
+        <Script id="sr-gtm" nonce={nonce} src={`https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(tags.gtmId)}`} strategy="afterInteractive" />
       )}
       {tags?.tiktokPixelId && (
-        <Script id="sr-ttq" src={`${TIKTOK_SDK}?sdkid=${encodeURIComponent(tags.tiktokPixelId)}&lib=ttq`} strategy="afterInteractive" />
+        <Script id="sr-ttq" nonce={nonce} src={`${TIKTOK_SDK}?sdkid=${encodeURIComponent(tags.tiktokPixelId)}&lib=ttq`} strategy="afterInteractive" />
       )}
       {consent !== SSR && (consent === null || reopened) && <ConsentBanner current={consent} onDone={() => setReopened(false)} />}
     </>

@@ -45,12 +45,12 @@ export function StoreSwitcher({ className }: { className?: string }) {
     >
       <span
         aria-hidden
-        className="absolute bottom-1 top-1 w-[100px] origin-left rounded-full bg-accent shadow-[var(--glow)] transition-transform duration-[420ms]"
+        className="absolute bottom-1 top-1 w-[100px] origin-left rounded-full bg-accent transition-transform duration-200"
         style={{
           // transform only: travel with translateX, size with scaleX against a 100px base
           transform: `translateX(${pill.x - 4}px) scaleX(${pill.w / 100})`,
           opacity: pill.ok ? 1 : 0,
-          transitionTimingFunction: "var(--spring)",
+          transitionTimingFunction: "var(--ease)",
         }}
       />
       {modes.map((m) => {
@@ -83,6 +83,18 @@ export function Header() {
   const path = usePathname();
   const { t, digits } = useT();
   const [scrolled, setScrolled] = useState(false);
+  const bar = useRef<HTMLElement>(null);
+  // publish the sticky header height so page-level sticky bars (quick filters) sit right under it
+  useEffect(() => {
+    const el = bar.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const root = document.documentElement;
+    const set = () => root.style.setProperty("--hdr-h", `${Math.round(el.getBoundingClientRect().height)}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
     on();
@@ -93,12 +105,13 @@ export function Header() {
 
   return (
     <header
+      ref={bar}
       className={
-        "sticky top-0 z-40 border-b transition-[background,box-shadow,border-color] duration-300 " +
-        (scrolled ? "border-line bg-surface/85 shadow-[var(--shadow-1)] backdrop-blur-md" : "border-transparent bg-bg")
+        "sticky top-0 z-40 border-b transition-[background-color,border-color] duration-200 " +
+        (scrolled ? "border-line bg-surface/95 backdrop-blur-md" : "border-transparent bg-bg")
       }
     >
-      <div className="bg-gradient-to-r from-[var(--hero-a)] to-[var(--hero-b)] px-4 py-1.5 text-center text-[11px] font-medium text-white sm:text-xs">
+      <div className="bg-[var(--hero-a)] px-4 py-1.5 text-center text-[11px] font-medium text-white/90 sm:text-xs">
         <Icon name="truck" size={13} className="mr-1 inline -mt-0.5" />
         <span className="sm:hidden">{t("header.strip.short")}</span>
         <span className="hidden sm:inline">{t("header.strip.long")}</span>
@@ -153,11 +166,11 @@ export function Header() {
             href="/cart"
             data-cart-target=""
             aria-label={cartCount > 0 ? t("nav.cartCount", { count: cartCount }) : t("nav.cart")}
-            className="relative hidden h-11 items-center gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-white shadow-[var(--glow)] transition hover:brightness-110 md:inline-flex"
+            className="relative hidden h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-[color-mix(in_srgb,var(--accent)_88%,black)] md:inline-flex"
           >
             <Icon name="cart" size={19} /> {t("nav.cart")}
             {cartCount > 0 && (
-              <span key={cartCount} className="mo-badge pop grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-[11px] font-bold text-accent">
+              <span key={cartCount} className="mo-badge grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-[11px] font-bold tabular-nums text-accent">
                 {digits(cartCount)}
               </span>
             )}

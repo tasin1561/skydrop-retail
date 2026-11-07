@@ -31,13 +31,13 @@ export function MobileNav() {
       <div className="relative mx-auto grid max-w-md grid-cols-5">
         <span
           aria-hidden
-          className="absolute -top-3 h-12 w-12 rounded-full bg-accent shadow-[var(--glow)] transition-[transform,opacity] duration-500"
+          className="absolute top-0 h-0.5 w-8 rounded-full bg-accent transition-[transform,opacity] duration-200"
           style={{
-            // travels on transform only: one cell is a fifth of the (max 28rem) bar
-            left: "calc(10% - 24px)",
+            // active-tab indicator: travels on transform only; one cell is a fifth of the (max 28rem) bar
+            left: "calc(10% - 16px)",
             transform: `translateX(calc(${idx} * min(100vw, 28rem) / 5))`,
             opacity: found < 0 ? 0 : 1,
-            transitionTimingFunction: "var(--spring)",
+            transitionTimingFunction: "var(--ease)",
           }}
         />
         {ITEMS.map((it, i) => {
@@ -52,16 +52,15 @@ export function MobileNav() {
               <span
                 data-cart-target={it.href === "/cart" ? "" : undefined}
                 className={
-                  "relative grid h-7 w-7 place-items-center transition-all duration-500 " +
-                  (on ? "-translate-y-4 text-white" : "text-ink-3")
+                  "relative grid h-7 w-7 place-items-center transition-colors duration-200 " +
+                  (on ? "text-accent" : "text-ink-3")
                 }
-                style={{ transitionTimingFunction: "var(--spring)" }}
               >
                 <Icon name={it.icon} size={22} stroke={on ? 2.2 : 1.8} />
                 {it.href === "/cart" && cartCount > 0 && (
                   <span
                     key={cartCount}
-                    className="mo-badge pop absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand-2 px-1 text-[10px] text-white"
+                    className="mo-badge absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand-2 px-1 text-[10px] text-white"
                   >
                     {digits(cartCount)}
                   </span>

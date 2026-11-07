@@ -7,15 +7,15 @@ import type { MsgKey } from "@/i18n/core";
 const TIPS: MsgKey[] = ["ws.t1", "ws.t2", "ws.t3", "ws.t4", "ws.t5", "ws.t6"];
 
 /**
- * A small story while the shopper waits: a parcel travels India → Kolkata → Bangladesh along a
- * dashed route, with a rotating tip. Pure SVG/CSS (transform + stroke-dashoffset), paused off-screen
- * via CSS animation-play-state when the tab is hidden; reduced-motion users get a static route.
+ * A calm progress indication while the shopper waits: the India → Kolkata → Bangladesh route with a
+ * single line that fills slowly once (no loop, no moving parcel), and a tip that changes every 7s with
+ * a plain fade. Reduced-motion users get a static, half-filled route.
  */
 export function WaitStory() {
   const [tip, setTip] = useState(0);
   const { t } = useT();
   useEffect(() => {
-    const t = setInterval(() => !document.hidden && setTip((i) => (i + 1) % TIPS.length), 4500);
+    const t = setInterval(() => !document.hidden && setTip((i) => (i + 1) % TIPS.length), 7000);
     return () => clearInterval(t);
   }, []);
   return (
@@ -37,10 +37,6 @@ export function WaitStory() {
             </text>
           </g>
         ))}
-        <g className="ws-parcel">
-          <rect x="-8" y="-8" width="16" height="14" rx="3" />
-          <path d="M-8 -3h16M0 -8v14" />
-        </g>
       </svg>
       <p key={tip} className="ws-tip mt-2 min-h-10 text-center text-xs text-ink-2 sm:text-sm">
         <span className="font-bold text-ink">{t("ws.dyk")}</span>

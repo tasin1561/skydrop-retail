@@ -38,7 +38,7 @@ export function Accordion({
         className="group flex min-h-[52px] w-full items-center gap-3 rounded-2xl px-1 py-2 text-left transition-colors hover:text-accent"
       >
         {icon && (
-          <span className="chip-icon shrink-0 transition-transform duration-200 group-active:scale-95">
+          <span className="chip-icon shrink-0 transition-transform duration-200 group-active:scale-[0.98]">
             <Icon name={icon} size={18} />
           </span>
         )}

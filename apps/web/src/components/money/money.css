@@ -23,11 +23,11 @@
   aspect-ratio: 1.586;
   width: 100%;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 12px;
   color: #fff;
   box-shadow: var(--shadow-2);
   isolation: isolate;
-  transition: transform 0.35s var(--ease);
+  transition: transform var(--dur-3) var(--ease);
 }
 .gc-card::before {
   /* moving sheen */
@@ -35,8 +35,7 @@
   position: absolute;
   inset: -40% -60%;
   background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.28) 50%, transparent 60%);
-  transform: translateX(-60%);
-  animation: gc-sheen 4.5s var(--ease) infinite;
+  display: none; /* moving sheen retired */
   z-index: -1;
 }
 .gc-card[data-design="classic"] { background: linear-gradient(135deg, #0b0b0f, #5b3df5); }
@@ -46,14 +45,10 @@
 .gc-card[data-design="wedding"] { background: linear-gradient(135deg, #6d28d9, #c084fc); }
 .gc-card .gc-amount {
   display: inline-block;
-  animation: gc-pop 0.35s var(--spring);
-}
-@keyframes gc-sheen {
-  0%, 55% { transform: translateX(-60%); }
-  100% { transform: translateX(60%); }
+  animation: gc-pop var(--dur-3) var(--ease);
 }
 @keyframes gc-pop {
-  from { transform: scale(0.85); opacity: 0; }
+  from { transform: scale(0.96); opacity: 0; }
 }
 
 .gc-swatch {
@@ -61,10 +56,10 @@
   min-height: 44px;
   min-width: 44px;
   place-items: center;
-  border-radius: 14px;
+  border-radius: 10px;
   outline: 2px solid transparent;
   outline-offset: 2px;
-  transition: transform 0.2s var(--ease), outline-color 0.2s;
+  transition: transform var(--dur-2) var(--ease), outline-color var(--dur-2);
 }
 .gc-swatch[aria-checked="true"] { outline-color: var(--accent); transform: scale(1.05); }
 .gc-swatch:active { transform: scale(0.96); }
@@ -79,7 +74,7 @@
   padding: 0 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  transition: transform 0.2s var(--ease), background-color 0.2s, color 0.2s;
+  transition: transform var(--dur-2) var(--ease), background-color var(--dur-2), color var(--dur-2);
 }
 .money-chip:active { transform: scale(0.96); }
 .money-chip[aria-checked="true"],
@@ -89,7 +84,7 @@
 .plus-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 16px;
   color: var(--plus-ink);
   background: radial-gradient(120% 120% at 100% 0%, var(--plus-b), var(--plus-a));
 }
@@ -101,11 +96,7 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--plus-gold) 45%, transparent), transparent 70%);
-  animation: plus-float 6s var(--ease-in-out) infinite;
-}
-@keyframes plus-float {
-  50% { transform: translate(-16px, 14px) scale(1.06); }
+  display: none; /* decorative blob retired */
 }
 .plus-gold { color: var(--plus-gold); }
 
@@ -125,7 +116,7 @@
   background: var(--surface);
   box-shadow: var(--shadow-1);
   transform: translateX(calc(var(--idx, 0) * 100%));
-  transition: transform 0.35s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .plus-toggle button {
   position: relative;
@@ -137,7 +128,7 @@
 
 .plus-plan {
   position: relative;
-  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  transition: transform var(--dur-3) var(--ease), box-shadow var(--dur-3) var(--ease);
 }
 .plus-plan:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
 .plus-plan[data-highlight="true"] { outline: 2px solid var(--plus-gold); outline-offset: -2px; }
@@ -155,11 +146,11 @@
   letter-spacing: 0.02em;
 }
 
-.money-in { animation: money-in 0.4s var(--ease) both; }
+.money-in { animation: money-in var(--dur-3) var(--ease) both; }
 @keyframes money-in {
   from { opacity: 0; transform: translateY(6px); }
 }
-.money-count { display: inline-block; animation: gc-pop 0.3s var(--spring); }
+.money-count { display: inline-block; animation: gc-pop var(--dur-3) var(--ease); }
 
 /* savings meter */
 .plus-meter {

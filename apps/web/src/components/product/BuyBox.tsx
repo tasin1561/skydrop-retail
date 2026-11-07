@@ -203,7 +203,7 @@ export function BuyBox({
         inert={!showBar}
         className="pd-sticky fixed inset-x-0 bottom-16 z-40 px-3 pb-2 md:hidden"
       >
-        <div className="flex items-center gap-2 rounded-[20px] bg-surface/95 p-2 pl-3.5 shadow-[0_-4px_24px_rgb(15_23_42/0.12),var(--shadow-2)] backdrop-blur-md">
+        <div className="flex items-center gap-2 rounded-[12px] bg-surface/95 p-2 pl-3.5 shadow-[0_-4px_24px_rgb(15_23_42/0.12),var(--shadow-2)] backdrop-blur-md">
           <div className="min-w-0 flex-1">
             <p className="text-[17px] font-extrabold leading-tight tracking-tight">{bdt(info.unitBdt)}</p>
             <p className="truncate text-[11px] text-ink-2">

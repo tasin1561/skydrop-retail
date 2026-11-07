@@ -19,7 +19,7 @@
   border-radius: 999px;
   background: var(--surface);
   box-shadow: var(--shadow-1);
-  transition: transform 0.38s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
   will-change: transform;
 }
 .sh-tabs button {
@@ -32,7 +32,7 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--ink-2);
-  transition: color 0.2s var(--ease);
+  transition: color var(--dur-2) var(--ease);
 }
 .sh-tabs button[aria-selected="true"] {
   color: var(--ink);
@@ -83,7 +83,7 @@
   }
 }
 .sh-fade {
-  transition: opacity 0.25s var(--ease);
+  transition: opacity var(--dur-3) var(--ease);
 }
 .sh-loading .sh-fade {
   opacity: 0.35;
@@ -93,7 +93,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transition: transform 0.12s var(--ease), opacity 0.15s var(--ease);
+  transition: transform var(--dur-1) var(--ease), opacity var(--dur-2) var(--ease);
 }
 .sh-x__line {
   position: absolute;
@@ -106,7 +106,7 @@
 .sh-y {
   position: absolute;
   inset: 0;
-  transition: transform 0.12s var(--ease);
+  transition: transform var(--dur-1) var(--ease);
 }
 .sh-dot {
   position: absolute;
@@ -120,18 +120,7 @@
   box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .sh-now {
-  animation: sh-pulse 2.2s var(--ease) infinite;
-}
-@keyframes sh-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 0.75;
-  }
+  animation: none; /* decorative loop retired */
 }
 .sh-tip {
   position: absolute;
@@ -145,7 +134,7 @@
   font-size: 12px;
   line-height: 1.25;
   box-shadow: var(--shadow-2);
-  animation: sh-tip-in 0.18s var(--ease) both;
+  animation: sh-tip-in var(--dur-2) var(--ease) both;
 }
 @keyframes sh-tip-in {
   from {
@@ -171,7 +160,7 @@
 .sh-meter__pos {
   position: absolute;
   inset: 0;
-  transition: transform 0.6s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .sh-meter__pos::after {
   content: "";
@@ -189,12 +178,12 @@
 
 /* chips that pop in */
 .sh-chip {
-  animation: pop 0.45s var(--spring) both;
+  animation: pop var(--dur-3) var(--ease) both;
 }
 
 /* checklist rows (frequently bought together) */
 .sh-check {
-  transition: transform 0.2s var(--ease), opacity 0.2s var(--ease);
+  transition: transform var(--dur-2) var(--ease), opacity var(--dur-2) var(--ease);
 }
 .sh-check[data-off="true"] {
   opacity: 0.55;
@@ -203,7 +192,7 @@
   transform: scale(0.985);
 }
 .sh-tick {
-  transition: transform 0.25s var(--spring), opacity 0.2s var(--ease);
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-2) var(--ease);
 }
 [data-off="true"] .sh-tick {
   transform: scale(0.4);
@@ -211,7 +200,7 @@
 }
 .sh-bump {
   display: inline-block;
-  animation: sh-bump 0.35s var(--spring);
+  animation: sh-bump var(--dur-3) var(--ease);
 }
 @keyframes sh-bump {
   from {
@@ -222,8 +211,7 @@
 
 /* group buy: members stack in */
 .sh-member {
-  animation: rise 0.45s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  animation: none;
 }
 /* progress fill for deadlines / funnels (scaleX) */
 .sh-bar {
@@ -238,7 +226,7 @@
   border-radius: inherit;
   background: var(--accent);
   transform-origin: left;
-  transition: transform 0.6s var(--ease);
+  transition: transform var(--dur-3) var(--ease);
 }
 /* request status pipeline */
 .sh-step[data-done="true"] .sh-step__dot {
@@ -246,5 +234,5 @@
   color: #fff;
 }
 .sh-step[data-current="true"] .sh-step__dot {
-  animation: pop 0.45s var(--spring) both;
+  animation: pop var(--dur-3) var(--ease) both;
 }

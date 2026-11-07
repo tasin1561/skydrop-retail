@@ -74,7 +74,7 @@ export function QuickAdd({ p }: { p: Product }) {
     <div className="pop mt-2 flex min-h-11 items-center justify-between rounded-xl bg-accent text-white shadow-[var(--glow)]" onClick={(e) => e.preventDefault()}>
       <button
         type="button"
-        className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-90"
+        className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-[0.98]"
         aria-label={line.qty <= 1 ? t("qa.remove", { title: p.title }) : t("qa.less")}
         onClick={() => (line.qty <= 1 ? removeFromCart(p.id) : setQty(p.id, undefined, line.qty - 1))}
       >
@@ -85,7 +85,7 @@ export function QuickAdd({ p }: { p: Product }) {
       </span>
       <button
         type="button"
-        className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-90"
+        className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-[0.98]"
         aria-label={t("qa.more")}
         onClick={() => setQty(p.id, undefined, line.qty + 1)}
       >

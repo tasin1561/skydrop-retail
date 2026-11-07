@@ -53,6 +53,9 @@ return [
 
     'bot' => [
         'distinct_products_per_minute' => 40,
+        // Browser cart lookups (POST checkout/quote, checkout/alternatives) answer prices for any product ids; a real cart
+        // repeats the same <= 50 ids, a scraper rotates them. Above this many distinct ids per minute per IP: challenge.
+        'cart_products_per_minute' => 120,
         'bad_agents' => '/python-requests|python-urllib|aiohttp|httpx|scrapy|curl\/|wget|go-http-client|okhttp\/[0-3]\.|java\/|libwww|httpclient|node-fetch|axios\/|undici|headlesschrome|phantomjs|puppeteer|playwright|selenium|zgrab|masscan|nikto|sqlmap/i',
     ],
 

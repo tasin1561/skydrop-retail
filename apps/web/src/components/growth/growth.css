@@ -14,8 +14,8 @@
   min-width: 0;
   border-radius: 999px;
   transform-origin: left center;
-  animation: gr-grow 0.7s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 120ms + 150ms);
+  animation: gr-grow var(--dur-3) var(--ease) both;
+  animation-delay: calc(min(var(--i, 0), 4) * 30ms);
 }
 .gr-dot {
   display: inline-block;
@@ -59,7 +59,7 @@
   width: 2px;
   background: var(--good);
   transform-origin: top;
-  animation: gr-grow-y 0.5s var(--ease) both;
+  animation: gr-grow-y var(--dur-3) var(--ease) both;
 }
 .gr-ring {
   position: absolute;
@@ -73,21 +73,20 @@
   pointer-events: none;
 }
 .gr-step[data-state="current"] .gr-ring {
-  animation: gr-pulse 1.8s var(--ease) infinite;
+  animation: none; /* decorative loop retired */
 }
 
 /* Link builder */
 .gr-arrow-in {
-  animation: gr-nudge 0.4s var(--spring) both;
+  animation: gr-nudge var(--dur-3) var(--ease) both;
 }
 
 /* Landing */
 .gr-float {
-  animation: gr-float 6s var(--ease-in-out) infinite;
+  animation: none; /* decorative loop retired */
 }
 .gr-step-card {
-  animation: rise 0.5s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 90ms);
+  animation: none;
 }
 
 @keyframes gr-grow {
@@ -100,32 +99,12 @@
     transform: scaleY(0);
   }
 }
-@keyframes gr-pulse {
-  0% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.45);
-  }
-}
 @keyframes gr-nudge {
   from {
     opacity: 0;
     transform: translateX(-8px);
   }
 }
-@keyframes gr-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .gr-earn > span,
   .gr-step[data-state="done"]::after,

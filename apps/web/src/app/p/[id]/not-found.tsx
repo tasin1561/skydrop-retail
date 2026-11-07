@@ -6,7 +6,7 @@ export default async function ProductNotFound() {
   const { t } = await getT();
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16 text-center">
-      <span className="pop grid h-20 w-20 place-items-center rounded-[24px] bg-[var(--accent-soft)] text-accent shadow-[var(--glow)]">
+      <span className="pop grid h-20 w-20 place-items-center rounded-[16px] bg-[var(--accent-soft)] text-accent shadow-[var(--glow)]">
         <Icon name="package" size={38} stroke={1.5} />
       </span>
       <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{t("pd.nf.title")}</h1>

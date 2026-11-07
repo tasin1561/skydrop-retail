@@ -17,10 +17,10 @@
   color: var(--accent-ink);
   font-weight: 800;
   font-size: 14px;
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 62%, #000));
-  box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--accent) 55%, transparent);
-  transition: transform 0.3s var(--spring);
-  animation: ai-pop 0.5s var(--spring) 1s both;
+  background: var(--accent);
+  box-shadow: var(--shadow-2);
+  transition: transform var(--dur-3) var(--ease);
+  animation: ai-pop var(--dur-3) var(--ease) 1s both;
 }
 .ai-launch[data-beside-support="true"] {
   right: 84px; /* support button: 16px + 56px + 12px gap */
@@ -78,7 +78,7 @@
 @keyframes ai-pop {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.85);
+    transform: translateY(4px);
   }
 }
 
@@ -88,7 +88,7 @@
   inset: 0;
   z-index: 59;
   background: rgb(8 12 24 / 0.35);
-  animation: fade 0.25s var(--ease) both;
+  animation: fade var(--dur-3) var(--ease) both;
 }
 .ai-panel {
   position: fixed;
@@ -99,7 +99,7 @@
   background: var(--bg);
   color: var(--ink);
   padding-bottom: env(safe-area-inset-bottom);
-  animation: ai-sheet 0.38s var(--ease) both;
+  animation: ai-sheet var(--dur-3) var(--ease) both;
 }
 .ai-panel[hidden] {
   display: none;
@@ -108,7 +108,7 @@
   .ai-panel {
     inset: 12px 12px 12px auto;
     width: min(440px, calc(100vw - 24px));
-    border-radius: 22px;
+    border-radius: 12px;
     border: 1px solid var(--line);
     box-shadow: var(--shadow-2);
     overflow: hidden;
@@ -147,7 +147,7 @@
   flex-shrink: 0;
   color: #fff;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--brand), var(--accent));
+  background: var(--brand);
 }
 .ai-avatar {
   width: 36px;
@@ -156,8 +156,8 @@
 .ai-orb {
   width: 64px;
   height: 64px;
-  box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 35%, transparent);
-  animation: float 4s var(--ease-in-out) infinite;
+  box-shadow: var(--shadow-1);
+  animation: none; /* decorative loop retired */
 }
 .ai-icon-btn {
   display: grid;
@@ -166,7 +166,7 @@
   height: 44px;
   border-radius: 12px;
   color: var(--ink-2);
-  transition: transform 0.2s var(--spring), opacity 0.2s;
+  transition: transform var(--dur-2) var(--ease), opacity var(--dur-2);
 }
 .ai-icon-btn:hover {
   color: var(--ink);
@@ -247,9 +247,9 @@
   font-size: 13.5px;
   font-weight: 600;
   text-align: left;
-  transition: transform 0.25s var(--spring), border-color 0.2s;
-  animation: rise 0.45s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 50ms + 120ms);
+  transition: transform var(--dur-3) var(--ease), border-color var(--dur-2);
+  animation: rise var(--dur-3) var(--ease) both;
+  animation-delay: calc(min(var(--i, 0), 4) * 30ms);
 }
 .ai-chip:hover {
   border-color: var(--accent);
@@ -265,7 +265,7 @@
 /* messages */
 .ai-msg {
   max-width: 100%;
-  animation: ai-in 0.3s var(--ease) both;
+  animation: ai-in var(--dur-3) var(--ease) both;
 }
 @keyframes ai-in {
   from {
@@ -277,7 +277,7 @@
   align-self: flex-end;
   max-width: 85%;
   padding: 9px 13px;
-  border-radius: 18px 18px 4px 18px;
+  border-radius: 12px 18px 4px 18px;
   background: var(--accent);
   color: var(--accent-ink);
   font-size: 14.5px;
@@ -294,7 +294,7 @@
 .ai-text {
   max-width: 92%;
   padding: 10px 13px;
-  border-radius: 18px 18px 18px 4px;
+  border-radius: 12px 18px 18px 4px;
   background: var(--surface);
   box-shadow: var(--shadow-1);
   font-size: 14.5px;
@@ -329,7 +329,7 @@
   gap: 4px;
   width: fit-content;
   padding: 13px 14px;
-  border-radius: 18px 18px 18px 4px;
+  border-radius: 12px 18px 18px 4px;
   background: var(--surface);
   box-shadow: var(--shadow-1);
 }
@@ -338,13 +338,13 @@
   height: 7px;
   border-radius: 99px;
   background: var(--ink-3);
-  animation: ai-dot 1s var(--ease) infinite;
+  animation: ai-dot 1.4s var(--ease) infinite;
 }
 .ai-typing i:nth-child(2) {
-  animation-delay: 0.15s;
+  animation-delay: var(--dur-2);
 }
 .ai-typing i:nth-child(3) {
-  animation-delay: 0.3s;
+  animation-delay: var(--dur-3);
 }
 @keyframes ai-dot {
   0%,
@@ -385,11 +385,11 @@
 
 /* cards */
 .ai-card-wrap {
-  animation: rise 0.4s var(--ease) both;
+  animation: rise var(--dur-3) var(--ease) both;
 }
 .ai-card {
   padding: 10px 12px;
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow-1);
 }
@@ -400,7 +400,7 @@
 }
 .ai-tap {
   min-height: 44px;
-  transition: transform 0.25s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .ai-tap:active {
   transform: scale(0.98);
@@ -421,18 +421,18 @@
   width: 158px;
   flex-shrink: 0;
   scroll-snap-align: start;
-  animation: rise 0.45s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  animation: rise var(--dur-3) var(--ease) both;
+  animation-delay: calc(min(var(--i, 0), 4) * 30ms);
 }
 .ai-prod {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow-1);
-  transition: transform 0.3s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .ai-prod:hover {
   transform: translateY(-2px);
@@ -500,10 +500,10 @@
   align-items: flex-end;
   gap: 8px;
   padding: 4px 4px 4px 14px;
-  border-radius: 24px;
+  border-radius: 16px;
   border: 1px solid var(--line);
   background: var(--bg);
-  transition: border-color 0.2s;
+  transition: border-color var(--dur-2);
 }
 .ai-input:focus-within {
   border-color: var(--accent);
@@ -529,7 +529,7 @@
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-ink);
-  transition: transform 0.25s var(--spring), opacity 0.2s;
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-2);
 }
 .ai-send:disabled {
   opacity: 0.4;
@@ -575,7 +575,7 @@
   font-weight: 700;
   color: var(--accent);
   background: var(--accent-soft);
-  transition: transform 0.25s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .ai-entry:hover {
   transform: translateY(-1px);

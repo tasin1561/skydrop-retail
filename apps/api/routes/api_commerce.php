@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Commerce\SkydropWebhookController;
 use App\Http\Controllers\Api\Commerce\SupportController;
 use App\Http\Controllers\Api\Commerce\WatchController;
 use App\Http\Controllers\Api\Commerce\WishlistController;
+use App\Http\Middleware\CartLookupGuard;
 use Illuminate\Support\Facades\Route;
 
 // ---- Auth (phone OTP) ----
@@ -20,8 +21,9 @@ Route::post('auth/otp/request', [AuthController::class, 'requestOtp'])->middlewa
 Route::post('auth/otp/verify', [AuthController::class, 'verifyOtp'])->middleware('throttle:30,1');
 
 // ---- Public commerce ----
-Route::post('checkout/quote', [CheckoutController::class, 'quote'])->middleware('throttle:120,1');
-Route::post('checkout/verify', [CheckoutController::class, 'verify'])->middleware('throttle:20,1');
+Route::post('checkout/quote', [CheckoutController::class, 'quote'])->middleware([CartLookupGuard::class, 'throttle:120,1']);
+// Live provider calls per item (Oxylabs, not capped by the daily budget): signed clients only (Next.js server / app).
+Route::post('checkout/verify', [CheckoutController::class, 'verify'])->middleware(['catalog.guard', 'throttle:20,1']);
 Route::get('products/{id}/reviews', [ReviewController::class, 'index'])->middleware('feature:reviews');
 
 // ---- Webhooks & payment pages ----

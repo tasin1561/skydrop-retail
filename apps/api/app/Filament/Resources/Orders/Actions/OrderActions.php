@@ -6,6 +6,7 @@ use App\Filament\Support\Admin;
 use App\Filament\Support\Ops;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\Finance\CsvExport;
 use App\Services\Fulfilment\HubService;
 use App\Services\Money\WalletPayments;
 use App\Support\Features;
@@ -273,11 +274,11 @@ class OrderActions
             $out = fopen('php://output', 'w');
             fputcsv($out, ['order_id', 'created_at', 'status', 'customer', 'phone', 'district', 'payment_method', 'payment_status', 'items', 'markets', 'subtotal_bdt', 'shipping_bdt', 'discount_bdt', 'total_bdt', 'paid_bdt', 'tracking_code']);
             foreach ($records as $o) {
-                fputcsv($out, [
+                fputcsv($out, array_map(fn ($v) => CsvExport::safe($v), [
                     $o->id, $o->created_at?->toDateTimeString(), $o->status, $o->user?->name ?? ($o->address['name'] ?? ''), $o->user?->phone ?? ($o->address['phone'] ?? ''),
                     $o->address['district'] ?? '', $o->payment_method, $o->payment_status, $o->items->sum('qty'), $o->items->pluck('market')->unique()->implode('+'),
                     $o->subtotal_bdt, $o->shipping_bdt, $o->discount_bdt, $o->total_bdt, $o->paid_bdt, $o->tracking_code,
-                ]);
+                ]));
             }
             fclose($out);
         }, 'skydrop-orders-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);

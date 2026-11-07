@@ -66,7 +66,7 @@ export function HomeSkeleton() {
   return (
     <Shell label="skel.store" className="mx-auto max-w-7xl pt-3 sm:px-4">
       <div className="px-4 sm:px-0">
-        <B c="h-[300px] rounded-[28px] sm:h-[360px]" />
+        <B c="h-[300px] rounded-[16px] sm:h-[360px]" />
       </div>
       <div className="mt-4 flex gap-2 overflow-hidden px-4 sm:px-0">
         {[0, 1, 2, 3, 4, 5, 6].map((i) => (
@@ -74,7 +74,7 @@ export function HomeSkeleton() {
         ))}
       </div>
       <div className="mt-6 px-4 sm:px-0">
-        <B c="h-48 rounded-[24px]" />
+        <B c="h-48 rounded-[16px]" />
       </div>
       <RailSk />
       <RailSk />
@@ -86,7 +86,7 @@ export function StoreSkeleton() {
   return (
     <Shell label="skel.store" className="mx-auto max-w-7xl pt-3 sm:px-4">
       <div className="px-4 sm:px-0">
-        <B c="h-[260px] rounded-[28px] sm:h-[320px]" />
+        <B c="h-[260px] rounded-[16px] sm:h-[320px]" />
       </div>
       <div className="mt-4 flex gap-2 overflow-hidden px-4 sm:px-0">
         {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -114,8 +114,8 @@ export function SearchSkeleton() {
       </div>
       <div className="flex gap-6">
         <div className="hidden w-60 shrink-0 space-y-3 lg:block">
-          <B c="h-64 rounded-[20px]" />
-          <B c="h-40 rounded-[20px]" />
+          <B c="h-64 rounded-[12px]" />
+          <B c="h-40 rounded-[12px]" />
         </div>
         <div className="min-w-0 flex-1">
           <GridSk />
@@ -135,10 +135,10 @@ export function ProductSkeleton() {
         <div className="lg:flex lg:gap-4">
           <div className="hidden w-16 shrink-0 flex-col gap-2 lg:flex">
             {[0, 1, 2, 3, 4].map((i) => (
-              <B key={i} c="h-16 w-16 rounded-[14px]" />
+              <B key={i} c="h-16 w-16 rounded-[10px]" />
             ))}
           </div>
-          <B c="aspect-square flex-1 lg:rounded-[20px]" />
+          <B c="aspect-square flex-1 lg:rounded-[12px]" />
         </div>
         <div className="space-y-3 px-4 pt-5 sm:px-0 lg:pt-0">
           <B c="h-5 w-32 rounded-full" />
@@ -151,7 +151,7 @@ export function ProductSkeleton() {
             <B c="h-[52px] rounded-full" />
             <B c="h-[52px] rounded-full" />
           </div>
-          <B c="mt-3 h-40 rounded-[16px]" />
+          <B c="mt-3 h-40 rounded-[12px]" />
         </div>
       </div>
     </Shell>
@@ -170,12 +170,12 @@ export function AccountSkeleton() {
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <B key={i} c="h-24 rounded-[20px]" />
+          <B key={i} c="h-24 rounded-[12px]" />
         ))}
       </div>
       <div className="mt-5 space-y-3">
         {[0, 1, 2, 3, 4].map((i) => (
-          <B key={i} c="h-16 rounded-[18px]" />
+          <B key={i} c="h-16 rounded-[12px]" />
         ))}
       </div>
     </Shell>
@@ -195,7 +195,7 @@ export function OrdersSkeleton() {
       <B c="mt-5 h-11 rounded-full" />
       <div className="mt-4 space-y-3">
         {[0, 1, 2].map((i) => (
-          <B key={i} c="h-40 rounded-[18px]" />
+          <B key={i} c="h-40 rounded-[12px]" />
         ))}
       </div>
     </Shell>
@@ -208,8 +208,8 @@ export function PageSkeleton() {
       <B c="h-8 w-48 rounded-xl" />
       <B c="mt-3 h-4 w-72 max-w-full rounded-md" />
       <div className="mt-6 grid gap-4 md:grid-cols-[1fr_340px]">
-        <B c="h-64 rounded-[20px]" />
-        <B c="hidden h-64 rounded-[20px] md:block" />
+        <B c="h-64 rounded-[12px]" />
+        <B c="hidden h-64 rounded-[12px] md:block" />
       </div>
     </Shell>
   );

@@ -24,8 +24,8 @@
   height: 6px;
   border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 45%, transparent);
-  transition: transform 0.18s var(--ease);
+  box-shadow: var(--glow);
+  transition: transform var(--dur-2) var(--ease);
   will-change: transform;
 }
 
@@ -36,15 +36,15 @@
   top: 0;
   width: 64px;
   height: 64px;
-  border-radius: 14px;
-  box-shadow: 0 0 0 2px var(--accent), var(--glow);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--accent);
   pointer-events: none;
-  transition: transform 0.35s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 
 /* ---------- crossfade for the main image ---------- */
 .pd-fade {
-  animation: pd-fade 0.3s var(--ease) both;
+  animation: pd-fade var(--dur-3) var(--ease) both;
 }
 @keyframes pd-fade {
   from {
@@ -55,13 +55,13 @@
 
 /* ---------- fullscreen viewer ---------- */
 .pd-backdrop {
-  animation: pd-fade-only 0.25s var(--ease) both;
+  animation: pd-fade-only var(--dur-3) var(--ease) both;
 }
 .pd-viewer[data-closing="true"] .pd-backdrop {
-  animation: pd-fade-out 0.22s var(--ease) both;
+  animation: pd-fade-out var(--dur-3) var(--ease) both;
 }
 .pd-viewer[data-closing="true"] .pd-panel {
-  animation: pd-sheet-out 0.22s var(--ease) both;
+  animation: pd-sheet-out var(--dur-3) var(--ease) both;
 }
 @keyframes pd-fade-only {
   from {
@@ -80,7 +80,7 @@
   }
 }
 .pd-zoomable {
-  transition: transform 0.3s var(--ease);
+  transition: transform var(--dur-3) var(--ease);
   cursor: zoom-in;
 }
 .pd-zoomable[data-zoom="true"] {
@@ -96,11 +96,11 @@
   color: #fff;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
   backdrop-filter: blur(6px);
-  transition: transform 0.25s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .group:hover .pd-play,
 .group:focus-visible .pd-play {
-  transform: scale(1.08);
+  transform: scale(1.04);
 }
 
 /* ---------- spinner ---------- */
@@ -118,7 +118,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--accent-soft);
   box-shadow: 0 0 0 2px var(--accent), 0 6px 18px color-mix(in srgb, var(--accent) 22%, transparent);
   pointer-events: none;
@@ -126,7 +126,7 @@
 }
 .pd-var-ind[data-ready="true"] {
   opacity: 1;
-  transition: transform 0.38s var(--spring), opacity 0.2s;
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-2);
 }
 .pd-var-ind.is-swatch {
   background: transparent;
@@ -134,10 +134,10 @@
 
 /* ---------- quantity number roll ---------- */
 .pd-num-up {
-  animation: pd-num-up 0.28s var(--ease) both;
+  animation: pd-num-up var(--dur-3) var(--ease) both;
 }
 .pd-num-down {
-  animation: pd-num-down 0.28s var(--ease) both;
+  animation: pd-num-down var(--dur-3) var(--ease) both;
 }
 @keyframes pd-num-up {
   from {
@@ -156,7 +156,7 @@
 .pd-sticky {
   transform: translateY(calc(100% + 72px));
   opacity: 0;
-  transition: transform 0.4s var(--ease), opacity 0.3s;
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-3);
 }
 .pd-sticky[data-show="true"] {
   transform: translateY(0);
@@ -168,7 +168,7 @@
   transform-origin: left center;
   transform: scaleX(0);
   transition: transform 0.9s var(--ease);
-  transition-delay: calc(var(--i, 0) * 90ms);
+  transition-delay: calc(min(var(--i, 0), 4) * 30ms);
 }
 [data-in="true"] .pd-bar-fill {
   transform: scaleX(var(--p, 0));
@@ -182,19 +182,5 @@
   opacity: 0.45;
 }
 .pd-route-plane {
-  animation: pd-plane 3.2s var(--ease) infinite;
-}
-@keyframes pd-plane {
-  0% {
-    transform: translateX(-10px);
-    opacity: 0;
-  }
-  20%,
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(10px);
-    opacity: 0;
-  }
+  animation: none; /* decorative loop retired */
 }

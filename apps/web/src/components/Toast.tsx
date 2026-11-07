@@ -141,7 +141,7 @@ function ToastItem({ t, onGone }: { t: Toast; onGone: (id: number) => void }) {
       <div className="flex items-start gap-3">
         <span
           className="pop grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white"
-          style={{ background: `linear-gradient(135deg, ${tone}, color-mix(in srgb, ${tone} 70%, var(--accent-2)))`, boxShadow: `0 6px 16px -4px color-mix(in srgb, ${tone} 55%, transparent)` }}
+          style={{ background: tone }}
         >
           <Icon name={t.icon ?? ICON[t.kind]} size={18} stroke={2.4} fill={t.icon === "heart" ? "currentColor" : "none"} />
         </span>

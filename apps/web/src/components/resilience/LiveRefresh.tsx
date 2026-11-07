@@ -25,7 +25,7 @@ export function LiveRefresh({ jobId, source }: { jobId: string; source: string }
     <div
       role="status"
       aria-live="polite"
-      className="fade-in fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-ink/90 px-4 py-2 text-xs font-semibold text-white shadow-lg md:bottom-6"
+      className="fade-in fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-ink/90 px-4 py-2 text-xs font-semibold text-white shadow-[var(--shadow-1)] md:bottom-6"
     >
       <span className="live-dot" aria-hidden="true" />
       {state === "done" ? t("lr.updated") : t("lr.checking", { source })}

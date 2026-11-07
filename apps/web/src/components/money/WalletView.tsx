@@ -69,8 +69,8 @@ export function WalletView({ redeem }: { redeem?: boolean }) {
       </Link>
 
       <section
-        className="rise relative overflow-hidden rounded-[20px] p-5 text-white shadow-[var(--glow)]"
-        style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
+        className="rise relative overflow-hidden rounded-[12px] p-5 text-white shadow-[var(--glow)]"
+        style={{ background: "linear-gradient(135deg, var(--hero-a) 0%, var(--hero-a) 55%, color-mix(in srgb, var(--hero-a) 72%, var(--hero-b)) 100%)" }}
         aria-labelledby="wallet-h"
       >
         <div aria-hidden className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />

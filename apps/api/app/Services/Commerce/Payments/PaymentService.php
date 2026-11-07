@@ -4,6 +4,7 @@ namespace App\Services\Commerce\Payments;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\Notifier;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\Fraud\FraudGate;
@@ -24,6 +25,11 @@ class PaymentService
     public function gateway(string $name): Gateway
     {
         if (config('retail.payments.mode', 'mock') === 'mock' || $name === 'mock') {
+            // Security: the mock gateway lets the shopper press "Pay" without paying. Never in production unless explicitly allowed.
+            if (! self::mockAllowed()) {
+                throw new CommerceException('Online payment is not available right now. Please try again later.', 503, [], 'payments_unavailable');
+            }
+
             return new MockGateway($name);
         }
 
@@ -33,6 +39,11 @@ class PaymentService
             'card', 'sslcommerz', 'card_emi' => app(SslCommerzGateway::class), // card_emi: SSLCommerz with emi_option=1
             default => throw new \InvalidArgumentException("Unknown payment gateway {$name}"),
         };
+    }
+
+    public static function mockAllowed(): bool
+    {
+        return ! app()->isProduction() || (bool) config('retail.payments.allow_mock', false);
     }
 
     /** Amount to collect online now. */

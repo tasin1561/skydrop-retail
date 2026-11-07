@@ -21,7 +21,7 @@ class PaymentController extends Controller
     /** Mock checkout page (PAYMENTS_MODE=mock). Signed URL. */
     public function mockShow(Request $request, Payment $payment): Response
     {
-        abort_unless(config('retail.payments.mode') === 'mock', 404);
+        abort_unless(config('retail.payments.mode') === 'mock' && PaymentService::mockAllowed(), 404);
         $order = Order::query()->findOrFail($payment->order_id);
         $action = url('/api/v1/webhooks/payments/'.$payment->gateway).'?payment='.$payment->id.'&return=1';
 

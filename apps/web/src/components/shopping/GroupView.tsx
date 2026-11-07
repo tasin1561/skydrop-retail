@@ -100,7 +100,7 @@ export function GroupView({ code }: { code: string }) {
   return (
     <div data-store={g.market} className="flex flex-col gap-4">
       <header className="card overflow-hidden">
-        <div className="bg-[linear-gradient(135deg,var(--hero-a),var(--hero-b))] px-5 py-6 text-white">
+        <div className="bg-[var(--hero-a)] px-5 py-6 text-white">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
             <Icon name={store.icon} size={14} /> {t("grp.groupBuyStore", { store: store.name })}
           </p>

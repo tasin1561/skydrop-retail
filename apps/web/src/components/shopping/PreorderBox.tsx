@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { apiEnabled, ApiError } from "@/lib/apiClient";
+import { apiEnabled, ApiError, goToPayment } from "@/lib/apiClient";
 import { placePreorder, preorderInfo, type HistoryInput } from "@/lib/shopping/client";
 import type { PreorderInfo } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";
@@ -80,7 +80,7 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
         payment: pay,
         returnUrl: `${window.location.origin}/checkout/success`,
       });
-      if (r.payment.redirectUrl) window.location.href = r.payment.redirectUrl;
+      if (r.payment.redirectUrl) goToPayment(r.payment.redirectUrl);
       else router.push(`/orders/${r.order.id}`);
     } catch (e) {
       toast({ kind: "error", title: t("po.failed"), body: e instanceof ApiError ? e.message : t("common.pleaseRetry") });

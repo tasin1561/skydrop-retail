@@ -394,10 +394,18 @@ class CatalogService
     public function verify(array $items): array
     {
         $results = [];
+        $seen = []; // one live fetch per product id per request (the same id repeated must not multiply provider calls)
         foreach ($items as $item) {
             $id = (string) ($item['productId'] ?? $item['product_id'] ?? '');
             $unit = (int) round((float) ($item['unitBdt'] ?? $item['unit_bdt'] ?? 0));
-            $results[] = $this->verifyOne($id, $unit);
+            if (isset($seen[$id])) {
+                $r = $seen[$id];
+                $r['changed'] = $unit > 0 && isset($r['freshBdt']) && $r['freshBdt'] !== $unit;
+                $results[] = $r;
+
+                continue;
+            }
+            $results[] = $seen[$id] = $this->verifyOne($id, $unit);
         }
 
         return ['ok' => collect($results)->every(fn ($r) => $r['ok']), 'checkedAt' => now()->toIso8601String(), 'results' => $results];

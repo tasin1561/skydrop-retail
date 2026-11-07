@@ -57,7 +57,7 @@ export default async function SharedWishlistPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 md:pb-12">
       <section
-        className="rise relative mb-6 overflow-hidden rounded-[20px] p-5 text-white shadow-[var(--glow)] sm:p-7"
+        className="rise relative mb-6 overflow-hidden rounded-[12px] p-5 text-white shadow-[var(--glow)] sm:p-7"
         style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
       >
         <div aria-hidden className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />

@@ -1,5 +1,7 @@
 // Server-only helpers for the /api/assistant/* route handlers: forward to the Laravel API with the shopper's
 // bearer token, the internal key and the shopper's IP, so the API origin and key never reach the browser.
+import { clientIp } from "@/lib/clientIp";
+
 export const ASSISTANT_API = process.env.API_URL?.replace(/\/$/, "") ?? "";
 
 export function upstreamHeaders(req: Request, json = true): Record<string, string> {
@@ -9,7 +11,7 @@ export function upstreamHeaders(req: Request, json = true): Record<string, strin
   if (auth && /^Bearer [\w|.-]+$/.test(auth)) h.Authorization = auth;
   if (process.env.INTERNAL_API_KEY) {
     h["X-Internal-Key"] = process.env.INTERNAL_API_KEY;
-    const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("x-real-ip") || "";
+    const ip = clientIp(req.headers);
     if (ip) h["X-Client-IP"] = ip;
   }
   return h;

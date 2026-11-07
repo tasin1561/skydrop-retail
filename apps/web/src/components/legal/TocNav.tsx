@@ -39,7 +39,7 @@ export function TocNav({ items }: { items: { id: string; title: string }[] }) {
         className="card flex min-h-12 w-full items-center justify-between px-4 text-sm font-bold lg:hidden"
       >
         {t("toc.label")}
-        <Icon name="chevron" size={18} className={"transition-transform duration-300 " + (open ? "rotate-180" : "")} />
+        <Icon name="chevron" size={18} className={"transition-transform duration-200 " + (open ? "rotate-180" : "")} />
       </button>
       <div className="acc lg:!block" data-open={open}>
         <div className="acc-body lg:!block">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Security\ClientIdentity;
 use App\Support\AdminSecurity;
 use App\Support\Limits;
 use Closure;
@@ -17,7 +18,7 @@ class AdminGuard
     public function handle(Request $request, Closure $next): Response
     {
         $allow = AdminSecurity::allowlist();
-        if ($allow && ! IpUtils::checkIp((string) $request->ip(), $allow)) {
+        if ($allow && ! IpUtils::checkIp(ClientIdentity::ip($request), $allow)) { // real client IP behind Cloudflare (TRUST_CF_CONNECTING_IP)
             abort(403, 'The admin panel is not available from this network.');
         }
 

@@ -13,7 +13,6 @@ import { headlineDeal } from "./offers/offerMeta";
 import { CardNotices } from "./cms/CardNotices";
 import { PriceInsightChip } from "./shopping/PriceInsightChip";
 import { FxImg, HoverImage } from "./motion/FxImg";
-import { CountUp } from "./motion/CountUp";
 
 export function ProductImage({
   p,
@@ -68,8 +67,7 @@ export function OriginTag({ market, compact }: { market: MarketId; compact?: boo
   return (
     <span
       data-store={market}
-      className="inline-flex w-fit items-center gap-1 self-start rounded-full px-2 py-0.5 text-[11px] font-semibold"
-      style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+      className="inline-flex w-fit items-center gap-1 self-start text-[11px] font-medium text-ink-3"
       title={t("card.boughtFrom", { source: STORES[market].source })}
     >
       <Icon name="pin" size={12} stroke={2} />
@@ -78,22 +76,36 @@ export function OriginTag({ market, compact }: { market: MarketId; compact?: boo
   );
 }
 
+/** Price block that reads instantly: current price, struck MRP, % off (and savings on the big variant). */
 export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
   const d = discountPct(p);
   const { t, bdt } = useT();
+  const save = mrpBdt(p) - priceBdt(p);
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2">
-      <span className={(big ? "text-3xl" : "text-lg") + " font-extrabold tracking-tight text-ink"}>
-        {big ? <CountUp value={priceBdt(p)} /> : bdt(priceBdt(p))}
-      </span>
-      {d > 0 && (
-        <>
-          <span className={(big ? "text-base" : "text-xs") + " text-ink-3 line-through"}>{bdt(mrpBdt(p))}</span>
-          <span className={(big ? "text-base" : "text-xs") + " font-bold text-good"}>{t("card.off", { pct: d })}</span>
-        </>
-      )}
+    <div className="tabular-nums">
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <span className={(big ? "text-3xl" : "text-lg") + " font-bold tracking-tight text-ink"}>{bdt(priceBdt(p))}</span>
+        {d > 0 && (
+          <>
+            <span className={(big ? "text-base" : "text-xs") + " text-ink-3 line-through"}>{bdt(mrpBdt(p))}</span>
+            <span className={(big ? "text-base" : "text-xs") + " font-semibold text-good"}>{t("card.off", { pct: d })}</span>
+          </>
+        )}
+      </div>
+      {big && d > 0 && save > 0 && <p className="mt-0.5 text-sm font-medium text-good">{t("card.save", { amount: bdt(save) })}</p>}
     </div>
   );
+}
+
+/** Mega Store cards lead with a couple of short specs when the listing carries them. */
+function keySpecs(p: Product): string[] {
+  const out: string[] = [];
+  for (const [k, v] of Object.entries(p.specs ?? {})) {
+    if (!v || v.length > 22 || /brand|manufacturer|asin|model|rank|review|date|country|weight|dimension/i.test(k)) continue;
+    out.push(v);
+    if (out.length === 2) break;
+  }
+  return out;
 }
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
@@ -105,38 +117,38 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const fashion = p.market === "flipkart";
   const grocery = p.market === "bigbasket";
   const sizes = fashion ? (p.variants ?? []).map((v) => v.label).filter(Boolean).slice(0, 4) : [];
+  const specs = !fashion && !grocery ? keySpecs(p) : [];
   return (
     <article
       data-store={p.market}
-      data-reveal=""
-      suppressHydrationWarning
-      className="mo-press group relative flex flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-1 hover:shadow-[var(--shadow-2)]"
-      style={{ ["--i" as string]: i % 12 }}
+      data-i={i}
+      className="mo-press group relative flex flex-col overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
     >
       <Link href={`/p/${p.id}`} className="flex flex-1 flex-col" prefetch={false}>
         <div className={"mo-media overflow-hidden bg-white " + (fashion ? "aspect-[4/5] p-2" : grocery ? "aspect-[5/4] p-3" : "aspect-square p-3")}>
-          <ProductImage p={p} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]" />
+          <ProductImage p={p} className="h-full w-full" />
           {p.images?.[1] && p.images[1] !== p.image && <HoverImage src={p.images[1]} />}
           {discountPct(p) >= 10 && (
-            <span className="absolute left-2 top-2 rounded-full bg-brand-2 px-2 py-0.5 text-[11px] font-bold text-white shadow">
+            <span className="absolute left-2 top-2 rounded bg-bad px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-white">
               -{digits(discountPct(p))}%
             </span>
           )}
           {p.bestSeller && !fashion && (
-            <span className="absolute bottom-2 left-2 rounded-md bg-ink/85 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            <span className="absolute bottom-2 left-2 rounded bg-ink px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bg">
               {t("card.bestSeller")}
             </span>
           )}
         </div>
         <div className="flex flex-1 flex-col gap-1.5 p-3">
           <OriginTag market={p.market} compact />
-          {fashion && p.brand && <p className="text-[11px] font-extrabold uppercase tracking-wider text-ink-2">{p.brand}</p>}
+          {fashion && p.brand && <p className="text-[11px] font-semibold uppercase tracking-wide text-ink">{p.brand}</p>}
           <h3 className={"line-clamp-2 leading-snug text-ink " + (fashion ? "text-[13px] font-normal" : "text-[13px] font-medium sm:text-sm")}>{p.title}</h3>
-          {grocery && p.weight && <p className="w-fit rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-2">{p.weight}</p>}
+          {grocery && p.weight && <p className="w-fit rounded border border-line px-1.5 py-0.5 text-[11px] font-medium text-ink-2">{p.weight}</p>}
+          {specs.length > 0 && <p className="truncate text-[11px] text-ink-2">{specs.join(" · ")}</p>}
           {sizes.length > 0 && (
             <div className="flex flex-wrap gap-1" aria-label={t("card.sizes")}>
               {sizes.map((s) => (
-                <span key={s} className="rounded-md border border-line px-1.5 py-0.5 text-[10px] font-semibold text-ink-2">
+                <span key={s} className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-2">
                   {s}
                 </span>
               ))}
@@ -146,7 +158,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <CardNotices p={p} />
           <PriceInsightChip p={p} />
           {deal && (
-            <span className="inline-flex w-fit items-center gap-1 rounded-md bg-bad px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+            <span className="inline-flex w-fit items-center gap-1 rounded bg-[color-mix(in_srgb,var(--bad)_10%,transparent)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bad">
               <Icon name="bolt" size={11} stroke={2.4} /> {deal.label}
               {deal.endsAt && (
                 <>
@@ -159,15 +171,15 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <div className="mt-auto pt-1">
             <PriceLine p={p} />
             {p.couponInr ? (
-              <p className="mt-0.5 text-[11px] font-bold text-good">{t("card.couponApplied", { amount: inr(p.couponInr) })}</p>
+              <p className="mt-0.5 text-[11px] font-semibold text-good">{t("card.couponApplied", { amount: inr(p.couponInr) })}</p>
             ) : offerCount > 0 ? (
-              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-bold text-accent">
+              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-ink-2">
                 <Icon name="tag" size={12} stroke={2.2} /> {t("card.offers", { count: offerCount })}
               </p>
             ) : null}
             {p.market === "amazon" && p.salesVolume && (
-              <p className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--brand-2)_12%,transparent)] px-2 py-0.5 text-[11px] font-semibold text-ink">
-                <Icon name="bolt" size={11} stroke={2.4} className="text-brand-2" /> {p.salesVolume}
+              <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-ink-2">
+                <Icon name="bolt" size={11} stroke={2.2} className="text-ink-3" /> {p.salesVolume}
               </p>
             )}
             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-2">
@@ -190,7 +202,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
 
 export function ProductGrid({ items }: { items: Product[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
       {items.map((p, i) => (
         <ProductCard key={p.id} p={p} i={i} />
       ))}
@@ -205,12 +217,12 @@ export function Rail({ title, href, items, note }: { title: string; href?: strin
     <section className="mt-8">
       <div className="mb-3 flex items-end justify-between gap-3 px-4 sm:px-0">
         <div>
-          <h2 className="text-lg font-extrabold tracking-tight sm:text-xl">{title}</h2>
+          <h2 className="text-lg font-bold tracking-tight sm:text-xl">{title}</h2>
           {note && <p className="text-xs text-ink-2 sm:text-sm">{note}</p>}
         </div>
         {href && (
           <Link href={href} className="group -my-3 -mr-2 inline-flex min-h-11 shrink-0 items-center gap-1 px-2 text-sm font-semibold text-accent">
-            {t("card.seeAll")} <Icon name="right" size={16} className="transition-transform group-hover:translate-x-0.5" />
+            {t("card.seeAll")} <Icon name="right" size={16} />
           </Link>
         )}
       </div>

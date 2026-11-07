@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { STORES, storeText } from "@/lib/markets";
 import { useT } from "@/i18n/client";
 import type { MarketId, StoreMode } from "@/lib/types";
@@ -10,28 +10,19 @@ import { Icon } from "../Icon";
 
 type Scene = { mode: StoreMode; images: (string | null)[] };
 
-// Scene switcher hero: a thumbnail rail swaps the big visual, title and tint together.
+// Scene switcher hero: store tabs swap the visual, title and tint together. Manual only (no auto-rotate).
 export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean }) {
   const { enabled } = useStore();
   const { t } = useT();
   const list = scenes.filter((s) => s.mode === "all" || enabled[s.mode as MarketId]);
   const [idx, setIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
   const scene = list[Math.min(idx, list.length - 1)] ?? scenes[0];
   const info = storeText(scene.mode, t);
-
-  useEffect(() => {
-    if (fixed || paused || list.length < 2) return;
-    const t = setInterval(() => setIdx((i) => (i + 1) % list.length), 5200);
-    return () => clearInterval(t);
-  }, [fixed, paused, list.length]);
 
   return (
     <section
       data-store={scene.mode}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      className="relative mx-4 overflow-hidden rounded-[28px] text-white shadow-[var(--shadow-2)] sm:mx-0"
+      className="relative mx-4 overflow-hidden rounded-[16px] text-white sm:mx-0"
     >
       {/* pre-painted tint layers cross-faded with opacity */}
       {list.map((s) => (
@@ -39,32 +30,25 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
           key={s.mode}
           data-store={s.mode}
           aria-hidden
-          className="absolute inset-0 transition-opacity duration-700"
+          className="absolute inset-0 transition-opacity duration-200"
           style={{
             opacity: s.mode === scene.mode ? 1 : 0,
-            background: "radial-gradient(120% 120% at 100% 0%, var(--hero-b), var(--hero-a) 55%, color-mix(in srgb, var(--hero-a) 70%, black))",
+            // flat, deep store tint with a restrained accent edge (no blobs, no glow)
+            background: "linear-gradient(135deg, var(--hero-a) 0%, var(--hero-a) 55%, color-mix(in srgb, var(--hero-a) 72%, var(--hero-b)) 100%)",
           }}
         />
       ))}
-      <div aria-hidden className="absolute -right-10 -top-16 h-64 w-64 rounded-full bg-white/10" />
-      <div aria-hidden className="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5" />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -bottom-6 right-2 select-none text-[22vw] font-black leading-none text-white/[0.07] sm:text-[140px]"
-      >
-        {info.short.toUpperCase()}
-      </span>
 
       <div className="relative grid gap-6 p-5 sm:p-8 md:grid-cols-[1.15fr_1fr] md:items-center lg:p-10">
         <div key={scene.mode} className="fade-in">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white/90">
             <Icon name={info.icon} size={14} stroke={2} />
             {scene.mode === "all" ? "Skydrop Retail" : t("hero.sourced", { store: info.name, source: info.source })}
           </span>
-          <h1 className="mt-3 text-[26px] font-extrabold leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">{info.heroTitle}</h1>
+          <h1 className="mt-3 text-[26px] font-bold leading-[1.15] tracking-tight sm:text-4xl lg:text-[44px]">{info.heroTitle}</h1>
           <p className="mt-3 max-w-md text-sm text-white/85 sm:text-base">{info.heroText}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href={scene.mode === "all" ? "/search?q=&store=all" : `/store/${scene.mode}`} className="btn bg-white text-[color:var(--hero-a)] shadow-lg">
+            <Link href={scene.mode === "all" ? "/search?q=&store=all" : `/store/${scene.mode}`} className="btn bg-white text-[color:var(--hero-a)] hover:bg-white/90">
               {scene.mode === "all" ? t("hero.start") : t("hero.shop", { store: info.name })} <Icon name="arrow" size={18} className="arrow" />
             </Link>
             <Link href="/how-it-works" className="btn border border-white/40 text-white hover:bg-white/10">
@@ -72,13 +56,12 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
 </Link>
           </div>
           {/* phones: a small fanned stack in its own row, clipped tiles, so nothing overlaps the copy */}
-          <div className="mt-6 flex items-center pl-1 md:hidden" aria-hidden>
+          <div className="mt-6 flex items-center gap-2 md:hidden" aria-hidden>
             {scene.images.slice(0, 3).map((src, i) =>
               src ? (
                 <span
                   key={i}
-                  className="-ml-3 grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-[18px] bg-white p-2 shadow-[0_10px_24px_-8px_rgb(0_0_0/0.45)] ring-2 ring-white/20 first:ml-0"
-                  style={{ rotate: `${[-6, 0, 6][i]}deg`, translate: `0 ${[4, -2, 4][i]}px`, zIndex: i === 1 ? 2 : 1 }}
+                  className="grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-[10px] bg-white p-2 ring-1 ring-white/15"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="max-h-full max-w-full object-contain" />
@@ -100,13 +83,12 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
           {scene.images.slice(0, 3).map((src, i) => (
             <div
               key={i}
-              className="float absolute grid place-items-center overflow-hidden rounded-3xl bg-white p-3 shadow-2xl"
+              className="absolute grid place-items-center overflow-hidden rounded-2xl bg-white p-3 ring-1 ring-white/10"
               style={{
                 width: i === 0 ? "52%" : "36%",
                 aspectRatio: "1",
                 left: ["24%", "0%", "62%"][i],
                 top: ["4%", "40%", "46%"][i],
-                animationDelay: `${i * 0.8}s`,
                 zIndex: i === 0 ? 2 : 1,
               }}
             >

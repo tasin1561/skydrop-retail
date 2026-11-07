@@ -8,7 +8,7 @@ import { ProductImage } from "@/components/ProductBits";
 import { STORES } from "@/lib/markets";
 import type { CartItem, Order } from "@/lib/types";
 import { useStore } from "@/state/store";
-import { api, apiEnabled, ApiError, type PriceChange } from "@/lib/apiClient";
+import { api, apiEnabled, ApiError, goToPayment, type PriceChange } from "@/lib/apiClient";
 import { getRef } from "@/lib/growth";
 import { trackCheckout } from "@/lib/track";
 import { demoLedger, maxRedeem } from "@/lib/points";
@@ -175,9 +175,9 @@ export function CheckoutView() {
         setPlaced(res.order);
         placeOrder(res.order);
         setPhase("done");
-        await wait(900);
+        await wait(500); // let the drawn check land
         setCoupon("");
-        if (res.payment.redirectUrl) window.location.assign(res.payment.redirectUrl);
+        if (res.payment.redirectUrl) goToPayment(res.payment.redirectUrl);
         else if (alive.current) router.push(`/checkout/success?order=${res.order.id}`);
       } catch (err) {
         if (!alive.current) return;
@@ -227,7 +227,7 @@ export function CheckoutView() {
     setPlaced(order);
     placeOrder(order);
     setPhase("done");
-    await wait(900); // let the van drive off
+    await wait(500); // let the drawn check land
     // Coupon is used up; clear it only after leaving so the totals on screen don't jump mid-animation.
     if (alive.current) router.push(`/checkout/success?order=${order.id}`);
     setCoupon("");
@@ -644,7 +644,7 @@ function CheckoutSkeleton() {
             <div key={i} className="skeleton h-24 rounded-2xl" />
           ))}
         </div>
-        <div className="skeleton hidden h-80 rounded-[20px] md:block" />
+        <div className="skeleton hidden h-80 rounded-[12px] md:block" />
       </div>
     </div>
   );

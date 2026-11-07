@@ -2,7 +2,7 @@
 
 import { CountUp } from "./CountUp";
 
-/** "You saved ৳X" celebration chip. Shows only when a real discount applies to this cart. */
+/** "You saved ৳X" chip. Shows only when a real discount applies to this cart. */
 export function SavedChip({ amount }: { amount: number }) {
   if (amount <= 0) return null;
   return (
@@ -13,7 +13,6 @@ export function SavedChip({ amount }: { amount: number }) {
       <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
         <circle cx="12" cy="12" r="11" fill="currentColor" opacity=".16" />
         <path d="M7 12.5l3 3 7-7.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        <path className="mo-spark" d="M19 2.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z" fill="var(--brand-2)" />
       </svg>
       You saved <CountUp value={amount} />
     </p>

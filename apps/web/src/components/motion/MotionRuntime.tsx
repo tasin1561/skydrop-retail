@@ -6,9 +6,8 @@ import { bumpCart, isFlying } from "./flyToCart";
 
 /**
  * One tiny runtime for the whole storefront (mounted once in the root layout):
- *  - [data-reveal]: reveals once when it scrolls into view. Elements already on screen when the runtime
- *    starts are marked "instant" so nothing above the fold flickers. Children of [data-reveal="stagger"]
- *    use their own --i; single elements revealed in the same frame get a batch index (--ri).
+ *  - [data-reveal]: marked data-revealed when it scrolls into view. The calm motion system draws no
+ *    scroll-reveal animation any more (content is always visible); the marker is kept for hooks/tests.
  *  - [data-loop]: CSS loops (shimmers, illustrations) pause while off-screen.
  *  - cart count going up bumps every [data-cart-target] (unless a fly-to-cart parcel will land and do it).
  * Server components opt in with plain data attributes; no client wrapper needed.

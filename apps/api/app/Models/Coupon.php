@@ -18,6 +18,15 @@ class Coupon extends Model
         ];
     }
 
+    /** Atomically uses one redemption: false when the coupon is inactive, expired or has no uses left. */
+    public static function claim(int $id): bool
+    {
+        return static::query()->whereKey($id)->where('active', true)
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->where(fn ($q) => $q->whereNull('max_uses')->orWhereColumn('used', '<', 'max_uses'))
+            ->increment('used') === 1;
+    }
+
     public function usable(): bool
     {
         return $this->active

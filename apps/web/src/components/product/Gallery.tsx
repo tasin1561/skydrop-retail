@@ -87,7 +87,7 @@ export function Gallery({
                     }
                   }}
                   className={
-                    "group relative h-16 w-16 shrink-0 overflow-hidden rounded-[14px] bg-white shadow-[var(--shadow-1)] transition duration-200 hover:-translate-y-0.5 active:scale-95 " +
+                    "group relative h-16 w-16 shrink-0 overflow-hidden rounded-[10px] bg-white shadow-[var(--shadow-1)] transition duration-200 hover:-translate-y-0.5 active:scale-[0.98] " +
                     (i === idx ? "opacity-100" : "opacity-70 hover:opacity-100")
                   }
                 >
@@ -150,7 +150,7 @@ export function Gallery({
           </div>
 
           {/* desktop: main image */}
-          <div className="relative hidden aspect-square overflow-hidden rounded-[20px] bg-white shadow-[var(--shadow-1)] lg:block">
+          <div className="relative hidden aspect-square overflow-hidden rounded-[12px] bg-white shadow-[var(--shadow-1)] lg:block">
             <button
               type="button"
               onClick={(e) => open(idx, current?.kind === "video", e.currentTarget)}
@@ -165,7 +165,7 @@ export function Gallery({
                   src={current.src}
                   alt={p.title}
                   decoding="async"
-                  className="pd-fade h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+                  className="pd-fade h-full w-full object-contain transition-transform duration-200 group-hover:scale-100"
                 />
               )}
               {current?.kind === "video" && <VideoThumb key={"v" + idx} thumb={current.thumb} size="lg" />}

@@ -357,7 +357,6 @@ export function EmptyState({
 }) {
   return (
     <div className="card fade-in relative isolate mx-auto flex max-w-md flex-col items-center overflow-hidden px-6 py-10 text-center">
-      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 bg-[radial-gradient(70%_100%_at_50%_0%,var(--accent-soft),transparent)]" />
       <EmptyArt kind={icon === "heart" ? "wishlist" : icon === "receipt" ? "orders" : icon === "search" ? "search" : "parcel"} className="relative mb-2" />
       <h2 className="text-lg font-extrabold tracking-tight">{title}</h2>
       <p className="mt-1 text-sm text-ink-2">{body}</p>

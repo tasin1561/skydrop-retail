@@ -367,7 +367,7 @@ fbp?, fbc?, ttp?, ttclid?, gclid?, gaClientId?, user?: { phone?, email? } }` →
 `POST /orders` also takes an optional `attribution: { first?, last?: { utm_source, utm_medium, utm_campaign, utm_term, utm_content, fbclid, gclid, ttclid,
 landing, referrer, at }, fbp?, fbc?, ttp?, gaClientId?, consent?: "all"|"essential" }`. The fields are whitelisted and stored in `orders.attribution` with the client ip and user agent.
 
-`GET /feeds/meta.csv` · `GET /feeds/google.xml`: `?store=amazon|flipkart|bigbasket`, and `?key=` when setting `tracking.feed_key` is set (otherwise 403). Cached for 1 h.
+`GET /feeds/meta.csv` · `GET /feeds/google.xml`: `?store=amazon|flipkart|bigbasket`, and `?key=` (setting `tracking.feed_key` / `FEED_KEY`; wrong key 403, no key configured 404). Cached for 1 h.
 - Skips hidden and unpriced products. Price comes from `PricingService::productBdt`; `price` is the MRP when higher, with `sale_price` set.
 - Other fields: `link` is `{WEB_URL}/p/{id}`, `custom_label_0` is the store.
 

@@ -196,7 +196,7 @@ function ReviewItem({ r, i }: { r: ApiReview; i: number }) {
   return (
     <article className="rise rounded-2xl bg-surface p-4 shadow-[var(--shadow-1)]" style={{ ["--i" as string]: i }}>
       <header className="flex items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[var(--accent-soft)] text-sm font-bold text-accent">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[var(--accent-soft)] text-sm font-bold text-accent">
           {r.author.slice(0, 1).toUpperCase() || "?"}
         </span>
         <div className="min-w-0 flex-1">
@@ -227,7 +227,7 @@ function ReviewItem({ r, i }: { r: ApiReview; i: number }) {
       {r.photoUrl && (
         <a href={r.photoUrl} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 block w-fit overflow-hidden rounded-xl ring-1 ring-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={r.photoUrl} alt={t("rev.photoFrom", { author: r.author })} loading="lazy" className="h-28 w-28 object-cover transition-transform duration-300 hover:scale-105" />
+          <img src={r.photoUrl} alt={t("rev.photoFrom", { author: r.author })} loading="lazy" className="h-28 w-28 object-cover transition-transform duration-200 hover:bg-surface" />
         </a>
       )}
       {typeof r.helpful === "number" && r.helpful > 0 && <p className="mt-2 text-[11px] text-ink-3">{t("rev.helpful", { count: r.helpful })}</p>}
@@ -306,7 +306,7 @@ function WriteSheet({
                   aria-pressed={rating === n}
                   onMouseEnter={() => setHover(n)}
                   onClick={() => setRating(n)}
-                  className="grid h-11 w-11 place-items-center rounded-full transition-transform active:scale-90"
+                  className="grid h-11 w-11 place-items-center rounded-full transition-transform active:scale-[0.98]"
                 >
                   <Icon
                     key={n <= shown ? `on-${rating}` : "off"}

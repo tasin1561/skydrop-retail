@@ -124,7 +124,7 @@ export function MegaMenu() {
             show(true);
           }
         }}
-        className="inline-flex h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold text-ink transition-transform active:scale-[0.97]"
+        className="inline-flex h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold text-ink transition-transform active:scale-[0.98]"
       >
         <Icon name="grid" size={18} />
         <span className="hidden 2xl:inline">{t("cat.allCategories")}</span>
@@ -212,7 +212,7 @@ export function MegaMenu() {
                 key={featured.path}
                 data-cm-link
                 href={catHref(featured.path, mode)}
-                className="cm-swap cm-tile relative hidden self-start overflow-hidden rounded-[var(--radius)] bg-gradient-to-br from-[var(--hero-a)] to-[var(--hero-b)] p-5 text-white lg:block"
+                className="cm-swap cm-tile relative hidden self-start overflow-hidden rounded-[var(--radius)] bg-[var(--hero-a)] p-5 text-white lg:block"
               >
                 <span className="text-[11px] font-bold uppercase tracking-wider opacity-85">{t("cat.featured")}</span>
                 <span className="mt-2 grid h-14 w-14 place-items-center rounded-2xl bg-white/15">

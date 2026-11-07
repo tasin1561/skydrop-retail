@@ -108,7 +108,7 @@ export function ShareButton({ title, text, path, resolvePath, variant = "icon", 
 
   const cls =
     variant === "icon"
-      ? "grid h-11 w-11 place-items-center rounded-full bg-surface/90 text-ink-2 shadow-[var(--shadow-1)] backdrop-blur transition hover:scale-105 hover:text-accent active:scale-95"
+      ? "grid h-11 w-11 place-items-center rounded-full bg-surface/90 text-ink-2 shadow-[var(--shadow-1)] backdrop-blur transition hover:bg-surface hover:text-accent active:scale-[0.98]"
       : variant === "button"
         ? "btn btn-primary"
         : "btn btn-ghost";

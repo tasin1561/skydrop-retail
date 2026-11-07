@@ -4,6 +4,7 @@ import * as local from "../catalog";
 import { demoDecorate } from "../cms";
 import { priceBdt } from "../pricing";
 import type { CartItem, Product } from "../types";
+import { pathSeg } from "../data";
 import { compareProducts, deliveryFor, normTitle, similarity } from "./match";
 import type { Alternative, BoughtTogether, Bundle, CompareResult, CompareRow } from "./types";
 
@@ -20,7 +21,7 @@ async function api<T>(path: string, revalidate = 300, init?: RequestInit): Promi
   }
 }
 
-const enc = encodeURIComponent;
+const enc = pathSeg; // never lets "." / ".." walk out of the intended API route
 
 function all(): Product[] {
   return local.searchProducts({ perPage: 5000 }).items;

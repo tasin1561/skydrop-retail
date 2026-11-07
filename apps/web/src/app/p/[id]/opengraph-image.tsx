@@ -12,6 +12,13 @@ export const revalidate = 3600;
 /** Satori can't fail on a slow or unsupported remote image, so fetch it ourselves (jpeg/png/gif only). */
 async function imageData(url: string | null | undefined): Promise<string | null> {
   if (!url || !/^https?:\/\//.test(url)) return null;
+  // Product images come from scraped listings: never let one point this server at itself or the private network.
+  try {
+    const h = new URL(url).hostname.replace(/^\[|\]$/g, "").toLowerCase();
+    if (h === "localhost" || /\.(localhost|local|internal|lan)$/.test(h) || /^[\d.]+$/.test(h) || h.includes(":")) return null;
+  } catch {
+    return null;
+  }
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(4000), next: { revalidate: 86_400 } });
     const type = res.headers.get("content-type") ?? "";

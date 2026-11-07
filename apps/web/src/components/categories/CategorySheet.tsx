@@ -32,7 +32,7 @@ export function CategorySheetButton() {
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="grid h-11 w-11 place-items-center rounded-full text-ink-2 transition-transform active:scale-95 md:hidden"
+        className="grid h-11 w-11 place-items-center rounded-full text-ink-2 transition-transform active:scale-[0.98] md:hidden"
       >
         <Icon name="grid" size={20} />
       </button>

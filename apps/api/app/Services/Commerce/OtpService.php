@@ -24,6 +24,11 @@ class OtpService
     public function request(string $rawPhone, ?string $ip): array
     {
         $phone = Phone::normalize($rawPhone) ?? throw CommerceException::field('phone', 'Enter a valid Bangladeshi mobile number (01XXXXXXXXX).');
+        // Security: the "log" driver never sends an SMS and echoes the code (demoCode). In production that would let anyone sign
+        // in as any phone number, so it fails closed until OTP_DRIVER names a real SMS gateway.
+        if (self::logDriver() && app()->isProduction()) {
+            throw new CommerceException('Sign-in by SMS is not available right now. Please try again later.', 503, [], 'otp_unavailable');
+        }
 
         // System → Limits: OTP codes per phone per hour and per IP per hour.
         $limits = ['otp:phone:'.$phone => Limits::int('accounts.otp_per_phone_hour'), 'otp:ip:'.($ip ?? 'none') => Limits::int('accounts.otp_per_ip_hour')];
@@ -52,11 +57,16 @@ class OtpService
         app(Messenger::class)->otp($phone, $code, $ttl, User::query()->where('phone', $phone)->first());
 
         $out = ['ok' => true, 'expiresIn' => $ttl];
-        if (config('retail.otp.driver') === 'log') {
-            $out['demoCode'] = $code;
+        if (self::logDriver() && ! app()->isProduction()) {
+            $out['demoCode'] = $code; // development / staging only
         }
 
         return $out;
+    }
+
+    private static function logDriver(): bool
+    {
+        return (string) config('retail.otp.driver', 'log') === 'log';
     }
 
     /**

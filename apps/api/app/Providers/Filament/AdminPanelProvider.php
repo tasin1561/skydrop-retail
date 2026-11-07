@@ -104,6 +104,9 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            // Livewire action/update requests (POST /livewire/update) only re-run *persistent* middleware: without this the
+            // IP allowlist and idle timeout would apply to page loads but not to table actions, bulk actions and forms.
+            ->persistentMiddleware([AdminGuard::class])
             ->authenticatedRoutes(function (): void {
                 Route::get('/invoices', InvoiceController::class)->name('invoices');
             })

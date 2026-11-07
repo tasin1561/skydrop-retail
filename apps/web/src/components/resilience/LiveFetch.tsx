@@ -72,7 +72,7 @@ export function LiveFetch({ jobId, market, productId, browse }: { jobId: string;
         {STEPS.map((s, i) => (
           <li key={s.label} className="h-1.5 overflow-hidden rounded-full bg-surface-2">
             <span
-              className="block h-full origin-left rounded-full bg-accent transition-transform duration-700"
+              className="block h-full origin-left rounded-full bg-accent transition-transform duration-200"
               style={{ transform: `scaleX(${i < step ? 1 : i === step ? 0.6 : 0})` }}
             />
           </li>
@@ -81,7 +81,7 @@ export function LiveFetch({ jobId, market, productId, browse }: { jobId: string;
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
           <WaitStory />
-          <div className="skeleton hidden aspect-[4/3] w-full rounded-[20px] lg:block" />
+          <div className="skeleton hidden aspect-[4/3] w-full rounded-[12px] lg:block" />
         </div>
         <div className="flex flex-col gap-3">
           <div className="skeleton h-5 w-28 rounded-full" />

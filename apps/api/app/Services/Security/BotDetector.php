@@ -35,9 +35,9 @@ class BotDetector
      * Sliding one-minute window of distinct product ids viewed from one IP. Returns how many distinct
      * products this IP opened in the last 60 seconds (including this one).
      */
-    public static function trackProduct(string $ip, string $productId): int
+    public static function trackProduct(string $ip, string $productId, string $bucket = 'products'): int
     {
-        $key = 'bot:products:'.$ip;
+        $key = 'bot:'.$bucket.':'.$ip;
         $now = time();
         /** @var array<string, int> $seen */
         $seen = array_filter((array) Cache::get($key, []), fn ($t) => $t > $now - 60);

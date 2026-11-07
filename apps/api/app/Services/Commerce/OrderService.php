@@ -122,8 +122,9 @@ class OrderService
                 ]);
             }
             $this->workflow->event($order, 'placed', 'customer', 'Order placed; prices verified live at '.($check['checkedAt'] ?? now()->toIso8601String()));
-            if ($coupon) {
-                Coupon::query()->whereKey($coupon->id)->increment('used');
+            if ($coupon && ! Coupon::claim($coupon->id)) {
+                // Another order took the last use between the check and now (atomic, so max_uses is never exceeded).
+                throw CommerceException::field('coupon', 'This coupon has just run out.');
             }
             $this->points->redeem($user, $order, $quote['pointsRedeemed']);
             app(WalletPayments::class)->payFromWallet($user, $order, (int) ($quote['walletApplied'] ?? 0)); // money: store credit

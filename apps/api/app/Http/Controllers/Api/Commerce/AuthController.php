@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Commerce;
 use App\Http\Controllers\Controller;
 use App\Services\Commerce\OtpService;
 use App\Services\Growth\ReferralService;
+use App\Services\Security\ClientIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,8 @@ class AuthController extends Controller
     {
         $data = $request->validate(['phone' => ['required', 'string', 'max:25']]);
 
-        return response()->json($this->otp->request($data['phone'], $request->ip()));
+        // Per-IP OTP limit on the real client IP (CF-Connecting-IP when trusted), the same identity ApiShield uses.
+        return response()->json($this->otp->request($data['phone'], ClientIdentity::ip($request)));
     }
 
     public function verifyOtp(Request $request): JsonResponse

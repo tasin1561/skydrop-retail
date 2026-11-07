@@ -4,12 +4,14 @@
 import { demoStream } from "@/lib/assistant/demo";
 import { ASSISTANT_API, upstreamHeaders } from "@/lib/assistant/proxy";
 import type { ChatRequest } from "@/lib/assistant/types";
+import { isCrossSite } from "@/lib/clientIp";
 
 export const dynamic = "force-dynamic";
 
 const SSE_HEADERS = { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" };
 
 export async function POST(req: Request) {
+  if (isCrossSite(req)) return Response.json({ message: "Forbidden" }, { status: 403 });
   let body: ChatRequest;
   try {
     body = (await req.json()) as ChatRequest;

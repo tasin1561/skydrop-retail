@@ -1,43 +1,17 @@
 /* =====================================================================
-   Skydrop Retail motion system
-   One easing family (--ease out, --ease-in-out) plus one spring (--spring).
-   Only transform and opacity animate (stroke-dashoffset on small SVG).
-   Everything here runs on interaction or when in view; loops pause off-screen
-   through [data-loop] (see components/motion/MotionRuntime.tsx).
+   Skydrop Retail motion system — calm, corporate
+   One curve (--ease) and three durations (--dur-1/2/3: 120/180/240ms), defined in globals.css.
+   Motion only explains a change (opened, added, moved, succeeded). No decorative loops,
+   no overshoot, no scroll-reveal cascades. Only transform and opacity animate
+   (stroke-dashoffset on the single success check).
    ===================================================================== */
 
 @layer components {
-  /* ---------- scroll reveal ----------
-     Hidden state only applies once the runtime has started (html.mo-on), so no-JS and
-     pre-hydration HTML always shows content. Elements already on screen at start are
-     marked data-revealed="instant" and never hide. */
-  html.mo-on [data-reveal]:not([data-revealed]):not([data-reveal="stagger"]),
-  html.mo-on [data-reveal="stagger"]:not([data-revealed]) > * {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  [data-revealed="true"]:not([data-reveal="stagger"]),
-  [data-reveal="stagger"][data-revealed="true"] > * {
-    animation: mo-rise 0.5s var(--ease) both;
-    animation-delay: calc(min(var(--ri, 0), 8) * 45ms);
-  }
-  [data-reveal="stagger"][data-revealed="true"] > * {
-    animation-delay: calc(min(var(--i, 0), 10) * 45ms);
-  }
-  [data-reveal="fade"][data-revealed="true"] {
-    animation-name: mo-fade;
-  }
+  /* ---------- scroll reveal: retired ----------
+     [data-reveal] stays in the markup (MotionRuntime marks it) but content is always visible:
+     no fade-ups, no staggers, no draw-ins. */
 
-  /* pieces that "draw in" when their reveal fires */
-  html.mo-on [data-reveal]:not([data-revealed]) .ac-bar > span,
-  html.mo-on [data-reveal]:not([data-revealed]).ac-bar > span {
-    transform: scaleX(0);
-  }
-  html.mo-on [data-reveal]:not([data-revealed]) .ac-seg[data-on="true"] > span {
-    transform: scale(0);
-  }
-
-  /* loops pause while off-screen */
+  /* any remaining CSS loops pause while off-screen */
   html.mo-on [data-loop][data-playing="false"],
   html.mo-on [data-loop][data-playing="false"] *,
   html.mo-on [data-loop][data-playing="false"]::after,
@@ -45,22 +19,20 @@
     animation-play-state: paused !important;
   }
 
-  /* ---------- route progress ---------- */
+  /* ---------- route progress (thin, solid) ---------- */
   .mo-progress {
     position: fixed;
     inset: 0 0 auto 0;
     z-index: 100;
-    height: 3px;
+    height: 2px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s var(--ease) 0.12s;
+    transition: opacity var(--dur-3) var(--ease) var(--dur-1);
   }
   .mo-progress > i {
     position: absolute;
     inset: 0;
-    border-radius: 0 999px 999px 0;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+    background: var(--accent);
     transform-origin: left;
     transform: scaleX(0);
   }
@@ -72,75 +44,27 @@
     animation: mo-trickle 9s var(--ease) forwards;
   }
   .mo-progress[data-state="done"] > i {
-    transition: transform 0.22s var(--ease);
+    transition: transform var(--dur-2) var(--ease);
     transform: scaleX(1);
   }
 
-  /* ---------- fly to cart (outer moves X, inner moves Y: a true arc) ---------- */
+  /* fly-to-cart is retired (flyToCart.ts lands immediately); kept hidden in case a stale node exists */
   .mo-fly {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 95;
-    pointer-events: none;
-    will-change: transform;
-    animation: mo-fly-x var(--fly-d, 700ms) var(--ease-in-out) forwards;
-  }
-  .mo-fly > i {
-    display: grid;
-    place-items: center;
-    width: 52px;
-    height: 52px;
-    overflow: hidden;
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 10px 26px rgb(15 23 42 / 0.28), 0 0 0 2px var(--accent);
-    will-change: transform;
-    animation: mo-fly-y var(--fly-d, 700ms) linear forwards;
-  }
-  .mo-fly img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 4px;
-  }
-  .mo-fly svg {
-    color: var(--brand-2);
+    display: none;
   }
 
-  /* cart icon bump + badge pop (individual transform props compose with Tailwind's) */
+  /* cart icon: one short, clean acknowledgement when the count goes up */
   .mo-bump {
-    animation: mo-bump 0.5s var(--spring);
+    animation: mo-bump var(--dur-3) var(--ease);
   }
   .mo-bump .mo-badge,
   .mo-badge.mo-bump-b {
-    animation: mo-badge 0.5s var(--spring);
+    animation: mo-badge var(--dur-2) var(--ease);
   }
 
-  /* ---------- heart burst ---------- */
+  /* heart burst retired: the heart fill change is the feedback */
   .mo-burst {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .mo-burst::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 999px;
-    border: 2px solid rgb(244 63 94);
-    animation: mo-ring 0.5s var(--ease) both;
-  }
-  .mo-burst > i {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 5px;
-    height: 5px;
-    margin: -2.5px;
-    border-radius: 999px;
-    background: var(--c, rgb(244 63 94));
-    animation: mo-spark 0.55s var(--ease) both;
+    display: none;
   }
 
   /* ---------- search box ---------- */
@@ -159,24 +83,18 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    animation: sb-ph-in 0.38s var(--ease) both;
   }
   .sb-pop {
     transform-origin: top center;
-    animation: sb-pop 0.24s var(--ease) both;
-  }
-  .sb-pop > li {
-    animation: mo-rise-sm 0.28s var(--ease) both;
-    animation-delay: calc(var(--i, 0) * 28ms);
+    animation: sb-pop var(--dur-2) var(--ease) both;
   }
 
-  /* ---------- product media: blur-up stand-in (fade + settle) and hover swap ---------- */
+  /* ---------- product media: quiet fade-in once decoded, hover swap ---------- */
   img[data-fx][data-state="loading"] {
     opacity: 0;
-    transform: scale(1.04);
   }
   img[data-fx][data-state="loaded"] {
-    transition: opacity 0.45s var(--ease), transform 0.6s var(--ease);
+    transition: opacity var(--dur-3) var(--ease);
   }
   .mo-media {
     position: relative;
@@ -185,9 +103,9 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 6%, transparent), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 3%, transparent), transparent);
     transform: translateX(-100%);
-    animation: shimmer 1.3s infinite;
+    animation: shimmer 1.6s linear infinite;
     pointer-events: none;
   }
   .mo-img2 {
@@ -199,7 +117,7 @@
     padding: 0.75rem;
     background: #fff;
     opacity: 0;
-    transition: opacity 0.35s var(--ease);
+    transition: opacity var(--dur-3) var(--ease);
     pointer-events: none;
   }
   @media (hover: hover) {
@@ -208,74 +126,43 @@
     }
   }
   .mo-press {
-    transition: transform 0.3s var(--ease), translate 0.3s var(--ease), scale 0.15s var(--ease), box-shadow 0.3s var(--ease);
+    transition:
+      transform var(--dur-2) var(--ease),
+      translate var(--dur-2) var(--ease),
+      scale var(--dur-1) var(--ease),
+      box-shadow var(--dur-2) var(--ease);
   }
   .mo-press:active {
     scale: 0.98;
   }
 
-  /* number tick (price count-up end, totals) */
+  /* number tick retired: prices and totals change instantly */
   .mo-tick {
-    display: inline-block;
-    animation: mo-tick 0.4s var(--spring);
+    animation: none;
   }
 
-  /* ---------- delivery mini timeline (draws when revealed) ---------- */
+  /* ---------- delivery mini timeline: static ---------- */
   .mo-route-fill {
     transform-origin: left;
     transform: scaleX(1);
   }
-  html.mo-on [data-reveal]:not([data-revealed]) .mo-route-fill {
-    transform: scaleX(0);
-  }
-  [data-revealed="true"] .mo-route-fill {
-    animation: mo-draw-x 0.9s var(--ease-in-out) 0.15s both;
-  }
-  [data-revealed="true"] .mo-route-step {
-    animation: mo-pop-in 0.42s var(--spring) both;
-    animation-delay: calc(0.1s + var(--i, 0) * 0.32s);
-  }
-  html.mo-on [data-reveal]:not([data-revealed]) .mo-route-step {
-    opacity: 0;
-  }
 
-  /* ---------- cart: free delivery progress + celebration ---------- */
+  /* ---------- cart: free delivery progress ---------- */
   .mo-free {
     position: relative;
   }
-  .mo-free[data-full="true"] .co-track > span {
-    background: linear-gradient(90deg, var(--good), color-mix(in srgb, var(--good) 60%, var(--accent-2)));
-  }
   .mo-confetti {
-    position: absolute;
-    left: 12%;
-    top: -2px;
-    pointer-events: none;
-  }
-  .mo-confetti > i {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 2px;
-    background: var(--c);
-    opacity: 0;
-    animation: mo-confetti 0.9s var(--ease) both;
-    animation-delay: calc(var(--n, 0) * 30ms);
+    display: none;
   }
   .mo-saved {
-    animation: mo-pop-in 0.45s var(--spring) both;
-  }
-  .mo-saved svg .mo-spark {
-    transform-origin: center;
-    transform-box: fill-box;
-    animation: mo-twinkle 1.6s var(--ease-in-out) 0.3s 2 both;
+    animation: mo-fade var(--dur-2) var(--ease) both;
   }
 
-  /* row collapse: slide out, then the space closes with grid rows */
+  /* row collapse: fade out, then the space closes with grid rows */
   .mo-collapse {
     display: grid;
     grid-template-rows: 1fr;
-    transition: grid-template-rows 0.3s var(--ease) 0.18s;
+    transition: grid-template-rows var(--dur-3) var(--ease) var(--dur-1);
   }
   .mo-collapse > * {
     min-height: 0;
@@ -285,36 +172,13 @@
     grid-template-rows: 0fr;
   }
 
-  /* ---------- van button: error nudge; check draws only once the order is really placed ---------- */
-  .van-btn[data-error="true"] {
-    animation: shake 0.4s;
-  }
-  .van-btn:not([data-state="done"]) .draw-check path {
-    animation: none;
-  }
-  .van-btn[data-state="done"] .draw-check path {
-    animation-delay: 0.45s;
-  }
-
-  /* ---------- deal of the day ---------- */
+  /* ---------- deal of the day (flat card, static digits) ---------- */
   .dd-card {
     position: relative;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: var(--radius);
     background: var(--surface);
-    box-shadow: var(--shadow-1), 0 18px 40px -24px color-mix(in srgb, var(--accent) 60%, transparent);
-  }
-  .dd-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 60%),
-      radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--brand-2) 12%, transparent), transparent 60%);
-    pointer-events: none;
-  }
-  .dd-img {
-    animation: dd-bob 4s var(--ease-in-out) infinite alternate;
+    box-shadow: var(--shadow-1);
   }
   .dd-digits {
     display: inline-flex;
@@ -330,81 +194,47 @@
   }
   .dd-cell small {
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
   .dd-flip {
-    position: relative;
     display: grid;
     place-items: center;
-    width: 2.6rem;
-    height: 2.9rem;
-    overflow: hidden;
-    border-radius: 12px;
+    width: 2.5rem;
+    height: 2.75rem;
+    border-radius: 8px;
     background: var(--ink);
     color: var(--bg);
-    font-size: 1.35rem;
-    font-weight: 800;
-    box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.06), var(--shadow-1);
-    perspective: 220px;
-  }
-  .dd-flip::after {
-    content: "";
-    position: absolute;
-    inset: 50% 0 auto;
-    height: 1px;
-    background: color-mix(in srgb, var(--bg) 18%, transparent);
+    font-size: 1.25rem;
+    font-weight: 700;
   }
   .dd-flip > span {
     grid-area: 1 / 1;
-    backface-visibility: hidden;
-    transform-origin: 50% 50%;
-  }
-  .dd-flip > .in {
-    animation: dd-in 0.42s var(--ease) both;
-  }
-  .dd-flip > .out {
-    animation: dd-out 0.32s var(--ease-in-out) both;
   }
   .dd-sep {
     padding-top: 0.55rem;
-    font-weight: 800;
+    font-weight: 700;
     color: var(--ink-3);
   }
 
-  /* ---------- empty state art ---------- */
-  .ea-bob {
-    animation: ea-bob 3.4s var(--ease-in-out) infinite alternate;
-  }
-  .ea-shadow {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: ea-shadow 3.4s var(--ease-in-out) infinite alternate;
-  }
-  .ea-twinkle {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: mo-twinkle 2.6s var(--ease-in-out) infinite;
-  }
-  .ea-scan {
-    transform-box: view-box;
-    animation: ea-scan 3.2s var(--ease-in-out) infinite alternate;
-  }
-  .ea-drive {
-    animation: ea-drive 4.2s var(--ease-in-out) infinite;
-  }
+  /* ---------- empty state art: static illustrations ---------- */
+  .ea-bob,
+  .ea-shadow,
+  .ea-twinkle,
+  .ea-scan,
+  .ea-drive,
   .ea-beat {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: ea-beat 1.8s var(--ease) infinite;
+    animation: none;
   }
 
-  /* ---------- toast (designed object) ---------- */
+  /* ---------- toast ---------- */
   .mo-toast {
     touch-action: pan-y;
-    transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+    transition:
+      transform var(--dur-3) var(--ease),
+      opacity var(--dur-3) var(--ease);
   }
   .mo-toast[data-drag="true"] {
     transition: none;
@@ -421,40 +251,15 @@
 
   /* ---------- skeleton routes: appear only if loading takes > 150ms ---------- */
   .mo-skel {
-    animation: mo-fade 0.3s var(--ease) 150ms both;
+    animation: mo-fade var(--dur-3) var(--ease) 150ms both;
   }
 
-  /* gallery FLIP ghost */
+  /* gallery FLIP ghost retired */
   .mo-ghost {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 120;
-    pointer-events: none;
-    object-fit: contain;
-    background: #fff;
-    border-radius: 16px;
-    transform-origin: 0 0;
-    will-change: transform, opacity;
+    display: none;
   }
 }
 
-@keyframes mo-rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes mo-rise-sm {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
 @keyframes mo-fade {
   from {
     opacity: 0;
@@ -474,200 +279,21 @@
     transform: scaleX(0.92);
   }
 }
-@keyframes mo-fly-x {
-  from {
-    transform: translateX(var(--x0));
-  }
-  to {
-    transform: translateX(var(--x1));
-  }
-}
-@keyframes mo-fly-y {
-  0% {
-    transform: translateY(var(--y0)) scale(1) rotate(0);
-    animation-timing-function: var(--ease); /* rise: ease-out half */
-  }
-  32% {
-    transform: translateY(calc(var(--y0) - var(--lift, 70px))) scale(0.9) rotate(-8deg);
-    animation-timing-function: cubic-bezier(0.65, 0, 1, 0.6); /* fall: ease-in half of --ease-in-out (gravity) */
-  }
-  92% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(var(--y1)) scale(0.32) rotate(10deg);
-    opacity: 0.4;
-  }
-}
 @keyframes mo-bump {
-  30% {
-    scale: 1.18;
-    rotate: -8deg;
-  }
-  60% {
-    scale: 0.95;
-    rotate: 4deg;
-  }
-  100% {
-    scale: 1;
-    rotate: 0deg;
+  40% {
+    scale: 1.06;
   }
 }
 @keyframes mo-badge {
-  0% {
-    transform: scale(0.4);
-  }
-  60% {
-    transform: scale(1.25);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-@keyframes mo-ring {
   from {
-    transform: scale(0.4);
-    opacity: 0.9;
-  }
-  to {
-    transform: scale(1.7);
-    opacity: 0;
-  }
-}
-@keyframes mo-spark {
-  0% {
-    transform: rotate(var(--a)) translateY(0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(var(--a)) translateY(-22px) scale(0.2);
-    opacity: 0;
-  }
-}
-@keyframes sb-ph-in {
-  from {
-    opacity: 0;
-    transform: translateY(70%);
+    opacity: 0.4;
+    transform: scale(0.85);
   }
 }
 @keyframes sb-pop {
   from {
     opacity: 0;
-    transform: translateY(-6px) scaleY(0.94);
-  }
-}
-@keyframes mo-tick {
-  40% {
-    transform: scale(1.06);
-  }
-}
-@keyframes mo-draw-x {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-@keyframes mo-pop-in {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes mo-confetti {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--x), var(--y)) rotate(200deg);
-  }
-}
-@keyframes mo-twinkle {
-  0%,
-  100% {
-    transform: scale(0.6);
-    opacity: 0.35;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-}
-@keyframes dd-bob {
-  to {
-    transform: translateY(-6px);
-  }
-}
-@keyframes dd-in {
-  from {
-    transform: rotateX(-90deg);
-    opacity: 0.2;
-  }
-}
-@keyframes dd-out {
-  to {
-    transform: rotateX(90deg);
-    opacity: 0;
-  }
-}
-@keyframes ea-bob {
-  from {
-    transform: translateY(-5px) rotate(-3deg);
-  }
-  to {
-    transform: translateY(5px) rotate(3deg);
-  }
-}
-@keyframes ea-shadow {
-  from {
-    transform: scaleX(0.75);
-    opacity: 0.25;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 0.5;
-  }
-}
-@keyframes ea-scan {
-  from {
-    transform: translate(-14px, -4px) rotate(-6deg);
-  }
-  to {
-    transform: translate(14px, 4px) rotate(6deg);
-  }
-}
-@keyframes ea-drive {
-  0% {
-    transform: translateX(-36px);
-    opacity: 0;
-  }
-  15%,
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(36px);
-    opacity: 0;
-  }
-}
-@keyframes ea-beat {
-  0%,
-  60%,
-  100% {
-    transform: scale(1);
-  }
-  20% {
-    transform: scale(1.14);
-  }
-  40% {
-    transform: scale(0.97);
+    transform: translateY(-4px);
   }
 }
 
@@ -676,36 +302,22 @@
   pointer-events: none;
 }
 ::view-transition-group(*) {
-  animation-duration: 0.22s;
+  animation-duration: var(--dur-2);
   animation-timing-function: var(--ease);
 }
 ::view-transition-old(*),
 ::view-transition-new(*) {
-  animation-duration: 0.22s;
+  animation-duration: var(--dur-2);
 }
 
 /* ---------- reduced motion: same end states, no movement ---------- */
 @media (prefers-reduced-motion: reduce) {
-  html.mo-on [data-reveal]:not([data-revealed]):not([data-reveal="stagger"]),
-  html.mo-on [data-reveal="stagger"]:not([data-revealed]) > *,
-  html.mo-on [data-reveal]:not([data-revealed]) .mo-route-step {
-    opacity: 1;
-    transform: none;
-  }
-  html.mo-on [data-reveal]:not([data-revealed]) .ac-bar > span,
-  html.mo-on [data-reveal]:not([data-revealed]).ac-bar > span,
-  html.mo-on [data-reveal]:not([data-revealed]) .ac-seg[data-on="true"] > span,
-  html.mo-on [data-reveal]:not([data-revealed]) .mo-route-fill {
-    transform: none;
-  }
-  .mo-fly,
-  .mo-burst,
-  .mo-confetti,
-  .mo-ghost {
-    display: none;
-  }
   img[data-fx][data-state="loading"] {
-    transform: none;
+    opacity: 1;
+  }
+  .mo-media:has(img[data-state="loading"])::after {
+    animation: none;
+    display: none;
   }
   .mo-skel {
     animation: none;

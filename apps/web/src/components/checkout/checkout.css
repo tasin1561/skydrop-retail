@@ -1,21 +1,21 @@
 /* Cart + checkout pieces. Only transform/opacity are animated (grid-rows for accordions). */
 
-/* ---------- soft card with store accent glow ---------- */
+/* ---------- card: hairline ring, no glow ---------- */
 .co-card {
   background: var(--surface);
-  border-radius: 20px;
-  box-shadow: var(--shadow-1), 0 10px 30px -18px color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
 }
 .co-store-head {
-  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
 
 /* ---------- row enter / leave ---------- */
 .co-row {
-  animation: rise 0.4s var(--ease) both;
+  animation: rise var(--dur-3) var(--ease) both;
 }
 .co-row[data-leaving="true"] {
-  transition: transform 0.28s var(--ease), opacity 0.28s;
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-3);
   transform: translateX(24px);
   opacity: 0;
 }
@@ -26,7 +26,7 @@
   align-items: center;
   border-radius: 999px;
   background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 .co-stepper button {
   display: grid;
@@ -35,7 +35,7 @@
   height: 44px;
   border-radius: 999px;
   color: var(--ink-2);
-  transition: transform 0.15s var(--ease), color 0.2s;
+  transition: transform var(--dur-2) var(--ease), color var(--dur-2);
 }
 .co-stepper button:hover:not(:disabled) {
   color: var(--accent);
@@ -61,10 +61,10 @@
   grid-area: 1 / 1;
 }
 .co-num [data-dir="up"] {
-  animation: co-roll-up 0.28s var(--ease) both;
+  animation: co-roll-up var(--dur-3) var(--ease) both;
 }
 .co-num [data-dir="down"] {
-  animation: co-roll-down 0.28s var(--ease) both;
+  animation: co-roll-down var(--dur-3) var(--ease) both;
 }
 @keyframes co-roll-up {
   from {
@@ -91,122 +91,43 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   transform-origin: left;
-  transition: transform 0.6s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 
 /* ---------- coupon ---------- */
 .co-chip {
-  animation: pop 0.4s var(--spring) both;
+  animation: pop var(--dur-3) var(--ease) both;
   background: color-mix(in srgb, var(--good) 12%, transparent);
   color: var(--good);
 }
 
-/* ---------- empty state: parcel on a parachute, swaying ---------- */
+/* ---------- empty state: static illustration ---------- */
 .co-empty-art {
-  animation: co-sway 3.6s var(--ease-in-out) infinite alternate;
+  animation: none; /* decorative loop retired */
   transform-origin: 50% 0;
 }
 .co-empty-shadow {
-  animation: co-shadow 3.6s var(--ease-in-out) infinite alternate;
+  animation: none; /* decorative loop retired */
   transform-origin: center;
 }
 .co-cloud {
-  animation: co-drift 9s linear infinite;
+  animation: none; /* decorative loop retired */
 }
-.co-cloud.b {
-  animation-duration: 13s;
-  animation-delay: -5s;
-}
-@keyframes co-sway {
-  from {
-    transform: translateY(-6px) rotate(-5deg);
-  }
-  to {
-    transform: translateY(6px) rotate(5deg);
-  }
-}
-@keyframes co-shadow {
-  from {
-    transform: scaleX(0.75);
-    opacity: 0.35;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 0.6;
-  }
-}
-@keyframes co-drift {
-  from {
-    transform: translateX(-40px);
-    opacity: 0;
-  }
-  15%,
-  85% {
-    opacity: 1;
-  }
-  to {
-    transform: translateX(200px);
-    opacity: 0;
-  }
-}
-
-/* ---------- checkout stepper ---------- */
-.co-steps {
-  position: relative;
-}
-.co-steps-line,
-.co-steps-fill {
-  position: absolute;
-  top: 21px;
-  height: 3px;
-  border-radius: 999px;
-}
-.co-steps-line {
-  background: var(--surface-2);
-}
-.co-steps-fill {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  transform-origin: left;
-  transition: transform 0.6s var(--ease);
-}
-.co-step-dot {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink-3);
-  font-weight: 800;
-  box-shadow: var(--shadow-1);
-  transition: background 0.3s var(--ease), color 0.3s var(--ease), box-shadow 0.3s;
-}
-.co-step[data-state="current"] .co-step-dot {
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: var(--glow);
-}
-.co-step[data-state="done"] .co-step-dot {
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
-  color: var(--accent);
-}
-
 /* compact mobile progress pill */
 .co-pill-fill {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   transform-origin: left;
-  transition: transform 0.6s var(--ease);
+  transition: transform var(--dur-3) var(--ease);
 }
 
 /* ---------- step panel transition ---------- */
 .co-panel {
-  animation: co-panel 0.4s var(--ease) both;
+  animation: co-panel var(--dur-3) var(--ease) both;
 }
 @keyframes co-panel {
   from {
@@ -223,23 +144,23 @@
   gap: 0.75rem;
   min-height: 64px;
   padding: 0.9rem;
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow-1);
   cursor: pointer;
-  transition: transform 0.2s var(--ease), box-shadow 0.25s var(--ease);
+  transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-3) var(--ease);
 }
 .co-option:hover {
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
 }
 .co-option::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: 0 0 0 2px var(--accent), var(--glow);
+  box-shadow: 0 0 0 2px var(--accent);
   opacity: 0;
-  transition: opacity 0.25s var(--ease);
+  transition: opacity var(--dur-3) var(--ease);
   pointer-events: none;
 }
 .co-option.is-active::after {
@@ -258,7 +179,7 @@
   flex-shrink: 0;
   border-radius: 999px;
   box-shadow: inset 0 0 0 2px var(--ink-3);
-  transition: box-shadow 0.2s;
+  transition: box-shadow var(--dur-2);
 }
 .co-radio::after {
   content: "";
@@ -267,7 +188,7 @@
   border-radius: 999px;
   background: var(--accent);
   transform: scale(0);
-  transition: transform 0.25s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
 }
 .is-active .co-radio {
   box-shadow: inset 0 0 0 2px var(--accent);
@@ -284,7 +205,7 @@
   pointer-events: none;
 }
 .co-status > * {
-  animation: pop 0.3s var(--spring) both;
+  animation: pop var(--dur-3) var(--ease) both;
 }
 
 /* ---------- live verification list ---------- */
@@ -297,7 +218,7 @@
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--ink-3);
-  transition: background 0.3s, color 0.3s;
+  transition: background var(--dur-3), color var(--dur-3);
 }
 .co-check[data-state="run"] .co-check-dot {
   background: var(--accent-soft);
@@ -345,42 +266,7 @@
 /* total value bump when it changes */
 .co-bump {
   display: inline-block;
-  animation: pop 0.35s var(--spring) both;
+  animation: pop var(--dur-3) var(--ease) both;
 }
 
-/* ---------- success ---------- */
-.co-ground {
-  transform-origin: center;
-  animation: co-ground 0.6s 0.9s var(--ease) both;
-}
-@keyframes co-ground {
-  from {
-    transform: scaleX(0);
-  }
-}
-.co-confetti > i {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  opacity: 0;
-  animation: co-confetti 1.1s 1.2s var(--ease) both;
-}
-@keyframes co-confetti {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--x), var(--y)) rotate(220deg);
-  }
-}
-.co-success-check {
-  animation: pop 0.45s 1.25s var(--spring) both;
-}
-.co-success-check .draw-check path {
-  animation-delay: 1.45s;
-}
+/* ---------- success: a single drawn check (see OrderSuccess) ---------- */

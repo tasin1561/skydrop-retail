@@ -112,7 +112,7 @@ export async function unregisterPush() {
 
 /** Web path or app route from a notification → app route. /orders/X → /order/X, /p/X → /product/X. */
 export function routeFor(data: { route?: unknown; link?: unknown } | null | undefined): string {
-  if (typeof data?.route === "string" && data.route.startsWith("/")) return data.route;
+  if (typeof data?.route === "string" && /^\/(?![/\\])[^\s\\]*$/.test(data.route)) return data.route; // in-app routes only
   const link = typeof data?.link === "string" ? data.link : "";
   const path = link.replace(/^https?:\/\/[^/]+/, "").split("?")[0];
   let m = path.match(/^\/orders\/([^/#]+)\/unboxing/);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Security\AppSignature;
 use App\Services\Security\ClientIdentity;
 use App\Support\Limits;
 use Closure;
@@ -25,12 +26,16 @@ class CatalogThrottle
         $l = config('security.limits');
         $uri = $request->route()?->uri() ?? $request->path();
 
-        if ($request->attributes->get('client') === 'internal') {
-            $buckets = ['internal' => $l['internal']];
+        $internal = $request->attributes->get('client') === 'internal' || AppSignature::isInternal($request);
+        $shopper = $internal ? ClientIdentity::forwardedShopperIp($request) : null;
+        if ($internal && ! $shopper) {
+            $buckets = ['internal' => $l['internal']]; // no usable X-Client-IP: the server's shared ceiling only
         } else {
-            $ip = ClientIdentity::ip($request);
+            // Signed apps, direct callers, and Next.js calls carrying the shopper IP: per-IP buckets on that shopper's IP,
+            // including the strict (live provider: search, product detail, resolve, price history) ones.
+            $ip = $shopper ?? ClientIdentity::ip($request);
             $strict = in_array($uri, self::STRICT, true) || str_contains($uri, 'price-history') || str_contains($uri, 'history');
-            $buckets = ['ip:'.$ip => $l['catalog_ip']];
+            $buckets = ($internal ? ['internal' => $l['internal']] : []) + ['ip:'.$ip => $l['catalog_ip']];
             if ($strict) {
                 // System → Limits: searches / product views / paste-link resolves per IP per minute (defaults: config strict_ip, resolve_ip).
                 $kind = match (true) {
@@ -39,7 +44,9 @@ class CatalogThrottle
                     default => 'product_views',
                 };
                 $buckets["strict:ip:$kind:".$ip] = Limits::int("catalog.{$kind}_per_min");
-                $buckets['strict:dev:'.ClientIdentity::device($request)] = $l['strict_device'];
+                if (! $internal) { // the device fingerprint of a Next.js call is the server's, not the shopper's
+                    $buckets['strict:dev:'.ClientIdentity::device($request)] = $l['strict_device'];
+                }
                 if ($uid = ClientIdentity::userId($request)) {
                     $buckets['strict:user:'.$uid] = $l['strict_user'];
                 }

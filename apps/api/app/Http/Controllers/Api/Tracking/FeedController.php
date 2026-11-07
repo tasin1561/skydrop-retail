@@ -32,8 +32,11 @@ class FeedController extends Controller
 
     private function guard(Request $request): ?string
     {
+        // Security: a feed is the whole priced catalog in one request, so it is never public. Without a feed key
+        // (Admin → Settings → tracking.feed_key or FEED_KEY) the feeds are off (404); give Meta/Google the URL with ?key=.
         $key = TrackingSettings::str('feed_key');
-        if ($key !== '' && ! hash_equals($key, (string) $request->query('key', ''))) {
+        abort_if($key === '', 404);
+        if (! hash_equals($key, (string) $request->query('key', ''))) {
             abort(403, 'Invalid feed key.');
         }
         $store = $request->query('store');

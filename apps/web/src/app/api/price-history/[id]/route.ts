@@ -8,7 +8,7 @@ const API = process.env.API_URL?.replace(/\/$/, "");
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  if (!API || !/^[A-Za-z0-9._:-]{1,64}$/.test(id)) return NextResponse.json({ message: "Not found" }, { status: 404 });
+  if (!API || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return NextResponse.json({ message: "Not found" }, { status: 404 });
   const raw = Number(new URL(req.url).searchParams.get("days") ?? 30);
   const days = [7, 30, 90, 180, 365].includes(raw) ? raw : 30;
   const ua = (await headers()).get("user-agent") ?? "";

@@ -234,7 +234,8 @@ class TrackingTest extends TestCase
         $sale = $pricing->productBdt($a->fresh());
         $mrp = $pricing->priceBdt(2000, 'electronics');
 
-        $csv = $this->get('/api/v1/feeds/meta.csv')->assertOk()->assertHeader('Content-Type', 'text/csv; charset=utf-8')->getContent();
+        config(['retail.tracking.feed_key' => 'feed-test-key']);
+        $csv = $this->get('/api/v1/feeds/meta.csv?key=feed-test-key')->assertOk()->assertHeader('Content-Type', 'text/csv; charset=utf-8')->getContent();
         $rows = array_map('str_getcsv', array_filter(explode("\n", trim($csv))));
         $head = array_shift($rows);
         $this->assertSame(['id', 'title', 'description', 'availability', 'condition', 'price', 'sale_price', 'link', 'image_link', 'brand',
@@ -251,7 +252,7 @@ class TrackingTest extends TestCase
         $this->assertSame('Style Bazaar', $byId['F1']['brand']);
         $this->assertSame('flipkart', $byId['F1']['custom_label_0']);
 
-        $xml = $this->get('/api/v1/feeds/google.xml?store=amazon')->assertOk()->getContent();
+        $xml = $this->get('/api/v1/feeds/google.xml?store=amazon&key=feed-test-key')->assertOk()->getContent();
         $doc = simplexml_load_string($xml);
         $items = $doc->channel->item;
         $this->assertCount(1, $items);

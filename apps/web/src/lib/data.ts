@@ -13,6 +13,16 @@ export const usingApi = Boolean(API);
 // Server-to-server key: the API's catalog endpoints only answer the Next.js server (or signed apps). Never expose it to the browser.
 export const internalHeaders: Record<string, string> = process.env.INTERNAL_API_KEY ? { "X-Internal-Key": process.env.INTERNAL_API_KEY } : {};
 
+/**
+ * One URL path segment for API_URL. encodeURIComponent keeps "/" out, but "." and ".." survive it and fetch() resolves
+ * them, so a crafted id could walk out of /products/... into any other API route with the internal key attached.
+ */
+export const pathSeg = (s: string) => (s === "." || s === ".." ? "-" : encodeURIComponent(s));
+/** Product ids as the API routes accept them. */
+export const isProductId = (id: string) => /^[A-Za-z0-9_-]{1,64}$/.test(id);
+/** Category paths: lowercase slug segments ("mobiles-electronics/phones"). */
+const isCategoryPath = (p: string) => p.length <= 300 && /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(p);
+
 type ApiResult<T> = { ok: true; status: number; data: T } | { ok: false; status: number };
 
 // Last good answer per path, kept in this server process. When the API is slow or down we serve it
@@ -126,7 +136,8 @@ export async function loadProduct(id: string): Promise<ProductLoad> {
     const p = demoDecorate(local.getProduct(id));
     return p ? { kind: "ready", product: p } : { kind: "notfound" };
   }
-  const path = `/products/${encodeURIComponent(id)}`;
+  if (!isProductId(id)) return { kind: "notfound" };
+  const path = `/products/${pathSeg(id)}`;
   type Body = { product: Product | null; status: string; jobId?: string; market?: string; stale?: boolean };
   const r = await apiFetch<Body>(path, { revalidate: 30, timeoutMs: 8000 });
   if (r.ok) {
@@ -153,7 +164,7 @@ export async function getProduct(id: string): Promise<(Product & { pending?: boo
 
 /** Fetch-job status for the live-fetch / live-search screens. */
 export async function jobStatus(id: string): Promise<{ status: "queued" | "running" | "done" | "failed" | "unknown"; result?: Record<string, unknown>; error?: string }> {
-  const r = await apiFetch<{ status: string; result?: Record<string, unknown>; error?: string }>(`/jobs/${encodeURIComponent(id)}`, {
+  const r = await apiFetch<{ status: string; result?: Record<string, unknown>; error?: string }>(`/jobs/${pathSeg(id)}`, {
     revalidate: 0,
     timeoutMs: 5000,
   });
@@ -177,7 +188,7 @@ export async function deals(m: StoreMode, limit = 12): Promise<Product[]> {
 }
 
 export async function related(p: Product, limit = 8): Promise<Product[]> {
-  const r = await api<{ items: Product[] }>(`/products/${encodeURIComponent(p.id)}/related?${qs({ limit })}`, 300);
+  const r = await api<{ items: Product[] }>(`/products/${pathSeg(p.id)}/related?${qs({ limit })}`, 300);
   return r?.items ?? local.related(p, limit).map(demoDecorate);
 }
 
@@ -189,7 +200,8 @@ export async function suggestions(q: string, store: StoreMode, limit = 6) {
 
 export async function productsByIds(ids: string[]): Promise<Product[]> {
   if (!ids.length) return [];
-  const r = await api<{ items: Product[] }>(`/products?ids=${ids.map(encodeURIComponent).join(",")}`, 30);
+  const safe = ids.filter(isProductId);
+  const r = safe.length ? await api<{ items: Product[] }>(`/products?ids=${safe.map(encodeURIComponent).join(",")}`, 30) : null;
   if (r?.items) return r.items;
   return ids.map((id) => demoDecorate(local.getProduct(id))).filter((p): p is Product => !!p);
 }
@@ -231,7 +243,8 @@ export async function getCategoryTree(store: StoreMode = "all", depth?: number):
 /** Category landing data, or null for an unknown path. Never throws. */
 export async function getCategoryPage(path: string, store: StoreMode = "all"): Promise<CategoryPageData | null> {
   if (API) {
-    const r = await apiFetch<CategoryPageData>(`/categories/${path.split("/").map(encodeURIComponent).join("/")}?${qs({ store })}`, { revalidate: 120 });
+    if (!isCategoryPath(path)) return null;
+    const r = await apiFetch<CategoryPageData>(`/categories/${path.split("/").map(pathSeg).join("/")}?${qs({ store })}`, { revalidate: 120 });
     if (r.ok) return { ...r.data, node: { ...r.data.node, children: r.data.node.children ?? [] } };
     if (r.status === 404) return null; // the API's tree is authoritative (admin edits)
   }

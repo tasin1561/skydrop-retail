@@ -187,7 +187,7 @@ export function SortAndFilterBar({ total, hideCategory }: { total: number; hideC
       {open && (
         <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label={t("f.filters")}>
           <button aria-label={t("f.close")} className="fade-in absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="sheet-enter absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[28px] bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <div className="sheet-enter absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[16px] bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-line" />
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-extrabold">{t("f.filters")}</h2>

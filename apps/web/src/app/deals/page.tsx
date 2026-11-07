@@ -19,7 +19,7 @@ export default async function DealsPage({ searchParams }: { searchParams: SP }) 
   return (
     <div data-store={store} className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">
       <section
-        className="relative overflow-hidden rounded-[24px] p-5 text-white shadow-[var(--glow)] sm:p-7"
+        className="relative overflow-hidden rounded-[16px] p-5 text-white shadow-[var(--glow)] sm:p-7"
         style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
       >
         <span aria-hidden className="float absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/15" />

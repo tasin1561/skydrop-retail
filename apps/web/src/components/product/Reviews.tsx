@@ -37,7 +37,7 @@ export function StarBars({ rows }: { rows: { rating: number; percentage: number 
           </span>
           <span className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
             <span
-              className="pd-bar-fill absolute inset-0 rounded-full bg-gradient-to-r from-amber-400 to-amber-500"
+              className="pd-bar-fill absolute inset-0 rounded-full bg-amber-500"
               style={{ ["--p" as string]: r.percentage / 100, ["--i" as string]: i }}
             />
           </span>
@@ -80,7 +80,7 @@ function ReviewCard({ r, source }: { r: Review; source: string }) {
   return (
     <article className="rise rounded-2xl bg-surface p-4 shadow-[var(--shadow-1)]">
       <header className="flex items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[var(--accent-soft)] text-sm font-bold text-accent">{initials || "?"}</span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[var(--accent-soft)] text-sm font-bold text-accent">{initials || "?"}</span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{r.author}</p>
           <p className="text-[11px] text-ink-3">

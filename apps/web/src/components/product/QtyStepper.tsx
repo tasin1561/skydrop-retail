@@ -47,7 +47,7 @@ export function QtyStepper({
         aria-label={t("qty.dec")}
         disabled={value <= min}
         onClick={() => onChange(Math.max(min, value - 1))}
-        className={size + " grid place-items-center rounded-full text-ink transition hover:bg-surface hover:text-accent hover:shadow-[var(--shadow-1)] active:scale-90 disabled:opacity-35"}
+        className={size + " grid place-items-center rounded-full text-ink transition hover:bg-surface hover:text-accent hover:shadow-[var(--shadow-1)] active:scale-[0.98] disabled:opacity-35"}
       >
         <Icon name="minus" size={18} stroke={2.2} />
       </button>
@@ -62,7 +62,7 @@ export function QtyStepper({
         aria-label={t("qty.inc")}
         disabled={value >= max}
         onClick={() => onChange(Math.min(max, value + 1))}
-        className={size + " grid place-items-center rounded-full text-ink transition hover:bg-surface hover:text-accent hover:shadow-[var(--shadow-1)] active:scale-90 disabled:opacity-35"}
+        className={size + " grid place-items-center rounded-full text-ink transition hover:bg-surface hover:text-accent hover:shadow-[var(--shadow-1)] active:scale-[0.98] disabled:opacity-35"}
       >
         <Icon name="plus" size={18} stroke={2.2} />
       </button>

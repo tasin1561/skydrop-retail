@@ -141,10 +141,10 @@ export function VariantGroup({
               }}
               className={
                 "group relative z-[1] transition duration-200 " +
-                (gone ? "cursor-not-allowed opacity-45 " : "hover:-translate-y-0.5 active:scale-95 ") +
+                (gone ? "cursor-not-allowed opacity-45 " : "hover:-translate-y-0.5 active:scale-[0.98] ") +
                 (swatches
-                  ? "flex w-[68px] flex-col items-center gap-1 rounded-[14px] p-1.5 "
-                  : "min-h-[44px] min-w-[52px] rounded-[14px] px-3.5 text-sm font-semibold " +
+                  ? "flex w-[68px] flex-col items-center gap-1 rounded-[10px] p-1.5 "
+                  : "min-h-[44px] min-w-[52px] rounded-[10px] px-3.5 text-sm font-semibold " +
                     (on ? "text-accent " : "bg-surface-2 text-ink hover:bg-[var(--accent-soft)] hover:text-accent ") +
                     (!combo && !gone && !on ? "text-ink-3 " : ""))
               }
@@ -187,7 +187,7 @@ export function VariantGroup({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="min-h-[44px] rounded-[14px] px-3 text-sm font-semibold text-accent transition hover:bg-[var(--accent-soft)]"
+            className="min-h-[44px] rounded-[10px] px-3 text-sm font-semibold text-accent transition hover:bg-[var(--accent-soft)]"
           >
             {t("var.more", { count: group.values.length - shown.length })}
           </button>

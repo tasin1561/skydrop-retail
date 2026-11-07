@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * HH:MM:SS with flip-in digits (each changed pair re-mounts and rotates in on X: transform + opacity).
+ * HH:MM:SS countdown; digits update in place (no flip animation).
  * Ticks once a second, skips while the tab is hidden, calls onEnd once at zero.
  * Screen readers get a minute-precision label, not a per-second stream.
  */
@@ -55,9 +55,7 @@ export function FlipCountdown({ to, label, onEnd }: { to: number; label: string;
             )}
             <span className="dd-cell" aria-hidden>
               <span className="dd-flip">
-                <span key={ms === null ? "x" : v} className={ms === null ? "" : "in"}>
-                  {ms === null ? "--" : digits(pad(v))}
-                </span>
+                <span>{ms === null ? "--" : digits(pad(v))}</span>
               </span>
               <small>{unit}</small>
             </span>

@@ -74,8 +74,8 @@ export function AccountDashboard() {
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
       {/* greeting */}
       <section
-        className="rise relative overflow-hidden rounded-[20px] p-5 text-white shadow-[var(--glow)]"
-        style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
+        className="rise relative overflow-hidden rounded-[12px] p-5 text-white shadow-[var(--glow)]"
+        style={{ background: "linear-gradient(135deg, var(--hero-a) 0%, var(--hero-a) 55%, color-mix(in srgb, var(--hero-a) 72%, var(--hero-b)) 100%)" }}
       >
         <div aria-hidden className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />
         <div aria-hidden className="absolute -bottom-16 right-16 h-32 w-32 rounded-full bg-white/10" />

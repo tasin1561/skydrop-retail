@@ -62,7 +62,8 @@ export default function Login() {
       haptic.success();
       signIn(r.user);
       toast({ kind: "success", title: r.isNew ? t("nd.welcome") : t("m.signedIn") });
-      if (next) router.replace(next as never);
+      // in-app routes only: skydropretail://login?next=https://… must not send a fresh session to an outside page
+      if (next && /^\/(?![/\\])[^\s\\]*$/.test(next)) router.replace(next as never);
       else router.back();
     } catch (e) {
       haptic.error();

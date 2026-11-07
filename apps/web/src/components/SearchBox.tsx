@@ -22,23 +22,12 @@ const EXAMPLES: Record<StoreMode, MsgKey[]> = {
 };
 
 /** Cycles placeholder examples every 2.8s while the field is idle, visible and the tab is shown. */
+// The placeholder shows one static example per store (no rotating text): calm and readable.
 function usePlaceholderCycle(active: boolean, count: number, el: React.RefObject<HTMLElement | null>) {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (!active || count < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let visible = true;
-    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
-    if (el.current) io.observe(el.current);
-    const t = setInterval(() => {
-      if (visible && !document.hidden) setI((n) => n + 1);
-    }, 2800);
-    return () => {
-      clearInterval(t);
-      io.disconnect();
-    };
-  }, [active, count, el]);
-  return i;
+  void active;
+  void count;
+  void el;
+  return 0;
 }
 
 export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?: () => void }) {
@@ -103,7 +92,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
     <form
       ref={formRef}
       role="search"
-      className="relative flex w-full items-stretch rounded-2xl bg-surface shadow-[var(--shadow-1)] ring-1 ring-line transition-shadow duration-200 focus-within:shadow-[0_0_0_4px_var(--accent-soft),0_8px_24px_-8px_color-mix(in_srgb,var(--accent)_35%,transparent)] focus-within:ring-2 focus-within:ring-accent"
+      className="relative flex w-full items-stretch rounded-2xl bg-surface shadow-[var(--shadow-1)] ring-1 ring-line transition-shadow duration-200 focus-within:shadow-[0_0_0_3px_var(--accent-soft)] focus-within:ring-2 focus-within:ring-accent"
       onSubmit={(e) => {
         e.preventDefault();
         if (active >= 0 && items[active]) {

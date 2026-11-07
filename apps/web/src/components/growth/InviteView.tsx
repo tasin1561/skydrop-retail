@@ -58,7 +58,7 @@ function Invite({ data, live }: { data: NonNullable<ReturnType<typeof useReferra
         </p>
       )}
 
-      <section className="rise relative overflow-hidden rounded-[20px] p-5 text-white shadow-[var(--glow)]" style={{ background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}>
+      <section className="rise relative overflow-hidden rounded-[12px] p-5 text-white shadow-[var(--glow)]" style={{ background: "linear-gradient(135deg, var(--hero-a) 0%, var(--hero-a) 55%, color-mix(in srgb, var(--hero-a) 72%, var(--hero-b)) 100%)" }}>
         <div aria-hidden className="gr-float absolute -right-6 -top-6 grid h-28 w-28 place-items-center rounded-full bg-white/10">
           <Icon name="spark" size={44} />
         </div>

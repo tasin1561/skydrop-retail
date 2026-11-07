@@ -25,16 +25,24 @@
   --hero-a: #0b0b0f;
   --hero-b: #5b3df5;
 
-  --radius: 20px;
-  --shadow-1: 0 1px 1px rgb(0 0 0 / 0.04), 0 6px 20px rgb(20 16 60 / 0.06);
-  --shadow-2: 0 2px 6px rgb(20 16 60 / 0.06), 0 18px 44px rgb(20 16 60 / 0.12);
-  --glow: 0 10px 30px color-mix(in srgb, var(--accent) 35%, transparent);
+  /* Crisp, corporate geometry: 8 / 12 / 16 radii, hairline rings instead of glows. */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow-1: 0 0 0 1px var(--line), 0 1px 2px rgb(16 16 24 / 0.04);
+  --shadow-2: 0 0 0 1px var(--line), 0 2px 4px rgb(16 16 24 / 0.04), 0 10px 24px -8px rgb(16 16 24 / 0.12);
+  --glow: 0 1px 2px rgb(16 16 24 / 0.14);
 
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.25, 1);
-  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-feedback: 0.2s;
-  --dur-open: 0.38s;
+  /* Motion: one curve, three durations. --ease-in-out and --spring are aliases kept so older
+     declarations resolve to the same calm curve (no overshoot anywhere). */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: var(--ease);
+  --spring: var(--ease);
+  --dur-1: 120ms; /* press, colour, small state */
+  --dur-2: 180ms; /* hover, fades, menus */
+  --dur-3: 240ms; /* open/close: drawers, sheets, accordions */
+  --dur-feedback: var(--dur-2);
+  --dur-open: var(--dur-3);
 }
 
 [data-theme="dark"] {
@@ -50,8 +58,9 @@
   --accent-2: #b4a7ff;
   --hero-a: #16132b;
   --hero-b: #5b3df5;
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
-  --shadow-2: 0 10px 36px rgb(0 0 0 / 0.55);
+  --shadow-1: 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 0 0 1px var(--line), 0 10px 28px -8px rgb(0 0 0 / 0.6);
+  --glow: 0 1px 2px rgb(0 0 0 / 0.5);
 }
 
 [data-store="amazon"] {
@@ -92,6 +101,10 @@
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
+  /* tighter Tailwind radius scale: rounded-xl 10px, -2xl 12px, -3xl 16px (pills stay rounded-full) */
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
   /* Bangla glyphs fall through to Noto Sans Bengali (next/font): Plus Jakarta Sans has no Bengali. */
   --font-sans: var(--font-jakarta), "Plus Jakarta Sans", var(--font-bengali), "Noto Sans Bengali", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -128,10 +141,10 @@ body {
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--accent);
-  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
 }
 .is-active .chip-icon,
 .chip-icon.is-active {
@@ -139,7 +152,7 @@ body {
   color: var(--accent-ink);
 }
 
-/* primary button with gradient sweep + stepping arrow */
+/* buttons: crisp 10px corners, solid fills, quiet hover/press */
 .btn {
   position: relative;
   isolation: isolate;
@@ -150,12 +163,16 @@ body {
   gap: 0.5rem;
   min-height: 44px;
   padding: 0 1.25rem;
-  border-radius: 999px;
+  border-radius: 10px;
   font-weight: 600;
-  transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease), opacity 0.2s;
+  transition:
+    transform var(--dur-1) var(--ease),
+    background-color var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease),
+    opacity var(--dur-2) var(--ease);
 }
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 .btn:disabled {
   opacity: 0.55;
@@ -166,23 +183,14 @@ body {
   color: var(--accent-ink);
   box-shadow: var(--glow);
 }
-.btn-primary::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(110deg, var(--accent), var(--accent-2));
-  transform: translateX(-101%);
-  transition: transform 0.35s var(--ease);
-}
-.btn-primary:hover::before {
-  transform: translateX(0);
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--accent) 88%, black);
 }
 .btn .arrow {
-  transition: transform 0.2s var(--ease);
+  transition: transform var(--dur-2) var(--ease);
 }
 .btn:hover .arrow {
-  transform: translateX(3px);
+  transform: translateX(2px);
 }
 .btn-ghost {
   background: var(--surface-2);
@@ -195,7 +203,10 @@ body {
 .btn-coral {
   background: var(--brand-2);
   color: #fff;
-  box-shadow: 0 8px 24px rgb(255 106 61 / 0.3);
+  box-shadow: var(--glow);
+}
+.btn-coral:hover {
+  background: color-mix(in srgb, var(--brand-2) 90%, black);
 }
 
 /* floating-label field */
@@ -208,12 +219,12 @@ body {
   width: 100%;
   min-height: 52px;
   padding: 1.25rem 0.9rem 0.45rem 2.9rem;
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--surface);
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line);
   color: var(--ink);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
   appearance: none;
 }
 .field textarea {
@@ -228,13 +239,13 @@ body {
   font-size: 0.95rem;
   pointer-events: none;
   transform-origin: left top;
-  transition: transform 0.2s var(--ease), color 0.2s;
+  transition: transform var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
 }
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .field input:focus + label,
 .field input:not(:placeholder-shown) + label,
@@ -275,8 +286,8 @@ body {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent);
-  animation: shimmer 1.4s infinite;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 45%, transparent), transparent);
+  animation: shimmer 1.6s linear infinite;
 }
 @keyframes shimmer {
   to {
@@ -284,15 +295,13 @@ body {
   }
 }
 
-/* staggered fade-up for grids */
+/* page content renders in place: no fade-up cascades (class kept so markup needs no change) */
 .rise {
-  animation: rise 0.45s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 35ms);
+  animation: none;
 }
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
 }
 
@@ -321,10 +330,10 @@ body {
 }
 .roll > span {
   grid-area: 1 / 1;
-  transition: transform 0.3s var(--ease), opacity 0.3s;
+  transition: transform var(--dur-2) var(--ease), opacity var(--dur-2) var(--ease);
 }
 .roll [data-on="false"] {
-  transform: translateY(110%);
+  transform: translateY(40%);
   opacity: 0;
 }
 .roll [data-on="true"] {
@@ -332,102 +341,55 @@ body {
   opacity: 1;
 }
 .roll [data-gone="true"] {
-  transform: translateY(-110%);
+  transform: translateY(-40%);
   opacity: 0;
 }
 
-/* Skydrop van drive-off (Place order) */
+/* Place-order button: idle label -> spinner (busy) -> drawn check + done label. Opacity only. */
 .van-btn {
   position: relative;
   overflow: hidden;
 }
-.van-btn .van {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 46px;
-  margin-left: -23px;
-  margin-top: -13px;
-  opacity: 0;
-  transform: translateX(-160%);
-}
-.van-btn[data-state="busy"] .van {
-  animation: van-in 0.5s var(--ease) forwards, van-bob 0.35s 0.5s var(--ease-in-out) infinite alternate;
-}
-.van-btn[data-state="done"] .van {
-  animation: van-out 0.6s var(--ease) forwards;
-}
-.van-btn .wheel {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.van-btn[data-state="busy"] .wheel {
-  animation: spin 0.4s linear infinite;
-}
-.van-btn .speed {
-  opacity: 0;
-}
-.van-btn[data-state="busy"] .speed {
-  animation: speed 0.45s linear infinite;
-}
 .van-btn .label {
-  transition: transform 0.3s var(--ease), opacity 0.25s;
+  transition: opacity var(--dur-2) var(--ease);
 }
-.van-btn[data-state="busy"] .label,
+.van-btn[data-state="busy"] .label.idle,
 .van-btn[data-state="done"] .label.idle {
-  transform: translateY(-140%);
   opacity: 0;
 }
-.van-btn .label.done {
+.van-btn .label.done,
+.van-btn .busy {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  transform: translateY(140%);
   opacity: 0;
+  transition: opacity var(--dur-2) var(--ease);
 }
+.van-btn[data-state="busy"] .busy,
 .van-btn[data-state="done"] .label.done {
-  transform: translateY(0);
   opacity: 1;
-  transition-delay: 0.35s;
 }
-@keyframes van-in {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.van-btn .busy > i {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgb(255 255 255 / 0.35);
+  border-top-color: #fff;
 }
-@keyframes van-bob {
-  to {
-    transform: translateY(-2px);
-  }
+.van-btn[data-state="busy"] .busy > i {
+  animation: spin 0.8s linear infinite;
 }
-@keyframes van-out {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(260%);
-  }
+.van-btn:not([data-state="done"]) .draw-check path {
+  animation: none;
+}
+/* a failed request: a calm colour cue instead of a shake */
+.van-btn[data-error="true"] {
+  box-shadow: 0 0 0 2px var(--bad);
 }
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-@keyframes speed {
-  0% {
-    opacity: 0;
-    transform: translateX(6px);
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-8px);
   }
 }
 
@@ -435,7 +397,7 @@ body {
 .draw-check path {
   stroke-dasharray: 30;
   stroke-dashoffset: 30;
-  animation: draw 0.5s 0.15s var(--ease) forwards;
+  animation: draw 320ms 60ms var(--ease) forwards;
 }
 @keyframes draw {
   to {
@@ -443,11 +405,11 @@ body {
   }
 }
 .pop {
-  animation: pop 0.45s var(--spring) both;
+  animation: pop var(--dur-2) var(--ease) both;
 }
 @keyframes pop {
   from {
-    transform: scale(0.6);
+    transform: scale(0.96);
     opacity: 0;
   }
 }
@@ -459,75 +421,38 @@ body {
 .pulse-dot::after {
   content: "";
   position: absolute;
-  inset: -6px;
+  inset: -4px;
   border-radius: 999px;
-  border: 2px solid var(--accent);
-  animation: pulse 1.6s var(--ease) infinite;
+  border: 1.5px solid var(--accent);
+  animation: pulse 2.4s var(--ease) infinite;
 }
+/* one slow, low-amplitude status pulse (current step only) */
 @keyframes pulse {
   from {
-    transform: scale(0.7);
-    opacity: 0.8;
+    transform: scale(0.9);
+    opacity: 0.45;
   }
+  70%,
   to {
-    transform: scale(1.5);
+    transform: scale(1.25);
     opacity: 0;
   }
 }
 
-/* parachute parcel (order success) */
-.parachute {
-  animation: chute 1.4s var(--ease) both;
-}
-@keyframes chute {
-  from {
-    transform: translateY(-70px) rotate(-6deg);
-    opacity: 0;
-  }
-  60% {
-    opacity: 1;
-  }
-  80% {
-    transform: translateY(4px) rotate(2deg);
-  }
-  to {
-    transform: translateY(0) rotate(0);
-  }
-}
-
-/* floating hero props */
-.float {
-  animation: float 5s var(--ease-in-out) infinite alternate;
-}
-@keyframes float {
-  to {
-    transform: translateY(-10px) rotate(2deg);
-  }
-}
-
-/* shake for invalid */
+/* retired decorative motion: parachute drop, floating props, invalid shake (kept as no-ops) */
+.parachute,
+.float,
 .shake {
-  animation: shake 0.4s;
-}
-@keyframes shake {
-  25% {
-    transform: translateX(-4px);
-  }
-  50% {
-    transform: translateX(4px);
-  }
-  75% {
-    transform: translateX(-2px);
-  }
+  animation: none;
 }
 
 /* toast */
 .toast-in {
-  animation: toast-in 0.35s var(--spring) both;
+  animation: toast-in var(--dur-3) var(--ease) both;
 }
 @keyframes toast-in {
   from {
-    transform: translateY(16px) scale(0.96);
+    transform: translateY(8px);
     opacity: 0;
   }
 }
@@ -543,7 +468,7 @@ body {
 
 /* drawer and sheet */
 .sheet-enter {
-  animation: sheet 0.35s var(--ease) both;
+  animation: sheet var(--dur-3) var(--ease) both;
 }
 @keyframes sheet {
   from {
@@ -551,7 +476,7 @@ body {
   }
 }
 .fade-in {
-  animation: fade 0.25s var(--ease) both;
+  animation: fade var(--dur-2) var(--ease) both;
 }
 @keyframes fade {
   from {
@@ -563,7 +488,7 @@ body {
 .acc-body {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.35s var(--ease);
+  transition: grid-template-rows var(--dur-3) var(--ease);
 }
 .acc-body > div {
   overflow: hidden;
@@ -572,7 +497,7 @@ body {
   grid-template-rows: 1fr;
 }
 .acc .acc-chev {
-  transition: transform 0.3s var(--ease);
+  transition: transform var(--dur-2) var(--ease);
 }
 .acc[data-open="true"] .acc-chev {
   transform: rotate(180deg);
@@ -582,13 +507,20 @@ body {
 
 }
 
+/* Reduced motion: no movement at all. Animations jump to their end state (so drawn checks and
+   fades still land visible), loops stop, transitions become instant. */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }
@@ -609,7 +541,7 @@ body {
     inset: 0;
     border-radius: inherit;
     background: inherit;
-    animation: live-ping 1.4s var(--ease) infinite;
+    animation: live-ping 2.4s var(--ease) infinite;
   }
   .wait-story .ws-route {
     stroke: var(--line);
@@ -622,7 +554,8 @@ body {
     stroke-linecap: round;
     stroke-dasharray: 100;
     stroke-dashoffset: 100;
-    animation: ws-draw 6s var(--ease-in-out) infinite;
+    /* a single slow line along the route; it fills once and stays (no loop) */
+    animation: ws-draw 24s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
   }
   .wait-story .ws-stop {
     fill: var(--surface);
@@ -634,52 +567,28 @@ body {
     font-weight: 700;
     fill: var(--ink-2);
   }
-  .wait-story .ws-parcel {
-    offset-path: path("M28 64 C 90 10, 140 10, 160 42 S 250 80, 292 30");
-    offset-rotate: 0deg;
-    animation: ws-move 6s var(--ease-in-out) infinite;
-  }
-  .wait-story .ws-parcel rect {
-    fill: var(--brand-2);
-  }
-  .wait-story .ws-parcel path {
-    stroke: #fff;
-    stroke-width: 1.4;
-    fill: none;
-  }
   .wait-story .ws-tip {
-    animation: ws-tip 4.5s var(--ease) both;
+    animation: mo-fade var(--dur-3) var(--ease) both;
   }
   .reveal-in {
-    animation: reveal-in 0.45s var(--ease) both;
+    animation: reveal-in var(--dur-2) var(--ease) both;
   }
 }
 @keyframes live-ping {
-  0% { transform: scale(1); opacity: 0.6; }
-  80%, 100% { transform: scale(2.6); opacity: 0; }
+  0% { transform: scale(1); opacity: 0.35; }
+  70%, 100% { transform: scale(1.8); opacity: 0; }
 }
 @keyframes ws-draw {
   0% { stroke-dashoffset: 100; }
-  85%, 100% { stroke-dashoffset: 0; }
-}
-@keyframes ws-move {
-  0% { offset-distance: 0%; transform: scale(0.8); }
-  10% { transform: scale(1); }
-  85%, 100% { offset-distance: 100%; transform: scale(1); }
-}
-@keyframes ws-tip {
-  0% { opacity: 0; transform: translateY(6px); }
-  10%, 88% { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: translateY(-4px); }
+  100% { stroke-dashoffset: 8; }
 }
 @keyframes reveal-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .live-dot::after, .wait-story .ws-parcel, .wait-story .ws-route-done, .wait-story .ws-tip, .reveal-in { animation: none; }
-  .wait-story .ws-route-done { stroke-dashoffset: 0; }
-  .wait-story .ws-parcel { offset-distance: 50%; }
+  .live-dot::after, .wait-story .ws-route-done, .wait-story .ws-tip, .reveal-in { animation: none; }
+  .wait-story .ws-route-done { stroke-dashoffset: 50; }
 }
 @layer components {
   .search-radar {
@@ -692,17 +601,16 @@ body {
     border-radius: 999px;
     background: var(--accent-soft);
   }
-  .search-radar::before,
-  .search-radar::after {
+  /* one slow, low-amplitude status ring (searching), like the live price dot */
+  .search-radar::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    border: 2px solid var(--accent);
+    border: 1.5px solid var(--accent);
     opacity: 0;
-    animation: radar 1.8s var(--ease) infinite;
+    animation: radar 2.4s var(--ease) infinite;
   }
-  .search-radar::after { animation-delay: 0.9s; }
   .search-radar i {
     width: 12px;
     height: 12px;
@@ -711,11 +619,11 @@ body {
   }
 }
 @keyframes radar {
-  0% { transform: scale(0.4); opacity: 0.8; }
-  100% { transform: scale(1.35); opacity: 0; }
+  0% { transform: scale(0.8); opacity: 0.4; }
+  70%, 100% { transform: scale(1.2); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .search-radar::before, .search-radar::after { animation: none; }
+  .search-radar::before { animation: none; }
 }
 
 /* ---------- Bangla (bn) ---------- */
@@ -739,12 +647,12 @@ body {
 
 /* EN | বাংলা switch: the pill slides on transform only. */
 .lang-switch-pill {
-  transition: transform 0.38s var(--spring);
+  transition: transform var(--dur-3) var(--ease);
   will-change: transform;
 }
 /* Language change: quick crossfade of the page (opacity only) while the server re-renders. */
 body {
-  transition: opacity 0.16s var(--ease);
+  transition: opacity var(--dur-2) var(--ease);
 }
 html.lang-fade body {
   opacity: 0.2;

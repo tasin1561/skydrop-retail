@@ -26,7 +26,7 @@ export function ConsentBanner({ current, onDone }: { current: Consent | null; on
       aria-modal="false"
       aria-labelledby="consent-h"
       aria-describedby="consent-d"
-      className="rise fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] mx-auto max-w-sm rounded-[20px] border border-line/70 bg-surface/90 p-4 text-ink shadow-[var(--shadow-2)] outline-none backdrop-blur-xl sm:inset-x-auto sm:left-5 sm:bottom-5 md:bottom-5"
+      className="rise fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] mx-auto max-w-sm rounded-[12px] border border-line/70 bg-surface/90 p-4 text-ink shadow-[var(--shadow-2)] outline-none backdrop-blur-xl sm:inset-x-auto sm:left-5 sm:bottom-5 md:bottom-5"
     >
       <div className="flex items-start gap-3">
         <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-accent">

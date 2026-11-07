@@ -44,34 +44,34 @@ export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) 
   const d = discountPct(p);
 
   return (
-    <section aria-labelledby="dd-h" className="mt-6 px-4 sm:px-0" data-reveal="" suppressHydrationWarning>
-      <div data-store={p.market} data-loop="" suppressHydrationWarning className="dd-card grid gap-4 p-4 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center sm:gap-6 sm:p-6">
+    <section aria-labelledby="dd-h" className="mt-6 px-4 sm:px-0">
+      <div data-store={p.market} className="dd-card grid gap-4 p-4 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center sm:gap-6 sm:p-6">
         <Link
           href={`/p/${p.id}`}
           prefetch={false}
-          className="relative mx-auto grid aspect-square w-40 place-items-center rounded-[20px] bg-white p-4 shadow-[var(--shadow-1)] sm:w-full"
+          className="relative mx-auto grid aspect-square w-40 place-items-center rounded-[10px] bg-white p-4 ring-1 ring-line sm:w-full"
           tabIndex={-1}
           aria-hidden="true"
         >
-          <ProductImage p={p} className="dd-img h-full w-full" />
-          <span className="absolute -right-2 -top-2 grid h-14 w-14 rotate-12 place-items-center rounded-full bg-brand-2 text-center text-[13px] font-extrabold leading-none text-white shadow-[0_8px_20px_rgb(255_106_61/0.4)]">
+          <ProductImage p={p} className="h-full w-full" />
+          <span className="absolute left-2 top-2 grid place-items-center rounded bg-bad px-1.5 py-1 text-center text-[12px] font-semibold leading-none tabular-nums text-white">
             -{digits(d)}%
           </span>
         </Link>
         <div className="relative min-w-0">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-accent">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
             <Icon name="bolt" size={13} stroke={2.4} /> {t("home.dealOfDay")}
           </p>
-          <h2 id="dd-h" className="mt-2 line-clamp-2 text-lg font-extrabold leading-snug tracking-tight sm:text-xl">
+          <h2 id="dd-h" className="mt-2 line-clamp-2 text-lg font-bold leading-snug tracking-tight sm:text-xl">
             {p.title}
           </h2>
           <p className="mt-1 text-xs text-ink-2">
             {t("dd.from", { source: STORES[p.market].source })}{deal ? ` · ${deal.label}` : ""}
           </p>
-          <div className="mt-3 flex flex-wrap items-baseline gap-x-2">
-            <span className="text-2xl font-extrabold tracking-tight">{bdt(priceBdt(p))}</span>
+          <div className="mt-3 flex flex-wrap items-baseline gap-x-2 tabular-nums">
+            <span className="text-2xl font-bold tracking-tight">{bdt(priceBdt(p))}</span>
             <span className="text-sm text-ink-3 line-through">{bdt(mrpBdt(p))}</span>
-            <span className="text-sm font-bold text-good">{t("dd.save", { amount: bdt(mrpBdt(p) - priceBdt(p)) })}</span>
+            <span className="text-sm font-semibold text-good">{t("dd.save", { amount: bdt(mrpBdt(p) - priceBdt(p)) })}</span>
           </div>
           <div className="mt-4 flex flex-wrap items-end justify-between gap-4 sm:justify-start sm:gap-8">
             <FlipCountdown to={to} label={ownEnd ? t("dd.storeEnds") : t("dd.nextPick")} onEnd={onEnd} />

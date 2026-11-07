@@ -9,6 +9,9 @@ import { HowItWorks } from "@/components/home/HowItWorks";
 import { PromoStrip } from "@/components/home/PromoStrip";
 import { CmsFlash, CmsHero, CmsTiles } from "@/components/cms/CmsSlots";
 import { EnabledGrid, EnabledRail, StoreGate } from "@/components/home/Gates";
+import { StoreBrowse, StoreQuickBar } from "@/components/home/StoreBrowse";
+import Link from "next/link";
+import { Icon } from "@/components/Icon";
 
 export function generateStaticParams() {
   return MARKET_IDS.map((market) => ({ market }));
@@ -36,8 +39,24 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
   return (
     <StoreGate market={market}>
       <div data-store={market} className="mx-auto max-w-7xl pt-3 sm:px-4">
+        <nav aria-label={t("pd.breadcrumb")} className="mb-3 px-4 sm:px-0">
+          <ol className="flex items-center gap-1 whitespace-nowrap text-xs font-medium text-ink-3">
+            <li>
+              <Link href="/" className="inline-flex min-h-8 items-center hover:text-accent">
+                {t("nav.home")}
+              </Link>
+            </li>
+            <li className="flex items-center gap-1">
+              <Icon name="right" size={12} />
+              <span aria-current="page" className="text-ink-2">
+                {s.name}
+              </span>
+            </li>
+          </ol>
+        </nav>
         <StoreHero scenes={[{ mode: market, images }]} fixed />
         <CategoryChips mode={market} />
+        <StoreQuickBar market={market} />
         <CmsHero store={market} />
         <PromoStrip />
         <CmsTiles store={market} />
@@ -52,9 +71,11 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
           />
         ))}
         <HowItWorks />
-        <section className="mt-10 px-4 sm:px-0">
-          <h2 className="mb-3 text-lg font-extrabold tracking-tight sm:text-xl">{t("storePage.everything", { store: s.name })}</h2>
-          <EnabledGrid items={all} />
+        <section className="mt-10">
+          <h2 className="px-4 text-lg font-bold tracking-tight sm:px-0 sm:text-xl">{t("storePage.everything", { store: s.name })}</h2>
+          <StoreBrowse market={market}>
+            <EnabledGrid items={all} />
+          </StoreBrowse>
         </section>
       </div>
     </StoreGate>

@@ -82,7 +82,7 @@ export function CartShoppingExtras({ items }: { items: CartItem[] }) {
       {groupSave > 0 && market && (
         <Link
           href={`/group?market=${market}`}
-          className="card group flex items-center gap-3 p-3 transition-transform duration-300 hover:-translate-y-0.5 sm:p-4"
+          className="card group flex items-center gap-3 p-3 transition-transform duration-200 hover:-translate-y-0.5 sm:p-4"
         >
           <span className="chip-icon shrink-0">
             <Icon name="user" size={18} />

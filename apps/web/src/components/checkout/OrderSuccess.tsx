@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Order } from "@/lib/types";
-import { api, ApiError, apiEnabled } from "@/lib/apiClient";
+import { api, ApiError, apiEnabled, goToPayment } from "@/lib/apiClient";
 import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow, groupByMarket } from "@/lib/pricing";
@@ -15,16 +15,6 @@ import { useT } from "@/i18n/client";
 import { rich } from "@/i18n/rich";
 import { bdName } from "@/lib/bd";
 
-const CONFETTI = [
-  [-90, -60, "var(--brand-2)"],
-  [80, -70, "var(--accent)"],
-  [-120, 10, "var(--accent-2)"],
-  [115, 20, "var(--brand-2)"],
-  [-50, -95, "var(--good)"],
-  [45, -100, "var(--accent-2)"],
-  [-20, 40, "var(--accent)"],
-  [140, -30, "var(--good)"],
-] as const;
 
 export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatus?: "paid" | "failed" | "cancelled" }) {
   const { orders, ready, user } = useStore();
@@ -56,7 +46,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
       <div className="mx-auto max-w-xl px-4 pt-10" aria-busy="true" aria-label={t("os.loading")}>
         <div className="skeleton mx-auto h-44 w-44 rounded-full" />
         <div className="skeleton mx-auto mt-6 h-8 w-64 rounded-xl" />
-        <div className="skeleton mt-8 h-40 rounded-[20px]" />
+        <div className="skeleton mt-8 h-40 rounded-[12px]" />
       </div>
     );
   }
@@ -147,7 +137,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
       setRetryError(null);
       try {
         const res = await api.payOrder(order.id, `${window.location.origin}/checkout/success`);
-        if (res.payment.redirectUrl) window.location.assign(res.payment.redirectUrl);
+        if (res.payment.redirectUrl) goToPayment(res.payment.redirectUrl);
         else window.location.assign(`/checkout/success?order=${order.id}&status=paid`);
       } catch (e) {
         setRetryError(e instanceof ApiError ? e.message : t("os.gateway"));
@@ -188,40 +178,23 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
   return (
     <div className="co-bottom-pad mx-auto max-w-xl px-4 pt-6 sm:pt-10">
       <section className="text-center" aria-labelledby="ok-h">
-        <div className="relative mx-auto h-48 w-56" aria-hidden="true">
-          <div className="co-confetti absolute inset-0">
-            {CONFETTI.map(([x, y, c], i) => (
-              <i key={i} style={{ ["--x" as string]: `${x}px`, ["--y" as string]: `${y}px`, background: c, animationDelay: `${1.15 + i * 0.03}s` }} />
-            ))}
-          </div>
-          <svg viewBox="0 0 220 190" className="absolute inset-0 h-full w-full overflow-visible">
-            <path className="co-ground" d="M40 176h140" stroke="var(--ink-3)" strokeOpacity=".35" strokeWidth="3" strokeLinecap="round" />
-            <g className="parachute">
-              <path d="M62 66a48 38 0 0 1 96 0z" fill="var(--accent)" />
-              <path d="M86 66a24 38 0 0 1 48 0" fill="var(--accent-2)" opacity=".55" />
-              <path d="M64 66l36 70M156 66l-36 70M110 66v70" stroke="var(--ink-3)" strokeWidth="1.5" />
-              <rect x="88" y="134" width="44" height="40" rx="7" fill="var(--brand-2)" />
-              <path d="M88 148h44M110 134v14" stroke="#fff" strokeOpacity=".55" strokeWidth="2" />
-            </g>
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[color-mix(in_srgb,var(--good)_12%,transparent)] text-good" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="32" height="32" className="draw-check">
+            <path d="M5 12l5 5 9-11" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="co-success-check absolute -right-1 bottom-2 grid h-14 w-14 place-items-center rounded-full bg-good text-white shadow-[0_10px_28px_color-mix(in_srgb,var(--good)_40%,transparent)]">
-            <svg viewBox="0 0 24 24" width="28" height="28" className="draw-check">
-              <path d="M5 12l5 5 9-11" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
         </div>
 
         <div role="status" aria-live="polite">
-          <h1 id="ok-h" className="rise mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl" style={{ ["--i" as string]: 4 }}>
+          <h1 id="ok-h" className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
             {t("os.placed", { name: order.address.name.split(" ")[0] })}
           </h1>
-          <p className="rise mt-2 text-sm text-ink-2" style={{ ["--i" as string]: 6 }}>
+          <p className="mt-2 text-sm text-ink-2">
             {rich(t("os.line", { items: t("cart.items", { count }), total: bdt(order.total) }), { id: <b className="font-mono text-ink">{order.id}</b> })}
           </p>
         </div>
       </section>
 
-      <section className="co-card rise mt-6 overflow-hidden" style={{ ["--i" as string]: 8 }} aria-label={t("os.details")}>
+      <section className="co-card mt-6 overflow-hidden" aria-label={t("os.details")}>
         <div className="grid grid-cols-2 gap-px bg-surface-2">
           {[
             ["receipt", t("os.total"), bdt(order.total)],
@@ -256,7 +229,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
         </div>
       </section>
 
-      <section className="co-card rise mt-4 p-4" style={{ ["--i" as string]: 10 }} aria-labelledby="next-h">
+      <section className="co-card mt-4 p-4" aria-labelledby="next-h">
         <h2 id="next-h" className="text-sm font-extrabold">
           {t("os.next")}
         </h2>
@@ -283,7 +256,7 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
 
       <TellAFriend style={{ ["--i" as string]: 11 }} />
 
-      <div className="rise mt-6 flex flex-col gap-2 sm:flex-row" style={{ ["--i" as string]: 12 }}>
+      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
         <Link href={`/orders/${order.id}`} className="btn btn-primary flex-1">
           <Icon name="truck" size={18} /> {t("os.track")}
         </Link>

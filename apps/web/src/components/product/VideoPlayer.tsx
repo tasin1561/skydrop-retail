@@ -112,7 +112,7 @@ export function VideoPlayer({
         playsInline
         preload="none"
         aria-label={t("vid.aria", { title })}
-        className={"max-h-full max-w-full rounded-2xl bg-black transition-opacity duration-300 " + (phase === "error" ? "opacity-30" : "opacity-100")}
+        className={"max-h-full max-w-full rounded-2xl bg-black transition-opacity duration-200 " + (phase === "error" ? "opacity-30" : "opacity-100")}
         onPlaying={() => {
           if (timer.current) clearTimeout(timer.current);
           setPhase("playing");
@@ -128,7 +128,7 @@ export function VideoPlayer({
             <button
               type="button"
               onClick={() => void start()}
-              className="pd-play group h-20 w-20 hover:scale-105 active:scale-95"
+              className="pd-play group h-20 w-20 hover:bg-surface active:scale-[0.98]"
               aria-label={t("gal.play")}
             >
               <Icon name="play" size={30} fill="currentColor" stroke={1} className="translate-x-0.5" />

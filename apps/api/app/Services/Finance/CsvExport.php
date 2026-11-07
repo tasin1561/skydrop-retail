@@ -28,7 +28,7 @@ class CsvExport
                 $w->openToFile('php://output');
                 $w->addRow(Row::fromValues($headers));
                 foreach ($rows as $r) {
-                    $w->addRow(Row::fromValues(array_map(fn ($v) => is_scalar($v) || $v === null ? $v : (string) $v, $r)));
+                    $w->addRow(Row::fromValues(array_map(fn ($v) => self::safe(is_scalar($v) || $v === null ? $v : (string) $v), $r)));
                 }
                 $w->close();
             }, $file, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
@@ -45,10 +45,13 @@ class CsvExport
         }, $file, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
-    /** Neutralise spreadsheet formula injection (=, +, -, @ at the start of text cells). */
-    private static function safe(mixed $v): mixed
+    /**
+     * Neutralise spreadsheet formula injection (=, +, -, @, tab, CR at the start of text cells). Customer names, addresses
+     * and marketplace titles reach staff spreadsheets, and OpenSpout writes any string starting with "=" as a formula.
+     */
+    public static function safe(mixed $v): mixed
     {
-        if (is_string($v) && $v !== '' && in_array($v[0], ['=', '+', '-', '@'], true) && ! is_numeric($v)) {
+        if (is_string($v) && $v !== '' && in_array($v[0], ['=', '+', '-', '@', "\t", "\r"], true) && ! is_numeric($v)) {
             return "'".$v;
         }
 

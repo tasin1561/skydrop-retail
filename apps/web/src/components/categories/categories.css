@@ -3,7 +3,7 @@
 
 /* ---------- mega menu ---------- */
 .cm-panel {
-  animation: cm-drop 0.28s var(--ease) both;
+  animation: cm-drop var(--dur-3) var(--ease) both;
   transform-origin: top center;
 }
 @keyframes cm-drop {
@@ -13,11 +13,11 @@
   }
 }
 .cm-indicator {
-  transition: transform 0.35s var(--spring), opacity 0.2s var(--ease);
+  transition: transform var(--dur-3) var(--ease), opacity var(--dur-2) var(--ease);
   will-change: transform;
 }
 .cm-swap {
-  animation: cm-swap 0.3s var(--ease) both;
+  animation: cm-swap var(--dur-3) var(--ease) both;
 }
 @keyframes cm-swap {
   from {
@@ -26,17 +26,17 @@
   }
 }
 .cm-col {
-  animation: rise 0.4s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 30ms);
+  animation: rise var(--dur-3) var(--ease) both;
+  animation-delay: calc(min(var(--i, 0), 4) * 30ms);
 }
 .cm-chev {
-  transition: transform 0.25s var(--ease);
+  transition: transform var(--dur-3) var(--ease);
 }
 [aria-expanded="true"] > .cm-chev {
   transform: rotate(180deg);
 }
 .cm-link {
-  transition: transform 0.2s var(--ease);
+  transition: transform var(--dur-2) var(--ease);
 }
 .cm-link:hover,
 .cm-link:focus-visible {
@@ -45,16 +45,16 @@
 
 /* ---------- mobile drill-down sheet ---------- */
 .cm-backdrop {
-  animation: fade 0.25s ease both;
+  animation: fade var(--dur-3) ease both;
 }
 .cm-sheet {
-  animation: sheet 0.35s var(--ease) both;
+  animation: sheet var(--dur-3) var(--ease) both;
 }
 .cm-level-fwd {
-  animation: cm-fwd 0.3s var(--ease) both;
+  animation: cm-fwd var(--dur-3) var(--ease) both;
 }
 .cm-level-back {
-  animation: cm-back 0.3s var(--ease) both;
+  animation: cm-back var(--dur-3) var(--ease) both;
 }
 @keyframes cm-fwd {
   from {
@@ -69,7 +69,7 @@
   }
 }
 .cm-row {
-  transition: transform 0.15s var(--ease);
+  transition: transform var(--dur-2) var(--ease);
 }
 .cm-row:active {
   transform: scale(0.985);
@@ -77,13 +77,13 @@
 
 /* ---------- /categories and /c/... ---------- */
 .cm-tile {
-  transition: transform 0.25s var(--ease);
+  transition: transform var(--dur-3) var(--ease);
 }
 .cm-tile:hover {
   transform: translateY(-2px);
 }
 .cm-chip {
-  transition: transform 0.2s var(--ease);
+  transition: transform var(--dur-2) var(--ease);
 }
 .cm-chip:hover {
   transform: translateY(-2px);

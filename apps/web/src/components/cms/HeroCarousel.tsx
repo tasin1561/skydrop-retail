@@ -7,7 +7,7 @@ import type { Banner } from "@/lib/cms";
 import { Icon } from "@/components/Icon";
 import { useT } from "@/i18n/client";
 
-const AUTOPLAY_MS = 6000;
+const AUTOPLAY_MS = 8000; // calm: ≥ 7s, pauses on hover/focus, off-screen, hidden tab and reduced motion
 
 // Banner carousel: CSS scroll-snap does the swiping; autoplay pauses when off-screen, when the tab is hidden,
 // on hover/focus, after the shopper swipes, and entirely under reduced motion. The dot bead tracks the scroll.
@@ -109,7 +109,7 @@ export function HeroCarousel({ banners, label: labelProp }: { banners: Banner[];
             type="button"
             onClick={() => go(active - 1)}
             aria-label={t("hc.prev")}
-            className="absolute left-6 top-[calc(50%-22px)] hidden h-11 w-11 place-items-center rounded-full bg-surface/85 text-ink shadow-[var(--shadow-2)] backdrop-blur transition-transform hover:scale-105 sm:-left-3 sm:grid"
+            className="absolute left-6 top-[calc(50%-22px)] hidden h-11 w-11 place-items-center rounded-full bg-surface/85 text-ink shadow-[var(--shadow-2)] backdrop-blur transition-transform hover:bg-surface sm:-left-3 sm:grid"
           >
             <Icon name="left" size={18} />
           </button>
@@ -117,7 +117,7 @@ export function HeroCarousel({ banners, label: labelProp }: { banners: Banner[];
             type="button"
             onClick={() => go(active + 1)}
             aria-label={t("hc.next")}
-            className="absolute right-6 top-[calc(50%-22px)] hidden h-11 w-11 place-items-center rounded-full bg-surface/85 text-ink shadow-[var(--shadow-2)] backdrop-blur transition-transform hover:scale-105 sm:-right-3 sm:grid"
+            className="absolute right-6 top-[calc(50%-22px)] hidden h-11 w-11 place-items-center rounded-full bg-surface/85 text-ink shadow-[var(--shadow-2)] backdrop-blur transition-transform hover:bg-surface sm:-right-3 sm:grid"
           >
             <Icon name="right" size={18} />
           </button>
@@ -186,7 +186,7 @@ function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: b
           )}
           {b.link && (
             <span
-              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0f] shadow-[0_8px_24px_rgb(0_0_0/0.18)]"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0f] shadow-[var(--glow)]"
               style={{ ["--d" as string]: 3 }}
             >
               {b.cta || t("cat.shopNow")} <Icon name="arrow" size={16} />
@@ -194,7 +194,7 @@ function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: b
           )}
         </div>
         {b.image && !cover && (
-          <div className="hc-shot hidden h-36 w-36 shrink-0 place-items-center rounded-[28px] bg-white p-3 shadow-[0_18px_40px_rgb(0_0_0/0.25)] min-[420px]:grid sm:h-48 sm:w-48">
+          <div className="hc-shot hidden h-36 w-36 shrink-0 place-items-center rounded-[16px] bg-white p-3 shadow-[var(--shadow-2)] min-[420px]:grid sm:h-48 sm:w-48">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={b.image} alt="" className="h-full w-full object-contain" loading="lazy" decoding="async" />
           </div>

@@ -21,7 +21,9 @@ class SecurityController extends Controller
      */
     public function honeypot(Request $request): JsonResponse
     {
-        $ip = AppSignature::isInternal($request) ? (string) $request->header('X-Client-IP') : ClientIdentity::ip($request);
+        // Via the Next.js server only a public, routable X-Client-IP is blocked: a missing or private value would be the
+        // storefront server itself (or its network), and blocking that would take the whole shop down.
+        $ip = AppSignature::isInternal($request) ? (string) ClientIdentity::forwardedShopperIp($request) : ClientIdentity::ip($request);
         if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP)) {
             $hours = (int) config('security.honeypot.block_hours', 24);
             Blocklist::block('ip', $ip, 'Honeypot: '.$request->path(), 'honeypot', $hours);
