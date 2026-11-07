@@ -1,0 +1,574 @@
+@import "tailwindcss";
+
+/* ---------- Skydrop Retail tokens ---------- */
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f0f2f8;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --ink-3: #94a3b8;
+  --line: #e5e8f0;
+  --good: #16a34a;
+  --warn: #d97706;
+  --bad: #dc2626;
+  --brand: #0b6bcb; /* Skydrop Retail blue */
+  --brand-2: #ff6a3d; /* Skydrop coral */
+
+  /* store mode accent (overridden per store) */
+  --accent: var(--brand);
+  --accent-2: #38bdf8;
+  --accent-ink: #ffffff;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --hero-a: #0b6bcb;
+  --hero-b: #38bdf8;
+
+  --radius: 16px;
+  --shadow-1: 0 1px 2px rgb(15 23 42 / 0.06), 0 2px 8px rgb(15 23 42 / 0.05);
+  --shadow-2: 0 4px 12px rgb(15 23 42 / 0.08), 0 16px 32px rgb(15 23 42 / 0.08);
+  --glow: 0 8px 24px color-mix(in srgb, var(--accent) 28%, transparent);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme="dark"] {
+  --bg: #0b1020;
+  --surface: #121a2e;
+  --surface-2: #19223a;
+  --ink: #e8edf7;
+  --ink-2: #a5b0c6;
+  --ink-3: #66728c;
+  --line: #24304b;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 8px 28px rgb(0 0 0 / 0.45);
+}
+
+[data-store="amazon"] {
+  --accent: #0f766e;
+  --accent-2: #2dd4bf;
+  --hero-a: #0f766e;
+  --hero-b: #14b8a6;
+}
+[data-store="flipkart"] {
+  --accent: #7c3aed;
+  --accent-2: #f472b6;
+  --hero-a: #6d28d9;
+  --hero-b: #db2777;
+}
+[data-store="bigbasket"] {
+  --accent: #c2410c;
+  --accent-2: #fbbf24;
+  --hero-a: #b45309;
+  --hero-b: #f59e0b;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+@layer components {
+/* ---------- reusable pieces ---------- */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+}
+.chip-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.is-active .chip-icon,
+.chip-icon.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* primary button with gradient sweep + stepping arrow */
+.btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease), opacity 0.2s;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--glow);
+}
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, var(--accent), var(--accent-2));
+  transform: translateX(-101%);
+  transition: transform 0.35s var(--ease);
+}
+.btn-primary:hover::before {
+  transform: translateX(0);
+}
+.btn .arrow {
+  transition: transform 0.2s var(--ease);
+}
+.btn:hover .arrow {
+  transform: translateX(3px);
+}
+.btn-ghost {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.btn-ghost:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.btn-coral {
+  background: var(--brand-2);
+  color: #fff;
+  box-shadow: 0 8px 24px rgb(255 106 61 / 0.3);
+}
+
+/* floating-label field */
+.field {
+  position: relative;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 1.25rem 0.9rem 0.45rem 2.9rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+.field textarea {
+  min-height: 84px;
+  padding-top: 1.5rem;
+}
+.field label {
+  position: absolute;
+  left: 2.9rem;
+  top: 0.95rem;
+  color: var(--ink-3);
+  font-size: 0.95rem;
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.2s var(--ease), color 0.2s;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label,
+.field textarea:focus + label,
+.field textarea:not(:placeholder-shown) + label,
+.field select + label {
+  transform: translateY(-0.6rem) scale(0.78);
+  color: var(--accent);
+}
+.field .field-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 0.95rem;
+  color: var(--ink-3);
+}
+.field input:focus ~ .field-icon {
+  color: var(--accent);
+}
+.field.is-valid input {
+  border-color: color-mix(in srgb, var(--good) 60%, var(--line));
+}
+.field.is-invalid input {
+  border-color: color-mix(in srgb, var(--bad) 60%, var(--line));
+}
+
+/* shimmer skeleton */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* staggered fade-up for grids */
+.rise {
+  animation: rise 0.45s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.snap-x-rail {
+  scroll-snap-type: x mandatory;
+}
+.snap-x-rail > * {
+  scroll-snap-align: start;
+}
+
+/* add-to-cart rolling label */
+.roll {
+  display: inline-grid;
+  height: 1.4em;
+  overflow: hidden;
+  line-height: 1.4em;
+}
+.roll > span {
+  grid-area: 1 / 1;
+  transition: transform 0.3s var(--ease), opacity 0.3s;
+}
+.roll [data-on="false"] {
+  transform: translateY(110%);
+  opacity: 0;
+}
+.roll [data-on="true"] {
+  transform: translateY(0);
+  opacity: 1;
+}
+.roll [data-gone="true"] {
+  transform: translateY(-110%);
+  opacity: 0;
+}
+
+/* Skydrop van drive-off (Place order) */
+.van-btn {
+  position: relative;
+  overflow: hidden;
+}
+.van-btn .van {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  margin-left: -23px;
+  margin-top: -13px;
+  opacity: 0;
+  transform: translateX(-160%);
+}
+.van-btn[data-state="busy"] .van {
+  animation: van-in 0.5s var(--ease) forwards, van-bob 0.35s 0.5s ease-in-out infinite alternate;
+}
+.van-btn[data-state="done"] .van {
+  animation: van-out 0.6s var(--ease) forwards;
+}
+.van-btn .wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.van-btn[data-state="busy"] .wheel {
+  animation: spin 0.4s linear infinite;
+}
+.van-btn .speed {
+  opacity: 0;
+}
+.van-btn[data-state="busy"] .speed {
+  animation: speed 0.45s linear infinite;
+}
+.van-btn .label {
+  transition: transform 0.3s var(--ease), opacity 0.25s;
+}
+.van-btn[data-state="busy"] .label,
+.van-btn[data-state="done"] .label.idle {
+  transform: translateY(-140%);
+  opacity: 0;
+}
+.van-btn .label.done {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: translateY(140%);
+  opacity: 0;
+}
+.van-btn[data-state="done"] .label.done {
+  transform: translateY(0);
+  opacity: 1;
+  transition-delay: 0.35s;
+}
+@keyframes van-in {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes van-bob {
+  to {
+    transform: translateY(-2px);
+  }
+}
+@keyframes van-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(260%);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes speed {
+  0% {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+
+/* drawn check */
+.draw-check path {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: draw 0.5s 0.15s var(--ease) forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.pop {
+  animation: pop 0.45s var(--spring) both;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* pulsing current step */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  animation: pulse 1.6s var(--ease) infinite;
+}
+@keyframes pulse {
+  from {
+    transform: scale(0.7);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* parachute parcel (order success) */
+.parachute {
+  animation: chute 1.4s var(--ease) both;
+}
+@keyframes chute {
+  from {
+    transform: translateY(-70px) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(4px) rotate(2deg);
+  }
+  to {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+/* floating hero props */
+.float {
+  animation: float 5s ease-in-out infinite alternate;
+}
+@keyframes float {
+  to {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+/* shake for invalid */
+.shake {
+  animation: shake 0.4s;
+}
+@keyframes shake {
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+/* toast */
+.toast-in {
+  animation: toast-in 0.35s var(--spring) both;
+}
+@keyframes toast-in {
+  from {
+    transform: translateY(16px) scale(0.96);
+    opacity: 0;
+  }
+}
+.toast-bar {
+  transform-origin: left;
+  animation: toast-bar linear forwards;
+}
+@keyframes toast-bar {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* drawer and sheet */
+.sheet-enter {
+  animation: sheet 0.35s var(--ease) both;
+}
+@keyframes sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+.fade-in {
+  animation: fade 0.25s ease both;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* accordion via grid rows */
+.acc-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s var(--ease);
+}
+.acc-body > div {
+  overflow: hidden;
+}
+.acc[data-open="true"] .acc-body {
+  grid-template-rows: 1fr;
+}
+.acc .acc-chev {
+  transition: transform 0.3s var(--ease);
+}
+.acc[data-open="true"] .acc-chev {
+  transform: rotate(180deg);
+}
+
+/* heart burst */
+.heart[data-on="true"] svg {
+  animation: pop 0.4s var(--spring);
+}
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

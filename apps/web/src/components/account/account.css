@@ -1,0 +1,637 @@
+/* Account, orders, wishlist and admin UI. Every class is prefixed "ac-". Only transform and
+   opacity animate (plus stroke-dashoffset on small SVG). */
+
+/* ---------- phone field: +880 prefix, live status icon ---------- */
+.ac-phone input {
+  padding-left: 5.4rem;
+  padding-right: 2.75rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.ac-prefix {
+  position: absolute;
+  left: 2.9rem;
+  top: 1.27rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+  pointer-events: none;
+}
+.ac-phone input:focus ~ .ac-prefix,
+.ac-phone input:not(:placeholder-shown) ~ .ac-prefix {
+  opacity: 1;
+}
+.ac-status {
+  position: absolute;
+  right: 0.85rem;
+  top: 0.95rem;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: #fff;
+}
+.ac-status[data-tone="good"] {
+  background: var(--good);
+}
+.ac-status[data-tone="warn"] {
+  background: var(--warn);
+}
+.ac-status[data-tone="bad"] {
+  background: var(--bad);
+}
+.field.ac-warn input {
+  border-color: color-mix(in srgb, var(--warn) 60%, var(--line));
+}
+.ac-help {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+  min-height: 1.1rem;
+}
+.ac-help[data-tone="good"] {
+  color: var(--good);
+}
+.ac-help[data-tone="warn"] {
+  color: var(--warn);
+}
+.ac-help[data-tone="bad"] {
+  color: var(--bad);
+}
+.ac-select-chev {
+  position: absolute;
+  right: 0.9rem;
+  top: 1rem;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.field select {
+  padding-right: 2.5rem;
+}
+.field select:disabled {
+  opacity: 0.6;
+}
+
+/* ---------- OTP: segmented code, link and merge ---------- */
+.ac-otp {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+.ac-otp-box {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  min-height: 48px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  caret-color: var(--accent);
+  box-shadow: var(--shadow-1);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.45s var(--ease), opacity 0.35s var(--ease);
+}
+.ac-otp-box:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  transform: translateY(-2px);
+}
+.ac-otp-box[data-filled="true"] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.ac-otp[data-tone="warn"] .ac-otp-box {
+  border-color: color-mix(in srgb, var(--warn) 70%, var(--line));
+}
+/* the link: a bar that draws behind the boxes */
+.ac-otp-link {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--good));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+.ac-otp[data-state="link"] .ac-otp-link,
+.ac-otp[data-state="merge"] .ac-otp-link {
+  transform: scaleX(1);
+}
+.ac-otp[data-state="link"] .ac-otp-box,
+.ac-otp[data-state="merge"] .ac-otp-box {
+  border-color: var(--good);
+  color: var(--good);
+}
+/* the merge: every box slides into the centre and fades */
+.ac-otp[data-state="merge"] .ac-otp-box {
+  transform: translateX(calc(var(--off) * (100% + 0.5rem))) scale(0.7);
+  opacity: 0;
+}
+.ac-otp[data-state="merge"] .ac-otp-link {
+  opacity: 0;
+  transition: transform 0.3s var(--ease), opacity 0.3s 0.2s;
+}
+.ac-otp-shield {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.ac-otp-shield > span {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--good), color-mix(in srgb, var(--good) 60%, var(--accent-2)));
+  color: #fff;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--good) 35%, transparent);
+  animation: ac-shield 0.5s 0.3s var(--spring) both;
+}
+@keyframes ac-shield {
+  from {
+    transform: scale(0.3) rotate(-10deg);
+    opacity: 0;
+  }
+}
+.ac-shield-check path {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: draw 0.45s 0.65s var(--ease) forwards;
+}
+
+/* ---------- dialog: bottom sheet on mobile, centred dialog on desktop ---------- */
+.ac-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgb(8 12 24 / 0.5);
+  animation: fade 0.25s ease both;
+}
+.ac-scrim[data-closing="true"] {
+  animation: ac-fade-out 0.22s ease both;
+}
+.ac-panel {
+  position: fixed;
+  z-index: 81;
+  inset-inline: 0;
+  bottom: 0;
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 22px 22px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -12px 40px rgb(8 12 24 / 0.22);
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: sheet 0.35s var(--ease) both;
+}
+.ac-panel[data-closing="true"] {
+  animation: ac-sheet-out 0.24s var(--ease) both;
+}
+.ac-grabber {
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin: 8px auto 0;
+  border-radius: 99px;
+  background: var(--line);
+}
+@media (min-width: 768px) {
+  .ac-panel {
+    inset: auto;
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    width: min(560px, calc(100vw - 2rem));
+    max-height: 88dvh;
+    border-radius: 22px;
+    translate: -50% -50%;
+    box-shadow: var(--shadow-2), 0 30px 60px rgb(8 12 24 / 0.25);
+    animation: ac-dialog-in 0.3s var(--spring) both;
+  }
+  .ac-panel[data-closing="true"] {
+    animation: ac-dialog-out 0.2s var(--ease) both;
+  }
+  .ac-panel[data-size="sm"] {
+    width: min(420px, calc(100vw - 2rem));
+  }
+  .ac-grabber {
+    display: none;
+  }
+}
+@keyframes ac-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ac-sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes ac-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+}
+@keyframes ac-dialog-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+}
+
+/* ---------- travelling indicators ---------- */
+.ac-tabs {
+  position: relative;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.ac-tab-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--n));
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1), 0 4px 14px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateX(calc(var(--idx) * 100%));
+  transition: transform 0.4s var(--spring);
+}
+.ac-tab {
+  position: relative;
+  z-index: 1;
+  min-height: 40px;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-2);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.ac-tab[aria-selected="true"],
+.ac-tab[aria-checked="true"] {
+  color: var(--accent);
+}
+.ac-tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  background: color-mix(in srgb, var(--ink-3) 18%, transparent);
+  color: var(--ink-2);
+}
+.ac-tab[aria-selected="true"] .ac-tab-count {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---------- menu rows ---------- */
+.ac-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 60px;
+  padding: 0.6rem 0.9rem;
+  transition: background 0.2s var(--ease);
+}
+.ac-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.25s var(--ease);
+}
+a.ac-row:hover,
+button.ac-row:hover,
+a.ac-row:focus-visible,
+button.ac-row:focus-visible {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+a.ac-row:hover::before,
+button.ac-row:hover::before,
+a.ac-row:focus-visible::before,
+button.ac-row:focus-visible::before {
+  transform: scaleY(1);
+}
+a.ac-row:hover .chip-icon,
+button.ac-row:hover .chip-icon {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.ac-chev {
+  color: var(--ink-3);
+  transition: transform 0.25s var(--ease), color 0.2s;
+}
+.ac-row:hover .ac-chev,
+.ac-row:focus-visible .ac-chev,
+.group:hover .ac-chev {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+.ac-row + .ac-row {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--line) 70%, transparent);
+}
+.ac-row[aria-disabled="true"] {
+  cursor: default;
+}
+.ac-row[aria-disabled="true"] .chip-icon {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+
+/* status chips */
+.ac-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.6rem;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ac-chip[data-tone="good"] {
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+  color: var(--good);
+}
+.ac-chip[data-tone="bad"] {
+  background: color-mix(in srgb, var(--bad) 12%, transparent);
+  color: var(--bad);
+}
+.ac-chip[data-tone="warn"] {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+}
+.ac-chip[data-tone="muted"] {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+/* ---------- switch with ON / OFF in the track ---------- */
+.ac-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 76px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: background 0.25s var(--ease), box-shadow 0.25s;
+}
+.ac-switch[aria-checked="true"] {
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+.ac-switch-knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(15 23 42 / 0.25);
+  display: grid;
+  place-items: center;
+  color: var(--ink-3);
+  transition: transform 0.35s var(--spring), color 0.2s;
+}
+.ac-switch[aria-checked="true"] .ac-switch-knob {
+  transform: translateX(40px);
+  color: var(--accent);
+}
+.ac-switch-text {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  transition: opacity 0.2s, transform 0.3s var(--ease);
+}
+.ac-switch-text.on {
+  left: 12px;
+  color: var(--accent-ink);
+}
+.ac-switch-text.off {
+  right: 11px;
+  color: var(--ink-2);
+}
+.ac-switch[aria-checked="true"] .off,
+.ac-switch[aria-checked="false"] .on {
+  opacity: 0;
+  transform: scale(0.7);
+}
+
+/* ---------- progress ---------- */
+.ac-bar {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.ac-bar > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  transition: transform 0.8s var(--ease);
+}
+.ac-bar[data-tone="good"] > span {
+  background: var(--good);
+}
+.ac-bar[data-tone="bad"] > span {
+  background: var(--ink-3);
+}
+
+/* timeline connector segments: vertical on mobile, horizontal on lg */
+.ac-seg {
+  position: absolute;
+  left: 19px;
+  top: 44px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.ac-seg > span {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.45s var(--ease);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+.ac-seg[data-on="true"] > span {
+  transform: scaleY(1);
+}
+@media (min-width: 1024px) {
+  .ac-seg {
+    top: 19px;
+    bottom: auto;
+    left: calc(50% + 26px);
+    right: calc(-50% + 26px);
+    width: auto;
+    height: 2px;
+  }
+  .ac-seg > span {
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .ac-seg[data-on="true"] > span {
+    transform: scaleX(1);
+  }
+}
+.ac-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  transition: background 0.3s, color 0.3s;
+}
+.ac-node[data-state="done"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.ac-node[data-state="now"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--glow);
+}
+
+/* thumbnails stack */
+.ac-stack {
+  display: flex;
+}
+.ac-stack > * {
+  margin-left: -12px;
+  border: 2px solid var(--surface);
+  transition: transform 0.25s var(--ease);
+}
+.ac-stack > *:first-child {
+  margin-left: 0;
+}
+.group:hover .ac-stack > * {
+  transform: translateX(calc(var(--i, 0) * 4px));
+}
+
+/* ---------- toast with undo ---------- */
+.ac-toast-wrap {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 5.25rem;
+  z-index: 75;
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem;
+  pointer-events: none;
+}
+@media (min-width: 768px) {
+  .ac-toast-wrap {
+    bottom: 1.5rem;
+    justify-content: flex-end;
+  }
+}
+
+/* ---------- empty-state illustration ---------- */
+.ac-float {
+  animation: ac-float 3.2s ease-in-out infinite alternate;
+}
+@keyframes ac-float {
+  from {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+  to {
+    transform: translateY(6px) rotate(3deg);
+  }
+}
+.ac-shadow {
+  transform-origin: center;
+  animation: ac-shadow 3.2s ease-in-out infinite alternate;
+}
+@keyframes ac-shadow {
+  from {
+    transform: scaleX(0.75);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 0.6;
+  }
+}
+.ac-twinkle {
+  animation: ac-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes ac-twinkle {
+  50% {
+    opacity: 0.2;
+    transform: scale(0.7);
+  }
+}
+.ac-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* async button label swap */
+.ac-spin {
+  animation: spin 0.8s linear infinite;
+}

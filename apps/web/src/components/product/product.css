@@ -1,0 +1,200 @@
+/* Product detail page helpers. Only transform and opacity are animated. */
+
+/* ---------- gallery dots (travelling pill) ---------- */
+.pd-dots {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  padding: 0 6px;
+}
+.pd-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+.pd-dot.is-video {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.pd-dot-pill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 45%, transparent);
+  transition: transform 0.18s var(--ease);
+  will-change: transform;
+}
+
+/* ---------- desktop thumbnail rail ---------- */
+.pd-thumb-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px var(--accent), var(--glow);
+  pointer-events: none;
+  transition: transform 0.35s var(--spring);
+}
+
+/* ---------- crossfade for the main image ---------- */
+.pd-fade {
+  animation: pd-fade 0.3s var(--ease) both;
+}
+@keyframes pd-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+/* ---------- fullscreen viewer ---------- */
+.pd-backdrop {
+  animation: pd-fade-only 0.25s ease both;
+}
+.pd-viewer[data-closing="true"] .pd-backdrop {
+  animation: pd-fade-out 0.22s ease both;
+}
+.pd-viewer[data-closing="true"] .pd-panel {
+  animation: pd-sheet-out 0.22s var(--ease) both;
+}
+@keyframes pd-fade-only {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pd-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes pd-sheet-out {
+  to {
+    transform: translateY(8%);
+    opacity: 0;
+  }
+}
+.pd-zoomable {
+  transition: transform 0.3s var(--ease);
+  cursor: zoom-in;
+}
+.pd-zoomable[data-zoom="true"] {
+  cursor: zoom-out;
+}
+
+/* ---------- play badge ---------- */
+.pd-play {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, #0b1020 62%, transparent);
+  color: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(6px);
+  transition: transform 0.25s var(--spring);
+}
+.group:hover .pd-play,
+.group:focus-visible .pd-play {
+  transform: scale(1.08);
+}
+
+/* ---------- spinner ---------- */
+.pd-spin {
+  animation: pd-spin 0.8s linear infinite;
+}
+@keyframes pd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- variant travelling indicator ---------- */
+.pd-var-ind {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 18px color-mix(in srgb, var(--accent) 22%, transparent);
+  pointer-events: none;
+  opacity: 0;
+}
+.pd-var-ind[data-ready="true"] {
+  opacity: 1;
+  transition: transform 0.38s var(--spring), opacity 0.2s;
+}
+.pd-var-ind.is-swatch {
+  background: transparent;
+}
+
+/* ---------- quantity number roll ---------- */
+.pd-num-up {
+  animation: pd-num-up 0.28s var(--ease) both;
+}
+.pd-num-down {
+  animation: pd-num-down 0.28s var(--ease) both;
+}
+@keyframes pd-num-up {
+  from {
+    transform: translateY(80%);
+    opacity: 0;
+  }
+}
+@keyframes pd-num-down {
+  from {
+    transform: translateY(-80%);
+    opacity: 0;
+  }
+}
+
+/* ---------- sticky mobile action bar ---------- */
+.pd-sticky {
+  transform: translateY(calc(100% + 72px));
+  opacity: 0;
+  transition: transform 0.4s var(--ease), opacity 0.3s;
+}
+.pd-sticky[data-show="true"] {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ---------- star breakdown bars ---------- */
+.pd-bar-fill {
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.9s var(--ease);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+[data-in="true"] .pd-bar-fill {
+  transform: scaleX(var(--p, 0));
+}
+
+/* ---------- delivery route ---------- */
+.pd-route-line {
+  background-image: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+  opacity: 0.45;
+}
+.pd-route-plane {
+  animation: pd-plane 3.2s var(--ease) infinite;
+}
+@keyframes pd-plane {
+  0% {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(10px);
+    opacity: 0;
+  }
+}
