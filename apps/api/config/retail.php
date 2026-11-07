@@ -39,6 +39,11 @@ return [
         'pass_coupons' => true,  // (admin) price with deal price minus clippable coupon when we can use it
         'ingest_every_hours' => 6,
         'ingest_max_products' => (int) env('DEALS_MAX_PRODUCTS', 40), // detail fetches per deals run per market
+        'deal_urls' => [
+            'amazon' => 'https://www.amazon.in/deals',
+            'flipkart' => 'https://www.flipkart.com/offers-store',
+            'bigbasket' => 'https://www.bigbasket.com/offers/',
+        ],
     ],
 
     // Which providers serve each marketplace, in order (catalog ProviderChain). Fallbacks are Amazon only.
