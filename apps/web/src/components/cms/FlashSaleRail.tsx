@@ -1,4 +1,7 @@
+"use client";
+
 import "./cms.css";
+import { useT } from "@/i18n/client";
 import Link from "next/link";
 import type { FlashSale } from "@/lib/cms";
 import { formatBdt } from "@/lib/pricing";
@@ -20,6 +23,7 @@ export function FlashSaleRail({ sales }: { sales: FlashSale[] }) {
 
 function FlashBlock({ s }: { s: FlashSale }) {
   const live = s.status === "live";
+  const { t, bdt } = useT();
   const id = `fs-${s.id}`;
   return (
     <section aria-labelledby={id} className="mt-8 px-4 sm:px-0">
@@ -27,13 +31,13 @@ function FlashBlock({ s }: { s: FlashSale }) {
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
             <p className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider " + (live ? "bg-bad text-white" : "bg-surface-2 text-ink-2")}>
-              <Icon name="bolt" size={13} stroke={2.4} className={live ? "fs-bolt" : ""} /> {live ? "Flash sale · live" : "Coming up"}
+              <Icon name="bolt" size={13} stroke={2.4} className={live ? "fs-bolt" : ""} /> {live ? t("flash.live") : t("flash.coming")}
             </p>
             <h2 id={id} className="mt-2 text-xl font-extrabold tracking-tight sm:text-2xl">
               {s.title}
             </h2>
             <p className="text-xs text-ink-2 sm:text-sm">
-              Extra Skydrop discount on top of the store price{s.maxQty ? ` · up to ${s.maxQty} per item per order` : ""}
+              {t("flash.extra")}{s.maxQty ? t("flash.upTo", { count: s.maxQty }) : ""}
             </p>
           </div>
           <FlashCountdown to={live ? s.endsAt : s.startsAt} mode={live ? "ends" : "starts"} />
@@ -53,7 +57,7 @@ function FlashBlock({ s }: { s: FlashSale }) {
                 <ProductImage p={it.product} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]" />
                 {it.extraOffBdt > 0 && (
                   <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-full bg-bad px-2 py-0.5 text-[11px] font-extrabold text-white shadow">
-                    <Icon name="bolt" size={11} stroke={2.6} /> −{formatBdt(it.extraOffBdt)}
+                    <Icon name="bolt" size={11} stroke={2.6} /> −{bdt(it.extraOffBdt)}
                   </span>
                 )}
               </div>
@@ -62,10 +66,10 @@ function FlashBlock({ s }: { s: FlashSale }) {
                 <h3 className="line-clamp-2 text-[13px] font-medium leading-snug">{it.product.title}</h3>
                 <div className="mt-auto pt-1">
                   <p className="flex flex-wrap items-baseline gap-x-1.5">
-                    <span className="text-lg font-extrabold tracking-tight">{formatBdt(it.flashBdt)}</span>
-                    <span className="text-xs text-ink-3 line-through">{formatBdt(it.regularBdt)}</span>
+                    <span className="text-lg font-extrabold tracking-tight">{bdt(it.flashBdt)}</span>
+                    <span className="text-xs text-ink-3 line-through">{bdt(it.regularBdt)}</span>
                   </p>
-                  <p className="text-[11px] font-bold text-bad">{live ? "Flash price now" : "Flash price when it starts"}</p>
+                  <p className="text-[11px] font-bold text-bad">{live ? t("flash.priceNow") : t("flash.priceWhen")}</p>
                 </div>
               </div>
             </Link>

@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useStore } from "@/state/store";
 import { useToast } from "./Toast";
 import { Icon } from "./Icon";
+import { useT } from "@/i18n/client";
 
 const SPARKS = [0, 60, 120, 180, 240, 300];
 
 export function WishButton({ id, small }: { id: string; small?: boolean }) {
   const { wishlist, toggleWish } = useStore();
   const toast = useToast();
+  const { t } = useT();
   const on = wishlist.includes(id);
   // burst only on the shopper's own tap (never when the page loads with saved items)
   const [burst, setBurst] = useState(0);
@@ -18,7 +20,7 @@ export function WishButton({ id, small }: { id: string; small?: boolean }) {
       type="button"
       data-on={on}
       aria-pressed={on}
-      aria-label={on ? "Remove from wishlist" : "Save to wishlist"}
+      aria-label={on ? t("wish.remove") : t("wish.save")}
       onClick={(e) => {
         e.preventDefault();
         toggleWish(id);
@@ -26,8 +28,8 @@ export function WishButton({ id, small }: { id: string; small?: boolean }) {
         toast({
           kind: on ? "info" : "success",
           icon: "heart",
-          title: on ? "Removed from wishlist" : "Saved to wishlist",
-          action: on ? undefined : { label: "View wishlist", href: "/wishlist" },
+          title: on ? t("wish.removed") : t("wish.saved"),
+          action: on ? undefined : { label: t("wish.view"), href: "/wishlist" },
         });
       }}
       className={

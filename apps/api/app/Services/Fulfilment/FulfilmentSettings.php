@@ -10,7 +10,7 @@ class FulfilmentSettings
 {
     public const KEYS = [
         'hub.weight_variance_pct', 'unboxing.fee_bdt', 'unboxing.per', 'unboxing.auto_approve_hours',
-        'returns.window_days', 'returns.changed_mind', 'price_alerts.rise_pct',
+        'returns.window_days', 'returns.changed_mind', 'returns.shipping_fee_bdt', 'price_alerts.rise_pct',
     ];
 
     public static function get(string $key, mixed $default = null): mixed

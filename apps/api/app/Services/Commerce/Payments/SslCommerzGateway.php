@@ -4,6 +4,7 @@ namespace App\Services\Commerce\Payments;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\Money\EmiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -81,7 +82,7 @@ class SslCommerzGateway implements Gateway
             return [];
         }
         $tenure = (int) ($order->emi['tenure'] ?? 0);
-        $max = max([$tenure, ...app(\App\Services\Money\EmiService::class)->tenures()]);
+        $max = max([$tenure, ...app(EmiService::class)->tenures()]);
 
         return ['emi_option' => 1, 'emi_max_inst_option' => $max, 'emi_selected_inst' => $tenure ?: $max, 'emi_allow_only' => 1];
     }

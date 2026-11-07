@@ -67,6 +67,8 @@ class FulfilmentSettingsPage extends Page
             Section::make('Returns')->schema([
                 TextInput::make('returns.window_days')->label('Return window after delivery')->suffix('days')->numeric()->minValue(0)->maxValue(60)->required(),
                 Toggle::make('returns.changed_mind')->label('Accept "changed my mind" returns'),
+                TextInput::make('returns.shipping_fee_bdt')->label('Return shipping fee')->prefix('৳')->numeric()->minValue(0)->required()
+                    ->helperText('Deducted from the refund for "size issue" / "changed my mind" returns. Damaged or wrong items are free; Skydrop Plus members with free returns never pay it.'),
             ]),
             Section::make('Supplier price alerts')->schema([
                 TextInput::make('price_alerts.rise_pct')->label('Alert when the source price rises by more than')->suffix('%')->numeric()->minValue(0)->maxValue(100)->required(),

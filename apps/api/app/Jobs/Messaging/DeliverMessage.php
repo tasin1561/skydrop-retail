@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Commerce\Phone;
 use App\Services\Commerce\Sms\SmsManager;
 use App\Services\Messaging\Push\PushSender;
+use App\Support\Limits;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Jobs\SyncJob;
@@ -68,7 +69,7 @@ class DeliverMessage implements ShouldQueue
         }
         // Per-phone rate limit (OTP is sent elsewhere and is not counted here).
         $key = 'sms:phone:'.$phone;
-        $max = \App\Support\Limits::int('messaging.sms_per_phone_hour'); // same setting as messaging.sms.per_phone_per_hour
+        $max = Limits::int('messaging.sms_per_phone_hour'); // same setting as messaging.sms.per_phone_per_hour
         if ($max > 0 && RateLimiter::tooManyAttempts($key, $max)) {
             $wait = RateLimiter::availableIn($key);
             if ($this->job && ! $this->job instanceof SyncJob && $log->category !== 'marketing') {
@@ -80,7 +81,7 @@ class DeliverMessage implements ShouldQueue
             return [false, null, null, 'Rate limited: too many SMS to this phone in the last hour', false];
         }
         // System → Limits: total marketing SMS per day across all customers.
-        $dailyMarketing = \App\Support\Limits::int('messaging.marketing_sms_per_day');
+        $dailyMarketing = Limits::int('messaging.marketing_sms_per_day');
         if ($log->category === 'marketing' && $dailyMarketing > 0 && NotificationLog::query()->where('channel', 'sms')
             ->where('category', 'marketing')->where('status', 'sent')->where('sent_at', '>=', now()->startOfDay())->count() >= $dailyMarketing) {
             return [false, null, null, 'Daily marketing SMS limit reached', false];

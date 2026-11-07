@@ -83,6 +83,9 @@ export const api = {
   verifyOtp: (phone: string, code: string, name?: string, invite?: string) =>
     post<{ token: string; user: User & { id: number }; isNew: boolean }>("/auth/otp/verify", { phone, code, name, invite: invite || undefined }),
   me: () => call<{ user: User }>("/me"),
+  /** PATCH /me: locale picks the en/bn SMS and email templates. */
+  updateMe: (p: { name?: string; email?: string | null; locale?: "en" | "bn" }) =>
+    call<{ user: User }>("/me", { method: "PATCH", body: JSON.stringify(p) }),
   logout: () => post<{ ok: boolean }>("/auth/logout", {}),
 
   addresses: () => call<{ items: ApiAddress[] }>("/addresses"),

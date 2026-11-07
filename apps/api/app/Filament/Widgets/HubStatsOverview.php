@@ -34,7 +34,7 @@ class HubStatsOverview extends StatsOverviewWidget
     {
         $today = now('Asia/Kolkata')->startOfDay()->utc();
         $awaiting = OrderItem::query()->whereNull('hub_received_at')->whereNull('cancelled_at')
-            ->whereIn('order_id', Order::query()->select('id')->where('status', 'purchased'))->count();
+            ->whereIn('order_id', Order::query()->goods()->select('id')->where('status', 'purchased'))->count();
         $receivedToday = HubReceipt::query()->where('received_at', '>=', $today)->count();
         $openTasks = HubTask::query()->where('status', 'open')->count();
         $discrepancies30 = HubReceipt::query()->where('condition', '!=', 'ok')->where('received_at', '>=', now()->subDays(30))->count();

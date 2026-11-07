@@ -9,10 +9,13 @@ use App\Models\Category;
 use App\Models\Marketplace;
 use App\Models\Product;
 use App\Models\SearchCache;
+use App\Models\Setting;
 use App\Services\PricingService;
 use App\Sources\Exceptions\ProductGoneException;
 use App\Sources\Support\ApiLogger;
 use App\Sources\Support\SourceProduct;
+use App\Support\Features;
+use App\Support\Limits;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -40,7 +43,7 @@ class CatalogService
     public function isLive(string $market): bool
     {
         // Global switch (Admin → System → Features → live_fetch) OR the per-marketplace switch turns live fetching off.
-        if (! \App\Support\Features::enabled('live_fetch')) {
+        if (! Features::enabled('live_fetch')) {
             return false;
         }
 
@@ -65,7 +68,7 @@ class CatalogService
             $q = implode(' ', $words);
             $sort = $this->storeSort((string) ($sp['sort'] ?? 'relevance'));
             $storePages = (int) ceil(max(1, (int) ($sp['page'] ?? 1)) * CatalogQuery::PER_PAGE / self::STORE_PAGE_SIZE);
-            $storePages = min($storePages, max(1, \App\Support\Limits::int('catalog.search_pages'))); // System → Limits
+            $storePages = min($storePages, max(1, Limits::int('catalog.search_pages'))); // System → Limits
             foreach ($this->query->markets($sp['store'] ?? null) as $market) {
                 if (! $this->isLive($market)) {
                     continue;
@@ -79,7 +82,7 @@ class CatalogService
                         }
                         $this->logger->cacheHit('search', $market, "$q#$page");
                     }
-                    if ($crawler || ($row && $age <= max(RetailSettings::ttl('search_fresh'), \App\Support\Limits::int('catalog.search_ttl_min_minutes')))) {
+                    if ($crawler || ($row && $age <= max(RetailSettings::ttl('search_fresh'), Limits::int('catalog.search_ttl_min_minutes')))) {
                         continue;
                     }
                     $id = $this->queueSearch($market, $q, $page, $sort, $sp['category'] ?? null);
@@ -184,7 +187,7 @@ class CatalogService
         $ttl = $p->deal_ends_at && $p->deal_ends_at->lt(now()->addDay())
             ? RetailSettings::ttl('lightning')
             : ($ttlMinutes ?? RetailSettings::ttl('product_fresh'));
-        $ttl = max($ttl, \App\Support\Limits::int('catalog.product_ttl_min_minutes')); // System → Limits: never refresh sooner
+        $ttl = max($ttl, Limits::int('catalog.product_ttl_min_minutes')); // System → Limits: never refresh sooner
 
         return $p->details_fetched_at->gt(now()->subMinutes($ttl));
     }
@@ -293,7 +296,7 @@ class CatalogService
 
         $fresh = Product::query()->whereIn('id', [...$colours, ...$sizes])->get()
             ->filter(fn (Product $s) => $this->isFresh($s, RetailSettings::ttl('sibling_fresh')))->pluck('id')->all();
-        $max = \App\Support\Limits::int('catalog.variant_max'); // same setting as "variants.max"
+        $max = Limits::int('catalog.variant_max'); // same setting as "variants.max"
         $colours = array_slice(array_values(array_diff($colours, $fresh)), 0, $max);
         $sizes = array_slice(array_values(array_diff($sizes, $fresh)), 0, max(0, $max - count($colours)));
 
@@ -308,7 +311,7 @@ class CatalogService
     public function fetchSiblings(Product $parent, array $ids): int
     {
         $n = 0;
-        foreach (array_chunk($ids, max(1, \App\Support\Limits::int('catalog.max_concurrent_fetches'))) as $chunk) {
+        foreach (array_chunk($ids, max(1, Limits::int('catalog.max_concurrent_fetches'))) as $chunk) {
             foreach ($this->chain->products($parent->market, $chunk) as $id => $sp) {
                 if ($sp instanceof SourceProduct) {
                     $this->writer->detailed($sp, $parent->category);
@@ -366,7 +369,7 @@ class CatalogService
         $ids = array_slice(array_values(array_unique($ids)), 0, RetailSettings::int('offers.ingest_max_products', 40));
         $stale = array_values(array_filter($ids, fn ($id) => ! (($p = Product::query()->find($id)) && $this->isFresh($p, RetailSettings::ttl('lightning')))));
         $n = 0;
-        foreach (array_chunk($stale, max(1, \App\Support\Limits::int('catalog.max_concurrent_fetches'))) as $chunk) {
+        foreach (array_chunk($stale, max(1, Limits::int('catalog.max_concurrent_fetches'))) as $chunk) {
             foreach ($this->chain->products($market, $chunk) as $id => $sp) {
                 if ($sp instanceof SourceProduct) {
                     $this->writer->detailed($sp, Product::query()->whereKey($id)->value('category'));
@@ -418,7 +421,7 @@ class CatalogService
                 // Store unreachable (provider outage, budget stop). Never block a sale on our scraper: if the price was
                 // checked recently and the item was in stock, accept it at that price and let the supplier-price-alert
                 // job re-check before staff buy (it runs every 2 h for unpurchased items).
-                $graceHours = (int) \App\Models\Setting::get('checkout.verify_grace_hours', config('retail.checkout.verify_grace_hours', 72));
+                $graceHours = (int) Setting::get('checkout.verify_grace_hours', config('retail.checkout.verify_grace_hours', 72));
                 $recent = $before->price_checked_at && $before->price_checked_at->gt(now()->subHours($graceHours));
                 if ($graceHours > 0 && $recent && $before->in_stock && ! $before->hidden && $before->price_inr > 0) {
                     return ['productId' => $id, 'ok' => true, 'freshBdt' => $this->pricing->productBdt($before), 'changed' => false,

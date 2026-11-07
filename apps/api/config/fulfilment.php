@@ -17,6 +17,11 @@ return [
     'returns' => [
         'window_days' => 7,
         'changed_mind' => false,
+        // Return shipping charged to the customer (deducted from the refund / store credit) when the return is their
+        // choice. Problems on our side (damaged, wrong item, not as described) are always free. Skydrop Plus
+        // members with the free_returns benefit never pay it.
+        'shipping_fee_bdt' => 100,
+        'fee_reasons' => ['changed_mind', 'size_issue'],
     ],
     'price_alerts' => [
         'rise_pct' => 5, // alert when the source INR price rises by more than this

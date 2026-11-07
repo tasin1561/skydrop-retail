@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { Variant } from "@/lib/types";
 import { Icon } from "@/components/Icon";
 import { sized } from "./media";
+import { useT } from "@/i18n/client";
 
 export type DimGroup = {
   key: string;
@@ -55,6 +56,7 @@ export function VariantGroup({
   pending: string | null;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
+  const { t } = useT();
   const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [ready, setReady] = useState(false);
   const swatches = group.values.some((v) => v.swatch);
@@ -96,11 +98,11 @@ export function VariantGroup({
       <p className="mb-2 flex flex-wrap items-baseline gap-x-1.5 text-sm" id={`vg-${group.key}`}>
         <span className="font-semibold text-ink-2">{group.key}:</span>
         <span className="font-bold text-ink" aria-live="polite">
-          {selected ?? "Choose one"}
+          {selected ?? t("var.choose")}
         </span>
         {pending && (
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent">
-            <Spinner /> Opening {pending}
+            <Spinner /> {t("var.opening", { value: pending })}
           </span>
         )}
       </p>
@@ -123,7 +125,7 @@ export function VariantGroup({
           const on = v.value === selected;
           const gone = isUnavailable(v.value);
           const combo = isAvailable(v.value);
-          const label = `${v.value}${gone ? ", unavailable" : !combo ? ", other options change" : ""}`;
+          const label = `${v.value}${gone ? t("var.unavailSuffix") : !combo ? t("var.otherChange") : ""}`;
           return (
             <button
               key={v.value}
@@ -132,7 +134,7 @@ export function VariantGroup({
               aria-checked={on}
               aria-disabled={gone}
               aria-label={label}
-              title={gone ? `${v.value} (unavailable)` : v.value}
+              title={gone ? t("var.unavailTitle", { value: v.value }) : v.value}
               tabIndex={on || (selected === undefined && v === shown[0]) ? 0 : -1}
               onClick={() => {
                 if (!gone && !on) onPick(v.value);
@@ -170,12 +172,12 @@ export function VariantGroup({
                   <span className={"line-clamp-2 w-full text-center text-[10.5px] leading-tight " + (on ? "font-bold text-accent" : "text-ink-2")}>
                     {v.value}
                   </span>
-                  {gone && <span className="-mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-bad">Unavailable</span>}
+                  {gone && <span className="-mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-bad">{t("var.unavailable")}</span>}
                 </>
               ) : (
                 <span className="flex flex-col items-center leading-tight">
                   <span className={gone ? "line-through" : ""}>{v.value}</span>
-                  {gone && <span className="text-[9.5px] font-semibold uppercase tracking-wide text-bad">Unavailable</span>}
+                  {gone && <span className="text-[9.5px] font-semibold uppercase tracking-wide text-bad">{t("var.unavailable")}</span>}
                 </span>
               )}
             </button>
@@ -187,7 +189,7 @@ export function VariantGroup({
             onClick={() => setExpanded(true)}
             className="min-h-[44px] rounded-[14px] px-3 text-sm font-semibold text-accent transition hover:bg-[var(--accent-soft)]"
           >
-            +{group.values.length - shown.length} more
+            {t("var.more", { count: group.values.length - shown.length })}
           </button>
         )}
       </div>

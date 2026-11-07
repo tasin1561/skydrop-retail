@@ -150,6 +150,9 @@ class Accounting extends Page
             $rows[] = ["est. fees {$g}", $v['fees']];
         }
         $rows[] = ['refunds', $c['refunds']];
+        if (isset($c['gift_card_sales'])) {
+            $rows[] = ['gift card sales (added to liability, not revenue)', $c['gift_card_sales']['amount']];
+        }
         foreach ($c['liabilities'] as $l) {
             $rows[] = ['liability: '.$l['label'], $l['amount']];
         }

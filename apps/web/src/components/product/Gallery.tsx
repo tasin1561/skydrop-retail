@@ -7,6 +7,7 @@ import { ProductImage } from "@/components/ProductBits";
 import type { Media } from "./types";
 import { sized } from "./media";
 import { flipOpen } from "@/components/motion/flipOpen";
+import { useT } from "@/i18n/client";
 
 // Viewer (and with it the video player) is only loaded once someone opens it.
 const Viewer = dynamic(() => import("./Viewer").then((m) => m.Viewer), { ssr: false });
@@ -29,6 +30,7 @@ export function Gallery({
   badges?: React.ReactNode;
 }) {
   const [idx, setIdx] = useState(0);
+  const { t } = useT();
   const [view, setView] = useState<{ start: number; autoPlay: boolean } | null>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -63,7 +65,7 @@ export function Gallery({
       <div className="lg:flex lg:gap-4">
         {/* desktop thumbnail rail */}
         {count > 1 && (
-          <div className="relative hidden max-h-[560px] w-16 shrink-0 flex-col gap-2 overflow-y-auto no-scrollbar lg:flex" role="tablist" aria-label="Product media" aria-orientation="vertical">
+          <div className="relative hidden max-h-[560px] w-16 shrink-0 flex-col gap-2 overflow-y-auto no-scrollbar lg:flex" role="tablist" aria-label={t("gal.media")} aria-orientation="vertical">
             <span aria-hidden className="pd-thumb-ring" style={{ transform: `translateY(${idx * 72}px)` }} />
             {media.map((m, i) => {
               const src = m.kind === "image" ? sized(m.src, "SS128") : sized(m.thumb, "SS128");
@@ -73,7 +75,7 @@ export function Gallery({
                   type="button"
                   role="tab"
                   aria-selected={i === idx}
-                  aria-label={m.kind === "video" ? `Video ${i + 1}` : `Image ${i + 1}`}
+                  aria-label={m.kind === "video" ? t("gal.video", { n: i + 1 }) : t("gal.image", { n: i + 1 })}
                   onMouseEnter={() => setIdx(i)}
                   onFocus={() => setIdx(i)}
                   onClick={() => (m.kind === "video" ? open(i, true) : setIdx(i))}
@@ -115,10 +117,10 @@ export function Gallery({
             onScroll={onScroll}
             className="no-scrollbar snap-x-rail flex overflow-x-auto bg-white lg:hidden"
             aria-roledescription="carousel"
-            aria-label="Product photos"
+            aria-label={t("gal.photos")}
           >
             {count === 0 && (
-              <button type="button" onClick={() => open(0)} className="aspect-square w-full shrink-0" aria-label="Open image viewer">
+              <button type="button" onClick={() => open(0)} className="aspect-square w-full shrink-0" aria-label={t("gal.openViewer")}>
                 <ProductImage p={p} sizes="lg" className="h-full w-full" />
               </button>
             )}
@@ -127,7 +129,7 @@ export function Gallery({
                 key={i}
                 type="button"
                 onClick={(e) => open(i, m.kind === "video", e.currentTarget)}
-                aria-label={m.kind === "video" ? `Play video ${i + 1} of ${count}` : `Open image ${i + 1} of ${count} fullscreen`}
+                aria-label={m.kind === "video" ? t("gal.playN", { n: i + 1, count }) : t("gal.openN", { n: i + 1, count })}
                 className="group relative aspect-square w-full shrink-0 p-6"
               >
                 {m.kind === "image" ? (
@@ -153,7 +155,7 @@ export function Gallery({
               type="button"
               onClick={(e) => open(idx, current?.kind === "video", e.currentTarget)}
               className="group absolute inset-0 grid cursor-zoom-in place-items-center p-10"
-              aria-label={current?.kind === "video" ? "Play video" : "Open image fullscreen"}
+              aria-label={current?.kind === "video" ? t("gal.play") : t("gal.openFull")}
             >
               {!current && <ProductImage p={p} sizes="lg" className="h-full w-full rounded-2xl" />}
               {current?.kind === "image" && (
@@ -170,7 +172,7 @@ export function Gallery({
             </button>
             {current?.kind === "image" && (
               <span className="pointer-events-none absolute bottom-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-surface/90 px-3 py-1.5 text-xs font-semibold text-ink-2 shadow-[var(--shadow-1)] backdrop-blur">
-                <Icon name="search" size={14} /> Click to zoom
+                <Icon name="search" size={14} /> {t("gal.zoom")}
               </span>
             )}
           </div>
@@ -201,7 +203,7 @@ export function Gallery({
 
       {hasVideosOnly && (
         <p className="mt-2 flex items-center gap-1.5 px-4 text-xs text-ink-2 lg:px-0">
-          <Icon name="play" size={13} /> The seller has videos for this item on {source}.
+          <Icon name="play" size={13} /> {t("gal.hasVideos", { source })}
         </p>
       )}
 

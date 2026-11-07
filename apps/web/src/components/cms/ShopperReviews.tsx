@@ -10,6 +10,9 @@ import { Stars } from "@/components/ProductBits";
 import { Sheet, Spinner } from "@/components/account/ui";
 import { StarBars } from "@/components/product/Reviews";
 import { useFeature } from "@/components/features/FeaturesProvider";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
+import type { MsgKey } from "@/i18n/core";
 
 type ApiReview = {
   id: string;
@@ -35,6 +38,7 @@ export function ShopperReviews(props: { productId: string; source: string; sourc
 
 function ShopperReviewsInner({ productId, source, sourceRating, sourceCount }: { productId: string; source: string; sourceRating: number; sourceCount: number }) {
   const { token, user, ready } = useStore();
+  const { t, num, digits } = useT();
   const [data, setData] = useState<ApiReviews | null>(null);
   const [failed, setFailed] = useState(false);
   const [writing, setWriting] = useState(false);
@@ -78,30 +82,30 @@ function ShopperReviewsInner({ productId, source, sourceRating, sourceCount }: {
             <span className="chip-icon">
               <Icon name="verified" size={18} />
             </span>
-            Skydrop shopper reviews
+            {t("rev.title")}
           </h2>
           {sourceRating > 0 && (
             <a
               href="#source-reviews"
               className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-xs font-semibold text-ink-2 hover:text-accent"
-              title={`${sourceCount.toLocaleString("en-IN")} ratings on ${source}`}
+              title={t("rev.sourceRatings", { count: num(sourceCount), source })}
             >
               <Icon name="star" size={13} fill="currentColor" stroke={1} className="text-amber-500" />
-              {sourceRating.toFixed(1)} on {source}
+              {t("rev.onSource", { rating: digits(sourceRating.toFixed(1)), source })}
             </a>
           )}
         </div>
 
         {!data && !failed && (
           <div className="mt-4 flex items-center gap-2 text-sm text-ink-2" aria-busy="true">
-            <Spinner /> Loading reviews…
+            <Spinner /> {t("rev.loading")}
           </div>
         )}
         {failed && (
           <p className="mt-4 text-sm text-ink-2">
-            Reviews could not be loaded.{" "}
+            {t("rev.failed")}{" "}
             <button type="button" onClick={load} className="min-h-11 font-semibold text-accent">
-              Try again
+              {t("common.tryAgain")}
             </button>
           </p>
         )}
@@ -110,11 +114,11 @@ function ShopperReviewsInner({ productId, source, sourceRating, sourceCount }: {
           <>
             <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-start sm:gap-1">
-                <span className="text-4xl font-extrabold tracking-tight">{data.average ? data.average.toFixed(1) : "–"}</span>
+                <span className="text-4xl font-extrabold tracking-tight">{data.average ? digits(data.average.toFixed(1)) : "–"}</span>
                 <div>
                   <Stars rating={data.average ?? 0} />
                   <p className="text-xs text-ink-2">
-                    {data.count ? `${data.count} review${data.count === 1 ? "" : "s"} from Bangladesh` : "No reviews from Bangladesh yet"}
+                    {data.count ? t("rev.countBd", { count: data.count }) : t("rev.noneBd")}
                   </p>
                 </div>
               </div>
@@ -155,26 +159,29 @@ function ShopperReviewsInner({ productId, source, sourceRating, sourceCount }: {
 }
 
 function WriteCta({ canReview, signedIn, pending, onWrite }: { canReview: boolean; signedIn: boolean; pending: boolean; onWrite: () => void }) {
+  const { t } = useT();
   if (canReview)
     return (
       <button type="button" onClick={onWrite} className="btn btn-primary mt-4 w-full sm:w-auto">
-        <Icon name="star" size={17} /> {pending ? "Edit your review" : "Write a review"}
+        <Icon name="star" size={17} /> {pending ? t("rev.edit") : t("rev.write")}
       </button>
     );
   return (
     <p className="mt-4 flex items-start gap-2 rounded-xl bg-surface-2 px-3 py-2 text-xs text-ink-2">
       <Icon name="info" size={15} className="mt-px shrink-0 text-accent" />
       {!apiEnabled ? (
-        "Reviews from Skydrop shoppers appear here once the store is live."
+        t("rev.notLive")
       ) : signedIn ? (
-        "You can review this item after it has been delivered to you."
+        t("rev.afterDelivery")
       ) : (
         <span>
-          Bought this through Skydrop?{" "}
-          <Link href="/login" className="font-semibold text-accent">
-            Sign in
-          </Link>{" "}
-          to review it after delivery.
+          {rich(t("rev.bought"), {
+            signIn: (
+              <Link href="/login" className="font-semibold text-accent">
+                {t("nav.signIn")}
+              </Link>
+            ),
+          })}
         </span>
       )}
     </p>
@@ -184,7 +191,8 @@ function WriteCta({ canReview, signedIn, pending, onWrite }: { canReview: boolea
 function ReviewItem({ r, i }: { r: ApiReview; i: number }) {
   const [open, setOpen] = useState(false);
   const long = r.content.length > 260;
-  const date = r.date ? new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+  const { t, date: fmtDate } = useT();
+  const date = r.date ? fmtDate(r.date, { day: "numeric", month: "short", year: "numeric" }) : "";
   return (
     <article className="rise rounded-2xl bg-surface p-4 shadow-[var(--shadow-1)]" style={{ ["--i" as string]: i }}>
       <header className="flex items-center gap-3">
@@ -196,16 +204,16 @@ function ReviewItem({ r, i }: { r: ApiReview; i: number }) {
             <span className="truncate">{r.author}</span>
             {r.verifiedPurchase && (
               <span className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--good)_14%,transparent)] px-2 py-0.5 text-[10px] font-bold text-good">
-                <Icon name="check" size={10} stroke={3} /> Verified purchase
+                <Icon name="check" size={10} stroke={3} /> {t("rev.verified")}
               </span>
             )}
             {r.status === "pending" && (
               <span className="rounded-full bg-[color-mix(in_srgb,var(--warn)_16%,transparent)] px-2 py-0.5 text-[10px] font-bold text-warn">
-                Waiting for approval · only you can see it
+                {t("rev.pending")}
               </span>
             )}
           </p>
-          <p className="text-[11px] text-ink-3">{date} · Skydrop shopper in Bangladesh</p>
+          <p className="text-[11px] text-ink-3">{date} · {t("rev.shopperBd")}</p>
         </div>
         <Stars rating={r.rating} size={12} />
       </header>
@@ -213,21 +221,21 @@ function ReviewItem({ r, i }: { r: ApiReview; i: number }) {
       <p className={"mt-1 whitespace-pre-line text-sm leading-relaxed text-ink-2 " + (long && !open ? "line-clamp-4" : "")}>{r.content}</p>
       {long && (
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-1 min-h-11 text-xs font-bold text-accent">
-          {open ? "Show less" : "Read more"}
+          {open ? t("rev.less") : t("rev.more")}
         </button>
       )}
       {r.photoUrl && (
         <a href={r.photoUrl} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 block w-fit overflow-hidden rounded-xl ring-1 ring-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={r.photoUrl} alt={`Photo from ${r.author}`} loading="lazy" className="h-28 w-28 object-cover transition-transform duration-300 hover:scale-105" />
+          <img src={r.photoUrl} alt={t("rev.photoFrom", { author: r.author })} loading="lazy" className="h-28 w-28 object-cover transition-transform duration-300 hover:scale-105" />
         </a>
       )}
-      {typeof r.helpful === "number" && r.helpful > 0 && <p className="mt-2 text-[11px] text-ink-3">{r.helpful} people found this helpful</p>}
+      {typeof r.helpful === "number" && r.helpful > 0 && <p className="mt-2 text-[11px] text-ink-3">{t("rev.helpful", { count: r.helpful })}</p>}
     </article>
   );
 }
 
-const STAR_WORDS = ["", "Poor", "Not great", "Okay", "Good", "Excellent"];
+const STAR_WORDS: MsgKey[] = ["rev.star1", "rev.star1", "rev.star2", "rev.star3", "rev.star4", "rev.star5"];
 
 function WriteSheet({
   productId,
@@ -243,6 +251,7 @@ function WriteSheet({
   onDone: () => void;
 }) {
   const [rating, setRating] = useState(initial?.rating ?? 0);
+  const { t } = useT();
   const [hover, setHover] = useState(0);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [body, setBody] = useState(initial?.content ?? "");
@@ -265,18 +274,18 @@ function WriteSheet({
         body: JSON.stringify({ rating, title: title.trim() || undefined, body: body.trim(), photoUrl: photo.trim() || undefined }),
       });
       const data = (await res.json().catch(() => ({}))) as { message?: string; errors?: Record<string, string[]> };
-      if (!res.ok) throw new Error(Object.values(data.errors ?? {})[0]?.[0] ?? data.message ?? "Could not send your review.");
+      if (!res.ok) throw new Error(Object.values(data.errors ?? {})[0]?.[0] ?? data.message ?? t("rev.sendFailed"));
       close();
       onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not send your review.");
+      setError(e instanceof Error ? e.message : t("rev.sendFailed"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Sheet title={initial ? "Edit your review" : "Write a review"} description="Reviews are checked by our team before they appear." icon="star" onClose={onClose}>
+    <Sheet title={initial ? t("rev.edit") : t("rev.write")} description={t("rev.checked")} icon="star" onClose={onClose}>
       {(close) => (
         <form
           onSubmit={(e) => {
@@ -287,13 +296,13 @@ function WriteSheet({
           noValidate
         >
           <fieldset>
-            <legend className="text-sm font-semibold">Your rating</legend>
+            <legend className="text-sm font-semibold">{t("rev.yourRating")}</legend>
             <div className="mt-1 flex items-center gap-1" onMouseLeave={() => setHover(0)}>
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
-                  aria-label={`${n} star${n > 1 ? "s" : ""}: ${STAR_WORDS[n]}`}
+                  aria-label={t("rev.starAria", { count: n, n, word: t(STAR_WORDS[n]) })}
                   aria-pressed={rating === n}
                   onMouseEnter={() => setHover(n)}
                   onClick={() => setRating(n)}
@@ -310,31 +319,31 @@ function WriteSheet({
                 </button>
               ))}
               <span className="ml-2 text-sm font-semibold text-ink-2" aria-live="polite">
-                {STAR_WORDS[shown]}
+                {shown ? t(STAR_WORDS[shown]) : ""}
               </span>
             </div>
           </fieldset>
 
           <div className="field">
             <input id={id + "-t"} value={title} onChange={(e) => setTitle(e.target.value.slice(0, 120))} placeholder=" " autoComplete="off" />
-            <label htmlFor={id + "-t"}>Headline (optional)</label>
+            <label htmlFor={id + "-t"}>{t("rev.headline")}</label>
           </div>
           <div className="field">
             <textarea id={id + "-b"} value={body} onChange={(e) => setBody(e.target.value.slice(0, 4000))} placeholder=" " rows={5} required />
-            <label htmlFor={id + "-b"}>What did you like or dislike?</label>
+            <label htmlFor={id + "-b"}>{t("rev.body")}</label>
           </div>
           <div className={"field " + (photoOk ? "" : "is-invalid")}>
             <input id={id + "-p"} value={photo} onChange={(e) => setPhoto(e.target.value.trim())} placeholder=" " inputMode="url" autoComplete="off" aria-invalid={!photoOk} />
-            <label htmlFor={id + "-p"}>Photo link (optional, https://…)</label>
+            <label htmlFor={id + "-p"}>{t("rev.photo")}</label>
           </div>
-          {!photoOk && <p className="-mt-2 pl-1 text-xs text-bad">Use a link that starts with https://</p>}
+          {!photoOk && <p className="-mt-2 pl-1 text-xs text-bad">{t("rev.photoHint")}</p>}
           {error && (
             <p role="alert" className="rounded-xl bg-[color-mix(in_srgb,var(--bad)_10%,transparent)] px-3 py-2 text-sm text-bad">
               {error}
             </p>
           )}
           <button type="submit" disabled={!valid || busy} className="btn btn-primary w-full">
-            {busy ? <Spinner /> : <Icon name="check" size={17} />} {busy ? "Sending…" : "Submit review"}
+            {busy ? <Spinner /> : <Icon name="check" size={17} />} {busy ? t("common.sending") : t("rev.submit")}
           </button>
         </form>
       )}

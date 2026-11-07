@@ -13,6 +13,7 @@ import { cheaperListings, groupSavingPreview } from "@/lib/shopping/client";
 import type { Alternative } from "@/lib/shopping/types";
 import type { CartItem } from "@/lib/types";
 import { useStore } from "@/state/store";
+import { useT } from "@/i18n/client";
 
 /** Cart helpers: "same item is cheaper on another store" switch, and a group-buy invite to share shipping. */
 export function CartShoppingExtras({ items }: { items: CartItem[] }) {
@@ -20,6 +21,7 @@ export function CartShoppingExtras({ items }: { items: CartItem[] }) {
   const groupsOn = useFeature("group_orders");
   const { removeFromCart, addToCart } = useStore();
   const toast = useToast();
+  const { t, bdt, digits } = useT();
   const [alts, setAlts] = useState<{ key: string; list: Alternative[] } | null>(null);
   const key = items.map((i) => `${i.productId}:${i.qty}`).join("|");
 
@@ -49,7 +51,7 @@ export function CartShoppingExtras({ items }: { items: CartItem[] }) {
     const line = items.find((i) => i.productId === a.productId);
     removeFromCart(a.productId, line?.variant);
     addToCart(cartLine(a.alternative, a.qty));
-    toast({ kind: "success", title: `Switched to ${STORES[a.alternativeMarket].name}`, body: `You save ${formatBdt(a.savingBdt)}.` });
+    toast({ kind: "success", title: t("alt.switched", { store: STORES[a.alternativeMarket].name }), body: t("alt.save", { amount: bdt(a.savingBdt) }) });
   }
 
   if (!list.length && !groupSave) return null;
@@ -62,19 +64,19 @@ export function CartShoppingExtras({ items }: { items: CartItem[] }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold">
-              Same item, {formatBdt(a.savingBdt)} cheaper on {STORES[a.alternativeMarket].name}
+              {t("alt.cheaper", { amount: bdt(a.savingBdt), store: STORES[a.alternativeMarket].name })}
             </p>
             <p className="line-clamp-1 text-xs text-ink-2">
-              {a.title} · {formatBdt(a.alternativeBdt)} instead of {formatBdt(a.unitBdt)} · {a.delivery.min}-{a.delivery.max} days
+              {t("alt.instead", { title: a.title, price: bdt(a.alternativeBdt), old: bdt(a.unitBdt), min: a.delivery.min, max: a.delivery.max })}
             </p>
           </div>
           <div className="flex gap-2">
             <Link href={`/p/${encodeURIComponent(a.alternativeId)}`} className="btn btn-ghost min-h-11">
-              View
-            </Link>
+{t("common.view")}
+</Link>
             <button type="button" className="btn btn-primary min-h-11" onClick={() => switchTo(a)}>
-              Switch
-            </button>
+{t("alt.switch")}
+</button>
           </div>
         </div>
       ))}
@@ -87,9 +89,9 @@ export function CartShoppingExtras({ items }: { items: CartItem[] }) {
             <Icon name="user" size={18} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold">Order with friends, share the shipping</span>
+            <span className="block text-sm font-bold">{t("grp.share")}</span>
             <span className="block text-xs text-ink-2">
-              Start a group buy on {STORES[market as keyof typeof STORES].name}: each of you saves about {formatBdt(groupSave)} on shipping.
+              {t("grp.startOn", { store: STORES[market as keyof typeof STORES].name, amount: bdt(groupSave) })}
             </span>
           </span>
           <Icon name="arrow" size={18} className="shrink-0 text-accent transition-transform group-hover:translate-x-1" />

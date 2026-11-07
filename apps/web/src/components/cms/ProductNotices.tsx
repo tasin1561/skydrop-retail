@@ -1,4 +1,8 @@
+"use client";
+
 import "./cms.css";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { flashOffBdt, formatBdt } from "@/lib/pricing";
@@ -9,6 +13,7 @@ import { Countdown } from "@/components/offers/Countdown";
 /** Product page: live flash-sale panel (price already includes it). */
 export function FlashNotice({ p }: { p: Product }) {
   const off = flashOffBdt(p);
+  const { t, bdt } = useT();
   if (!off || !p.flashSale) return null;
   return (
     <div className="rx-note mt-3 flex items-center gap-3 rounded-2xl bg-[color-mix(in_srgb,var(--bad)_10%,var(--surface))] p-3 ring-1 ring-[color-mix(in_srgb,var(--bad)_25%,transparent)]">
@@ -17,11 +22,11 @@ export function FlashNotice({ p }: { p: Product }) {
       </span>
       <div className="min-w-0 flex-1 text-sm">
         <p className="font-extrabold text-ink">
-          {p.flashSale.title || "Flash sale"}: extra {formatBdt(off)} off
+          {t("flash.extraOff", { title: p.flashSale.title || t("flash.title"), amount: bdt(off) })}
         </p>
         <p className="text-xs text-ink-2">
-          Already in the price above. <Countdown endsAt={p.flashSale.endsAt} />
-          {p.flashSale.maxQty ? ` · up to ${p.flashSale.maxQty} per order` : ""}
+          {t("flash.inPrice")} <Countdown endsAt={p.flashSale.endsAt} />
+          {p.flashSale.maxQty ? t("flash.perOrder", { count: p.flashSale.maxQty }) : ""}
         </p>
       </div>
     </div>
@@ -31,6 +36,7 @@ export function FlashNotice({ p }: { p: Product }) {
 /** Product page: "can this ship to Bangladesh?" notice. Blocked items also get a disabled buy box. */
 export function RestrictionNotice({ p }: { p: Product }) {
   const r = restrictionOf(p);
+  const { t, bdt } = useT();
   if (!r) return null;
   const block = r.action === "block";
   return (
@@ -48,12 +54,12 @@ export function RestrictionNotice({ p }: { p: Product }) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="font-extrabold text-ink">
-          {block ? "We can't ship this to Bangladesh" : r.action === "surcharge" ? `Includes ${formatBdt(r.surchargeBdt ?? 0)} special handling` : "Before you order"}
+          {block ? t("restrict.cantShip") : r.action === "surcharge" ? t("restrict.includes", { amount: bdt(r.surchargeBdt ?? 0) }) : t("restrict.before")}
         </p>
         <p className="mt-0.5 text-xs leading-relaxed text-ink-2">
           {r.message}{" "}
           <Link href="/legal/shipping#restricted" className="font-semibold text-accent underline-offset-2 hover:underline">
-            What we can ship
+            {t("restrict.whatShip")}
           </Link>
         </p>
       </div>

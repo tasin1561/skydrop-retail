@@ -143,4 +143,4 @@ export type Order = {
   timeline?: { status: string; at: string; note?: string }[];
 };
 
-export type User = { name: string; phone: string; email?: string };
+export type User = { name: string; phone: string; email?: string; locale?: "en" | "bn" };

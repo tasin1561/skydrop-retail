@@ -1,7 +1,8 @@
 import "./product.css";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { STORES } from "@/lib/markets";
+import { STORES, storeText } from "@/lib/markets";
+import { getT } from "@/i18n/server";
 import { discountPct, mrpBdt, priceBdt, weightKg } from "@/lib/pricing";
 import { Icon } from "@/components/Icon";
 import { OriginTag, PriceLine, Stars } from "@/components/ProductBits";
@@ -23,7 +24,7 @@ import { SafeSection } from "@/components/resilience/SafeSection";
 import { ShoppingBuyExtras, ShoppingSections } from "@/components/shopping/ShoppingSections";
 
 // Server component: shapes the product into small serialisable props for the client parts.
-export function ProductDetail({
+export async function ProductDetail({
   p,
   knownIds,
   unavailableIds,
@@ -34,9 +35,10 @@ export function ProductDetail({
   unavailableIds: string[];
   children?: React.ReactNode;
 }) {
-  const store = STORES[p.market];
+  const { t, num, digits } = await getT();
+  const store = storeText(p.market, t);
   const source = store.source;
-  const cat = store.categories.find((c) => c.slug === p.category) ?? STORES.all.categories.find((c) => c.slug === p.category);
+  const cat = store.categories.find((c) => c.slug === p.category) ?? storeText("all", t).categories.find((c) => c.slug === p.category);
   const catLabel = cat?.label ?? p.category;
 
   const images = p.images?.length ? p.images : p.image ? [p.image] : [];
@@ -70,11 +72,11 @@ export function ProductDetail({
   const badges = (
     <>
       {discountPct(p) >= 10 && (
-        <span className="rounded-full bg-brand-2 px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_6px_16px_rgb(255_106_61/0.35)]">-{discountPct(p)}%</span>
+        <span className="rounded-full bg-brand-2 px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_6px_16px_rgb(255_106_61/0.35)]">-{digits(discountPct(p))}%</span>
       )}
       {p.bestSeller && (
         <span className="inline-flex items-center gap-1 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink shadow-[var(--shadow-1)] backdrop-blur">
-          <Icon name="spark" size={12} className="text-accent" /> Best seller
+          <Icon name="spark" size={12} className="text-accent" /> {t("card.bestSeller")}
         </span>
       )}
     </>
@@ -83,12 +85,12 @@ export function ProductDetail({
   return (
     <div data-store={p.market} className="mx-auto max-w-7xl pb-8 sm:px-6 lg:px-8">
       {/* breadcrumb */}
-      <nav aria-label="Breadcrumb" className="px-4 pb-2 pt-3 sm:px-0 sm:pt-5">
+      <nav aria-label={t("pd.breadcrumb")} className="px-4 pb-2 pt-3 sm:px-0 sm:pt-5">
         <ol className="no-scrollbar flex items-center gap-1 overflow-x-auto whitespace-nowrap text-xs text-ink-2 sm:text-sm">
           <li>
             <Link href="/" className="inline-flex min-h-[32px] items-center rounded-full px-1.5 hover:text-accent">
-              Home
-            </Link>
+{t("nav.home")}
+</Link>
           </li>
           <li aria-hidden>
             <Icon name="right" size={14} className="text-ink-3" />
@@ -133,8 +135,7 @@ export function ProductDetail({
             <p className="mb-3 flex items-start gap-2 rounded-2xl bg-[color-mix(in_srgb,var(--warn)_12%,transparent)] px-3 py-2.5 text-xs text-ink">
               <Icon name="info" size={16} className="mt-px shrink-0 text-warn" />
               <span>
-                <span className="font-bold">Demo listing.</span> Real {source} products appear here once this store is connected. You can still try the
-                cart and checkout flow with it.
+                <span className="font-bold">{t("pd.demo")}</span> {t("pd.demoText", { source })}
               </span>
             </p>
           )}
@@ -145,7 +146,7 @@ export function ProductDetail({
                 <OriginTag market={p.market} />
                 {p.prime && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-ink-2">
-                    <Icon name="bolt" size={12} /> Fast dispatch in India
+                    <Icon name="bolt" size={12} /> {t("pd.fastDispatch")}
                   </span>
                 )}
               </div>
@@ -167,12 +168,12 @@ export function ProductDetail({
             ) : (
               <Stars rating={0} />
             )}
-            {p.salesVolume && <span className="text-xs text-ink-2">{p.salesVolume} on {source}</span>}
+            {p.salesVolume && <span className="text-xs text-ink-2">{t("pd.salesOn", { volume: p.salesVolume, source })}</span>}
           </div>
 
           <div className="mt-4">
             <PriceLine p={p} big />
-            <p className="mt-0.5 text-xs text-ink-2">Includes import duty and service. Shipping by weight in cart.</p>
+            <p className="mt-0.5 text-xs text-ink-2">{t("pd.includes")}</p>
             <FlashNotice p={p} />
           </div>
 
@@ -187,7 +188,7 @@ export function ProductDetail({
           </div>
 
           <RestrictionNotice p={p} />
-          <SafeSection label="Assistant" quiet><div className="mt-3"><AskAboutProduct productId={p.id} title={p.title} /></div></SafeSection>
+          <SafeSection label={t("pd.assistant")} quiet><div className="mt-3"><AskAboutProduct productId={p.id} title={p.title} /></div></SafeSection>
 
           <div className="mt-5">
             <BuyBox key={p.id} info={info} knownIds={knownIds} unavailableIds={unavailableIds} />
@@ -196,15 +197,15 @@ export function ProductDetail({
 
           {!available && !p.demo && (
             <p className="mt-3 text-xs text-bad" role="status">
-              This item is out of stock on {source} right now. Save it to your wishlist and check back.
+              {t("pd.oos", { source })}
             </p>
           )}
 
           <ul className="mt-5 grid grid-cols-3 gap-2 text-center text-[11px] text-ink-2">
             {[
-              { icon: "shield", t: "Genuine from India" },
-              { icon: "refresh", t: "Price checked live" },
-              { icon: "cash", t: "Cash on delivery" },
+              { icon: "shield", t: t("pd.genuine") },
+              { icon: "refresh", t: t("pd.priceLive") },
+              { icon: "cash", t: t("pd.cod") },
             ].map((x) => (
               <li key={x.t} className="flex flex-col items-center gap-1.5 rounded-2xl bg-surface px-2 py-3 shadow-[var(--shadow-1)]">
                 <span className="chip-icon h-8 w-8 rounded-[10px]">
@@ -230,7 +231,7 @@ export function ProductDetail({
                 <span className="chip-icon">
                   <Icon name="info" size={18} />
                 </span>
-                About this item
+                {t("pd.about")}
               </h2>
               <ul className="flex flex-col gap-2.5">
                 {bullets.map((b, i) => {
@@ -258,7 +259,7 @@ export function ProductDetail({
 
           {specs.length > 0 && (
             <section className="card px-3 py-2 sm:px-4">
-              <Accordion title="Specifications" icon="grid" meta={`${specs.length} details from ${source}`} defaultOpen={specs.length <= 8}>
+              <Accordion title={t("pd.specs")} icon="grid" meta={t("pd.specsMeta", { count: specs.length, source })} defaultOpen={specs.length <= 8}>
                 <dl className="overflow-hidden rounded-xl">
                   {specs.map(([k, v], i) => (
                     <div key={k} className={"grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 px-3 py-2.5 text-sm " + (i % 2 ? "" : "bg-surface-2/70")}>
@@ -273,11 +274,11 @@ export function ProductDetail({
 
           {aplus.length > 0 && (
             <section className="card px-3 py-2 sm:px-4">
-              <Accordion title="From the brand" icon="spark" meta={`${aplus.length} images from the listing on ${source}`} lazy>
+              <Accordion title={t("pd.brand")} icon="spark" meta={t("pd.brandMeta", { count: aplus.length, source })} lazy>
                 <div className="flex flex-col gap-2 overflow-hidden rounded-xl bg-white">
                   {aplus.map((src, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={i} src={src} alt={`${p.brand || "Brand"} feature image ${i + 1}`} loading="lazy" decoding="async" className="h-auto w-full" />
+                    <img key={i} src={src} alt={t("pd.brandAlt", { brand: p.brand || t("pd.brandWord"), n: i + 1 })} loading="lazy" decoding="async" className="h-auto w-full" />
                   ))}
                 </div>
               </Accordion>
@@ -295,14 +296,14 @@ export function ProductDetail({
                 <span className="chip-icon">
                   <Icon name="star" size={18} />
                 </span>
-                Ratings on {source}
+                {t("pd.ratingsOn", { source })}
               </h2>
               <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">
                 <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-start sm:gap-1">
-                  <span className="text-4xl font-extrabold tracking-tight">{p.rating ? p.rating.toFixed(1) : "-"}</span>
+                  <span className="text-4xl font-extrabold tracking-tight">{p.rating ? digits(p.rating.toFixed(1)) : "-"}</span>
                   <div>
                     <Stars rating={p.rating} />
-                    <p className="text-xs text-ink-2">{p.reviews.toLocaleString("en-IN")} ratings</p>
+                    <p className="text-xs text-ink-2">{t("pd.ratings", { count: num(p.reviews) })}</p>
                   </div>
                 </div>
                 {breakdown.length > 0 && (
@@ -313,7 +314,7 @@ export function ProductDetail({
               </div>
               <p className="mt-4 flex items-start gap-2 rounded-xl bg-surface-2 px-3 py-2 text-xs text-ink-2">
                 <Icon name="globe" size={15} className="mt-px shrink-0 text-accent" />
-                Ratings and reviews come from shoppers on {source}, India. They are shown as published there.
+                {t("pd.ratingsNote", { source })}
               </p>
             </div>
             {reviews.length > 0 && (

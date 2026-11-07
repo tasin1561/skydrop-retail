@@ -28,6 +28,8 @@ class OrdersTable
             ->columns([
                 TextColumn::make('id')->label('Order')->searchable()->weight('bold')->copyable()
                     ->description(fn (Order $r) => $r->created_at?->timezone('Asia/Dhaka')->format('d M, H:i')),
+                TextColumn::make('kind')->label('Kind')->badge()->color('info') // only gift card / Plus purchases get a badge
+                    ->getStateUsing(fn (Order $r) => $r->isGoods() ? null : (Order::KINDS[$r->kind] ?? $r->kind)),
                 TextColumn::make('user.name')->label('Customer')->searchable(['name', 'phone'])
                     ->description(fn (Order $r) => $r->user?->phone),
                 TextColumn::make('status')->badge()->sortable()
@@ -50,6 +52,11 @@ class OrdersTable
                 TextColumn::make('updated_at')->label('Updated')->since()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                // Gift card and Skydrop Plus purchases are hidden by default: they are not operations work.
+                SelectFilter::make('kind')->label('Kind')->options(['goods' => 'Goods orders'] + Order::KINDS + ['all' => 'All kinds'])
+                    ->default('goods')->selectablePlaceholder(false)
+                    ->query(fn (Builder $query, array $data) => $query->when(($data['value'] ?? 'goods') !== 'all',
+                        fn ($q) => $q->where('kind', $data['value'] ?? 'goods'))),
                 SelectFilter::make('status')->multiple()->options(Admin::ORDER_STATUS_LABELS),
                 SelectFilter::make('market')->label('Store')->options(Admin::MARKETS)
                     ->query(fn (Builder $query, array $data) => $query->when($data['value'] ?? null, fn ($q, $m) => $q->whereHas('items', fn ($i) => $i->where('market', $m)))),

@@ -5,12 +5,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Banner } from "@/lib/cms";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 
 const AUTOPLAY_MS = 6000;
 
 // Banner carousel: CSS scroll-snap does the swiping; autoplay pauses when off-screen, when the tab is hidden,
 // on hover/focus, after the shopper swipes, and entirely under reduced motion. The dot bead tracks the scroll.
-export function HeroCarousel({ banners, label = "Featured offers" }: { banners: Banner[]; label?: string }) {
+export function HeroCarousel({ banners, label: labelProp }: { banners: Banner[]; label?: string }) {
+  const { t, digits } = useT();
+  const label = labelProp ?? t("hc.featured");
   const track = useRef<HTMLDivElement>(null);
   const dots = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -105,7 +108,7 @@ export function HeroCarousel({ banners, label = "Featured offers" }: { banners: 
           <button
             type="button"
             onClick={() => go(active - 1)}
-            aria-label="Previous banner"
+            aria-label={t("hc.prev")}
             className="absolute left-6 top-[calc(50%-22px)] hidden h-11 w-11 place-items-center rounded-full bg-surface/85 text-ink shadow-[var(--shadow-2)] backdrop-blur transition-transform hover:scale-105 sm:-left-3 sm:grid"
           >
             <Icon name="left" size={18} />
@@ -113,19 +116,19 @@ export function HeroCarousel({ banners, label = "Featured offers" }: { banners: 
           <button
             type="button"
             onClick={() => go(active + 1)}
-            aria-label="Next banner"
+            aria-label={t("hc.next")}
             className="absolute right-6 top-[calc(50%-22px)] hidden h-11 w-11 place-items-center rounded-full bg-surface/85 text-ink shadow-[var(--shadow-2)] backdrop-blur transition-transform hover:scale-105 sm:-right-3 sm:grid"
           >
             <Icon name="right" size={18} />
           </button>
           <div className="mt-1 flex items-center justify-center gap-3">
-            <div ref={dots} className="hc-dots" role="group" aria-label="Choose banner">
+            <div ref={dots} className="hc-dots" role="group" aria-label={t("hc.choose")}>
               {banners.map((b, i) => (
                 <button
                   key={b.id}
                   type="button"
                   className="hc-dot"
-                  aria-label={`Show banner ${i + 1} of ${n}: ${b.title}`}
+                  aria-label={t("hc.show", { i: i + 1, n, title: b.title })}
                   aria-current={i === active ? "true" : undefined}
                   onClick={() => go(i)}
                 >
@@ -153,6 +156,7 @@ export function HeroCarousel({ banners, label = "Featured offers" }: { banners: 
 
 function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: boolean }) {
   const cover = !!b.image && b.imageFit !== "contain";
+  const { t } = useT();
   const body = (
     <>
       {cover ? (
@@ -185,7 +189,7 @@ function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: b
               className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0f] shadow-[0_8px_24px_rgb(0_0_0/0.18)]"
               style={{ ["--d" as string]: 3 }}
             >
-              {b.cta || "Shop now"} <Icon name="arrow" size={16} />
+              {b.cta || t("cat.shopNow")} <Icon name="arrow" size={16} />
             </span>
           )}
         </div>
@@ -204,7 +208,7 @@ function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: b
     "data-active": active,
     role: "group",
     "aria-roledescription": "slide",
-    "aria-label": `${i + 1} of ${n}`,
+    "aria-label": t("hc.slide", { i: i + 1, n }),
   } as const;
   if (!b.link) return <div {...common}>{body}</div>;
   const external = /^https?:\/\//.test(b.link);

@@ -7,11 +7,13 @@ import { useStore } from "@/state/store";
 import { Icon } from "./Icon";
 import { restrictionOf } from "@/lib/restrictions";
 import { flyToCart } from "./motion/flyToCart";
+import { useT } from "@/i18n/client";
 
 // Grocery-style add-to-basket on the card: "Add" -> the product arcs into the cart -> a +/- stepper.
 export function QuickAdd({ p }: { p: Product }) {
   const { cart, addToCart, setQty, removeFromCart } = useStore();
   const [busy, setBusy] = useState(false);
+  const { t, digits } = useT();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
@@ -31,8 +33,8 @@ export function QuickAdd({ p }: { p: Product }) {
   const blocked = restrictionOf(p)?.action === "block";
   if (blocked)
     return (
-      <button type="button" disabled className="btn btn-ghost mt-2 min-h-10 w-full rounded-xl text-xs" aria-label={`${p.title} cannot ship to Bangladesh`}>
-        Can&apos;t ship to BD
+      <button type="button" disabled className="btn btn-ghost mt-2 min-h-10 w-full rounded-xl text-xs" aria-label={t("qa.cantShip", { title: p.title })}>
+        {t("qa.cantShipShort")}
       </button>
     );
   if (!line)
@@ -56,14 +58,14 @@ export function QuickAdd({ p }: { p: Product }) {
         }}
         aria-busy={busy}
         className="btn btn-primary mt-2 min-h-11 w-full rounded-xl text-sm"
-        aria-label={`Add ${p.title} to basket`}
+        aria-label={t("qa.addTo", { title: p.title })}
       >
         <span className="roll" aria-hidden="true">
           <span data-on={!busy} data-gone={busy} className="inline-flex items-center gap-1.5">
-            <Icon name="plus" size={16} stroke={2.4} /> Add
+            <Icon name="plus" size={16} stroke={2.4} /> {t("qa.add")}
           </span>
           <span data-on={busy} className="inline-flex items-center gap-1.5">
-            <Icon name="package" size={16} stroke={2.2} /> Adding
+            <Icon name="package" size={16} stroke={2.2} /> {t("qa.adding")}
           </span>
         </span>
       </button>
@@ -73,18 +75,18 @@ export function QuickAdd({ p }: { p: Product }) {
       <button
         type="button"
         className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-90"
-        aria-label={line.qty <= 1 ? `Remove ${p.title} from basket` : "One less"}
+        aria-label={line.qty <= 1 ? t("qa.remove", { title: p.title }) : t("qa.less")}
         onClick={() => (line.qty <= 1 ? removeFromCart(p.id) : setQty(p.id, undefined, line.qty - 1))}
       >
         <Icon name={line.qty <= 1 ? "trash" : "minus"} size={16} stroke={2.4} />
       </button>
       <span key={line.qty} className="pop text-sm font-extrabold tabular-nums" aria-live="polite">
-        {line.qty} in basket
+        {t("qa.inBasket", { count: line.qty })}
       </span>
       <button
         type="button"
         className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-90"
-        aria-label="One more"
+        aria-label={t("qa.more")}
         onClick={() => setQty(p.id, undefined, line.qty + 1)}
       >
         <Icon name="plus" size={16} stroke={2.4} />

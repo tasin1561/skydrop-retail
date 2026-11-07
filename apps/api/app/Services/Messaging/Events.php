@@ -141,6 +141,23 @@ final class Events
                     ],
                 ],
             ],
+            'digital_payment_received' => [
+                'category' => 'transactional', 'icon' => 'payment', 'label' => 'Gift card / Skydrop Plus payment received',
+                'sample' => ['name' => 'Rahim', 'order_id' => 'SR-24117-GC01', 'amount' => 'BDT 2,000', 'total' => 'BDT 2,000', 'gift_card' => true,
+                    'plus' => false, 'plan' => null, 'link' => 'https://retail.skydrop.online/gift-cards'],
+                't' => [
+                    'en' => [
+                        'sms' => ['Skydrop Retail: we received {{amount}} for your {{#gift_card}}gift card. The code is on its way to the recipient.{{/gift_card}}{{#plus}}Skydrop Plus{{#plan}} ({{plan}}){{/plan}}. Your benefits are active.{{/plus}}'],
+                        'email' => ["Hi {{name}},\n\nWe received your payment of {{amount}} ({{order_id}}).\n\n{{#gift_card}}Your Skydrop gift card is now active and the code has been sent to the recipient. You can see it any time under Gift cards.{{/gift_card}}{{#plus}}Your Skydrop Plus membership{{#plan}} ({{plan}}){{/plan}} is active. Your member benefits apply from your next order.{{/plus}}", '{{#gift_card}}Gift card payment received{{/gift_card}}{{#plus}}Skydrop Plus payment received{{/plus}}'],
+                        'push' => ['{{amount}} received. {{#gift_card}}Your gift card is active.{{/gift_card}}{{#plus}}Your Skydrop Plus benefits are active.{{/plus}}', 'Payment received'],
+                    ],
+                    'bn' => [
+                        'sms' => ['Skydrop Retail: {{amount}} পেয়েছি। {{#gift_card}}গিফট কার্ড চালু হয়েছে, কোড প্রাপকের কাছে পাঠানো হচ্ছে।{{/gift_card}}{{#plus}}Skydrop Plus{{#plan}} ({{plan}}){{/plan}} চালু হয়েছে।{{/plus}}'],
+                        'email' => ["প্রিয় {{name}},\n\nআপনার {{amount}} পেমেন্ট পেয়েছি ({{order_id}})।\n\n{{#gift_card}}আপনার Skydrop গিফট কার্ড চালু হয়েছে এবং কোড প্রাপকের কাছে পাঠানো হয়েছে। গিফট কার্ড পেজে যেকোনো সময় দেখতে পারবেন।{{/gift_card}}{{#plus}}আপনার Skydrop Plus সদস্যপদ{{#plan}} ({{plan}}){{/plan}} চালু হয়েছে। পরের অর্ডার থেকে সুবিধাগুলো পাবেন।{{/plus}}", 'পেমেন্ট পেয়েছি'],
+                        'push' => ['{{amount}} পেয়েছি। {{#gift_card}}গিফট কার্ড চালু হয়েছে।{{/gift_card}}{{#plus}}Skydrop Plus সুবিধা চালু হয়েছে।{{/plus}}', 'পেমেন্ট পেয়েছি'],
+                    ],
+                ],
+            ],
             'payment_failed' => [
                 'category' => 'transactional', 'icon' => 'payment_failed', 'label' => 'Payment failed',
                 'sample' => $order + ['amount' => 'BDT 12,480', 'pay_link' => 'https://retail.skydrop.online/orders/SR-24117-AB12?pay=1'],

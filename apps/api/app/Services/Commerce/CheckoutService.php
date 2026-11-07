@@ -7,7 +7,10 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\Cms\FlashSaleService;
 use App\Services\Cms\RestrictionService;
+use App\Services\Fulfilment\UnboxingService;
+use App\Services\Money\MoneyQuote;
 use App\Services\PricingService;
+use App\Services\Shopping\BundleService;
 use App\Support\Features;
 
 // Cart lines, coupons and totals. Same maths as apps/web/src/components/checkout/cart-math.ts.
@@ -127,7 +130,7 @@ class CheckoutService
         }
 
         // Shopping module: curated bundle saving (margin-funded; 0 when the "bundles" feature is off).
-        $bundle = app(\App\Services\Shopping\BundleService::class)->discountFor($lines);
+        $bundle = app(BundleService::class)->discountFor($lines);
         $bundle['discount'] = (int) min($bundle['discount'], max(0, $subtotal - $itemDiscount));
         $plan = $this->points->plan($user, $redeemPoints, max(0, $subtotal - $itemDiscount - $bundle['discount']));
         $discount = $itemDiscount + $shipDiscount + $plan['discount'] + $bundle['discount'];
@@ -157,12 +160,12 @@ class CheckoutService
         ];
 
         // Fulfilment module: optional paid unboxing at the Kolkata hub (opts.unboxing), added to the total.
-        $quote['unboxing'] = app(\App\Services\Fulfilment\UnboxingService::class)->fee($groups, (bool) ($opts['unboxing'] ?? false), $user);
+        $quote['unboxing'] = app(UnboxingService::class)->fee($groups, (bool) ($opts['unboxing'] ?? false), $user);
         $quote['unboxingFee'] = $quote['unboxing']['feeBdt'];
         $quote['total'] = (int) $quote['total'] + $quote['unboxingFee'];
 
         // Money module: Skydrop Plus benefits, wallet (opts.useWallet) and card EMI (opts.payment = card_emi).
-        $quote = app(\App\Services\Money\MoneyQuote::class)->apply($quote, $user, $opts);
+        $quote = app(MoneyQuote::class)->apply($quote, $user, $opts);
         app(OrderLimits::class)->assertValue($quote, $opts['payment'] ?? null); // System → Limits: max order value, 50% advance cap (422)
 
         return $quote;

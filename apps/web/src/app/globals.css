@@ -92,7 +92,8 @@
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
-  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
+  /* Bangla glyphs fall through to Noto Sans Bengali (next/font): Plus Jakarta Sans has no Bengali. */
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", var(--font-bengali), "Noto Sans Bengali", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 html {
@@ -713,4 +714,40 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .search-radar::before, .search-radar::after { animation: none; }
+}
+
+/* ---------- Bangla (bn) ---------- */
+/* Bengali script has tall matras and conjuncts: a little more line-height, and never tightened tracking. */
+:lang(bn) {
+  line-height: 1.65;
+}
+:lang(bn) h1, :lang(bn) h2, :lang(bn) h3, :lang(bn) .leading-tight, :lang(bn) .leading-none, :lang(bn) .leading-snug {
+  line-height: 1.4;
+}
+:lang(bn) [class*="tracking-"], :lang(bn) .tracking-tight, :lang(bn) .tracking-tighter {
+  letter-spacing: normal;
+}
+:lang(bn) .uppercase {
+  letter-spacing: normal;
+}
+/* Long Bangla words must wrap instead of pushing the layout sideways at 360px. */
+:lang(bn) body {
+  overflow-wrap: break-word;
+}
+
+/* EN | বাংলা switch: the pill slides on transform only. */
+.lang-switch-pill {
+  transition: transform 0.38s var(--spring);
+  will-change: transform;
+}
+/* Language change: quick crossfade of the page (opacity only) while the server re-renders. */
+body {
+  transition: opacity 0.16s var(--ease);
+}
+html.lang-fade body {
+  opacity: 0.2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lang-switch-pill, body { transition: none; }
+  html.lang-fade body { opacity: 1; }
 }

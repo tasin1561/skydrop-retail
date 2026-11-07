@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { Icon } from "../Icon";
+import { getT } from "@/i18n/server";
 
 /** Numbered pagination with 44px targets (server component). */
-export function Pager({ page, pages, href }: { page: number; pages: number; href: (p: number) => string }) {
+export async function Pager({ page, pages, href }: { page: number; pages: number; href: (p: number) => string }) {
   if (pages <= 1) return null;
+  const { t, digits } = await getT();
   const nums = Array.from({ length: pages }, (_, i) => i + 1).filter((n) => Math.abs(n - page) < 2 || n === 1 || n === pages);
   return (
-    <nav aria-label="Pages" className="mt-8 flex flex-wrap items-center justify-center gap-1">
+    <nav aria-label={t("pager.label")} className="mt-8 flex flex-wrap items-center justify-center gap-1">
       {page > 1 && (
-        <Link href={href(page - 1)} className="grid h-11 w-11 place-items-center rounded-full bg-surface shadow-[var(--shadow-1)]" aria-label="Previous page">
+        <Link href={href(page - 1)} className="grid h-11 w-11 place-items-center rounded-full bg-surface shadow-[var(--shadow-1)]" aria-label={t("pager.prev")}>
           <Icon name="left" />
         </Link>
       )}
@@ -23,12 +25,12 @@ export function Pager({ page, pages, href }: { page: number; pages: number; href
               (n === page ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-accent")
             }
           >
-            {n}
-          </Link>
+            {digits(n)}
+</Link>
         </span>
       ))}
       {page < pages && (
-        <Link href={href(page + 1)} className="grid h-11 w-11 place-items-center rounded-full bg-surface shadow-[var(--shadow-1)]" aria-label="Next page">
+        <Link href={href(page + 1)} className="grid h-11 w-11 place-items-center rounded-full bg-surface shadow-[var(--shadow-1)]" aria-label={t("pager.next")}>
           <Icon name="right" />
         </Link>
       )}

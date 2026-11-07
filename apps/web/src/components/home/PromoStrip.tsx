@@ -1,11 +1,13 @@
 import { Icon } from "../Icon";
+import { getT } from "@/i18n/server";
 
-export function PromoStrip() {
+export async function PromoStrip() {
+  const { t } = await getT();
   const items = [
-    { icon: "tag", title: "SKYDROP10", text: "10% off your first order" },
-    { icon: "truck", title: "Free shipping", text: "On orders over ৳15,000 per store" },
-    { icon: "shield", title: "Price promise", text: "Verified live before you pay" },
-    { icon: "wallet", title: "Pay your way", text: "bKash, Nagad, cards, 50% advance" },
+    { icon: "tag", title: "SKYDROP10", text: t("promo.first") },
+    { icon: "truck", title: t("promo.freeShip"), text: t("promo.freeShipText") },
+    { icon: "shield", title: t("promo.pricePromise"), text: t("promo.pricePromiseText") },
+    { icon: "wallet", title: t("promo.payWay"), text: t("promo.payWayText") },
   ];
   return (
     <section className="no-scrollbar mt-6 flex gap-3 overflow-x-auto px-4 sm:grid sm:grid-cols-4 sm:px-0">

@@ -9,7 +9,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/** Accounting exports and the month-close summary. Every method returns [headers, rows] or plain arrays. */
+/**
+ * Accounting exports and the month-close summary. Every method returns [headers, rows] or plain arrays.
+ * Sales figures are goods orders; Skydrop Plus purchases are reported as their own revenue column and gift card
+ * sales as a liability (money owed to card holders until redeemed), never as sales.
+ */
 class AccountingService
 {
     public function __construct(private ProfitService $profit) {}
@@ -19,30 +23,37 @@ class AccountingService
     {
         $rows = [];
         $orders = Order::query()->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->orderBy('created_at')->get();
-        foreach ($orders->groupBy(fn ($o) => $o->created_at->toDateString()) as $day => $list) {
+        $paidDigital = fn ($list, string $kind) => round((float) $list->where('kind', $kind)->where('status', '!=', 'cancelled')
+            ->whereIn('payment_status', ['paid', 'partial', 'refunded', 'refund_pending'])->sum('total_bdt'), 2);
+        foreach ($orders->groupBy(fn ($o) => $o->created_at->toDateString()) as $day => $all) {
+            $list = $all->filter(fn (Order $o) => $o->isGoods());
             $live = $list->where('status', '!=', 'cancelled');
             $fees = $live->sum(fn ($o) => (float) ($o->getAttributes()['unboxing_fee_bdt'] ?? 0) + (float) ($o->getAttributes()['emi_charge_bdt'] ?? 0));
             $rows[] = [$day, $live->count(), $list->count() - $live->count(), round($live->sum('subtotal_bdt'), 2), round($live->sum('shipping_bdt'), 2),
                 round($fees, 2), round($live->sum(fn ($o) => (float) $o->discount_bdt - (float) $o->points_discount_bdt), 2),
-                round($live->sum('points_discount_bdt'), 2), round($live->sum('total_bdt'), 2), round($live->sum('paid_bdt'), 2)];
+                round($live->sum('points_discount_bdt'), 2), round($live->sum('total_bdt'), 2), round($live->sum('paid_bdt'), 2),
+                $paidDigital($all, 'membership'), $paidDigital($all, 'gift_card')];
         }
 
-        return [['date', 'orders', 'cancelled', 'items_bdt', 'shipping_bdt', 'fees_bdt', 'discounts_bdt', 'points_bdt', 'net_sales_bdt', 'collected_bdt'], $rows];
+        return [['date', 'orders', 'cancelled', 'items_bdt', 'shipping_bdt', 'fees_bdt', 'discounts_bdt', 'points_bdt', 'net_sales_bdt', 'collected_bdt',
+            'plus_sales_bdt', 'gift_card_sales_bdt_liability'], $rows];
     }
 
     public function payments(Carbon $from, Carbon $to): array
     {
+        $kinds = [];
         $rows = Payment::query()->whereIn('status', ['paid', 'refunded'])
             ->whereBetween(DB::raw('COALESCE(paid_at, created_at)'), [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
             ->orderBy('gateway')->orderBy('paid_at')->get()
-            ->map(function (Payment $p) {
+            ->map(function (Payment $p) use (&$kinds) {
                 $fee = round((float) $p->amount_bdt * $this->profit->feePct($p->gateway, (string) $p->kind) / 100, 2);
+                $kinds[$p->order_id] ??= (string) (Order::query()->whereKey($p->order_id)->value('kind') ?? 'goods');
 
                 return [($p->paid_at ?? $p->created_at)?->toDateTimeString(), $p->gateway, $p->kind, $p->order_id, self::trxId($p),
-                    (float) $p->amount_bdt, $fee, round((float) $p->amount_bdt - $fee, 2), (float) $p->refunded_bdt, $p->status];
+                    (float) $p->amount_bdt, $fee, round((float) $p->amount_bdt - $fee, 2), (float) $p->refunded_bdt, $p->status, $kinds[$p->order_id]];
             })->all();
 
-        return [['paid_at', 'gateway', 'kind', 'order_id', 'trx_id', 'amount_bdt', 'est_fee_bdt', 'net_bdt', 'refunded_bdt', 'status'], $rows];
+        return [['paid_at', 'gateway', 'kind', 'order_id', 'trx_id', 'amount_bdt', 'est_fee_bdt', 'net_bdt', 'refunded_bdt', 'status', 'order_kind'], $rows];
     }
 
     /** @return array<string, array{count: int, amount: float, fees: float}> */
@@ -135,6 +146,13 @@ class AccountingService
             $byMonth[$m]['revenue'] = ($byMonth[$m]['revenue'] ?? 0) + $r['revenue'];
             $byMonth[$m]['margin'] = ($byMonth[$m]['margin'] ?? 0) + ($r['revenue'] - $r['cogs']);
         }
+        // Skydrop Plus fees are service revenue with no purchase cost (gift card sales are not revenue).
+        foreach ($this->profit->digitalSales($from, $to)['plus']['by_day'] as $d => $v) {
+            $m = substr((string) $d, 0, 7);
+            $byMonth[$m]['revenue'] = ($byMonth[$m]['revenue'] ?? 0) + $v['revenue'];
+            $byMonth[$m]['margin'] = ($byMonth[$m]['margin'] ?? 0) + $v['revenue'];
+        }
+        ksort($byMonth);
         $rows = [];
         foreach ($byMonth as $m => $v) {
             $base = $on === 'revenue' ? $v['revenue'] : max(0, $v['margin']);
@@ -158,6 +176,8 @@ class AccountingService
             'gateways' => $this->paymentsByGateway($from, $to),
             'refunds' => round($refunds, 2),
             'liabilities' => $this->liabilities(),
+            // Gift cards sold this month: added to the gift card liability, not to sales.
+            'gift_card_sales' => ['count' => (int) $report['kpis']['gift_card_orders'], 'amount' => (float) $report['kpis']['gift_card_sales']],
             'vat' => $this->vatSummary($from, $to)[1],
             'estimated_orders' => $report['orders']->where('estimated', true)->count(),
         ];

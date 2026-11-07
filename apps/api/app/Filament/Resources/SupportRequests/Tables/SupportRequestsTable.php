@@ -12,7 +12,9 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SupportRequestsTable
 {
@@ -28,9 +30,13 @@ class SupportRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('created_at', 'desc')
+            // Skydrop Plus priority support first, then newest.
+            ->defaultSort(fn (Builder $query) => $query->orderByDesc('priority')->orderByDesc('created_at'))
             ->columns([
                 TextColumn::make('id')->label('#'),
+                TextColumn::make('priority')->label('Priority')->badge()->color('warning')->icon(Heroicon::Star)->sortable()
+                    ->getStateUsing(fn ($record) => $record->priority ? 'Plus priority' : null)
+                    ->tooltip('Skydrop Plus member with priority support'),
                 TextColumn::make('type')->badge()->formatStateUsing(fn ($state) => self::TYPES[$state] ?? $state),
                 TextColumn::make('order_id')->label('Order')->searchable()->weight('bold')
                     ->url(fn (SupportRequest $r) => OrderResource::getUrl('view', ['record' => $r->order_id])),
@@ -43,6 +49,7 @@ class SupportRequestsTable
             ->filters([
                 SelectFilter::make('status')->options(self::STATUSES)->multiple(),
                 SelectFilter::make('type')->options(self::TYPES),
+                TernaryFilter::make('priority')->label('Priority (Skydrop Plus)'),
             ])
             ->recordActions([
                 ViewAction::make(),

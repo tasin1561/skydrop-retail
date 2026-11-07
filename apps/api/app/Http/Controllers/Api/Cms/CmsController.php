@@ -44,8 +44,12 @@ class CmsController extends Controller
                 $items[] = ['product' => ProductJson::one($p, $request), 'regularBdt' => $regular, 'extraOffBdt' => $off, 'flashBdt' => max(0, $regular - $off)];
             }
 
+            // Skydrop Plus early access: an upcoming sale is already live for this member.
+            $status = $s->status();
+            $earlyAccess = $status === 'upcoming' && $flash->openFor($s);
+
             return [
-                'id' => (string) $s->id, 'title' => $s->title, 'store' => $s->store, 'status' => $s->status(),
+                'id' => (string) $s->id, 'title' => $s->title, 'store' => $s->store, 'status' => $earlyAccess ? 'live' : $status, 'earlyAccess' => $earlyAccess,
                 'startsAt' => $s->starts_at->toIso8601String(), 'endsAt' => $s->ends_at->toIso8601String(), 'maxQty' => $s->max_qty,
                 'items' => $items,
             ];
@@ -57,6 +61,6 @@ class CmsController extends Controller
             'banners' => $banners->map->toApi()->values(),
             'flashSales' => $saleJson,
             'serverTime' => now()->toIso8601String(),
-        ])->header('Cache-Control', 'public, max-age=60');
+        ])->header('Cache-Control', $flash->earlyMinutes() > 0 ? 'private, max-age=60' : 'public, max-age=60'); // member prices are per viewer
     }
 }

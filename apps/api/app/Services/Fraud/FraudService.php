@@ -71,9 +71,9 @@ class FraudService
             }
         }
 
-        // ---- our own history ----
+        // ---- our own history (goods orders only: gift card / Plus purchases are not deliveries) ----
         if ($user) {
-            $past = Order::query()->where('user_id', $user->id)->when($order, fn ($q) => $q->whereKeyNot($order->id));
+            $past = Order::query()->goods()->where('user_id', $user->id)->when($order, fn ($q) => $q->whereKeyNot($order->id));
             $cancels = (clone $past)->where('status', 'cancelled')->count();
             $delivered = (clone $past)->where('status', 'delivered')->count();
             if ($cancels >= 2) {
@@ -95,7 +95,7 @@ class FraudService
             }
 
             // velocity
-            $lastHour = Order::query()->where('user_id', $user->id)->where('created_at', '>=', now()->subHour())->count();
+            $lastHour = Order::query()->goods()->where('user_id', $user->id)->where('created_at', '>=', now()->subHour())->count();
             if ($lastHour >= 3) {
                 $add(15, "{$lastHour} orders in the last hour");
             }
@@ -111,14 +111,14 @@ class FraudService
             // many accounts on one IP / device (30 days)
             foreach (['client_ip' => 'IP', 'device_id' => 'device'] as $col => $label) {
                 if ($order->{$col}) {
-                    $accounts = Order::query()->where($col, $order->{$col})->where('created_at', '>=', now()->subDays(30))->distinct()->count('user_id');
+                    $accounts = Order::query()->goods()->where($col, $order->{$col})->where('created_at', '>=', now()->subDays(30))->distinct()->count('user_id');
                     if ($accounts >= 3) {
                         $add(15, "{$accounts} accounts ordered from this {$label}");
                     }
                 }
             }
             if ($order->client_ip) {
-                $ipHour = Order::query()->where('client_ip', $order->client_ip)->where('created_at', '>=', now()->subHour())->count();
+                $ipHour = Order::query()->goods()->where('client_ip', $order->client_ip)->where('created_at', '>=', now()->subHour())->count();
                 if ($ipHour >= 5) {
                     $add(15, "{$ipHour} orders from this IP in the last hour");
                 }
@@ -131,7 +131,7 @@ class FraudService
         }
 
         // many accounts on one phone + name-phone mismatch with history
-        $names = Order::query()->where('address->phone', $phone)->when($order, fn ($q) => $q->whereKeyNot($order->id))
+        $names = Order::query()->goods()->where('address->phone', $phone)->when($order, fn ($q) => $q->whereKeyNot($order->id))
             ->limit(50)->get(['address', 'user_id']);
         $accounts = $names->pluck('user_id')->unique()->count() + ($user && ! $names->pluck('user_id')->contains($user->id) && $names->isNotEmpty() ? 1 : 0);
         if ($accounts >= 3) {

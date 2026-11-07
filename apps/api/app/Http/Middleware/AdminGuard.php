@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\Knobs;
+use App\Support\Limits;
 use Closure;
 use Filament\Facades\Filament;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class AdminGuard
             abort(403, 'The admin panel is not available from this network.');
         }
 
-        $timeout = \App\Support\Limits::int('api.admin_session_minutes'); // System → Limits (same knob as Finance & security)
+        $timeout = Limits::int('api.admin_session_minutes'); // System → Limits (same knob as Finance & security)
         if ($timeout > 0 && $request->hasSession()) {
             $session = $request->session();
             $last = (int) $session->get('admin_last_seen', 0);

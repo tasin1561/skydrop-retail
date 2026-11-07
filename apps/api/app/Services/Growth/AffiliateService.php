@@ -141,7 +141,7 @@ class AffiliateService
     public function attribute(Order $order, ?string $ref): ?AffiliateCommission
     {
         $code = self::normalizeCode($ref);
-        if (! $code || ! Features::enabled('affiliate')) {
+        if (! $code || ! Features::enabled('affiliate') || ! $order->isGoods()) { // no commission on gift cards / Plus
             return null;
         }
         $order->forceFill(['ref_code' => $code])->saveQuietly();
@@ -178,7 +178,7 @@ class AffiliateService
     {
         $order->loadMissing('items');
         $subtotal = (float) $order->subtotal_bdt;
-        if ($subtotal <= 0) {
+        if ($subtotal <= 0 || ! $order->isGoods()) {
             return [0.0, 0.0];
         }
         $couponItems = (float) $order->coupon_discount_bdt;

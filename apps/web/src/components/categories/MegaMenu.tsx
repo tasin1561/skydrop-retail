@@ -9,6 +9,7 @@ import type { CatNode } from "@/lib/categories";
 import { Icon } from "../Icon";
 import { useCurrentMode } from "../StoreTheme";
 import { catHref, catLabel, useCategoryMenu, useIsBn } from "./useCategoryMenu";
+import { useT } from "@/i18n/client";
 
 const ROW = 44; // px, one top-level row (also the touch target)
 const MAX_LEAVES = 6;
@@ -21,6 +22,7 @@ const MAX_LEAVES = 6;
 export function MegaMenu() {
   const mode = useCurrentMode();
   const bn = useIsBn();
+  const { t } = useT();
   const { tree, warm } = useCategoryMenu(mode);
   const path = usePathname();
   // Open "at" a pathname, so navigating anywhere closes it without an effect.
@@ -125,8 +127,8 @@ export function MegaMenu() {
         className="inline-flex h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold text-ink transition-transform active:scale-[0.97]"
       >
         <Icon name="grid" size={18} />
-        <span className="hidden lg:inline">All categories</span>
-        <span className="lg:hidden">Categories</span>
+        <span className="hidden lg:inline">{t("cat.allCategories")}</span>
+        <span className="lg:hidden">{t("cat.categories")}</span>
         <Icon name="chevron" size={16} className="cm-chev" />
       </button>
 
@@ -134,7 +136,7 @@ export function MegaMenu() {
         <div id={`${id}-panel`} className="cm-panel absolute inset-x-0 top-full z-50 border-b border-line bg-surface shadow-[var(--shadow-2)]">
           <div className="mx-auto grid max-w-7xl grid-cols-[250px_minmax(0,1fr)] gap-6 px-4 py-4 lg:grid-cols-[270px_minmax(0,1fr)_240px]">
             {/* level 1 */}
-            <div ref={list} role="menu" aria-label="Categories" aria-orientation="vertical" onKeyDown={onListKey} className="relative max-h-[70dvh] overflow-y-auto pr-1">
+            <div ref={list} role="menu" aria-label={t("cat.categories")} aria-orientation="vertical" onKeyDown={onListKey} className="relative max-h-[70dvh] overflow-y-auto pr-1">
               <span
                 aria-hidden
                 className="cm-indicator pointer-events-none absolute inset-x-0 top-0 rounded-xl bg-[var(--accent-soft)]"
@@ -164,14 +166,14 @@ export function MegaMenu() {
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-lg font-extrabold tracking-tight">{catLabel(top, bn)}</p>
-                  {!bn && top.nameBn && (
-                    <p lang="bn" className="text-xs text-ink-3">
-                      {top.nameBn}
+                  {(bn ? top.name : top.nameBn) && (
+<p lang={bn ? "en" : "bn"} className="text-xs text-ink-3">
+                      {bn ? top.name : top.nameBn}
                     </p>
                   )}
                 </div>
                 <Link data-cm-link href={catHref(top.path, mode)} className="cm-link inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-accent">
-                  See all <Icon name="arrow" size={15} />
+                  {t("cat.seeAll")} <Icon name="arrow" size={15} />
                 </Link>
               </div>
               <div className="columns-2 gap-6 xl:columns-3">
@@ -194,7 +196,7 @@ export function MegaMenu() {
                       {l2.children.length > MAX_LEAVES && (
                         <li>
                           <Link data-cm-link href={catHref(l2.path, mode)} className="cm-link block py-1 text-[13px] font-semibold text-accent">
-                            +{l2.children.length - MAX_LEAVES} more
+                            {t("cat.more", { count: l2.children.length - MAX_LEAVES })}
                           </Link>
                         </li>
                       )}
@@ -212,16 +214,16 @@ export function MegaMenu() {
                 href={catHref(featured.path, mode)}
                 className="cm-swap cm-tile relative hidden self-start overflow-hidden rounded-[var(--radius)] bg-gradient-to-br from-[var(--hero-a)] to-[var(--hero-b)] p-5 text-white lg:block"
               >
-                <span className="text-[11px] font-bold uppercase tracking-wider opacity-85">Featured</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider opacity-85">{t("cat.featured")}</span>
                 <span className="mt-2 grid h-14 w-14 place-items-center rounded-2xl bg-white/15">
                   <Icon name={featured.icon} size={30} stroke={1.6} />
                 </span>
                 <p className="mt-3 text-lg font-extrabold leading-tight">{catLabel(featured, bn)}</p>
                 <p className="mt-1 text-xs opacity-90">
-                  {mode === "all" ? "From every connected Indian store" : `From ${STORES[mode].source}`}, delivered to Bangladesh.
+                  {mode === "all" ? t("cat.fromEvery") : t("cat.fromStore", { source: STORES[mode].source })}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold">
-                  Shop now <Icon name="arrow" size={15} />
+                  {t("cat.shopNow")} <Icon name="arrow" size={15} />
                 </span>
               </Link>
             )}

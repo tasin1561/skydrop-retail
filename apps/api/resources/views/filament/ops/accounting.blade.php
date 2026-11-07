@@ -16,9 +16,12 @@
         <div class="ops-card">
             <h3>Month close: {{ $c['month'] }}</h3>
             <table class="ops-table"><tbody>
-                @foreach (['orders' => 'Orders', 'revenue' => 'Net sales', 'cogs' => 'Purchase cost (FX paid)', 'gateway_fees' => 'Gateway fees', 'api_cost' => 'Data/API cost', 'refunds' => 'Refunds', 'fx_gain' => 'FX gain / loss', 'shipping_profit' => 'Shipping profit / loss', 'profit' => 'Net profit', 'margin_pct' => 'Margin %'] as $key => $label)
+                @foreach (['orders' => 'Goods orders', 'goods_revenue' => 'Net sales (goods)', 'plus_revenue' => 'Skydrop Plus revenue', 'revenue' => 'Total revenue', 'cogs' => 'Purchase cost (FX paid)', 'gateway_fees' => 'Gateway fees', 'api_cost' => 'Data/API cost', 'refunds' => 'Refunds', 'fx_gain' => 'FX gain / loss', 'shipping_profit' => 'Shipping profit / loss', 'profit' => 'Net profit', 'margin_pct' => 'Margin %'] as $key => $label)
                     <tr><td>{{ $label }}</td><td class="{{ ($c['kpis'][$key] ?? 0) < 0 ? 'ops-neg' : '' }}">{{ $key === 'margin_pct' ? $c['kpis'][$key].'%' : ($key === 'orders' ? $c['kpis'][$key] : '৳'.number_format($c['kpis'][$key])) }}</td></tr>
                 @endforeach
+                @if (($c['gift_card_sales']['amount'] ?? 0) > 0)
+                    <tr><td>Gift cards sold ({{ $c['gift_card_sales']['count'] }})<br><small style="opacity:.6">Liability until redeemed, not revenue</small></td><td>৳{{ number_format($c['gift_card_sales']['amount']) }}</td></tr>
+                @endif
                 @if ($c['estimated_orders'] > 0)
                     <tr><td colspan="2" class="ops-warn" style="text-align:left">{{ $c['estimated_orders'] }} order(s) have no actual purchase amount yet (Purchase queue → Bought).</td></tr>
                 @endif

@@ -10,11 +10,13 @@ import { formatBdt, priceBdt } from "@/lib/pricing";
 import { cartLine } from "@/lib/shopping/cart";
 import type { BoughtTogether as Data } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";
+import { useT } from "@/i18n/client";
 
 /** Frequently bought together: a checklist with a live total and "Add all N to cart". */
 export function BoughtTogether({ data, canBuyAnchor }: { data: Data; canBuyAnchor: boolean }) {
   const { addToCart } = useStore();
   const toast = useToast();
+  const { t, bdt } = useT();
   const all = [data.product, ...data.items];
   const [on, setOn] = useState<Record<string, boolean>>(() => Object.fromEntries(all.map((p, i) => [p.id, i > 0 || canBuyAnchor])));
   const picked = all.filter((p) => on[p.id]);
@@ -22,7 +24,7 @@ export function BoughtTogether({ data, canBuyAnchor }: { data: Data; canBuyAncho
 
   function addAll() {
     for (const p of picked) addToCart(cartLine(p));
-    toast({ kind: "success", title: `Added ${picked.length} ${picked.length === 1 ? "item" : "items"} to your cart`, body: formatBdt(total) + " in total" });
+    toast({ kind: "success", title: t("fbt.added", { count: picked.length }), body: t("fbt.inTotal", { amount: bdt(total) }) });
   }
 
   return (
@@ -31,7 +33,7 @@ export function BoughtTogether({ data, canBuyAnchor }: { data: Data; canBuyAncho
         <span className="chip-icon">
           <Icon name="basket" size={18} />
         </span>
-        {data.source === "copurchase" ? "Frequently bought together" : "Goes well with"}
+        {data.source === "copurchase" ? t("fbt.title") : t("fbt.goesWell")}
       </h2>
       <ul className="mt-3 flex flex-col gap-2">
         {all.map((p, i) => {
@@ -57,16 +59,16 @@ export function BoughtTogether({ data, canBuyAnchor }: { data: Data; canBuyAncho
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 text-[13px] font-medium leading-snug text-ink">
-                    {i === 0 ? <b>This item: </b> : null}
+                    {i === 0 ? <b>{t("fbt.thisItem")}</b> : null}
                     {p.title}
                   </span>
                   {i > 0 && (
                     <Link href={`/p/${encodeURIComponent(p.id)}`} className="text-[11px] font-semibold text-accent hover:underline" onClick={(e) => e.stopPropagation()}>
-                      View
-                    </Link>
+{t("common.view")}
+</Link>
                   )}
                 </span>
-                <span className="shrink-0 text-sm font-bold tabular-nums">{formatBdt(priceBdt(p))}</span>
+                <span className="shrink-0 text-sm font-bold tabular-nums">{bdt(priceBdt(p))}</span>
               </label>
             </li>
           );
@@ -74,14 +76,13 @@ export function BoughtTogether({ data, canBuyAnchor }: { data: Data; canBuyAncho
       </ul>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-2">
-          Total for {picked.length}:{" "}
+          {t("fbt.totalFor", { count: picked.length })}{" "}
           <span key={total} className="sh-bump text-lg font-extrabold tabular-nums text-ink">
-            {formatBdt(total)}
+            {bdt(total)}
           </span>
         </p>
         <button type="button" className="btn btn-primary min-h-11" disabled={!picked.length} onClick={addAll}>
-          <Icon name="cart" size={18} /> Add {picked.length === all.length ? "all " : ""}
-          {picked.length} to cart
+          <Icon name="cart" size={18} /> {picked.length === all.length ? t("fbt.addAll", { count: picked.length }) : t("fbt.addN", { count: picked.length })}
         </button>
       </div>
     </section>

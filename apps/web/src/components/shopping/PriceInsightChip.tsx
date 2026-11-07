@@ -1,10 +1,14 @@
+"use client";
+
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 import { apiEnabled } from "@/lib/apiClient";
 import { demoInsight } from "@/lib/shopping/history";
 import type { Product } from "@/lib/types";
 
 /** Product-card chip: "Lowest price in 30 days" / "Price dropped ৳X this week" (API `priceInsight`, seeded in demo mode). */
 export function PriceInsightChip({ p }: { p: Product }) {
+  const { t, bdt } = useT();
   let insight = p.priceInsight;
   if (insight === undefined && !apiEnabled) {
     try {
@@ -23,7 +27,7 @@ export function PriceInsightChip({ p }: { p: Product }) {
       }
     >
       <Icon name={lowest ? "verified" : "tag"} size={11} stroke={2.4} />
-      {lowest ? "Lowest in 30 days" : `Dropped ৳${(insight.dropBdt ?? 0).toLocaleString("en-IN")} this week`}
+      {lowest ? t("insight.lowest") : t("insight.dropped", { amount: bdt(insight.dropBdt ?? 0) })}
     </span>
   );
 }

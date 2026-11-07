@@ -18,6 +18,11 @@ use Illuminate\Support\Collection;
  * Costs    = purchase INR (order_items.actual_paid_inr, else unit_inr × qty, flagged "estimated") × FX actually paid
  *            + allocated Oxylabs/API spend + gateway fees + Skydrop shipping cost + unboxing cost + refunds.
  * FX gain  = purchase INR × (FX used to price the order − FX actually paid).
+ *
+ * Order kinds: per-order rows are goods orders only. Skydrop Plus purchases are revenue with no purchase cost
+ * (plus_revenue / plus_profit, added to the revenue and profit totals when no store/category filter is set).
+ * Gift card sales are NOT revenue: the money is owed to the card holder until redeemed (gift_card_sales, shown
+ * as a liability; the goods order paid with the redeemed balance is the sale).
  */
 class ProfitService
 {
@@ -111,7 +116,7 @@ class ProfitService
         $category = $filters['category'] ?? null;
 
         $rows = collect();
-        Order::query()->with(['items', 'payments'])->where('status', '!=', 'cancelled')
+        Order::query()->goods()->with(['items', 'payments'])->where('status', '!=', 'cancelled')
             ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
             ->when($store, fn ($q) => $q->whereHas('items', fn ($i) => $i->where('market', $store)))
             ->orderBy('created_at')
@@ -144,18 +149,29 @@ class ProfitService
             $byDay[$d]['revenue'] = ($byDay[$d]['revenue'] ?? 0) + $r['revenue'];
             $byDay[$d]['profit'] = ($byDay[$d]['profit'] ?? 0) + $r['profit'];
         }
-        ksort($byDay);
 
         $sum = fn (string $k) => round((float) $rows->sum($k), 2);
-        $revenue = $sum('revenue');
-        $profit = $sum('profit');
+        $digital = $this->digitalSales($from, $to);
+        // Plus is not attributable to a store or category: only in the unfiltered totals.
+        $plus = ($store || $category) ? ['count' => 0, 'revenue' => 0.0, 'fees' => 0.0, 'refunds' => 0.0, 'profit' => 0.0, 'by_day' => []] : $digital['plus'];
+        foreach ($plus['by_day'] as $d => $v) {
+            $byDay[$d]['revenue'] = ($byDay[$d]['revenue'] ?? 0) + $v['revenue'];
+            $byDay[$d]['profit'] = ($byDay[$d]['profit'] ?? 0) + $v['profit'];
+        }
+        ksort($byDay);
+        $goodsRevenue = $sum('revenue');
+        $revenue = round($goodsRevenue + $plus['revenue'], 2);
+        $profit = round($sum('profit') + $plus['profit'], 2);
 
         return [
             'kpis' => [
                 'orders' => $rows->count(), 'revenue' => $revenue, 'cogs' => $sum('cogs'), 'gross_profit' => round($revenue - $sum('cogs'), 2),
                 'profit' => $profit, 'margin_pct' => $revenue > 0 ? round($profit / $revenue * 100, 1) : 0.0,
                 'fx_gain' => $sum('fx_gain'), 'shipping_profit' => $sum('shipping_profit'), 'api_cost' => $sum('api_cost'),
-                'gateway_fees' => $sum('gateway_fees'), 'refunds' => $sum('refunds'), 'points' => $sum('points_bdt'),
+                'gateway_fees' => round($sum('gateway_fees') + $plus['fees'], 2), 'refunds' => round($sum('refunds') + $plus['refunds'], 2), 'points' => $sum('points_bdt'),
+                'goods_revenue' => $goodsRevenue, 'plus_orders' => $plus['count'], 'plus_revenue' => round($plus['revenue'], 2), 'plus_profit' => round($plus['profit'], 2),
+                // Liability, not revenue (informational).
+                'gift_card_orders' => $digital['gift_card']['count'], 'gift_card_sales' => round($digital['gift_card']['amount'], 2),
             ],
             'orders' => $rows,
             'by_store' => $byStore,
@@ -193,7 +209,48 @@ class ProfitService
         return $global > 0 ? $global : (float) ($order->fx_rate ?: config('retail.pricing.fx_inr_bdt'));
     }
 
-    /** Month's provider spend (USD → BDT) spread evenly over that month's non-cancelled orders. */
+    /**
+     * Paid Skydrop Plus and gift card purchases created in the range.
+     *
+     * @return array{plus: array{count: int, revenue: float, fees: float, refunds: float, profit: float, by_day: array<string, array{revenue: float, profit: float}>}, gift_card: array{count: int, amount: float}}
+     */
+    public function digitalSales(Carbon $from, Carbon $to): array
+    {
+        $out = ['plus' => ['count' => 0, 'revenue' => 0.0, 'fees' => 0.0, 'refunds' => 0.0, 'profit' => 0.0, 'by_day' => []], 'gift_card' => ['count' => 0, 'amount' => 0.0]];
+        Order::query()->with('payments')->whereIn('kind', ['membership', 'gift_card'])->where('status', '!=', 'cancelled')
+            ->whereIn('payment_status', ['paid', 'partial', 'refunded', 'refund_pending'])
+            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->get()->each(function (Order $o) use (&$out) {
+                if ($o->kind === 'gift_card') {
+                    $out['gift_card']['count']++;
+                    $out['gift_card']['amount'] += (float) $o->total_bdt;
+
+                    return;
+                }
+                $fees = 0.0;
+                $refunds = 0.0;
+                foreach ($o->payments as $p) {
+                    if (in_array($p->status, ['paid', 'refunded'], true)) {
+                        $fees += (float) $p->amount_bdt * $this->feePct($p->gateway, (string) ($p->kind ?? '')) / 100;
+                    }
+                    $refunds += (float) ($p->refunded_bdt ?? 0);
+                }
+                $revenue = (float) $o->total_bdt;
+                $profit = $revenue - $fees - $refunds;
+                $d = (string) $o->created_at?->toDateString();
+                $out['plus']['count']++;
+                $out['plus']['revenue'] += $revenue;
+                $out['plus']['fees'] += $fees;
+                $out['plus']['refunds'] += $refunds;
+                $out['plus']['profit'] += $profit;
+                $out['plus']['by_day'][$d]['revenue'] = ($out['plus']['by_day'][$d]['revenue'] ?? 0) + $revenue;
+                $out['plus']['by_day'][$d]['profit'] = ($out['plus']['by_day'][$d]['profit'] ?? 0) + $profit;
+            });
+
+        return $out;
+    }
+
+    /** Month's provider spend (USD → BDT) spread evenly over that month's non-cancelled goods orders. */
     public function apiCostPerOrder(\DateTimeInterface $at): float
     {
         $month = Carbon::instance($at)->format('Y-m');
@@ -201,7 +258,7 @@ class ProfitService
             $start = Carbon::parse($month.'-01')->startOfMonth();
             $end = $start->copy()->endOfMonth();
             $usd = (float) ApiLog::query()->whereBetween('created_at', [$start, $end])->sum('cost_usd');
-            $orders = Order::query()->where('status', '!=', 'cancelled')->whereBetween('created_at', [$start, $end])->count();
+            $orders = Order::query()->goods()->where('status', '!=', 'cancelled')->whereBetween('created_at', [$start, $end])->count();
             $this->apiPerOrder[$month] = $orders > 0 ? $usd * Knobs::float('finance.usd_bdt', 122) / $orders : 0.0;
         }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 import { notFound } from "next/navigation";
 import { byMarket, loadProduct, related, usingApi } from "@/lib/data";
 import { getProduct } from "@/lib/data";
@@ -18,13 +19,13 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const r = await loadProduct(decodeURIComponent(id));
-  if (r.kind === "fetching") return { title: "Loading product", robots: { index: false } };
-  if (r.kind !== "ready") return { title: "Product not found" };
+  const [r, { t, bdt }] = await Promise.all([loadProduct(decodeURIComponent(id)), getT()]);
+  if (r.kind === "fetching") return { title: t("pd.metaLoading"), robots: { index: false } };
+  if (r.kind !== "ready") return { title: t("pd.metaNotFound") };
   const p = r.product;
   const source = STORES[p.market].source;
   const title = p.title.length > 70 ? p.title.slice(0, 67).trimEnd() + "..." : p.title;
-  const description = `${p.brand ? p.brand + " · " : ""}${formatBdt(priceBdt(p))} delivered to Bangladesh. Bought for you from ${source}, India and delivered by Skydrop.`;
+  const description = `${p.brand ? p.brand + " · " : ""}${t("pd.metaDesc", { price: bdt(priceBdt(p)), source })}`;
   const path = `/p/${encodeURIComponent(p.id)}`;
   // og:image comes from ./opengraph-image.tsx (product card with BDT price); X/Twitter falls back to it.
   return {
@@ -40,11 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params }: Props) {
   const { id: raw } = await params;
   const id = decodeURIComponent(raw);
-  const r = await loadProduct(id);
+  const [r, { t }] = await Promise.all([loadProduct(id), getT()]);
 
   if (r.kind === "notfound") notFound();
   if (r.kind === "unavailable") {
-    return <ErrorState title="This product is taking a moment" body="We couldn't reach the store just now. Please try again in a few seconds." />;
+    return <ErrorState title={t("pd.unavailTitle")} body={t("pd.unavailBody")} />;
   }
   if (r.kind === "fetching") {
     // Not in our database yet: show the live-fetch screen with something to browse meanwhile.
@@ -54,7 +55,7 @@ export default async function ProductPage({ params }: Props) {
         jobId={r.jobId}
         market={r.market}
         productId={id}
-        browse={browse.length ? <Rail title="While you wait" note="Popular right now" items={browse} /> : null}
+        browse={browse.length ? <Rail title={t("pd.whileWait")} note={t("pd.popularNow")} items={browse} /> : null}
       />
     );
   }
@@ -94,11 +95,11 @@ export default async function ProductPage({ params }: Props) {
       )}
       <ProductDetail p={p} knownIds={knownIds} unavailableIds={unavailableIds}>
         <TrackView product={{ id: p.id, title: p.title, brand: p.brand, category: p.category, priceBdt: priceBdt(p) }} />
-        <SafeSection label="Similar products" quiet>
+        <SafeSection label={t("pd.similar")} quiet>
           <div className="mt-4">
             <Rail
-              title="More like this"
-              note={`Popular on ${store.source}`}
+              title={t("pd.moreLike")}
+              note={t("pd.popularOn", { source: store.source })}
               href={`/search?q=&store=${p.market}&category=${p.category}`}
               items={more}
             />

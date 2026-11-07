@@ -8,6 +8,7 @@ use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\Commerce\Payments\PaymentService;
 use App\Services\Commerce\Skydrop\SkydropClient;
+use App\Services\Fulfilment\TrackingRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -45,7 +46,7 @@ class SkydropWebhookController extends Controller
         }
 
         // Fulfilment module: keep every scan, rider lat/lng and proof of delivery for the tracking map.
-        rescue(fn () => app(\App\Services\Fulfilment\TrackingRecorder::class)->record($order, $event, $data), null, true);
+        rescue(fn () => app(TrackingRecorder::class)->record($order, $event, $data), null, true);
 
         $status = SkydropClient::mapEvent($event);
         if (! $status) {

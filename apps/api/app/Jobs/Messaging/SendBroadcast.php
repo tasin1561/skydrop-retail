@@ -5,6 +5,7 @@ namespace App\Jobs\Messaging;
 use App\Models\User;
 use App\Services\Messaging\BroadcastAudience;
 use App\Services\Messaging\Messenger;
+use App\Support\Limits;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -33,7 +34,7 @@ class SendBroadcast implements ShouldQueue
     public function handle(Messenger $messenger): void
     {
         if ($this->userIds === null) {
-            $left = max(1, \App\Support\Limits::int('messaging.broadcast_max_recipients')); // System → Limits
+            $left = max(1, Limits::int('messaging.broadcast_max_recipients')); // System → Limits
             BroadcastAudience::query($this->segment)->select('id')->chunkById(200, function ($users) use (&$left) {
                 $ids = array_slice($users->pluck('id')->all(), 0, $left);
                 $left -= count($ids);

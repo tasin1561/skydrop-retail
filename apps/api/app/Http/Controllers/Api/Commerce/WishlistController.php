@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Commerce;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\WishlistItem;
+use App\Support\Limits;
 use App\Support\ProductJson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class WishlistController extends Controller
     {
         $data = $request->validate(['productId' => ['required', 'string', 'max:40', 'exists:products,id']]);
         $uid = $request->user()->id;
-        $max = \App\Support\Limits::int('accounts.max_wishlist'); // System → Limits
+        $max = Limits::int('accounts.max_wishlist'); // System → Limits
         if (! WishlistItem::query()->where('user_id', $uid)->where('product_id', $data['productId'])->exists()
             && WishlistItem::query()->where('user_id', $uid)->count() >= $max) {
             $msg = "Your wishlist is full ({$max} items). Remove something to add this.";

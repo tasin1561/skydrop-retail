@@ -20,7 +20,7 @@ class OrdersByStatusChart extends ChartWidget
 
     protected function getData(): array
     {
-        $counts = Order::query()->where('created_at', '>=', now()->subDays(90))
+        $counts = Order::query()->goods()->where('created_at', '>=', now()->subDays(90))
             ->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
         $statuses = array_values(array_filter(Order::STATUSES, fn ($s) => ($counts[$s] ?? 0) > 0)) ?: Order::STATUSES;
 

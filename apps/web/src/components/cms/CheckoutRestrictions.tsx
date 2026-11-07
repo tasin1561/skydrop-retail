@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import "./cms.css";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -17,6 +18,7 @@ type Hit = Restriction & { productId: string; title: string };
  */
 export function CheckoutRestrictions({ items }: { items: CartItem[] }) {
   const on = useFeature("restrictions");
+  const { t } = useT();
   const key = items.map((i) => `${i.productId}:${i.qty}`).join(",");
   const local = useMemo(
     () => (apiEnabled ? [] : items.flatMap((i) => {
@@ -60,7 +62,7 @@ export function CheckoutRestrictions({ items }: { items: CartItem[] }) {
     >
       <p className="flex items-center gap-2 font-extrabold">
         <Icon name={blocked.length ? "x" : "info"} size={17} className={blocked.length ? "text-bad" : "text-warn"} />
-        {blocked.length ? `${blocked.length === 1 ? "1 item" : `${blocked.length} items`} can't ship to Bangladesh` : "Import notes for your order"}
+        {blocked.length ? t("restrict.blocked", { count: blocked.length }) : t("restrict.notes")}
       </p>
       <ul className="mt-2 flex flex-col gap-1.5">
         {hits.map((h) => (
@@ -69,9 +71,9 @@ export function CheckoutRestrictions({ items }: { items: CartItem[] }) {
           </li>
         ))}
       </ul>
-      {blocked.length > 0 && <p className="mt-2 text-xs font-semibold text-bad">Remove them from your cart to place the order.</p>}
+      {blocked.length > 0 && <p className="mt-2 text-xs font-semibold text-bad">{t("restrict.remove")}</p>}
       <Link href="/legal/shipping#restricted" className="mt-1 inline-flex min-h-11 items-center gap-1 text-xs font-bold text-accent">
-        What we can and can&apos;t ship <Icon name="right" size={14} />
+        {t("restrict.whatWeShip")} <Icon name="right" size={14} />
       </Link>
     </div>
   );

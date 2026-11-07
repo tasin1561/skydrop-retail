@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { STORES } from "@/lib/markets";
+import { storeText } from "@/lib/markets";
+import { getT } from "@/i18n/server";
 import type { StoreMode } from "@/lib/types";
 import { Icon } from "../Icon";
 
-export function CategoryChips({ mode }: { mode: StoreMode }) {
-  const cats = STORES[mode].categories;
+export async function CategoryChips({ mode }: { mode: StoreMode }) {
+  const { t } = await getT();
+  const cats = storeText(mode, t).categories;
   return (
-    <nav aria-label="Categories" className="no-scrollbar mt-6 flex gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
+    <nav aria-label={t("cat.categories")} className="no-scrollbar mt-6 flex gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
       {cats.map((c, i) => (
         <Link
           key={c.slug}

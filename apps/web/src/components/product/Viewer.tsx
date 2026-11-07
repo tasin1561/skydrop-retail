@@ -7,6 +7,7 @@ import { ProductImage } from "@/components/ProductBits";
 import type { Media } from "./types";
 import { VideoPlayer } from "./VideoPlayer";
 import { sized } from "./media";
+import { useT } from "@/i18n/client";
 
 type P = { title: string; placeholder?: { hue: number; icon: string }; image: string | null };
 
@@ -31,6 +32,7 @@ export function Viewer({
   onIndex: (i: number) => void;
 }) {
   const [idx, setIdx] = useState(start);
+  const { t } = useT();
   const [closing, setClosing] = useState(false);
   const [zoom, setZoom] = useState<{ on: boolean; x: number; y: number }>({ on: false, x: 50, y: 50 });
   const railRef = useRef<HTMLDivElement>(null);
@@ -120,7 +122,7 @@ export function Viewer({
       data-store={market}
       role="dialog"
       aria-modal="true"
-      aria-label={`Photos and videos: ${p.title}`}
+      aria-label={t("view.aria", { title: p.title })}
     >
       <div className="pd-backdrop absolute inset-0 bg-[#09090c]/80 backdrop-blur-md" onClick={close} />
       <div className="pd-panel sheet-enter absolute inset-x-0 bottom-0 top-0 flex flex-col bg-surface md:inset-6 md:rounded-[20px] md:shadow-[var(--shadow-2)]">
@@ -133,7 +135,7 @@ export function Viewer({
             ref={closeRef}
             type="button"
             onClick={close}
-            aria-label="Close viewer"
+            aria-label={t("view.close")}
             className="grid h-11 w-11 place-items-center rounded-full bg-surface-2 text-ink transition hover:bg-[var(--accent-soft)] hover:text-accent active:scale-95"
           >
             <Icon name="x" size={20} />
@@ -152,12 +154,12 @@ export function Viewer({
               </div>
             )}
             {media.map((m, i) => (
-              <div key={i} className="grid h-full w-full shrink-0 place-items-center overflow-hidden p-3 md:p-6" aria-roledescription="slide" aria-label={`${i + 1} of ${count}`}>
+              <div key={i} className="grid h-full w-full shrink-0 place-items-center overflow-hidden p-3 md:p-6" aria-roledescription="slide" aria-label={t("view.slide", { n: i + 1, count })}>
                 {m.kind === "image" ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={m.src}
-                    alt={`${p.title}, image ${i + 1}`}
+                    alt={t("view.imageAlt", { title: p.title, n: i + 1 })}
                     loading={Math.abs(i - start) <= 1 ? "eager" : "lazy"}
                     decoding="async"
                     draggable={false}
@@ -189,7 +191,7 @@ export function Viewer({
                 type="button"
                 onClick={() => go(idx - 1)}
                 disabled={idx === 0}
-                aria-label="Previous"
+                aria-label={t("common.previous")}
                 className="absolute left-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-2)] transition hover:scale-105 hover:text-accent active:scale-95 disabled:opacity-0 md:grid"
               >
                 <Icon name="left" size={22} />
@@ -198,7 +200,7 @@ export function Viewer({
                 type="button"
                 onClick={() => go(idx + 1)}
                 disabled={idx === count - 1}
-                aria-label="Next"
+                aria-label={t("common.next")}
                 className="absolute right-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-2)] transition hover:scale-105 hover:text-accent active:scale-95 disabled:opacity-0 md:grid"
               >
                 <Icon name="right" size={22} />
@@ -209,7 +211,7 @@ export function Viewer({
 
         <div className={"flex items-center justify-center gap-2 px-3 pt-2 " + (count > 1 ? "pb-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]")}>
           <p className="hidden text-xs text-ink-3 sm:block">
-            {current?.kind === "video" ? "Seller video" : zoom.on ? "Tap again to zoom out" : "Tap image to zoom"} · from {source}
+            {current?.kind === "video" ? t("view.sellerVideo") : zoom.on ? t("view.zoomOut") : t("view.zoomIn")} · {t("view.from", { source })}
           </p>
         </div>
         {count > 1 && (
@@ -221,7 +223,7 @@ export function Viewer({
                   key={i}
                   type="button"
                   onClick={() => go(i)}
-                  aria-label={`Show ${m.kind === "video" ? "video" : "image"} ${i + 1}`}
+                  aria-label={m.kind === "video" ? t("view.showVideo", { n: i + 1 }) : t("view.showImage", { n: i + 1 })}
                   aria-current={i === idx}
                   className={
                     "relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white transition duration-300 active:scale-95 " +

@@ -49,7 +49,12 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'min:2', 'max:80'],
             'email' => ['sometimes', 'nullable', 'email', 'max:190', Rule::unique('users', 'email')->ignore($user->id)],
+            'locale' => ['sometimes', 'in:en,bn'], // storefront language; picks the en/bn SMS/email templates
         ]);
+        if (isset($data['locale'])) {
+            $user->forceFill(['locale' => $data['locale']]);
+            unset($data['locale']);
+        }
         if (array_key_exists('email', $data) && $data['email'] !== $user->email) {
             $user->email_verified_at = null;
         }

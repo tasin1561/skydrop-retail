@@ -97,7 +97,7 @@ class MoneyController extends Controller
         ]);
         $plan = $plus->plan($data['plan']);
         $r = app(DigitalOrders::class)->create($request->user(), 'membership', (float) $plan->price_bdt, $data['payment'],
-            ['plan_id' => $plan->id], $data['returnUrl'] ?? rtrim((string) config('retail.web_url'), '/').'/plus/success');
+            ['plan_id' => $plan->id, 'plan_slug' => $plan->slug, 'plan_name' => $plan->name], $data['returnUrl'] ?? rtrim((string) config('retail.web_url'), '/').'/plus/success');
 
         return response()->json(['order' => ['id' => $r['order']->id, 'total' => (int) $r['order']->total_bdt], 'plan' => $plan->toApi(), 'payment' => $r['payment']], 201);
     }

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Icon } from "@/components/Icon";
 import type { Maintenance } from "@/lib/features";
+import { useT } from "@/i18n/client";
 
 /**
  * Storefront maintenance (Admin → System → Settings → GET /features `maintenance`): replaces the whole page with a
@@ -16,6 +17,7 @@ export function MaintenanceGate({ maintenance, children }: { maintenance: Mainte
 }
 
 export function MaintenanceScreen({ message }: { message: string }) {
+  const { t } = useT();
   return (
     <main
       role="status"
@@ -28,14 +30,14 @@ export function MaintenanceScreen({ message }: { message: string }) {
           <Icon name="tool" size={30} />
         </span>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-ink-3">Skydrop Retail</p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight">We&apos;ll be right back</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight">{t("maint.title")}</h1>
         <p className="mt-3 whitespace-pre-line text-base text-ink-2">{message}</p>
         <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <button type="button" className="btn btn-primary min-h-11" onClick={() => window.location.reload()}>
-            <Icon name="refresh" size={18} /> Try again
+            <Icon name="refresh" size={18} /> {t("maint.retry")}
           </button>
         </div>
-        <p className="mt-6 text-xs text-ink-3">Your cart and orders are safe. Nothing is lost while we work.</p>
+        <p className="mt-6 text-xs text-ink-3">{t("maint.safe")}</p>
       </div>
     </main>
   );

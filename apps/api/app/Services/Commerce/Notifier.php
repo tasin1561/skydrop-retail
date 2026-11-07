@@ -53,6 +53,11 @@ class Notifier
 
     public function paymentReceived(Order $order, float $amount): void
     {
+        if (! $order->isGoods()) {
+            $this->digitalPaymentReceived($order, $amount);
+
+            return;
+        }
         $due = $order->balanceBdt();
         $this->forOrder($order, 'payment_received', fn (string $loc) => [
             'amount' => $this->bdt($amount, $loc), 'due' => $due > 0 ? $this->bdt($due, $loc) : null, 'total' => $this->bdt($order->total_bdt, $loc),
@@ -64,6 +69,25 @@ class Notifier
             'cta' => ['label' => $this->t($loc, 'track'), 'url' => $this->orderUrl($order)],
             'extraLinks' => [['label' => $this->t($loc, 'invoice'), 'url' => $this->invoiceUrl($order)]],
         ]);
+    }
+
+    /**
+     * Gift card / Skydrop Plus purchase paid: no parcel, no rider, nothing to track. The card itself (code) and the
+     * membership are delivered by GiftCardService / MembershipService.
+     */
+    private function digitalPaymentReceived(Order $order, float $amount): void
+    {
+        $order->loadMissing('user');
+        if (! $order->user) {
+            return;
+        }
+        $giftCard = $order->kind === 'gift_card';
+        $path = $giftCard ? '/gift-cards' : '/plus';
+        $plan = (string) ($order->meta['plan_name'] ?? '');
+        $this->messenger->event($order->user, 'digital_payment_received', [
+            'order_id' => $order->id, 'amount' => $this->bdt($amount), 'total' => $this->bdt($order->total_bdt),
+            'gift_card' => $giftCard, 'plus' => ! $giftCard, 'plan' => $plan !== '' ? $plan : null, 'link' => Messenger::webUrl($path),
+        ], ['phone' => $order->address['phone'] ?? null, 'order_id' => $order->id, 'link' => $path, 'data' => ['orderId' => $order->id, 'kind' => $order->kind]]);
     }
 
     public function statusChanged(Order $order, string $status): void

@@ -1,4 +1,5 @@
 import type { MarketId, StoreMode } from "./types";
+import type { MsgKey, TFn } from "@/i18n/core";
 
 export type StoreInfo = {
   id: StoreMode;
@@ -80,6 +81,25 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     ],
   },
 };
+
+const CAT_KEYS: Record<string, MsgKey> = {
+  Electronics: "store.cat.electronics", Fashion: "store.cat.fashion", Beauty: "store.cat.beauty", Grocery: "store.cat.grocery",
+  Home: "store.cat.home", Shoes: "store.cat.shoes", "Drinks & Grocery": "store.cat.drinks", Gadgets: "store.cat.gadgets",
+  "Staples & Snacks": "store.cat.staples", Household: "store.cat.household", "Personal care": "store.cat.personal",
+};
+
+/** STORES[m] in the shopper's language. Store names (Mega Store, …) and source domains stay in English. */
+export function storeText(m: StoreMode, t: TFn): StoreInfo {
+  const s = STORES[m];
+  return {
+    ...s,
+    source: m === "all" ? t("store.all.source") : s.source,
+    tagline: t(`store.${m}.tagline` as MsgKey),
+    heroTitle: t(`store.${m}.heroTitle` as MsgKey),
+    heroText: t(`store.${m}.heroText` as MsgKey),
+    categories: s.categories.map((c) => ({ ...c, label: CAT_KEYS[c.label] ? t(CAT_KEYS[c.label]) : c.label })),
+  };
+}
 
 export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "bigbasket"];
 export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "bigbasket"];

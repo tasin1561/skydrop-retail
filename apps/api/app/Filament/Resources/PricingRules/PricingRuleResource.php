@@ -7,7 +7,6 @@ use App\Filament\Resources\PricingRules\Pages\EditPricingRule;
 use App\Filament\Resources\PricingRules\Pages\ListPricingRules;
 use App\Filament\Resources\PricingRules\Schemas\PricingRuleForm;
 use App\Filament\Resources\PricingRules\Tables\PricingRulesTable;
-use App\Filament\Support\Admin;
 use App\Models\PricingRule;
 use BackedEnum;
 use Filament\Resources\Resource;

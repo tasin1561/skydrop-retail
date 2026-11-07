@@ -82,7 +82,9 @@ class TrackingService
                 return;
             }
             $order = Order::query()->with(['items', 'user'])->find($orderId);
-            if (! $order || $order->status === 'cancelled' || ($order->attribution['consent'] ?? null) === 'essential') {
+            if (! $order || $order->status === 'cancelled' || ($order->attribution['consent'] ?? null) === 'essential'
+                || ($order->kind ?? 'goods') === 'gift_card' || ($event !== 'Purchase' && ! $order->isGoods())) { // gift cards: liability, not a sale
+
                 return;
             }
             $this->dispatch(EventBuilder::fromOrder($order, $event), $order->id);

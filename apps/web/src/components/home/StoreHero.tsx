@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { STORES } from "@/lib/markets";
+import { STORES, storeText } from "@/lib/markets";
+import { useT } from "@/i18n/client";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
@@ -12,11 +13,12 @@ type Scene = { mode: StoreMode; images: (string | null)[] };
 // Scene switcher hero: a thumbnail rail swaps the big visual, title and tint together.
 export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean }) {
   const { enabled } = useStore();
+  const { t } = useT();
   const list = scenes.filter((s) => s.mode === "all" || enabled[s.mode as MarketId]);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
   const scene = list[Math.min(idx, list.length - 1)] ?? scenes[0];
-  const info = STORES[scene.mode];
+  const info = storeText(scene.mode, t);
 
   useEffect(() => {
     if (fixed || paused || list.length < 2) return;
@@ -57,17 +59,17 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
         <div key={scene.mode} className="fade-in">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">
             <Icon name={info.icon} size={14} stroke={2} />
-            {scene.mode === "all" ? "Skydrop Retail" : `${info.name} · sourced from ${info.source}`}
+            {scene.mode === "all" ? "Skydrop Retail" : t("hero.sourced", { store: info.name, source: info.source })}
           </span>
           <h1 className="mt-3 text-[26px] font-extrabold leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">{info.heroTitle}</h1>
           <p className="mt-3 max-w-md text-sm text-white/85 sm:text-base">{info.heroText}</p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href={scene.mode === "all" ? "/search?q=&store=all" : `/store/${scene.mode}`} className="btn bg-white text-[color:var(--hero-a)] shadow-lg">
-              {scene.mode === "all" ? "Start shopping" : `Shop ${info.name}`} <Icon name="arrow" size={18} className="arrow" />
+              {scene.mode === "all" ? t("hero.start") : t("hero.shop", { store: info.name })} <Icon name="arrow" size={18} className="arrow" />
             </Link>
             <Link href="/how-it-works" className="btn border border-white/40 text-white hover:bg-white/10">
-              How it works
-            </Link>
+{t("hero.how")}
+</Link>
           </div>
           {/* phones: a small fanned stack in its own row, clipped tiles, so nothing overlaps the copy */}
           <div className="mt-6 flex items-center pl-1 md:hidden" aria-hidden>
@@ -86,10 +88,10 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
           </div>
           <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-white/85">
             <span className="inline-flex items-center gap-1">
-              <Icon name="truck" size={14} /> 7-12 day door delivery
+              <Icon name="truck" size={14} /> {t("hero.days")}
             </span>
             <span className="inline-flex items-center gap-1">
-              <Icon name="shield" size={14} /> Price verified at checkout
+              <Icon name="shield" size={14} /> {t("hero.verified")}
             </span>
           </div>
         </div>
@@ -120,7 +122,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
       </div>
 
       {!fixed && list.length > 1 && (
-        <div role="tablist" aria-label="Featured stores" className="relative flex gap-2 overflow-x-auto px-5 pb-5 no-scrollbar sm:px-8">
+        <div role="tablist" aria-label={t("hero.featured")} className="relative flex gap-2 overflow-x-auto px-5 pb-5 no-scrollbar sm:px-8">
           {list.map((s, i) => (
             <button
               key={s.mode}

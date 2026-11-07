@@ -7,8 +7,8 @@ import { useToast } from "@/components/Toast";
 import { api, apiEnabled } from "@/lib/apiClient";
 import { track } from "@/lib/track";
 import { pointsToEarn } from "@/lib/points";
-import { formatBdt } from "@/lib/pricing";
 import { useStore } from "@/state/store";
+import { useT } from "@/i18n/client";
 
 const WATCH_KEY = "skydrop-retail:watches";
 const RECENT_KEY = "skydrop-retail:recent";
@@ -26,6 +26,7 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
   const { user } = useStore();
   const router = useRouter();
   const toast = useToast();
+  const { t, bdt } = useT();
   const [watching, setWatching] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -58,11 +59,11 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
       setWatching(!watching);
       toast({
         kind: watching ? "info" : "success",
-        title: watching ? "Alert removed" : inStock ? "We'll tell you when the price drops" : "We'll tell you when it's back",
-        body: watching ? undefined : "You'll get an SMS as soon as it happens.",
+        title: watching ? t("px.alertRemoved") : inStock ? t("px.tellDrop") : t("px.tellBack"),
+        body: watching ? undefined : t("px.sms"),
       });
     } catch {
-      toast({ kind: "error", title: "Couldn't set the alert", body: "Please try again." });
+      toast({ kind: "error", title: t("px.alertFailed"), body: t("common.pleaseRetry") });
     } finally {
       setBusy(false);
     }
@@ -73,7 +74,7 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
     <div className="mt-3 flex flex-wrap items-center gap-2">
       {earn > 0 && (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] px-3 py-1.5 text-xs font-bold text-accent">
-          <Icon name="spark" size={14} stroke={2} /> Earn {earn} Skydrop Points
+          <Icon name="spark" size={14} stroke={2} /> {t("px.earn", { count: earn })}
         </span>
       )}
       <button
@@ -87,7 +88,7 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
         }
       >
         <Icon name={watching ? "check" : "clock"} size={14} stroke={2} />
-        {watching ? (inStock ? `Watching price (${formatBdt(priceBdt)})` : "Back-in-stock alert on") : inStock ? "Alert me if the price drops" : "Tell me when it's back"}
+        {watching ? (inStock ? t("px.watching", { price: bdt(priceBdt) }) : t("px.backOn")) : inStock ? t("px.alertDrop") : t("px.tellMe")}
       </button>
     </div>
   );

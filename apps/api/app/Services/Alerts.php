@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Catalog\RetailSettings;
 use App\Services\Messaging\Messenger;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +19,7 @@ class Alerts
             rescue(fn () => app(Messenger::class)->admin(ucfirst($level).' alert', $message), null, false);
         }
         $bot = config('retail.alerts.telegram_bot');
-        $chat = \App\Services\Catalog\RetailSettings::get('alerts.telegram_chat'); // Admin → Settings override, else ALERT_TELEGRAM_CHAT
+        $chat = RetailSettings::get('alerts.telegram_chat'); // Admin → Settings override, else ALERT_TELEGRAM_CHAT
         if (! $bot || ! $chat) {
             return;
         }

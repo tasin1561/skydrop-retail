@@ -1,11 +1,17 @@
+"use client";
+
 // Route loading skeletons (used by loading.tsx files). They fade in only after 150ms (.mo-skel), so a
 // fast navigation never flashes them; shimmers pause off-screen ([data-loop]). Each mirrors its page.
 
-function Shell({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
+
+function Shell({ label, children, className }: { label: MsgKey; children: React.ReactNode; className?: string }) {
+  const { t } = useT();
   return (
     <div className={"mo-skel " + (className ?? "")} aria-busy="true" data-loop="">
       <span className="sr-only" role="status">
-        {label}
+        {t(label)}
       </span>
       <div aria-hidden="true">{children}</div>
     </div>
@@ -58,7 +64,7 @@ function GridSk({ n = 10 }: { n?: number }) {
 
 export function HomeSkeleton() {
   return (
-    <Shell label="Loading the store" className="mx-auto max-w-7xl pt-3 sm:px-4">
+    <Shell label="skel.store" className="mx-auto max-w-7xl pt-3 sm:px-4">
       <div className="px-4 sm:px-0">
         <B c="h-[300px] rounded-[28px] sm:h-[360px]" />
       </div>
@@ -78,7 +84,7 @@ export function HomeSkeleton() {
 
 export function StoreSkeleton() {
   return (
-    <Shell label="Loading the store" className="mx-auto max-w-7xl pt-3 sm:px-4">
+    <Shell label="skel.store" className="mx-auto max-w-7xl pt-3 sm:px-4">
       <div className="px-4 sm:px-0">
         <B c="h-[260px] rounded-[28px] sm:h-[320px]" />
       </div>
@@ -95,7 +101,7 @@ export function StoreSkeleton() {
 
 export function SearchSkeleton() {
   return (
-    <Shell label="Searching Indian stores" className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">
+    <Shell label="skel.search" className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:pb-8">
       <div className="mb-4 space-y-2">
         <B c="h-3.5 w-40 rounded-md" />
         <B c="h-7 w-64 max-w-full rounded-lg" />
@@ -121,7 +127,7 @@ export function SearchSkeleton() {
 
 export function ProductSkeleton() {
   return (
-    <Shell label="Loading product" className="mx-auto max-w-7xl pb-8 sm:px-6 lg:px-8">
+    <Shell label="skel.product" className="mx-auto max-w-7xl pb-8 sm:px-6 lg:px-8">
       <div className="px-4 pb-2 pt-3 sm:px-0 sm:pt-5">
         <B c="h-4 w-56 max-w-full rounded-md" />
       </div>
@@ -154,7 +160,7 @@ export function ProductSkeleton() {
 
 export function AccountSkeleton() {
   return (
-    <Shell label="Loading your account" className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
+    <Shell label="skel.account" className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
       <div className="flex items-center gap-3">
         <B c="h-14 w-14 rounded-2xl" />
         <div className="flex-1 space-y-2">
@@ -178,7 +184,7 @@ export function AccountSkeleton() {
 
 export function OrdersSkeleton() {
   return (
-    <Shell label="Loading your orders" className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
+    <Shell label="skel.orders" className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-12">
       <div className="flex items-center gap-3">
         <B c="h-12 w-12 rounded-2xl" />
         <div className="flex-1 space-y-2">
@@ -198,7 +204,7 @@ export function OrdersSkeleton() {
 
 export function PageSkeleton() {
   return (
-    <Shell label="Loading" className="mx-auto max-w-6xl px-4 pb-24 pt-6">
+    <Shell label="skel.loading" className="mx-auto max-w-6xl px-4 pb-24 pt-6">
       <B c="h-8 w-48 rounded-xl" />
       <B c="mt-3 h-4 w-72 max-w-full rounded-md" />
       <div className="mt-6 grid gap-4 md:grid-cols-[1fr_340px]">

@@ -1,24 +1,25 @@
+import { translate, type MsgKey, type TFn } from "@/i18n/core";
 import type { Offer, OfferType, Product } from "@/lib/types";
 
-export const OFFER_META: Record<OfferType, { icon: string; label: string }> = {
-  coupon: { icon: "tag", label: "Coupon" },
-  deal: { icon: "bolt", label: "Deal" },
-  lightning: { icon: "bolt", label: "Lightning deal" },
-  bank: { icon: "card", label: "Bank offer" },
-  cashback: { icon: "wallet", label: "Cashback" },
-  emi: { icon: "clock", label: "No Cost EMI" },
-  partner: { icon: "verified", label: "Partner offer" },
-  combo: { icon: "package", label: "Combo" },
-  special_price: { icon: "spark", label: "Special price" },
-  subscribe: { icon: "refresh", label: "Subscribe & save" },
-  exchange: { icon: "refresh", label: "Exchange" },
-  other: { icon: "info", label: "Offer" },
+export const OFFER_META: Record<OfferType, { icon: string; label: MsgKey }> = {
+  coupon: { icon: "tag", label: "offer.coupon" },
+  deal: { icon: "bolt", label: "offer.deal" },
+  lightning: { icon: "bolt", label: "offer.lightning" },
+  bank: { icon: "card", label: "offer.bank" },
+  cashback: { icon: "wallet", label: "offer.cashback" },
+  emi: { icon: "clock", label: "offer.emi" },
+  partner: { icon: "verified", label: "offer.partner" },
+  combo: { icon: "package", label: "offer.combo" },
+  special_price: { icon: "spark", label: "offer.special" },
+  subscribe: { icon: "refresh", label: "offer.subscribe" },
+  exchange: { icon: "refresh", label: "offer.exchange" },
+  other: { icon: "info", label: "offer.other" },
 };
 
 /** The single most important deal signal for a product card, if any. */
-export function headlineDeal(p: Product): { label: string; endsAt?: string } | null {
+export function headlineDeal(p: Product, t: TFn = (k) => translate("en", k)): { label: string; endsAt?: string } | null {
   const live = (p.offers ?? []).find((o) => (o.type === "lightning" || o.type === "deal") && (!o.endsAt || Date.parse(o.endsAt) > Date.now()));
-  if (live) return { label: live.type === "lightning" ? "Lightning deal" : live.title || "Limited time deal", endsAt: live.endsAt ?? p.dealEndsAt ?? undefined };
+  if (live) return { label: live.type === "lightning" ? t("offer.lightning") : live.title || t("offer.limited"), endsAt: live.endsAt ?? p.dealEndsAt ?? undefined };
   if (p.dealBadge) return { label: p.dealBadge, endsAt: p.dealEndsAt ?? undefined };
   return null;
 }

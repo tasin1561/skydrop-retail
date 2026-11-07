@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Support\Admin;
+use App\Filament\Concerns\HasPagePermission;
 use App\Services\Commerce\Sms\SmsManager;
 use App\Services\Messaging\MessagingSettings as Store;
 use BackedEnum;
@@ -24,6 +24,8 @@ use UnitEnum;
 /** Messaging runtime settings (settings table keys "messaging.*", falling back to config/messaging.php / .env). */
 class MessagingSettings extends Page
 {
+    use HasPagePermission;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAdjustmentsHorizontal;
 
     protected static string|UnitEnum|null $navigationGroup = 'Messaging';
@@ -46,10 +48,8 @@ class MessagingSettings extends Page
     /** @var array<string, mixed> */
     public ?array $data = [];
 
-    public static function canAccess(): bool
-    {
-        return Admin::can('page.messaging-settings') && Admin::can('settings.manage'); // RBAC
-    }
+    /** RBAC: page.{slug} (HasPagePermission) plus these keys. */
+    protected static array $requiredPermissions = ['settings.manage'];
 
     public function mount(): void
     {

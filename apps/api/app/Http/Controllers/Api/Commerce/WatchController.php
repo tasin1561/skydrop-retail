@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductWatch;
 use App\Services\PricingService;
+use App\Support\Limits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,7 +28,7 @@ class WatchController extends Controller
             'targetBdt' => ['nullable', 'integer', 'min:1'],
         ]);
         $p = Product::query()->findOrFail($data['productId']);
-        $max = \App\Support\Limits::int('accounts.max_price_alerts'); // System → Limits
+        $max = Limits::int('accounts.max_price_alerts'); // System → Limits
         $active = ProductWatch::query()->where('user_id', $request->user()->id)->where('active', true);
         if (! (clone $active)->where('product_id', $p->id)->where('type', $data['type'])->exists() && $active->count() >= $max) {
             $msg = "You can have up to {$max} active alerts. Remove one to add this.";

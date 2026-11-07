@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\SupportRequest;
 use App\Services\Commerce\CommerceException;
+use App\Services\Money\MembershipService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -43,6 +44,8 @@ class SupportController extends Controller
         $req = SupportRequest::query()->create([
             'order_id' => $order->id, 'user_id' => $request->user()->id, 'type' => $data['type'],
             'message' => $data['message'], 'photos' => $data['photos'] ?? [], 'status' => 'open',
+            // Skydrop Plus benefit: priority support (admin lists sort these first).
+            'priority' => (bool) (rescue(fn () => app(MembershipService::class)->benefitsFor($request->user())['priority_support'] ?? false, false, false)),
         ]);
 
         return response()->json(['request' => $req->toApi()], 201);

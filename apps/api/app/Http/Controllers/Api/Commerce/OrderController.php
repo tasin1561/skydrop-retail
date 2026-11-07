@@ -9,6 +9,7 @@ use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OrderService;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\Commerce\Payments\PaymentService;
+use App\Services\Money\WalletPayments;
 use App\Services\Tracking\Attribution;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,7 +79,7 @@ class OrderController extends Controller
     public function cancel(Request $request, string $id, OrderWorkflow $workflow): JsonResponse
     {
         $data = $request->validate(['reason' => ['nullable', 'string', 'max:200'], 'refundTo' => ['nullable', Rule::in(['wallet', 'original'])]]);
-        \App\Services\Money\WalletPayments::prefer(strtoupper($id), $data['refundTo'] ?? null); // money: refund destination
+        WalletPayments::prefer(strtoupper($id), $data['refundTo'] ?? null); // money: refund destination
         $order = $workflow->cancel($this->own($request, $id), 'customer', $data['reason'] ?? null);
 
         return response()->json(['order' => $order->toApi()]);

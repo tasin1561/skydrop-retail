@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\Cms\RestrictionService;
 use App\Services\Commerce\CheckoutService;
+use App\Services\Commerce\OrderLimits;
 use App\Services\Commerce\Verify\PriceVerifier;
 use App\Services\Money\MoneyRules;
+use App\Support\Limits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,10 +19,10 @@ class CheckoutController extends Controller
     {
         return [
             // Hard ceilings only; the admin-editable limits (System → Limits) are checked by OrderLimits with clear messages.
-            'items' => ['required', 'array', 'min:1', 'max:'.\App\Support\Limits::REGISTRY['orders.max_items'][5]],
+            'items' => ['required', 'array', 'min:1', 'max:'.Limits::REGISTRY['orders.max_items'][5]],
             'items.*.productId' => ['required', 'string', 'max:40'],
             'items.*.variant' => ['nullable', 'string', 'max:255'],
-            'items.*.qty' => ['required', 'integer', 'min:1', 'max:'.\App\Support\Limits::REGISTRY['orders.max_qty'][5]],
+            'items.*.qty' => ['required', 'integer', 'min:1', 'max:'.Limits::REGISTRY['orders.max_qty'][5]],
             'items.*.unitBdt' => ['nullable', 'numeric', 'min:0'],
         ];
     }
@@ -48,7 +50,7 @@ class CheckoutController extends Controller
     public function verify(Request $request, PriceVerifier $verifier): JsonResponse
     {
         $data = $request->validate(self::itemRules());
-        app(\App\Services\Commerce\OrderLimits::class)->assertCart($data['items']); // each item is a live provider call
+        app(OrderLimits::class)->assertCart($data['items']); // each item is a live provider call
 
         $result = $verifier->verify($data['items']);
 

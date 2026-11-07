@@ -6,7 +6,6 @@ use App\Filament\Resources\FxRates\Pages\CreateFxRate;
 use App\Filament\Resources\FxRates\Pages\ListFxRates;
 use App\Filament\Resources\FxRates\Schemas\FxRateForm;
 use App\Filament\Resources\FxRates\Tables\FxRatesTable;
-use App\Filament\Support\Admin;
 use App\Models\FxRate;
 use BackedEnum;
 use Filament\Resources\Resource;

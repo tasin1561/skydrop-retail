@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasPagePermission;
 use App\Filament\Support\Admin;
 use App\Filament\Support\TrackingSettingsSection;
 use App\Models\Setting;
@@ -28,6 +29,8 @@ use UnitEnum;
  */
 class Settings extends Page
 {
+    use HasPagePermission;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
@@ -37,10 +40,8 @@ class Settings extends Page
     /** @var array<string, mixed> */
     public ?array $data = [];
 
-    public static function canAccess(): bool
-    {
-        return Admin::can('page.settings') && Admin::can('settings.manage'); // RBAC
-    }
+    /** RBAC: page.{slug} (HasPagePermission) plus these keys. */
+    protected static array $requiredPermissions = ['settings.manage'];
 
     public function mount(): void
     {

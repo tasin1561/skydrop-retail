@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import type { Review } from "@/lib/types";
 import { Icon } from "@/components/Icon";
 import { Stars } from "@/components/ProductBits";
+import { useT } from "@/i18n/client";
 
 // Star breakdown bars fill (scaleX) when they scroll into view.
 export function StarBars({ rows }: { rows: { rating: number; percentage: number }[] }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { t, digits } = useT();
   const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -28,9 +30,9 @@ export function StarBars({ rows }: { rows: { rating: number; percentage: number 
   return (
     <div ref={ref} data-in={inView} className="flex flex-col gap-1.5">
       {sorted.map((r, i) => (
-        <div key={r.rating} className="flex items-center gap-2.5 text-xs" aria-label={`${r.rating} stars: ${r.percentage}%`}>
+        <div key={r.rating} className="flex items-center gap-2.5 text-xs" aria-label={t("rv.starsAria", { rating: r.rating, pct: r.percentage })}>
           <span className="inline-flex w-8 shrink-0 items-center gap-0.5 font-semibold text-ink-2">
-            {r.rating}
+            {digits(r.rating)}
             <Icon name="star" size={11} fill="currentColor" stroke={1} className="text-amber-500" />
           </span>
           <span className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
@@ -39,7 +41,7 @@ export function StarBars({ rows }: { rows: { rating: number; percentage: number 
               style={{ ["--p" as string]: r.percentage / 100, ["--i" as string]: i }}
             />
           </span>
-          <span className="w-9 shrink-0 text-right font-semibold tabular-nums text-ink-2">{r.percentage}%</span>
+          <span className="w-9 shrink-0 text-right font-semibold tabular-nums text-ink-2">{digits(r.percentage)}%</span>
         </div>
       ))}
     </div>
@@ -48,6 +50,7 @@ export function StarBars({ rows }: { rows: { rating: number; percentage: number 
 
 export function ReviewList({ reviews, source }: { reviews: Review[]; source: string }) {
   const [all, setAll] = useState(false);
+  const { t } = useT();
   const shown = all ? reviews : reviews.slice(0, 4);
   return (
     <div className="flex flex-col gap-3">
@@ -56,7 +59,7 @@ export function ReviewList({ reviews, source }: { reviews: Review[]; source: str
       ))}
       {reviews.length > shown.length && (
         <button type="button" onClick={() => setAll(true)} className="btn btn-ghost self-center text-sm">
-          Show {reviews.length - shown.length} more reviews <Icon name="chevron" size={16} />
+          {t("rv.showMore", { count: reviews.length - shown.length })} <Icon name="chevron" size={16} />
         </button>
       )}
     </div>
@@ -65,6 +68,7 @@ export function ReviewList({ reviews, source }: { reviews: Review[]; source: str
 
 function ReviewCard({ r, source }: { r: Review; source: string }) {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
   const long = r.content.length > 260;
   const initials = r.author
     .split(/\s+/)
@@ -80,7 +84,7 @@ function ReviewCard({ r, source }: { r: Review; source: string }) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{r.author}</p>
           <p className="text-[11px] text-ink-3">
-            {date} · on {source}
+            {date} · {t("rv.onSource", { source })}
           </p>
         </div>
         <Stars rating={r.rating} size={12} />
@@ -89,7 +93,7 @@ function ReviewCard({ r, source }: { r: Review; source: string }) {
       <p className={"mt-1 whitespace-pre-line text-sm leading-relaxed text-ink-2 " + (long && !open ? "line-clamp-4" : "")}>{r.content}</p>
       {long && (
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-1 min-h-[44px] text-xs font-bold text-accent">
-          {open ? "Show less" : "Read more"}
+          {open ? t("rev.less") : t("rev.more")}
         </button>
       )}
     </article>

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Support\Admin;
+use App\Filament\Concerns\HasPagePermission;
 use App\Models\Category;
 use App\Models\Setting;
 use App\Services\Growth\GrowthSettings as Growth;
@@ -26,6 +26,8 @@ use UnitEnum;
  */
 class GrowthSettings extends Page
 {
+    use HasPagePermission;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAdjustmentsHorizontal;
 
     protected static string|UnitEnum|null $navigationGroup = 'Growth';
@@ -36,11 +38,6 @@ class GrowthSettings extends Page
 
     /** @var array<string, mixed> */
     public ?array $data = [];
-
-    public static function canAccess(): bool
-    {
-        return Admin::can('page.growth-settings'); // RBAC
-    }
 
     /** @return array<string, string> category slug => label */
     public static function categories(): array

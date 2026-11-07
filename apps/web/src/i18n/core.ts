@@ -1,0 +1,141 @@
+// Shared i18n core: no React, no Next. The mobile app gets a copy (apps/mobile/scripts/sync-i18n.mjs).
+import { en, type MsgKey, type Messages } from "./en";
+import { bn } from "./bn";
+
+export type Lang = "en" | "bn";
+export type { MsgKey, Messages };
+export type Vars = Record<string, string | number | null | undefined>;
+
+export const LANGS: Lang[] = ["en", "bn"];
+export const DEFAULT_LANG: Lang = "en";
+/** Web: cookie read on the server (no URL prefix). */
+export const LANG_COOKIE = "sr-lang";
+
+/**
+ * The single digit switch: in Bangla mode, prices and numbers use Bangla digits (৳১,২৫০).
+ * Set to false to keep Latin digits everywhere (words still translate).
+ */
+export const BANGLA_DIGITS = true;
+
+export const DICTS: Record<Lang, Messages> = { en, bn };
+
+/** True when the dictionary has this key (for keys built from API values, e.g. statuses). */
+export function hasKey(k: string): k is MsgKey {
+  return k in en;
+}
+
+export function isLang(x: unknown): x is Lang {
+  return x === "en" || x === "bn";
+}
+
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+
+/** Swap 0-9 for Bangla digits in Bangla mode (when BANGLA_DIGITS is on). */
+export function localDigits(s: string, lang: Lang): string {
+  return lang === "bn" && BANGLA_DIGITS ? s.replace(/[0-9]/g, (d) => BN_DIGITS[+d]) : s;
+}
+
+/** Intl locale for dates and relative times. */
+export function intlLocale(lang: Lang): string {
+  return lang === "bn" ? (BANGLA_DIGITS ? "bn-BD" : "bn-BD-u-nu-latn") : "en-GB";
+}
+
+/** 1,25,000 style grouping (South Asian), digits localised. */
+export function fmtNum(n: number, lang: Lang, opts?: Intl.NumberFormatOptions): string {
+  return localDigits(n.toLocaleString("en-IN", opts), lang);
+}
+
+export function fmtBdt(n: number, lang: Lang): string {
+  return "৳" + fmtNum(Math.round(n), lang);
+}
+
+export function fmtInr(n: number, lang: Lang): string {
+  return "₹" + fmtNum(Math.round(n), lang);
+}
+
+type DateIn = string | number | Date;
+const toDate = (d: DateIn) => (d instanceof Date ? d : new Date(d));
+
+export function fmtDate(d: DateIn, lang: Lang, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" }): string {
+  const x = toDate(d);
+  return isNaN(x.getTime()) ? "" : x.toLocaleDateString(intlLocale(lang), opts);
+}
+
+export function fmtDateTime(d: DateIn, lang: Lang, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }): string {
+  const x = toDate(d);
+  return isNaN(x.getTime()) ? "" : x.toLocaleString(intlLocale(lang), opts);
+}
+
+export function fmtTime(d: DateIn, lang: Lang, opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" }): string {
+  const x = toDate(d);
+  return isNaN(x.getTime()) ? "" : x.toLocaleTimeString(intlLocale(lang), opts);
+}
+
+/** "3 minutes ago", "yesterday", "২ দিন আগে" (Intl.RelativeTimeFormat). */
+export function fmtRelative(d: DateIn, lang: Lang, now = Date.now()): string {
+  const x = toDate(d).getTime();
+  if (isNaN(x)) return "";
+  const sec = Math.round((x - now) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(intlLocale(lang), { numeric: "auto" });
+  const abs = Math.abs(sec);
+  if (abs < 60) return rtf.format(0, "second");
+  if (abs < 3600) return rtf.format(Math.round(sec / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(sec / 3600), "hour");
+  if (abs < 7 * 86400) return rtf.format(Math.round(sec / 86400), "day");
+  return fmtDate(x, lang);
+}
+
+/**
+ * Look up and fill a message. `{name}` placeholders are replaced from vars (numbers get
+ * localised digits, no grouping: use fmtNum for grouped figures). A message may hold plural
+ * forms as "one|other"; the form is picked from vars.count.
+ */
+export function translate(lang: Lang, key: MsgKey, vars?: Vars): string {
+  let s: string = DICTS[lang][key] ?? en[key] ?? key;
+  if (s.includes("|") && vars && typeof vars.count === "number") {
+    const forms = s.split("|");
+    s = (vars.count === 1 ? forms[0] : forms[forms.length - 1]) ?? s;
+  }
+  if (!vars) return s;
+  return s.replace(/\{(\w+)\}/g, (m, k: string) => {
+    const v = vars[k];
+    if (v === undefined) return m; // left for rich() to fill
+    if (v === null) return "";
+    return typeof v === "number" ? localDigits(String(v), lang) : v;
+  });
+}
+
+export type TFn = (key: MsgKey, vars?: Vars) => string;
+
+/** Everything a screen needs to speak the shopper's language. */
+export type Translator = {
+  lang: Lang;
+  t: TFn;
+  /** Price in taka: ৳1,250 or ৳১,২৫০. */
+  bdt: (n: number) => string;
+  inr: (n: number) => string;
+  num: (n: number, opts?: Intl.NumberFormatOptions) => string;
+  /** Localise the digits in an already formatted string ("4.5", "#1024"). */
+  digits: (s: string | number) => string;
+  date: (d: DateIn, opts?: Intl.DateTimeFormatOptions) => string;
+  dateTime: (d: DateIn, opts?: Intl.DateTimeFormatOptions) => string;
+  time: (d: DateIn, opts?: Intl.DateTimeFormatOptions) => string;
+  rel: (d: DateIn) => string;
+};
+
+const cache: Partial<Record<Lang, Translator>> = {};
+
+export function makeT(lang: Lang): Translator {
+  return (cache[lang] ??= {
+    lang,
+    t: (key, vars) => translate(lang, key, vars),
+    bdt: (n) => fmtBdt(n, lang),
+    inr: (n) => fmtInr(n, lang),
+    num: (n, opts) => fmtNum(n, lang, opts),
+    digits: (s) => localDigits(String(s), lang),
+    date: (d, opts) => fmtDate(d, lang, opts),
+    dateTime: (d, opts) => fmtDateTime(d, lang, opts),
+    time: (d, opts) => fmtTime(d, lang, opts),
+    rel: (d) => fmtRelative(d, lang),
+  });
+}

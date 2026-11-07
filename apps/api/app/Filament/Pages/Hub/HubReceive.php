@@ -8,6 +8,7 @@ use App\Models\Fulfilment\HubReceipt;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\Fulfilment\HubService;
+use App\Support\Limits;
 use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
@@ -59,7 +60,7 @@ class HubReceive extends Page
     public static function getNavigationBadge(): ?string
     {
         $n = OrderItem::query()->whereNull('hub_received_at')->whereNull('cancelled_at')
-            ->whereIn('order_id', Order::query()->select('id')->where('status', 'purchased'))->count();
+            ->whereIn('order_id', Order::query()->goods()->select('id')->where('status', 'purchased'))->count();
 
         return $n ? (string) $n : null;
     }
@@ -91,14 +92,14 @@ class HubReceive extends Page
                     ->colors(['ok' => 'success', 'damaged' => 'danger', 'wrong_item' => 'warning'])
                     ->icons(['ok' => Heroicon::OutlinedCheckCircle, 'damaged' => Heroicon::OutlinedExclamationTriangle, 'wrong_item' => Heroicon::OutlinedArrowsRightLeft]),
                 Textarea::make('notes')->rows(2)->maxLength(1000)->placeholder('Optional: what you saw, seal intact, etc.'),
-                FileUpload::make('photos')->label('Photos')->multiple()->image()->maxFiles(\App\Support\Limits::int('uploads.max_files'))->maxSize(\App\Support\Limits::int('uploads.image_mb') * 1024)
+                FileUpload::make('photos')->label('Photos')->multiple()->image()->maxFiles(Limits::int('uploads.max_files'))->maxSize(Limits::int('uploads.image_mb') * 1024)
                     ->disk('public')->directory('hub/'.now()->format('Y/m'))->visibility('public')
                     ->panelLayout('grid')->reorderable()->appendFiles()
                     ->extraInputAttributes(['capture' => 'environment'])
                     ->required(fn () => (bool) $this->selectedOrder()?->unboxing)
                     ->helperText(fn () => $this->selectedOrder()?->unboxing ? 'Paid unboxing: open the parcel and photograph the item from every side. The customer approves these photos.' : null),
                 FileUpload::make('video')->label('Short unboxing video (optional)')->disk('public')->directory('hub/video/'.now()->format('Y/m'))
-                    ->visibility('public')->acceptedFileTypes(['video/mp4', 'video/quicktime', 'video/webm'])->maxSize(\App\Support\Limits::int('uploads.video_mb') * 1024)
+                    ->visibility('public')->acceptedFileTypes(['video/mp4', 'video/quicktime', 'video/webm'])->maxSize(Limits::int('uploads.video_mb') * 1024)
                     ->visible(fn () => (bool) $this->selectedOrder()?->unboxing),
             ]);
     }

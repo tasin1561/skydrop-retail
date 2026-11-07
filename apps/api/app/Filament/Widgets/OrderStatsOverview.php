@@ -27,14 +27,14 @@ class OrderStatsOverview extends StatsOverviewWidget
         $tz = 'Asia/Dhaka';
         $today = now($tz)->startOfDay()->utc();
         $month = now($tz)->startOfMonth()->utc();
-        $live = Order::query()->where('status', '!=', 'cancelled');
+        $live = Order::query()->goods()->where('status', '!=', 'cancelled'); // gift cards / Plus are not order revenue
 
         $todayN = (clone $live)->where('created_at', '>=', $today)->count();
         $monthN = (clone $live)->where('created_at', '>=', $month)->count();
         $revenue = (float) (clone $live)->where('created_at', '>=', $month)->sum('total_bdt');
         $aov = $monthN ? $revenue / $monthN : 0;
-        $awaiting = Order::query()->whereIn('status', ['placed', 'verified'])->count();
-        $transit = Order::query()->whereIn('status', ['india_hub', 'in_transit', 'dhaka_hub', 'out_for_delivery'])->count();
+        $awaiting = Order::query()->goods()->whereIn('status', ['placed', 'verified'])->count();
+        $transit = Order::query()->goods()->whereIn('status', ['india_hub', 'in_transit', 'dhaka_hub', 'out_for_delivery'])->count();
 
         $daily = collect(range(13, 0))->map(fn ($d) => (clone $live)->whereBetween('created_at', [now($tz)->subDays($d)->startOfDay()->utc(), now($tz)->subDays($d)->endOfDay()->utc()])->count())->all();
 
@@ -43,7 +43,7 @@ class OrderStatsOverview extends StatsOverviewWidget
                 ->description(number_format($monthN).' this month')
                 ->chart($daily)->color('primary')->icon(Heroicon::OutlinedShoppingBag),
             Stat::make('Revenue this month', Admin::bdt($revenue))
-                ->description('Excludes cancelled orders')->icon(Heroicon::OutlinedBanknotes)->color('success'),
+                ->description('Goods orders, excludes cancelled')->icon(Heroicon::OutlinedBanknotes)->color('success'),
             Stat::make('Average order value', Admin::bdt(round($aov)))
                 ->description('This month')->icon(Heroicon::OutlinedCalculator),
             Stat::make('Awaiting purchase', number_format($awaiting))
@@ -52,7 +52,7 @@ class OrderStatsOverview extends StatsOverviewWidget
                 ->url(OrderResource::getUrl('index', ['tab' => 'action'])),
             Stat::make('In transit', number_format($transit))
                 ->description('Kolkata hub → delivery')->icon(Heroicon::OutlinedTruck)->color('info'),
-            Stat::make('Delivered this month', number_format(Order::query()->where('status', 'delivered')->where('updated_at', '>=', $month)->count()))
+            Stat::make('Delivered this month', number_format(Order::query()->goods()->where('status', 'delivered')->where('updated_at', '>=', $month)->count()))
                 ->icon(Heroicon::OutlinedCheckCircle)->color('success'),
         ];
     }

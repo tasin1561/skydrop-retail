@@ -9,6 +9,7 @@ import type { CatNode } from "@/lib/categories";
 import { Icon } from "../Icon";
 import { useCurrentMode } from "../StoreTheme";
 import { catHref, catLabel, useCategoryMenu, useIsBn } from "./useCategoryMenu";
+import { useT } from "@/i18n/client";
 
 /**
  * Mobile "Categories" drill-down: a bottom sheet whose levels slide in from the side, with a back button and
@@ -16,6 +17,7 @@ import { catHref, catLabel, useCategoryMenu, useIsBn } from "./useCategoryMenu";
  */
 export function CategorySheetButton() {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
   const btn = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => {
     setOpen(false);
@@ -26,7 +28,7 @@ export function CategorySheetButton() {
       <button
         ref={btn}
         type="button"
-        aria-label="Browse categories"
+        aria-label={t("cat.browse")}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
@@ -44,6 +46,7 @@ export function CategorySheetButton() {
 export function CategorySheet({ onClose }: { onClose: () => void }) {
   const mode = useCurrentMode();
   const bn = useIsBn();
+  const { t } = useT();
   const { tree, warm } = useCategoryMenu(mode);
   const path = usePathname();
   const [stack, setStack] = useState<string[]>([]); // node paths, root first
@@ -87,12 +90,12 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[90] md:hidden" role="dialog" aria-modal="true" aria-label="Categories">
-      <button type="button" aria-label="Close categories" tabIndex={-1} onClick={onClose} className="cm-backdrop absolute inset-0 bg-black/45" />
+    <div className="fixed inset-0 z-[90] md:hidden" role="dialog" aria-modal="true" aria-label={t("cat.categories")}>
+      <button type="button" aria-label={t("cat.close")} tabIndex={-1} onClick={onClose} className="cm-backdrop absolute inset-0 bg-black/45" />
       <div className="cm-sheet absolute inset-x-0 bottom-0 flex max-h-[92dvh] min-h-[60dvh] flex-col overflow-hidden rounded-t-3xl bg-surface pb-[env(safe-area-inset-bottom)] shadow-[var(--shadow-2)]">
         <div className="flex items-center gap-1 border-b border-line px-2 py-2">
           {trail.length ? (
-            <button type="button" onClick={() => popTo(trail.length - 1)} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full text-ink-2">
+            <button type="button" onClick={() => popTo(trail.length - 1)} aria-label={t("common.back")} className="grid h-11 w-11 place-items-center rounded-full text-ink-2">
               <Icon name="left" size={20} />
             </button>
           ) : (
@@ -100,15 +103,15 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
               <Icon name="grid" size={20} />
             </span>
           )}
-          <h2 className="min-w-0 flex-1 truncate text-base font-extrabold">{current ? catLabel(current, bn) : "Shop by category"}</h2>
-          <button ref={closeBtn} type="button" onClick={onClose} aria-label="Close" className="grid h-11 w-11 place-items-center rounded-full text-ink-2">
+          <h2 className="min-w-0 flex-1 truncate text-base font-extrabold">{current ? catLabel(current, bn) : t("cat.shopBy")}</h2>
+          <button ref={closeBtn} type="button" onClick={onClose} aria-label={t("common.close")} className="grid h-11 w-11 place-items-center rounded-full text-ink-2">
             <Icon name="x" size={20} />
           </button>
         </div>
 
-        <nav aria-label="Category path" className="no-scrollbar flex shrink-0 items-center gap-1 overflow-x-auto px-3 py-2 text-xs font-semibold">
+        <nav aria-label={t("cat.path")} className="no-scrollbar flex shrink-0 items-center gap-1 overflow-x-auto px-3 py-2 text-xs font-semibold">
           <button type="button" onClick={() => popTo(0)} className={"min-h-8 shrink-0 rounded-full px-3 " + (trail.length ? "bg-surface-2 text-ink-2" : "bg-[var(--accent-soft)] text-accent")}>
-            {mode === "all" ? "All stores" : STORES[mode].name}
+            {mode === "all" ? t("search.allStores") : STORES[mode].name}
           </button>
           {trail.map((n, i) => (
             <span key={n.path} className="flex shrink-0 items-center gap-1">
@@ -132,7 +135,7 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
                 <span className="chip-icon is-active">
                   <Icon name={current.icon} size={18} />
                 </span>
-                <span className="flex-1">Shop all {catLabel(current, bn)}</span>
+                <span className="flex-1">{t("cat.shopAll", { name: catLabel(current, bn) })}</span>
                 <Icon name="arrow" size={16} />
               </Link>
             </li>
@@ -167,9 +170,9 @@ function Name({ n, bn }: { n: CatNode; bn: boolean }) {
   return (
     <span className="min-w-0 flex-1">
       <span className="block truncate text-[15px] font-semibold">{catLabel(n, bn)}</span>
-      {!bn && n.nameBn && (
-        <span lang="bn" className="block truncate text-xs text-ink-3">
-          {n.nameBn}
+      {(bn ? n.name : n.nameBn) && (
+<span lang={bn ? "en" : "bn"} className="block truncate text-xs text-ink-3">
+          {bn ? n.name : n.nameBn}
         </span>
       )}
     </span>

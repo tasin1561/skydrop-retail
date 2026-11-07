@@ -19,7 +19,7 @@ class SendReviewRequests implements ShouldQueue
     public function handle(Notifier $notifier): void
     {
         $days = (int) MessagingSettings::get('reminders.review_after_days', 3);
-        Order::query()->with(['user', 'items'])->where('status', 'delivered')
+        Order::query()->goods()->with(['user', 'items'])->where('status', 'delivered')
             ->whereBetween('delivered_at', [now()->subDays($days + 7), now()->subDays($days)])
             ->limit(500)->get()
             ->each(function (Order $o) use ($notifier) {

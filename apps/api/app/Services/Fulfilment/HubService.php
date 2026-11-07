@@ -38,7 +38,7 @@ class HubService
         if ($code === '') {
             return collect();
         }
-        $orders = Order::query()->whereIn('status', self::RECEIVABLE)->select('id');
+        $orders = Order::query()->goods()->whereIn('status', self::RECEIVABLE)->select('id');
         $itemId = preg_match('/^(?:IT-?)?(\d{1,10})$/i', $code, $m) ? (int) $m[1] : null;
         $upper = strtoupper($code);
 

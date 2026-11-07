@@ -1,9 +1,9 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useLayoutEffect, useRef } from "react";
 import { reducedMotion } from "./flyToCart";
 
-const bdt = (n: number) => "৳" + Math.round(n).toLocaleString("en-IN");
 
 /**
  * Number that counts from its previous value to the new one (about 600ms, ease-out) and ticks at the end.
@@ -13,7 +13,8 @@ const bdt = (n: number) => "৳" + Math.round(n).toLocaleString("en-IN");
 export function CountUp({ value, className, format = "bdt" }: { value: number; className?: string; format?: "bdt" | "int" }) {
   const ref = useRef<HTMLSpanElement>(null);
   const prev = useRef(value);
-  const fmt = format === "bdt" ? bdt : (n: number) => Math.round(n).toLocaleString("en-IN");
+  const { bdt, num } = useT();
+  const fmt = format === "bdt" ? bdt : (n: number) => num(Math.round(n));
 
   useLayoutEffect(() => {
     const el = ref.current;

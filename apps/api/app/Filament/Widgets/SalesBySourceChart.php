@@ -19,7 +19,7 @@ class SalesBySourceChart extends ChartWidget
     public static function rows(int $limit = 8): array
     {
         $rows = [];
-        $q = Order::query()->where('status', '!=', 'cancelled')->where('created_at', '>=', now()->subDays(30))
+        $q = Order::query()->goods()->where('status', '!=', 'cancelled')->where('created_at', '>=', now()->subDays(30))
             ->select(['id', 'attribution', 'total_bdt']);
         foreach ($q->cursor() as $o) {
             $s = Attribution::source($o->attribution);

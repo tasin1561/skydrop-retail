@@ -8,7 +8,7 @@ use App\Services\Fraud\FraudService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/** Queued on order placed: full fraud score (with courier lookups). High risk → "Needs review". */
+/** Queued on goods order placed: full fraud score (with courier lookups). High risk → "Needs review". */
 class ScoreOrderFraud implements ShouldQueue
 {
     use Queueable;
@@ -23,7 +23,7 @@ class ScoreOrderFraud implements ShouldQueue
             return;
         }
         $order = Order::query()->with('user')->find($this->orderId);
-        if (! $order) {
+        if (! $order || ! $order->isGoods()) { // gift card / Plus purchases are not fraud-checked
             return;
         }
         $wasReview = (bool) $order->fraud_review;

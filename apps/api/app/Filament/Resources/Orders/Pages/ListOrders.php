@@ -17,10 +17,10 @@ class ListOrders extends ListRecords
 {
     protected static string $resource = OrderResource::class;
 
-    /** Board-style tabs: one per pipeline stage, with live counts. */
+    /** Board-style tabs: one per pipeline stage, with live counts (goods orders; the Kind filter shows gift card / Plus purchases). */
     public function getTabs(): array
     {
-        $counts = Order::query()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
+        $counts = Order::query()->goods()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
         $tabs = ['all' => Tab::make('All')->badge($counts->sum() ?: null)];
         $tabs['action'] = Tab::make('Needs action')->icon(Heroicon::OutlinedBolt)
             ->badge(($counts['placed'] ?? 0) + ($counts['verified'] ?? 0) + ($counts['purchased'] ?? 0) ?: null)->badgeColor('warning')

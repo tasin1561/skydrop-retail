@@ -12,6 +12,7 @@ use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\Notifier;
 use App\Services\Commerce\OrderService;
 use App\Services\Commerce\OrderWorkflow;
+use App\Services\Money\MembershipService;
 use App\Support\Features;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -69,9 +70,14 @@ class ReturnService
             $reason = 'already_requested';
         }
 
+        $order->loadMissing('user');
+        $free = $this->freeReturns($order->user);
+
         return [
             'eligible' => $reason === null, 'reason' => $reason, 'windowDays' => $days, 'windowEndsAt' => $endsAt?->toIso8601String(),
             'reasons' => $this->reasons(), 'resolutions' => array_keys(ReturnRequest::RESOLUTIONS), 'items' => $items,
+            // Return shipping: charged only for feeReasons, waived for Skydrop Plus members with free returns.
+            'returnFee' => ['amountBdt' => $free ? 0 : $this->shippingFee(), 'reasons' => array_values(array_intersect($this->feeReasons(), $this->reasons())), 'waived' => $free],
         ];
     }
 
@@ -128,11 +134,14 @@ class ReturnService
             throw CommerceException::field('photos', 'Add at least one photo of the problem.');
         }
 
+        $value = $this->valueOf($order, $lines);
+        $fee = min($value, $this->returnFee($user, $data['reason']));
         $r = ReturnRequest::query()->create([
             'order_id' => $order->id, 'user_id' => $user->id, 'stage' => 'delivered', 'items' => $lines, 'reason' => $data['reason'],
             'note' => $data['note'] ?? null, 'photos' => $photos, 'resolution' => $data['resolution'], 'status' => 'requested',
-            'refund_bdt' => $this->valueOf($order, $lines),
-            'timeline' => [self::entry('requested', 'Return requested: '.ReturnRequest::REASONS[$data['reason']], 'customer')],
+            'refund_bdt' => round($value - $fee, 2), 'return_fee_bdt' => $fee, 'priority' => $this->priority($user),
+            'timeline' => [self::entry('requested', 'Return requested: '.ReturnRequest::REASONS[$data['reason']]
+                .($fee > 0 ? ' (return shipping ৳'.number_format($fee).' deducted from the refund)' : ''), 'customer')],
         ]);
         StaffAlerts::send("Return requested on {$order->id}", ReturnRequest::REASONS[$data['reason']].' · wants '.ReturnRequest::RESOLUTIONS[$data['resolution']], null, 'warning');
 
@@ -146,11 +155,50 @@ class ReturnService
         $r = ReturnRequest::query()->create([
             'order_id' => $order->id, 'user_id' => $user->id, 'stage' => 'india', 'items' => $lines, 'reason' => $reason, 'note' => $note,
             'photos' => [], 'resolution' => $resolution, 'status' => 'requested', 'refund_bdt' => $this->valueOf($order, $lines),
+            'priority' => $this->priority($user), // India-stage cases never pay return shipping
             'timeline' => [self::entry('requested', 'Problem reported after the unboxing at the Kolkata hub', 'customer')],
         ]);
         StaffAlerts::send("Unboxing problem on {$order->id}", (ReturnRequest::REASONS[$reason] ?? $reason).($note ? ': '.$note : ''), null);
 
         return $r;
+    }
+
+    // ---- Skydrop Plus benefits (MembershipService::benefitsFor) ----
+
+    /** Return shipping fee (BDT) for a delivered-stage return: only for customer-choice reasons; 0 for free_returns members. */
+    public function returnFee(?User $user, string $reason): float
+    {
+        if (! in_array($reason, $this->feeReasons(), true) || $this->freeReturns($user)) {
+            return 0.0;
+        }
+
+        return $this->shippingFee();
+    }
+
+    public function shippingFee(): float
+    {
+        return max(0.0, round(FulfilmentSettings::float('returns.shipping_fee_bdt'), 2));
+    }
+
+    /** @return list<string> */
+    public function feeReasons(): array
+    {
+        return array_values((array) FulfilmentSettings::get('returns.fee_reasons', ['changed_mind', 'size_issue']));
+    }
+
+    public function freeReturns(?User $user): bool
+    {
+        return (bool) (self::benefits($user)['free_returns'] ?? false);
+    }
+
+    public function priority(?User $user): bool
+    {
+        return (bool) (self::benefits($user)['priority_support'] ?? false);
+    }
+
+    private static function benefits(?User $user): ?array
+    {
+        return $user ? rescue(fn () => app(MembershipService::class)->benefitsFor($user), null, false) : null;
     }
 
     /** Value of the returned lines (item price, BDT). */

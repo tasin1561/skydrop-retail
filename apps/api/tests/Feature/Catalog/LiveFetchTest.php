@@ -69,7 +69,7 @@ class LiveFetchTest extends TestCase
     public function test_product_and_search_degrade_instead_of_failing(): void
     {
         // A broken live layer (e.g. queue/provider exploding) must not 500 the product page or search.
-        $this->mock(\App\Services\Catalog\CatalogService::class, function ($m) {
+        $this->mock(CatalogService::class, function ($m) {
             $m->shouldReceive('product')->andThrow(new \RuntimeException('provider exploded'));
             $m->shouldReceive('search')->andThrow(new \RuntimeException('provider exploded'));
         });

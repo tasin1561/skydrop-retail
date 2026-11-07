@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { useEffect, useState } from "react";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -11,6 +12,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  */
 export function FlipCountdown({ to, label, onEnd }: { to: number; label: string; onEnd?: () => void }) {
   const [ms, setMs] = useState<number | null>(null);
+  const { t, digits } = useT();
   useEffect(() => {
     let ended = false;
     const tick = () => {
@@ -36,14 +38,14 @@ export function FlipCountdown({ to, label, onEnd }: { to: number; label: string;
   const m = Math.floor((total % 3.6e6) / 6e4);
   const s = Math.floor((total % 6e4) / 1000);
   const cells: [number, string][] = [
-    [h, "hrs"],
-    [m, "min"],
-    [s, "sec"],
+    [h, t("cd.hrs")],
+    [m, t("cd.min")],
+    [s, t("cd.sec")],
   ];
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-[11px] font-bold uppercase tracking-wider text-ink-2">{label}</span>
-      <div className="dd-digits" role="timer" aria-live="off" aria-label={ms === null ? label : `${label} ${h} hours ${m} minutes`}>
+      <div className="dd-digits" role="timer" aria-live="off" aria-label={ms === null ? label : t("cd.aria", { label, h, m })}>
         {cells.map(([v, unit], i) => (
           <span key={unit} className="contents">
             {i > 0 && (
@@ -54,7 +56,7 @@ export function FlipCountdown({ to, label, onEnd }: { to: number; label: string;
             <span className="dd-cell" aria-hidden>
               <span className="dd-flip">
                 <span key={ms === null ? "x" : v} className={ms === null ? "" : "in"}>
-                  {ms === null ? "--" : pad(v)}
+                  {ms === null ? "--" : digits(pad(v))}
                 </span>
               </span>
               <small>{unit}</small>

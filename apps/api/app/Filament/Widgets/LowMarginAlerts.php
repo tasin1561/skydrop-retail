@@ -52,7 +52,7 @@ class LowMarginAlerts extends TableWidget
     /** @return array<int, string> */
     public static function lowMarginIds(): array
     {
-        return Order::query()->with('items')->whereIn('status', ['placed', 'verified'])->limit(500)->get()
+        return Order::query()->goods()->with('items')->whereIn('status', ['placed', 'verified'])->limit(500)->get()
             ->filter(fn (Order $o) => $o->items->isNotEmpty() && self::margin($o)['pct'] < self::THRESHOLD)
             ->pluck('id')->all();
     }

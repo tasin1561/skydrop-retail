@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Concerns\HasWidgetPermission;
 use App\Filament\Support\Admin;
 use App\Models\Assistant\AssistantFeedback;
 use App\Models\Assistant\AssistantMessage;
@@ -14,6 +15,10 @@ use Throwable;
 /** AI assistant spend vs its monthly budget (hard stop), message volume and thumbs-up rate. */
 class AssistantUsage extends StatsOverviewWidget
 {
+    use HasWidgetPermission {
+        canView as permittedByRole;
+    }
+
     protected static bool $isLazy = true;
 
     protected static ?int $sort = 8;
@@ -25,7 +30,8 @@ class AssistantUsage extends StatsOverviewWidget
     public static function canView(): bool
     {
         try {
-            return AssistantSettings::enabled() && (method_exists(Admin::class, 'can') ? Admin::can('assistant.view') : Admin::canManage());
+            // Also a header widget on Assistant → Conversations, so it checks widget.assistant-usage itself (HasWidgetPermission).
+            return AssistantSettings::enabled() && static::permittedByRole() && Admin::can('assistant.view');
         } catch (Throwable) {
             return false;
         }

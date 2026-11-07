@@ -11,11 +11,15 @@ import { formatBdt } from "@/lib/pricing";
 import { placePreorder, preorderInfo, type HistoryInput } from "@/lib/shopping/client";
 import type { PreorderInfo } from "@/lib/shopping/types";
 import { useStore } from "@/state/store";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
+import type { MsgKey } from "@/i18n/core";
+import { bdName } from "@/lib/bd";
 
 const PAY = [
   { id: "bkash", label: "bKash" },
   { id: "nagad", label: "Nagad" },
-  { id: "card", label: "Card" },
+  { id: "card", label: "pay.card" },
 ] as const;
 
 /**
@@ -28,6 +32,7 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
   const { user, addresses } = useStore();
   const router = useRouter();
   const toast = useToast();
+  const { t, bdt, digits, lang } = useT();
   const [info, setInfo] = useState<PreorderInfo | null>(null);
   const [open, setOpen] = useState(false);
   const [qty, setQty] = useState(1);
@@ -55,7 +60,7 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
 
   async function submit() {
     if (!apiEnabled) {
-      toast({ kind: "info", title: "Demo store", body: "Pre-orders are taken once the live store is connected." });
+      toast({ kind: "info", title: t("po.demo"), body: t("po.demoBody") });
       return;
     }
     if (!user) {
@@ -63,7 +68,7 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
       return;
     }
     if (!address) {
-      toast({ kind: "info", title: "Add a delivery address first", body: "Then come back to pre-order." });
+      toast({ kind: "info", title: t("po.addAddress"), body: t("po.addAddressBody") });
       router.push("/account/addresses");
       return;
     }
@@ -79,7 +84,7 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
       if (r.payment.redirectUrl) window.location.href = r.payment.redirectUrl;
       else router.push(`/orders/${r.order.id}`);
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't place the pre-order", body: e instanceof ApiError ? e.message : "Please try again." });
+      toast({ kind: "error", title: t("po.failed"), body: e instanceof ApiError ? e.message : t("common.pleaseRetry") });
     } finally {
       setBusy(false);
     }
@@ -93,18 +98,18 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
         </span>
         <div className="min-w-0 flex-1">
           <h2 id="sh-po-h" className="font-extrabold tracking-tight">
-            {canPreorder ? "Pre-order it now" : "Waiting for a restock"}
+            {canPreorder ? t("po.now") : t("po.waitingRestock")}
           </h2>
           {waiting > 0 && (
             <p className="mt-0.5 text-xs text-ink-2">
-              <b className="text-ink">{waiting}</b> {waiting === 1 ? "shopper is" : "shoppers are"} waiting for this item
-              {info.watching ? ", including you" : ""}.
+              {rich(t("po.waiting", { count: waiting }), { count: <b className="text-ink">{digits(waiting)}</b> })}
+{info.watching ? t("po.includingYou") : ""}{lang === "bn" ? "।" : "."}
             </p>
           )}
           {canPreorder && (
             <p className="mt-1 text-sm text-ink-2">
-              Pay a {info.depositPct}% deposit of <b className="text-ink">{formatBdt(info.depositBdt!)}</b> now and the rest when it&apos;s back in stock
-              {info.etaDays ? ` (usually about ${info.etaDays} days)` : ""}. Cancel any time before we buy it for a full refund.
+              {rich(t("po.deposit", { pct: info.depositPct }), { amount: <b className="text-ink">{bdt(info.depositBdt!)}</b> })}
+{info.etaDays ? t("po.eta", { days: info.etaDays }) : ""}{t("po.cancel")}
             </p>
           )}
           {info.note && <p className="mt-1 text-xs text-ink-2">{info.note}</p>}
@@ -114,7 +119,7 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
       {canPreorder && !open && (
         <div className="px-4 pb-4">
           <button type="button" className="btn btn-primary min-h-11 w-full" onClick={() => setOpen(true)}>
-            Pre-order with {formatBdt(info.depositBdt!)} deposit
+            {t("po.with", { amount: bdt(info.depositBdt!) })}
           </button>
         </div>
       )}
@@ -122,21 +127,21 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
       {canPreorder && open && (
         <div className="rise border-t border-line bg-surface-2/60 p-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-semibold">Quantity</span>
+            <span className="text-sm font-semibold">{t("qty.label")}</span>
             <div className="flex items-center gap-1 rounded-full bg-surface p-1 shadow-[var(--shadow-1)]">
-              <button type="button" aria-label="Fewer" className="grid h-11 w-11 place-items-center rounded-full" onClick={() => setQty((q) => Math.max(1, q - 1))}>
+              <button type="button" aria-label={t("common.fewer")} className="grid h-11 w-11 place-items-center rounded-full" onClick={() => setQty((q) => Math.max(1, q - 1))}>
                 <Icon name="minus" size={16} />
               </button>
               <span className="w-6 text-center font-bold tabular-nums" aria-live="polite">
-                {qty}
-              </span>
-              <button type="button" aria-label="More" className="grid h-11 w-11 place-items-center rounded-full" onClick={() => setQty((q) => Math.min(10, q + 1))}>
+                {digits(qty)}
+</span>
+              <button type="button" aria-label={t("common.more")} className="grid h-11 w-11 place-items-center rounded-full" onClick={() => setQty((q) => Math.min(10, q + 1))}>
                 <Icon name="plus" size={16} />
               </button>
             </div>
           </div>
           <fieldset className="mt-3">
-            <legend className="text-sm font-semibold">Pay the deposit with</legend>
+            <legend className="text-sm font-semibold">{t("po.payWith")}</legend>
             <div className="mt-2 grid grid-cols-3 gap-2">
               {PAY.map((o) => (
                 <label
@@ -147,18 +152,18 @@ export function PreorderBox({ p, inStock }: { p: HistoryInput; inStock: boolean 
                   }
                 >
                   <input type="radio" name="sh-po-pay" className="sr-only" checked={pay === o.id} onChange={() => setPay(o.id)} />
-                  {o.label}
-                </label>
+                  {o.id === "card" ? t(o.label as MsgKey) : o.label}
+</label>
               ))}
             </div>
           </fieldset>
           {address && (
             <p className="mt-3 flex items-start gap-2 text-xs text-ink-2">
-              <Icon name="pin" size={14} className="mt-px shrink-0" /> Deliver to {address.name}, {address.area}, {address.district}
+              <Icon name="pin" size={14} className="mt-px shrink-0" /> {t("po.deliverTo", { name: address.name, area: address.area, district: bdName(address.district, lang) })}
             </p>
           )}
           <button type="button" className="btn btn-primary mt-4 min-h-11 w-full" disabled={busy} onClick={submit}>
-            {busy ? "Placing pre-order…" : `Pay ${formatBdt(deposit)} deposit`}
+            {busy ? t("po.placing") : t("po.pay", { amount: bdt(deposit) })}
           </button>
         </div>
       )}

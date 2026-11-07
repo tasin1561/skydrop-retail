@@ -14,6 +14,9 @@ import { groupSavingPreview, groups } from "@/lib/shopping/client";
 import type { Group } from "@/lib/shopping/types";
 import type { MarketId } from "@/lib/types";
 import { useStore } from "@/state/store";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
+import { hasKey, type MsgKey } from "@/i18n/core";
 
 const HOURS = [24, 48, 72] as const;
 
@@ -22,6 +25,7 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
   const { cart, user, addresses, ready } = useStore();
   const router = useRouter();
   const toast = useToast();
+  const { t, bdt, digits } = useT();
   const counts = useMemo(() => Object.fromEntries(MARKET_IDS.map((m) => [m, cart.filter((i) => i.market === m).length])) as Record<MarketId, number>, [cart]);
   const best = [...MARKET_IDS].sort((a, b) => counts[b] - counts[a])[0];
   const [market, setMarket] = useState<MarketId | null>(initialMarket ?? null);
@@ -60,11 +64,11 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
           payment: "bkash",
         },
         items,
-        user?.name?.split(" ")[0] ?? "You",
+        user?.name?.split(" ")[0] ?? t("grp.you"),
       );
       router.push(`/group/${g.code}`);
     } catch (e) {
-      toast({ kind: "error", title: "Couldn't start the group", body: e instanceof ApiError ? e.message : "Please try again." });
+      toast({ kind: "error", title: t("grp.startFailed"), body: e instanceof ApiError ? e.message : t("common.pleaseRetry") });
       setBusy(false);
     }
   }
@@ -74,7 +78,7 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
   return (
     <div className="flex flex-col gap-5">
       <section className="card p-4 sm:p-6">
-        <h2 className="font-extrabold">1. Pick the store</h2>
+        <h2 className="font-extrabold">{t("grp.step1")}</h2>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {MARKET_IDS.map((id) => (
             <button
@@ -90,22 +94,22 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
             >
               <Icon name={STORES[id].icon} size={18} />
               {STORES[id].name}
-              <span className="font-semibold opacity-70">{counts[id]} in cart</span>
+              <span className="font-semibold opacity-70">{t("grp.inCart", { count: counts[id] })}</span>
             </button>
           ))}
         </div>
 
-        <h2 className="mt-6 font-extrabold">2. How long can friends join?</h2>
-        <div className="sh-tabs mt-3" role="tablist" aria-label="Deadline">
+        <h2 className="mt-6 font-extrabold">{t("grp.step2")}</h2>
+        <div className="sh-tabs mt-3" role="tablist" aria-label={t("grp.deadline")}>
           <span className="sh-tabs__ind" aria-hidden style={{ width: "calc((100% - 8px) / 3)", transform: `translateX(${ti * 100}%)` }} />
           {HOURS.map((h) => (
             <button key={h} type="button" role="tab" aria-selected={h === hours} onClick={() => setHours(h)}>
-              {h} hours
+              {t("grp.hours", { count: h })}
             </button>
           ))}
         </div>
 
-        <h2 className="mt-6 font-extrabold">3. Your items</h2>
+        <h2 className="mt-6 font-extrabold">{t("grp.step3")}</h2>
         {items.length ? (
           <ul className="mt-3 flex flex-col gap-2">
             {items.map((i) => (
@@ -114,43 +118,45 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
                   <ProductImage p={i} className="h-full w-full" />
                 </span>
                 <span className="line-clamp-2 min-w-0 flex-1 text-[13px]">{i.title}</span>
-                <span className="text-xs font-bold tabular-nums text-ink-2">×{i.qty}</span>
+                <span className="text-xs font-bold tabular-nums text-ink-2">×{digits(i.qty)}</span>
               </li>
             ))}
           </ul>
         ) : (
           <p className="mt-2 text-sm text-ink-2">
-            No {STORES[m].name} items in your cart yet. You can start the group now and add items later, or{" "}
-            <Link href={`/store/${m}`} className="font-semibold text-accent">
-              shop {STORES[m].name}
-            </Link>
-            .
+            {rich(t("grp.noItems", { store: STORES[m].name }), {
+  shop: (
+    <Link href={`/store/${m}`} className="font-semibold text-accent">
+      {t("grp.shopStore", { store: STORES[m].name })}
+    </Link>
+  ),
+})}
           </p>
         )}
 
         {preview > 0 && (
           <p className="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--good)_12%,transparent)] px-3 py-2 text-sm font-semibold text-good">
-            With one friend, each of you saves about {formatBdt(preview)} on shipping.
+            {t("grp.preview", { amount: bdt(preview) })}
           </p>
         )}
         <button type="button" className="btn btn-primary mt-5 min-h-12 w-full" disabled={busy || !ready} onClick={start}>
-          {busy ? "Starting…" : "Start group & get a share link"}
+          {busy ? t("grp.starting") : t("grp.start")}
         </button>
-        <p className="mt-2 text-center text-xs text-ink-2">Everyone pays for their own items. With fewer than 2 members your order simply goes ahead as normal.</p>
+        <p className="mt-2 text-center text-xs text-ink-2">{t("grp.everyonePays")}</p>
       </section>
 
       {mine && mine.length > 0 && (
         <section>
-          <h2 className="mb-2 font-extrabold">Your groups</h2>
+          <h2 className="mb-2 font-extrabold">{t("grp.yours")}</h2>
           <ul className="flex flex-col gap-2">
             {mine.map((g) => (
               <li key={g.code}>
                 <Link href={`/group/${g.code}`} className="card flex min-h-[56px] items-center gap-3 px-4 py-3">
                   <Icon name={STORES[g.market].icon} size={18} className="text-accent" />
                   <span className="min-w-0 flex-1 text-sm font-semibold">
-                    {STORES[g.market].name} · {g.members.length} {g.members.length === 1 ? "member" : "members"}
+                    {STORES[g.market].name} · {t("grp.members", { count: g.members.length })}
                   </span>
-                  <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-bold capitalize text-ink-2">{g.status}</span>
+                  <span className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-bold capitalize text-ink-2">{hasKey("grp.st." + g.status) ? t(("grp.st." + g.status) as MsgKey) : g.status}</span>
                 </Link>
               </li>
             ))}

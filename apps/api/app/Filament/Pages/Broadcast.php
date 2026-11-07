@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasPagePermission;
 use App\Filament\Support\Admin;
 use App\Jobs\Messaging\SendBroadcast;
 use App\Models\NotificationLog;
@@ -33,6 +34,8 @@ use UnitEnum;
 /** Marketing campaign to a customer segment over SMS / email / push / in-app. Opt-outs and quiet hours apply. */
 class Broadcast extends Page
 {
+    use HasPagePermission;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMegaphone;
 
     protected static string|UnitEnum|null $navigationGroup = 'Messaging';
@@ -45,10 +48,8 @@ class Broadcast extends Page
     /** Last dry-run result shown under the form. */
     public ?array $estimate = null;
 
-    public static function canAccess(): bool
-    {
-        return method_exists(Admin::class, 'can') ? (Admin::can('broadcast.send') || Admin::canManage()) : Admin::canManage();
-    }
+    /** RBAC: page.{slug} (HasPagePermission) plus these keys. */
+    protected static array $requiredPermissions = ['broadcast.send'];
 
     public static function canSend(): bool
     {

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/Icon";
-import { formatBdt } from "@/lib/pricing";
+import { useT } from "@/i18n/client";
+import { rich } from "@/i18n/rich";
 
 const BITS = [
   [-26, -26, "var(--good)"],
@@ -19,6 +20,7 @@ const BITS = [
  */
 export function FreeShipMeter({ sub, threshold, source }: { sub: number; threshold: number; source: string }) {
   const full = sub >= threshold;
+  const { t, bdt } = useT();
   const toFree = Math.max(0, threshold - sub);
   const pct = Math.min(1, sub / threshold);
   // "adjust state during render": remember the last fullness to detect the crossing
@@ -36,7 +38,7 @@ export function FreeShipMeter({ sub, threshold, source }: { sub: number; thresho
         aria-valuemin={0}
         aria-valuemax={threshold}
         aria-valuenow={Math.min(sub, threshold)}
-        aria-label={`Free Skydrop delivery progress for ${source}`}
+        aria-label={t("ship.progress", { source })}
       >
         <span style={{ transform: `scaleX(${pct})` }} />
       </div>
@@ -50,11 +52,11 @@ export function FreeShipMeter({ sub, threshold, source }: { sub: number; thresho
       <p className="text-xs text-ink-2" aria-live="polite">
         {toFree > 0 ? (
           <>
-            <b className="text-ink">{formatBdt(toFree)}</b> more from {source} for free Skydrop delivery
+            {rich(t("ship.more", { source }), { amount: <b className="text-ink">{bdt(toFree)}</b> })}
           </>
         ) : (
           <span key={party} className={"inline-flex items-center gap-1 font-semibold text-good " + (party ? "mo-saved" : "")}>
-            <Icon name="check" size={14} stroke={2.6} /> Free Skydrop delivery unlocked for this store
+            <Icon name="check" size={14} stroke={2.6} /> {t("ship.unlocked")}
           </span>
         )}
       </p>

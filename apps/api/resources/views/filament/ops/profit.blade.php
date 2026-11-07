@@ -27,6 +27,12 @@
         @endforeach
         <div class="ops-kpi"><span>Margin</span><b class="{{ $k['margin_pct'] < 0 ? 'ops-neg' : 'ops-pos' }}">{{ $k['margin_pct'] }}%</b></div>
         <div class="ops-kpi"><span>Orders</span><b>{{ number_format($k['orders']) }}</b></div>
+        @if (($k['plus_revenue'] ?? 0) > 0)
+            <div class="ops-kpi"><span>Skydrop Plus revenue (in total)</span><b>৳{{ number_format($k['plus_revenue']) }}</b></div>
+        @endif
+        @if (($k['gift_card_sales'] ?? 0) > 0)
+            <div class="ops-kpi" title="Gift card sales are a liability until redeemed; they are not counted as revenue"><span>Gift cards sold (liability)</span><b>৳{{ number_format($k['gift_card_sales']) }}</b></div>
+        @endif
     </div>
 
     <div class="ops-card"><h3>Profit by day <small style="opacity:.6;font-weight:400">(bars = profit, line = revenue)</small></h3>{{ $d['dayChart'] }}</div>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/state/store";
 import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
-import { formatBdt } from "@/lib/pricing";
+import { useT } from "@/i18n/client";
 import { EmiLine } from "@/components/money/EmiLine";
 import { SafeSection } from "@/components/resilience/SafeSection";
 import type { Variant } from "@/lib/types";
@@ -36,6 +36,7 @@ export function BuyBox({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const { t, bdt } = useT();
   const { addToCart } = useStore();
   const [qty, setQty] = useState(1);
   const [sel, setSel] = useState<Record<string, string>>(() => initialSelection(info.id, info.variants));
@@ -135,9 +136,9 @@ export function BuyBox({
       setAdd("done");
       toast({
         kind: "success",
-        title: `Added ${qty} to cart`,
-        body: variantLabel ? `${variantLabel} · ${formatBdt(info.unitBdt * qty)}` : formatBdt(info.unitBdt * qty),
-        action: { label: "View cart", href: "/cart" },
+        title: t("buy.added", { count: qty }),
+        body: variantLabel ? `${variantLabel} · ${bdt(info.unitBdt * qty)}` : bdt(info.unitBdt * qty),
+        action: { label: t("buy.viewCart"), href: "/cart" },
       });
       later(() => setAdd("idle"), 1800);
     }, Math.max(600, flight + 40) - (Date.now() - t0));
@@ -156,7 +157,7 @@ export function BuyBox({
   return (
     <div className="flex flex-col gap-5">
       {groups.length > 0 && (
-        <section aria-label="Choose options" className="flex flex-col gap-4">
+        <section aria-label={t("buy.options")} className="flex flex-col gap-4">
           {groups.map((g) => (
             <VariantGroup
               key={g.key}
@@ -171,7 +172,7 @@ export function BuyBox({
           {!current?.id && info.variants.length > 0 && (
             <p className="flex items-start gap-2 rounded-xl bg-surface-2 px-3 py-2 text-xs text-ink-2">
               <Icon name="info" size={15} className="mt-px shrink-0 text-accent" />
-              We&apos;ll buy the option you pick from {info.source}. Price is confirmed for that option at checkout.
+              {t("buy.optionNote", { source: info.source })}
             </p>
           )}
         </section>
@@ -179,14 +180,14 @@ export function BuyBox({
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-ink-2">Quantity</p>
+          <p className="text-sm font-semibold text-ink-2">{t("buy.qty")}</p>
           <p className="text-xs text-ink-3" aria-live="polite">
-            {qty > 1 ? `${formatBdt(info.unitBdt * qty)} for ${qty}` : "Up to 10 per order"}
+            {qty > 1 ? t("buy.forQty", { amount: bdt(info.unitBdt * qty), count: qty }) : t("buy.upTo10")}
           </p>
         </div>
         <QtyStepper value={qty} onChange={setQty} />
       </div>
-      <SafeSection label="EMI" quiet>
+      <SafeSection label={t("buy.emi")} quiet>
         <EmiLine amount={info.unitBdt * qty} />
       </SafeSection>
 
@@ -204,14 +205,14 @@ export function BuyBox({
       >
         <div className="flex items-center gap-2 rounded-[20px] bg-surface/95 p-2 pl-3.5 shadow-[0_-4px_24px_rgb(15_23_42/0.12),var(--shadow-2)] backdrop-blur-md">
           <div className="min-w-0 flex-1">
-            <p className="text-[17px] font-extrabold leading-tight tracking-tight">{formatBdt(info.unitBdt)}</p>
+            <p className="text-[17px] font-extrabold leading-tight tracking-tight">{bdt(info.unitBdt)}</p>
             <p className="truncate text-[11px] text-ink-2">
               {info.discount > 0 ? (
                 <>
-                  <span className="line-through">{formatBdt(info.mrpBdt)}</span> <span className="font-bold text-good">{info.discount}% off</span>
+                  <span className="line-through">{bdt(info.mrpBdt)}</span> <span className="font-bold text-good">{t("card.off", { pct: info.discount })}</span>
                 </>
               ) : (
-                variantLabel ?? `From ${info.source}`
+                variantLabel ?? t("card.from", { source: info.source })
               )}
             </p>
           </div>
@@ -240,21 +241,22 @@ function AddButton({
   compact?: boolean;
   className?: string;
 }) {
+  const { t } = useT();
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-busy={phase === "busy"}
-      aria-label="Add to cart"
+      aria-label={t("buy.addToCart")}
       className={"btn btn-ghost !bg-[var(--accent-soft)] font-bold !text-accent hover:!bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] " + (className ?? "")}
     >
       <span className="roll" aria-hidden="true">
         <span data-on={phase === "idle"} data-gone={phase !== "idle"} className="inline-flex items-center gap-1.5">
-          <Icon name="cart" size={compact ? 17 : 19} /> {compact ? "Add" : "Add to cart"}
+          <Icon name="cart" size={compact ? 17 : 19} /> {compact ? t("buy.addShort") : t("buy.addToCart")}
         </span>
         <span data-on={phase === "busy"} data-gone={phase === "done"} className="inline-flex items-center gap-1.5">
-          <Spinner size={16} /> Adding
+          <Spinner size={16} /> {t("buy.adding")}
         </span>
         <span data-on={phase === "done"} className="inline-flex items-center gap-1.5">
           <span className="draw-check inline-flex">
@@ -262,7 +264,7 @@ function AddButton({
               <path d="M5 12l5 5 9-11" />
             </svg>
           </span>
-          Added
+          {t("buy.addedShort")}
         </span>
       </span>
     </button>
@@ -282,14 +284,15 @@ function BuyButton({
   compact?: boolean;
   className?: string;
 }) {
+  const { t } = useT();
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-busy={phase !== "idle"} aria-label="Buy now" className={"btn btn-primary font-bold " + (className ?? "")}>
+    <button type="button" onClick={onClick} disabled={disabled} aria-busy={phase !== "idle"} aria-label={t("buy.buyNow")} className={"btn btn-primary font-bold " + (className ?? "")}>
       <span className="roll" aria-hidden="true">
         <span data-on={phase === "idle"} data-gone={phase !== "idle"} className="inline-flex items-center gap-1.5">
-          {compact ? "Buy" : "Buy now"} <Icon name="arrow" size={17} className="arrow" />
+          {compact ? t("buy.buyShort") : t("buy.buyNow")} <Icon name="arrow" size={17} className="arrow" />
         </span>
         <span data-on={phase !== "idle"} className="inline-flex items-center gap-1.5">
-          <Spinner size={16} /> {compact ? "Going" : "To checkout"}
+          <Spinner size={16} /> {compact ? t("buy.going") : t("buy.toCheckout")}
         </span>
       </span>
     </button>

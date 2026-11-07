@@ -8,15 +8,17 @@ import { useStore } from "@/state/store";
 import { Icon } from "./Icon";
 import { useCurrentMode } from "./StoreTheme";
 import { startRouteProgress } from "./motion/RouteProgress";
+import { useT } from "@/i18n/client";
+import type { MsgKey } from "@/i18n/core";
 
 type Sug = { id: string; title: string; market: string };
 
 // Example searches that cycle in the empty field (stops while focused or typed in).
-const EXAMPLES: Record<StoreMode, string[]> = {
-  all: ["Search iPhone 16…", "Paste an amazon.in link…", "Search basmati rice…", "Search kurta sets…", "Search boAt earbuds…"],
-  amazon: ["Search iPhone 16…", "Paste an amazon.in link…", "Search boAt earbuds…", "Search Prestige cooker…"],
-  flipkart: ["Search kurta sets…", "Paste a flipkart.com link…", "Search sneakers…", "Search saree…"],
-  bigbasket: ["Search basmati rice…", "Search Haldiram's…", "Search masala chai…", "Paste a bigbasket.com link…"],
+const EXAMPLES: Record<StoreMode, MsgKey[]> = {
+  all: ["search.ex.iphone", "search.ex.amazonLink", "search.ex.rice", "search.ex.kurta", "search.ex.earbuds"],
+  amazon: ["search.ex.iphone", "search.ex.amazonLink", "search.ex.earbuds", "search.ex.cooker"],
+  flipkart: ["search.ex.kurta", "search.ex.flipkartLink", "search.ex.sneakers", "search.ex.saree"],
+  bigbasket: ["search.ex.rice", "search.ex.haldiram", "search.ex.chai", "search.ex.bigbasketLink"],
 };
 
 /** Cycles placeholder examples every 2.8s while the field is idle, visible and the tab is shown. */
@@ -43,6 +45,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
   const router = useRouter();
   const current = useCurrentMode();
   const { enabled } = useStore();
+  const { t } = useT();
   const [picked, setPicked] = useState<{ store: StoreMode; for: StoreMode } | null>(null);
   // the shopper's pick applies until they move to another store page
   const store = picked && picked.for === current ? picked.store : current;
@@ -58,7 +61,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
   const examples = EXAMPLES[store] ?? EXAMPLES.all;
   const idle = !focused && !q;
   const tick = usePlaceholderCycle(idle, examples.length, formRef);
-  const example = examples[tick % examples.length];
+  const example = t(examples[tick % examples.length]);
 
   useEffect(() => {
     if (q.trim().length < 2) return;
@@ -102,7 +105,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
       }}
     >
       <label className="relative flex shrink-0 items-center border-r border-line">
-        <span className="sr-only">Store to search</span>
+        <span className="sr-only">{t("search.storeToSearch")}</span>
         <select
           value={store}
           onChange={(e) => setStore(e.target.value as StoreMode)}
@@ -110,7 +113,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         >
           {modes.map((m) => (
             <option key={m} value={m}>
-              {m === "all" ? "All stores" : STORES[m].name}
+              {m === "all" ? t("search.allStores") : STORES[m].name}
             </option>
           ))}
         </select>
@@ -148,8 +151,8 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
             setActive((a) => Math.max(-1, a - 1));
           } else if (e.key === "Escape") setOpen(false);
         }}
-        placeholder={store === "all" ? "Search Indian stores" : `Search ${STORES[store].name}`}
-        aria-label={store === "all" ? "Search Indian stores" : `Search ${STORES[store].name}`}
+        placeholder={store === "all" ? t("search.placeholderAll") : t("search.placeholderStore", { store: STORES[store].name })}
+        aria-label={store === "all" ? t("search.placeholderAll") : t("search.placeholderStore", { store: STORES[store].name })}
         className={
           "w-0 min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-3 " +
           (idle ? "placeholder:text-transparent" : "")
@@ -161,7 +164,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         enterKeyHint="search"
       />
       </span>
-      <button type="submit" className="btn btn-primary m-1 min-h-0 rounded-xl px-3 sm:px-4" aria-label="Search">
+      <button type="submit" className="btn btn-primary m-1 min-h-0 rounded-xl px-3 sm:px-4" aria-label={t("search.submit")}>
         <Icon name="search" size={18} stroke={2.2} />
       </button>
 

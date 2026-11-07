@@ -56,7 +56,7 @@ class PurchaseQueue extends Page implements HasTable
         return OrderItem::query()
             ->whereNull('purchase_ref')
             ->whereNull('cancelled_at') // fulfilment: items cancelled after a price alert
-            ->whereIn('order_id', Order::query()->select('id')->whereIn('status', ['placed', 'verified'])
+            ->whereIn('order_id', Order::query()->goods()->select('id')->whereIn('status', ['placed', 'verified'])
                 ->where(fn ($q) => $q->where('is_preorder', false)->orWhere('status', '!=', 'placed'))); // Shopping: unpaid pre-orders wait for stock
     }
 

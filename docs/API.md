@@ -136,7 +136,7 @@ query, ~200 products per subcategory, stops at 90% of the Oxylabs budget), `reta
 - New phone without `name` → `422 { errors: { name: [...] }, needsName: true }`; the code stays valid so the client resends with `name`.
 - Blocked account → `403 { code: "blocked" }`. New accounts get the signup points bonus.
 
-`GET /me` → `{ user }` · `PATCH /me { name?, email? }` → `{ user }` · `POST /auth/logout` → `{ ok }` (revokes the current token)
+`GET /me` → `{ user }` · `PATCH /me { name?, email?, locale?: "en"|"bn" }` → `{ user }` · `POST /auth/logout` → `{ ok }` (revokes the current token)
 - Changing `email` sends a verification link (signed `GET /email/verify/{user}/{hash}`, 3 days, redirects to `WEB_URL/account?email=verified|invalid`). Resend: `POST /me/email/verification` → `{ ok, verified }` (3/hour).
 
 Phone is stored normalised as `+8801XXXXXXXXX`. Staff (email + password) sign in to the Filament admin only.

@@ -6,6 +6,7 @@ use App\Models\OtpCode;
 use App\Models\User;
 use App\Services\Commerce\Sms\SmsManager;
 use App\Services\Messaging\Messenger;
+use App\Support\Limits;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -25,7 +26,7 @@ class OtpService
         $phone = Phone::normalize($rawPhone) ?? throw CommerceException::field('phone', 'Enter a valid Bangladeshi mobile number (01XXXXXXXXX).');
 
         // System → Limits: OTP codes per phone per hour and per IP per hour.
-        $limits = ['otp:phone:'.$phone => \App\Support\Limits::int('accounts.otp_per_phone_hour'), 'otp:ip:'.($ip ?? 'none') => \App\Support\Limits::int('accounts.otp_per_ip_hour')];
+        $limits = ['otp:phone:'.$phone => Limits::int('accounts.otp_per_phone_hour'), 'otp:ip:'.($ip ?? 'none') => Limits::int('accounts.otp_per_ip_hour')];
         foreach ($limits as $key => $max) {
             if (RateLimiter::tooManyAttempts($key, $max)) {
                 $wait = RateLimiter::availableIn($key);

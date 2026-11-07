@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { byMarket, deals } from "@/lib/data";
-import { isMarket, MARKET_IDS, STORES } from "@/lib/markets";
+import { isMarket, MARKET_IDS, STORES, storeText } from "@/lib/markets";
+import { getT } from "@/i18n/server";
 import { StoreHero } from "@/components/home/StoreHero";
 import { CategoryChips } from "@/components/home/CategoryChips";
 import { HowItWorks } from "@/components/home/HowItWorks";
@@ -16,13 +17,15 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ market: string }> }): Promise<Metadata> {
   const { market } = await params;
   if (!isMarket(market)) return {};
-  return { title: `${STORES[market].name}: products from ${STORES[market].source}`, description: STORES[market].tagline };
+  const { t } = await getT();
+  return { title: t("storePage.metaTitle", { store: STORES[market].name, source: STORES[market].source }), description: storeText(market, t).tagline };
 }
 
 export default async function StorePage({ params }: { params: Promise<{ market: string }> }) {
   const { market } = await params;
   if (!isMarket(market)) notFound();
-  const s = STORES[market];
+  const { t } = await getT();
+  const s = storeText(market, t);
   const [top, dealItems, all, perCat] = await Promise.all([
     byMarket(market, 6),
     deals(market, 14),
@@ -39,7 +42,7 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
         <PromoStrip />
         <CmsTiles store={market} />
         <CmsFlash store={market} />
-        <EnabledRail title="Deals of the day" note={`Biggest discounts on ${s.source}`} href={`/search?q=&store=${market}&sort=discount`} items={dealItems} />
+        <EnabledRail title={t("storePage.dealsOfDay")} note={t("storePage.biggestDiscounts", { source: s.source })} href={`/search?q=&store=${market}&sort=discount`} items={dealItems} />
         {s.categories.map((c, i) => (
           <EnabledRail
             key={c.slug}
@@ -50,7 +53,7 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
         ))}
         <HowItWorks />
         <section className="mt-10 px-4 sm:px-0">
-          <h2 className="mb-3 text-lg font-extrabold tracking-tight sm:text-xl">Everything in {s.name}</h2>
+          <h2 className="mb-3 text-lg font-extrabold tracking-tight sm:text-xl">{t("storePage.everything", { store: s.name })}</h2>
           <EnabledGrid items={all} />
         </section>
       </div>

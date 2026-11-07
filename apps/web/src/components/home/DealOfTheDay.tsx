@@ -5,7 +5,8 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { STORES } from "@/lib/markets";
-import { discountPct, formatBdt, mrpBdt, priceBdt } from "@/lib/pricing";
+import { discountPct, mrpBdt, priceBdt } from "@/lib/pricing";
+import { useT } from "@/i18n/client";
 import { useStore } from "@/state/store";
 import { Icon } from "@/components/Icon";
 import { ProductImage } from "@/components/ProductBits";
@@ -27,6 +28,7 @@ function nextDhakaMidnight(now: number) {
 export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) {
   const day = Math.floor((now + 6 * 3.6e6) / 864e5);
   const { enabled } = useStore();
+  const { t, bdt, digits } = useT();
   const router = useRouter();
   const onEnd = useCallback(() => router.refresh(), [router]);
   const pool = items
@@ -35,7 +37,7 @@ export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) 
     .slice(0, 5);
   if (!pool.length) return null;
   const p = pool[day % pool.length];
-  const deal = headlineDeal(p);
+  const deal = headlineDeal(p, t);
   const dealEnd = deal?.endsAt ? Date.parse(deal.endsAt) : NaN;
   const ownEnd = Number.isFinite(dealEnd) && dealEnd > now + 60_000;
   const to = ownEnd ? dealEnd : nextDhakaMidnight(now);
@@ -53,28 +55,28 @@ export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) 
         >
           <ProductImage p={p} className="dd-img h-full w-full" />
           <span className="absolute -right-2 -top-2 grid h-14 w-14 rotate-12 place-items-center rounded-full bg-brand-2 text-center text-[13px] font-extrabold leading-none text-white shadow-[0_8px_20px_rgb(255_106_61/0.4)]">
-            -{d}%
+            -{digits(d)}%
           </span>
         </Link>
         <div className="relative min-w-0">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-accent">
-            <Icon name="bolt" size={13} stroke={2.4} /> Deal of the day
+            <Icon name="bolt" size={13} stroke={2.4} /> {t("home.dealOfDay")}
           </p>
           <h2 id="dd-h" className="mt-2 line-clamp-2 text-lg font-extrabold leading-snug tracking-tight sm:text-xl">
             {p.title}
           </h2>
           <p className="mt-1 text-xs text-ink-2">
-            From {STORES[p.market].source}, India{deal ? ` · ${deal.label}` : ""}
+            {t("dd.from", { source: STORES[p.market].source })}{deal ? ` · ${deal.label}` : ""}
           </p>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-2">
-            <span className="text-2xl font-extrabold tracking-tight">{formatBdt(priceBdt(p))}</span>
-            <span className="text-sm text-ink-3 line-through">{formatBdt(mrpBdt(p))}</span>
-            <span className="text-sm font-bold text-good">Save {formatBdt(mrpBdt(p) - priceBdt(p))}</span>
+            <span className="text-2xl font-extrabold tracking-tight">{bdt(priceBdt(p))}</span>
+            <span className="text-sm text-ink-3 line-through">{bdt(mrpBdt(p))}</span>
+            <span className="text-sm font-bold text-good">{t("dd.save", { amount: bdt(mrpBdt(p) - priceBdt(p)) })}</span>
           </div>
           <div className="mt-4 flex flex-wrap items-end justify-between gap-4 sm:justify-start sm:gap-8">
-            <FlipCountdown to={to} label={ownEnd ? "Store deal ends in" : "Next pick in"} onEnd={onEnd} />
+            <FlipCountdown to={to} label={ownEnd ? t("dd.storeEnds") : t("dd.nextPick")} onEnd={onEnd} />
             <Link href={`/p/${p.id}`} prefetch={false} className="btn btn-primary px-5">
-              See the deal <Icon name="arrow" size={18} className="arrow" />
+              {t("dd.see")} <Icon name="arrow" size={18} className="arrow" />
             </Link>
           </div>
         </div>

@@ -40,6 +40,9 @@ class OtpAuthTest extends TestCase
 
         $this->withToken($token)->getJson('/api/v1/me')->assertOk()->assertJsonPath('user.name', 'Rahim');
         $this->withToken($token)->patchJson('/api/v1/me', ['email' => 'r@example.com'])->assertOk()->assertJsonPath('user.email', 'r@example.com');
+        $this->withToken($token)->patchJson('/api/v1/me', ['locale' => 'bn'])->assertOk()->assertJsonPath('user.locale', 'bn');
+        $this->assertSame('bn', User::query()->first()->locale);
+        $this->withToken($token)->patchJson('/api/v1/me', ['locale' => 'fr'])->assertStatus(422);
 
         // Code is single-use.
         $this->postJson('/api/v1/auth/otp/verify', ['phone' => '01712345678', 'code' => $code])->assertStatus(422);

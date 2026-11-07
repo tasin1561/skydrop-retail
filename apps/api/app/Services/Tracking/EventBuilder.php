@@ -67,16 +67,27 @@ final class EventBuilder
             'value' => round((float) $order->total_bdt, 2),
             'order_id' => $order->id,
             'search' => null,
-            'items' => $order->items->map(fn ($i) => [
+            'items' => $order->isGoods() ? $order->items->map(fn ($i) => [
                 'id' => (string) $i->product_id, 'title' => mb_substr((string) $i->title, 0, 150), 'brand' => null,
                 'category' => $i->market, 'price' => round((float) $i->unit_bdt, 2), 'qty' => (int) $i->qty,
-            ])->values()->all(),
+            ])->values()->all() : self::digitalItems($order),
             'user' => array_filter([
                 'ip' => $a['ip'] ?? null, 'ua' => $a['ua'] ?? null, 'fbp' => $a['fbp'] ?? null, 'fbc' => $a['fbc'] ?? null,
                 'ttp' => $a['ttp'] ?? null, 'ttclid' => $touch['ttclid'] ?? null, 'gclid' => $touch['gclid'] ?? null,
                 'ga_client_id' => $a['gaClientId'] ?? null,
             ] + UserData::forUser($order->user, $order->address)),
         ];
+    }
+
+    /** A Skydrop Plus purchase has no order items: one synthetic line for the plan. */
+    private static function digitalItems(Order $order): array
+    {
+        $plan = ($order->meta['plan_slug'] ?? null) ?: (($order->meta['plan_id'] ?? null) ? 'plan-'.$order->meta['plan_id'] : 'plan');
+
+        return [[
+            'id' => mb_substr('plus-'.$plan, 0, 60), 'title' => mb_substr((string) ($order->meta['plan_name'] ?? 'Skydrop Plus'), 0, 150), 'brand' => 'Skydrop Plus',
+            'category' => (string) $order->kind, 'price' => round((float) $order->total_bdt, 2), 'qty' => 1,
+        ]];
     }
 
     /** @return array<int, array{id: string, title: ?string, brand: ?string, category: ?string, price: ?float, qty: int}> */

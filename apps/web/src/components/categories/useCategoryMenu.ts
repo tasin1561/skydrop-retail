@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import menuData from "@/data/category-menu.json";
 import { apiEnabled } from "@/lib/apiClient";
+import { useLang } from "@/i18n/client";
 import type { CatNode } from "@/lib/categories";
 import type { StoreMode } from "@/lib/types";
 
@@ -38,17 +39,9 @@ export function useCategoryMenu(store: StoreMode) {
   return { tree: filterTree(tree, store), warm };
 }
 
-/** Shoppers who switched the site to Bangla (<html lang="bn">) see Bangla names first. */
+/** Shoppers who switched the site to Bangla see Bangla category names (nameBn). */
 export function useIsBn() {
-  const [bn, setBn] = useState(false);
-  useEffect(() => {
-    const read = () => setBn(document.documentElement.lang.toLowerCase().startsWith("bn"));
-    read();
-    const mo = new MutationObserver(read);
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
-    return () => mo.disconnect();
-  }, []);
-  return bn;
+  return useLang().lang === "bn";
 }
 
 export const catLabel = (n: Pick<CatNode, "name" | "nameBn">, bn: boolean) => (bn && n.nameBn ? n.nameBn : n.name);

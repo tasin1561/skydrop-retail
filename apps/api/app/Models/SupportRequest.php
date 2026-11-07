@@ -15,7 +15,7 @@ class SupportRequest extends Model
 
     protected function casts(): array
     {
-        return ['photos' => 'array'];
+        return ['photos' => 'array', 'priority' => 'boolean'];
     }
 
     public function order(): BelongsTo
@@ -32,7 +32,7 @@ class SupportRequest extends Model
     {
         return [
             'id' => (string) $this->id, 'orderId' => $this->order_id, 'type' => $this->type, 'message' => $this->message,
-            'status' => $this->status, 'photos' => $this->photos ?? [], 'adminNote' => $this->admin_note,
+            'status' => $this->status, 'priority' => (bool) $this->priority, 'photos' => $this->photos ?? [], 'adminNote' => $this->admin_note,
             'createdAt' => $this->created_at?->toIso8601String(), 'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
     }

@@ -10,6 +10,7 @@ use App\Filament\Resources\Orders\Schemas\OrderInfolist;
 use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Filament\Support\Admin;
 use App\Models\Order;
+use App\Support\Rbac\ResourceScopes;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -49,7 +50,7 @@ class OrderResource extends Resource
     /** RBAC row scoping (e.g. Hub Staff: orders.scope.hub_only). */
     public static function getEloquentQuery(): Builder
     {
-        return \App\Support\Rbac\ResourceScopes::apply('orders', parent::getEloquentQuery());
+        return ResourceScopes::apply('orders', parent::getEloquentQuery());
     }
 
     public static function canCreate(): bool
@@ -83,7 +84,7 @@ class OrderResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $n = Order::query()->whereIn('status', ['placed', 'verified'])->count();
+        $n = Order::query()->goods()->whereIn('status', ['placed', 'verified'])->count();
 
         return $n ? (string) $n : null;
     }

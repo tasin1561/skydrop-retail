@@ -4,6 +4,7 @@ namespace App\Services\Commerce;
 
 use App\Models\Address;
 use App\Models\User;
+use App\Support\Limits;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -52,7 +53,7 @@ class AddressService
     public function create(User $user, array $data, bool $enforceLimit = true): Address
     {
         $data = $this->validate($data);
-        $max = \App\Support\Limits::int('accounts.max_addresses'); // System → Limits
+        $max = Limits::int('accounts.max_addresses'); // System → Limits
         if ($enforceLimit && $max > 0 && $user->addresses()->count() >= $max) {
             throw CommerceException::field('address', "You can save up to {$max} addresses. Delete one you no longer use first.");
         }

@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Marketplace extends Model
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
+
     protected $guarded = [];
 
     protected function casts(): array

@@ -55,7 +55,7 @@ class HubConsolidation extends Page implements HasTable
 
     public static function query(): Builder
     {
-        return Order::query()->where(fn ($q) => $q->where('status', 'india_hub')
+        return Order::query()->goods()->where(fn ($q) => $q->where('status', 'india_hub')
             ->orWhere(fn ($q) => $q->where('status', 'purchased')->whereIn('id', OrderItem::query()->select('order_id')->whereNotNull('hub_received_at'))));
     }
 

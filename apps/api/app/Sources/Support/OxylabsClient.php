@@ -5,6 +5,7 @@ namespace App\Sources\Support;
 use App\Services\Catalog\RetailSettings;
 use App\Sources\Exceptions\ProductGoneException;
 use App\Sources\Exceptions\SourceException;
+use App\Support\Limits;
 use GuzzleHttp\Handler\CurlMultiHandler;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\PendingRequest;
@@ -56,7 +57,7 @@ class OxylabsClient
      */
     public function pool(array $payloads, string $type, string $market, ?int $concurrency = null): array
     {
-        $concurrency ??= max(1, \App\Support\Limits::int('catalog.max_concurrent_fetches')); // System → Limits
+        $concurrency ??= max(1, Limits::int('catalog.max_concurrent_fetches')); // System → Limits
         if ($payloads === []) {
             return [];
         }

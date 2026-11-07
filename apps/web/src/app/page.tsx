@@ -11,6 +11,7 @@ import { RecentlyViewed } from "@/components/home/RecentlyViewed";
 import { CmsFlash, CmsHero, CmsTiles } from "@/components/cms/CmsSlots";
 import { DealOfTheDay } from "@/components/home/DealOfTheDay";
 import { SafeSection } from "@/components/resilience/SafeSection";
+import { getT } from "@/i18n/server";
 
 const renderedAt = () => Date.now();
 
@@ -23,7 +24,8 @@ async function heroImages(m: StoreMode) {
 
 export default async function Home() {
   const modes = ["all", ...MARKET_IDS] as StoreMode[];
-  const [scenes, dealItems, popular, electronics, grocery] = await Promise.all([
+  const [{ t }, scenes, dealItems, popular, electronics, grocery] = await Promise.all([
+    getT(),
     Promise.all(modes.map(async (mode) => ({ mode, images: await heroImages(mode === "all" ? "amazon" : mode) }))),
     offersFeed("all", 14),
     Promise.all(MARKET_IDS.map((m) => byMarket(m, 14))),
@@ -34,7 +36,7 @@ export default async function Home() {
     <div className="mx-auto max-w-7xl pt-3 sm:px-4">
       <StoreHero scenes={scenes} />
       <CategoryChips mode="all" />
-      <SafeSection label="Deal of the day" quiet>
+      <SafeSection label={t("home.dealOfDay")} quiet>
         <DealOfTheDay items={[...dealItems, ...popular.flat()]} now={renderedAt()} />
       </SafeSection>
       <CmsHero store="all" />
@@ -43,19 +45,19 @@ export default async function Home() {
       <PromoStrip />
       <CmsTiles store="all" />
       <CmsFlash store="all" />
-      <EnabledRail title="Live deals and offers" note="Coupons, deals and bank offers from every connected store" href="/deals" items={dealItems} />
+      <EnabledRail title={t("home.liveDeals")} note={t("home.liveDealsNote")} href="/deals" items={dealItems} />
       <HowItWorks />
       {MARKET_IDS.map((m, i) => (
         <EnabledRail
           key={m}
-          title={`Popular in ${STORES[m].name}`}
-          note={`Sourced from ${STORES[m].source}`}
+          title={t("home.popularIn", { store: STORES[m].name })}
+          note={t("home.sourcedFrom", { source: STORES[m].source })}
           href={`/store/${m}`}
           items={popular[i]}
         />
       ))}
-      <EnabledRail title="Phones and audio" href="/search?q=&store=all&category=electronics" items={electronics} />
-      <EnabledRail title="Indian pantry favourites" href="/search?q=&store=all&category=grocery" items={grocery} />
+      <EnabledRail title={t("home.phonesAudio")} href="/search?q=&store=all&category=electronics" items={electronics} />
+      <EnabledRail title={t("home.pantry")} href="/search?q=&store=all&category=grocery" items={grocery} />
     </div>
   );
 }

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Filament\Concerns\HasResourcePermissions;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\Schemas\UserForm;
 use App\Filament\Resources\Users\Schemas\UserInfolist;
 use App\Filament\Resources\Users\Tables\UsersTable;
-use App\Filament\Support\Admin;
 use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -21,7 +21,7 @@ use UnitEnum;
 
 class UserResource extends Resource
 {
-    use \App\Filament\Concerns\HasResourcePermissions; // shares the User model with Staff: checks customers.{ability}
+    use HasResourcePermissions; // shares the User model with Staff: checks customers.{ability}
 
     protected static ?string $slug = 'customers';
 

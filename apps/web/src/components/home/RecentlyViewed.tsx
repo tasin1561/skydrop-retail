@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
 import { recentlyViewedIds } from "../product/ProductExtras";
 import { EnabledRail } from "./Gates";
+import { useT } from "@/i18n/client";
 
 export function RecentlyViewed() {
   const [items, setItems] = useState<Product[]>([]);
+  const { t } = useT();
   useEffect(() => {
     const ids = recentlyViewedIds().slice(0, 12);
     if (!ids.length) return;
@@ -19,7 +21,7 @@ export function RecentlyViewed() {
   // arrives after the page has rendered, so it eases in instead of popping into place
   return (
     <div className="reveal-in">
-      <EnabledRail title="Recently viewed" note="Pick up where you left off" items={items} />
+      <EnabledRail title={t("home.recent")} note={t("home.recentNote")} items={items} />
     </div>
   );
 }

@@ -1,22 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { MARKET_IDS, STORES } from "@/lib/markets";
+import { MARKET_IDS, storeText } from "@/lib/markets";
+import { useT } from "@/i18n/client";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
 
 export function StoreCards() {
   const { enabled } = useStore();
+  const { t } = useT();
   const list = MARKET_IDS.filter((m) => enabled[m]);
   return (
     <section className="mt-8 px-4 sm:px-0" aria-labelledby="stores">
       <h2 id="stores" className="text-lg font-extrabold tracking-tight sm:text-xl">
-        Where do you want to shop today?
+        {t("home.whereShop")}
       </h2>
-      <p className="text-sm text-ink-2">Every product shows the Indian store we buy it from.</p>
+      <p className="text-sm text-ink-2">{t("home.whereShopNote")}</p>
       <div className="no-scrollbar snap-x-rail -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
         {list.map((m, i) => {
-          const s = STORES[m];
+          const s = storeText(m, t);
           return (
             <Link
               key={m}
@@ -30,10 +32,10 @@ export function StoreCards() {
                 <Icon name={s.icon} size={22} stroke={2} />
               </span>
               <h3 className="mt-3 text-lg font-extrabold">{s.name}</h3>
-              <p className="text-xs text-white/85">Sourced from {s.source}</p>
+              <p className="text-xs text-white/85">{t("home.sourcedFrom", { source: s.source })}</p>
               <p className="mt-2 line-clamp-2 text-xs text-white/80">{s.tagline}</p>
               <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold">
-                Enter store <Icon name="arrow" size={16} className="transition-transform group-hover:translate-x-1" />
+                {t("home.enterStore")} <Icon name="arrow" size={16} className="transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           );

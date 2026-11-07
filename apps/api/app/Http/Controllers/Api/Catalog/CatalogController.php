@@ -22,7 +22,7 @@ abstract class CatalogController extends Controller
     /**
      * Product cards. One malformed product never breaks a whole list: it is reported and skipped.
      *
-     * @param iterable<Product> $products
+     * @param  iterable<Product>  $products
      */
     protected function cards(iterable $products, Request $request): array
     {

@@ -18,7 +18,9 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
 use UnitEnum;
@@ -59,9 +61,13 @@ class ReturnRequestResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('created_at', 'desc')
+            // Skydrop Plus priority support first, then newest.
+            ->defaultSort(fn (Builder $query) => $query->orderByDesc('priority')->orderByDesc('created_at'))
             ->columns([
                 TextColumn::make('id')->label('#')->sortable(),
+                TextColumn::make('priority')->label('Priority')->badge()->color('warning')->icon(Heroicon::Star)->sortable()
+                    ->getStateUsing(fn ($record) => $record->priority ? 'Plus priority' : null)
+                    ->tooltip('Skydrop Plus member with priority support'),
                 TextColumn::make('order_id')->label('Order')->fontFamily('mono')->searchable()
                     ->url(fn (ReturnRequest $r) => OrderResource::getUrl('view', ['record' => $r->order_id])),
                 TextColumn::make('user.name')->label('Customer')->description(fn (ReturnRequest $r) => $r->user?->phone)->searchable(),
@@ -69,7 +75,8 @@ class ReturnRequestResource extends Resource
                     ->color(fn ($s) => $s === 'india' ? 'warning' : 'gray'),
                 TextColumn::make('reason')->formatStateUsing(fn ($s) => ReturnRequest::REASONS[$s] ?? $s),
                 TextColumn::make('resolution')->label('Wants')->formatStateUsing(fn ($s) => ReturnRequest::RESOLUTIONS[$s] ?? $s),
-                TextColumn::make('refund_bdt')->label('Value')->formatStateUsing(fn ($s) => Admin::bdt($s))->alignEnd(),
+                TextColumn::make('refund_bdt')->label('Refund')->formatStateUsing(fn ($s) => Admin::bdt($s))->alignEnd()
+                    ->description(fn (ReturnRequest $r) => (float) $r->return_fee_bdt > 0 ? 'after ৳'.number_format((float) $r->return_fee_bdt).' return shipping' : null),
                 TextColumn::make('status')->badge()->formatStateUsing(fn ($s) => ReturnRequest::STATUSES[$s] ?? $s)
                     ->color(fn ($s) => ReturnActions::statusColor($s)),
                 TextColumn::make('created_at')->since()->sortable(),
@@ -77,6 +84,7 @@ class ReturnRequestResource extends Resource
             ->filters([
                 SelectFilter::make('status')->options(ReturnRequest::STATUSES),
                 SelectFilter::make('stage')->options(['india' => 'At Kolkata hub', 'delivered' => 'After delivery']),
+                TernaryFilter::make('priority')->label('Priority (Skydrop Plus)'),
             ])
             ->recordActions([ViewAction::make()]);
     }

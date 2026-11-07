@@ -6,6 +6,7 @@ use App\Http\Middleware\CatalogGuard;
 use App\Http\Middleware\CatalogThrottle;
 use App\Http\Middleware\EnforceFeatureSwitches;
 use App\Http\Middleware\InternalAwareThrottle;
+use App\Http\Middleware\PublicApiThrottle;
 use App\Http\Middleware\RequireFeature;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -27,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Security module (docs/SECURITY.md): headers everywhere, blocklist + OTP abuse guard on the API,
         // "catalog.guard" (signed clients, bot detection, progressive rate limits) wraps the catalog routes.
         $middleware->append(SecurityHeaders::class);
-        $middleware->prependToGroup('api', App\Http\Middleware\PublicApiThrottle::class); // System → Limits: per-IP API ceiling + 429 counter
+        $middleware->prependToGroup('api', PublicApiThrottle::class); // System → Limits: per-IP API ceiling + 429 counter
         $middleware->appendToGroup('api', ApiShield::class);
         // Feature switches: checkout / signups / payment methods / coupons / points / mobile app (Admin → System → Features).
         $middleware->appendToGroup('api', EnforceFeatureSwitches::class);

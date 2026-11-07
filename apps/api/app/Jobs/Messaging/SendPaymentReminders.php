@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 
-/** Orders still unpaid 30 minutes after checkout get one reminder with a retry link. */
+/** Goods orders still unpaid 30 minutes after checkout get one reminder with a retry link. */
 class SendPaymentReminders implements ShouldQueue
 {
     use Queueable;
@@ -17,7 +17,8 @@ class SendPaymentReminders implements ShouldQueue
     public function handle(Notifier $notifier): void
     {
         $after = (int) MessagingSettings::get('reminders.payment_after_minutes', 30);
-        Order::query()->with(['user', 'items'])
+        // Goods orders only: an abandoned gift card / Plus checkout is not an order waiting to ship.
+        Order::query()->goods()->with(['user', 'items'])
             ->where('status', 'placed')->whereIn('payment_status', ['pending', 'failed'])
             ->whereBetween('created_at', [now()->subDay(), now()->subMinutes($after)])
             ->limit(500)->get()

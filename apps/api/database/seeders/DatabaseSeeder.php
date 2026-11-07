@@ -17,11 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    
+        if (! User::query()->where('email', 'test@example.com')->exists()) { // idempotent: db:seed can run again
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+        }
+
         // ---- catalog module seeders (runs first: commerce data may reference products) ----
         $this->call([MarketplaceSeeder::class, CategorySeeder::class, CategoryTreeSeeder::class, PricingRuleSeeder::class, CatalogSeeder::class, CategorizeProductsSeeder::class]);
         // ---- end catalog module seeders ----
@@ -33,5 +35,9 @@ class DatabaseSeeder extends Seeder
         // ---- messaging module seeders ----
         $this->call([MessageTemplateSeeder::class]);
         // ---- end messaging module seeders ----
+
+        // ---- money module seeders (example Skydrop Plus plans, inactive until the owner activates them) ----
+        $this->call([MembershipPlanSeeder::class]);
+        // ---- end money module seeders ----
     }
 }

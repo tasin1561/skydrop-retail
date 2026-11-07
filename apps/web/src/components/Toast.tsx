@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
+import { useT } from "@/i18n/client";
 
 type Toast = {
   id: number;
@@ -46,6 +47,7 @@ const ICON = { success: "check", info: "info", error: "x" };
  */
 function ToastItem({ t, onGone }: { t: Toast; onGone: (id: number) => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { t: tr } = useT();
   const left = useRef(LIFE);
   const started = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -171,7 +173,7 @@ function ToastItem({ t, onGone }: { t: Toast; onGone: (id: number) => void }) {
       </div>
       <button
         className="absolute right-1 top-1 grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink"
-        aria-label="Dismiss"
+        aria-label={tr("toast.dismiss")}
         onClick={() => dismiss(1)}
       >
         <Icon name="x" size={16} />

@@ -50,9 +50,9 @@ class User extends Authenticatable implements Contracts\PanelUser, HasAppAuthent
         return $this->hasMany(Order::class);
     }
 
-    /** @return array{id: int, name: string, phone: ?string, email: ?string, points: int} */
+    /** @return array{id: int, name: string, phone: ?string, email: ?string, points: int, locale: string} */
     public function toApi(): array
     {
-        return ['id' => $this->id, 'name' => $this->name, 'phone' => $this->phone, 'email' => $this->email, 'points' => (int) $this->points_balance];
+        return ['id' => $this->id, 'name' => $this->name, 'phone' => $this->phone, 'email' => $this->email, 'points' => (int) $this->points_balance, 'locale' => in_array($this->locale, ['en', 'bn'], true) ? $this->locale : 'en'];
     }
 }

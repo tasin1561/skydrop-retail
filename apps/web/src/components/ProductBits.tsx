@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import type { MarketId, Product } from "@/lib/types";
 import { STORES } from "@/lib/markets";
-import { discountPct, formatBdt, mrpBdt, priceBdt } from "@/lib/pricing";
+import { discountPct, mrpBdt, priceBdt } from "@/lib/pricing";
+import { useT } from "@/i18n/client";
 import { Icon } from "./Icon";
 import { WishButton } from "./WishButton";
 import { QuickAdd } from "./QuickAdd";
@@ -46,44 +49,47 @@ export function ProductImage({
 
 export function Stars({ rating, reviews, size = 14 }: { rating: number; reviews?: number; size?: number }) {
   const full = Math.round(rating * 2) / 2;
+  const { t, digits } = useT();
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-ink-2" aria-label={`${rating} out of 5 stars`}>
+    <span className="inline-flex items-center gap-1 text-xs text-ink-2" aria-label={t("card.stars", { rating: digits(rating) })}>
       <span className="inline-flex text-amber-500">
         {[1, 2, 3, 4, 5].map((i) => (
           <Icon key={i} name="star" size={size} stroke={1.4} fill={i <= full ? "currentColor" : i - 0.5 === full ? "url(#half)" : "none"} />
         ))}
       </span>
-      <span className="font-semibold text-ink">{rating ? rating.toFixed(1) : "New"}</span>
-      {reviews ? <span>({reviews >= 1000 ? (reviews / 1000).toFixed(1) + "k" : reviews})</span> : null}
+      <span className="font-semibold text-ink">{rating ? digits(rating.toFixed(1)) : t("card.new")}</span>
+      {reviews ? <span>({digits(reviews >= 1000 ? (reviews / 1000).toFixed(1) + "k" : reviews)})</span> : null}
     </span>
   );
 }
 
 export function OriginTag({ market, compact }: { market: MarketId; compact?: boolean }) {
+  const { t } = useT();
   return (
     <span
       data-store={market}
       className="inline-flex w-fit items-center gap-1 self-start rounded-full px-2 py-0.5 text-[11px] font-semibold"
       style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
-      title={`Bought for you from ${STORES[market].source}, India`}
+      title={t("card.boughtFrom", { source: STORES[market].source })}
     >
       <Icon name="pin" size={12} stroke={2} />
-      {compact ? STORES[market].source : `From ${STORES[market].source}`}
+      {compact ? STORES[market].source : t("card.from", { source: STORES[market].source })}
     </span>
   );
 }
 
 export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
   const d = discountPct(p);
+  const { t, bdt } = useT();
   return (
     <div className="flex flex-wrap items-baseline gap-x-2">
       <span className={(big ? "text-3xl" : "text-lg") + " font-extrabold tracking-tight text-ink"}>
-        {big ? <CountUp value={priceBdt(p)} /> : formatBdt(priceBdt(p))}
+        {big ? <CountUp value={priceBdt(p)} /> : bdt(priceBdt(p))}
       </span>
       {d > 0 && (
         <>
-          <span className={(big ? "text-base" : "text-xs") + " text-ink-3 line-through"}>{formatBdt(mrpBdt(p))}</span>
-          <span className={(big ? "text-base" : "text-xs") + " font-bold text-good"}>{d}% off</span>
+          <span className={(big ? "text-base" : "text-xs") + " text-ink-3 line-through"}>{bdt(mrpBdt(p))}</span>
+          <span className={(big ? "text-base" : "text-xs") + " font-bold text-good"}>{t("card.off", { pct: d })}</span>
         </>
       )}
     </div>
@@ -91,8 +97,9 @@ export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
 }
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const deal = headlineDeal(p);
   const offerCount = p.offers?.length ?? 0;
+  const { t, digits, inr } = useT();
+  const deal = headlineDeal(p, t);
   // Each store mode has its own card personality: dense deals (Mega Store), editorial fashion
   // (Style Bazaar), quick-add basket (Daily Basket).
   const fashion = p.market === "flipkart";
@@ -111,12 +118,12 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           {p.images?.[1] && p.images[1] !== p.image && <HoverImage src={p.images[1]} />}
           {discountPct(p) >= 10 && (
             <span className="absolute left-2 top-2 rounded-full bg-brand-2 px-2 py-0.5 text-[11px] font-bold text-white shadow">
-              -{discountPct(p)}%
+              -{digits(discountPct(p))}%
             </span>
           )}
           {p.bestSeller && !fashion && (
             <span className="absolute bottom-2 left-2 rounded-md bg-ink/85 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-              Best seller
+              {t("card.bestSeller")}
             </span>
           )}
         </div>
@@ -126,7 +133,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <h3 className={"line-clamp-2 leading-snug text-ink " + (fashion ? "text-[13px] font-normal" : "text-[13px] font-medium sm:text-sm")}>{p.title}</h3>
           {grocery && p.weight && <p className="w-fit rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-ink-2">{p.weight}</p>}
           {sizes.length > 0 && (
-            <div className="flex flex-wrap gap-1" aria-label="Sizes">
+            <div className="flex flex-wrap gap-1" aria-label={t("card.sizes")}>
               {sizes.map((s) => (
                 <span key={s} className="rounded-md border border-line px-1.5 py-0.5 text-[10px] font-semibold text-ink-2">
                   {s}
@@ -151,10 +158,10 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <div className="mt-auto pt-1">
             <PriceLine p={p} />
             {p.couponInr ? (
-              <p className="mt-0.5 text-[11px] font-bold text-good">₹{Math.round(p.couponInr)} coupon already applied</p>
+              <p className="mt-0.5 text-[11px] font-bold text-good">{t("card.couponApplied", { amount: inr(p.couponInr) })}</p>
             ) : offerCount > 0 ? (
               <p className="mt-0.5 flex items-center gap-1 text-[11px] font-bold text-accent">
-                <Icon name="tag" size={12} stroke={2.2} /> {offerCount} {offerCount === 1 ? "offer" : "offers"} on the source store
+                <Icon name="tag" size={12} stroke={2.2} /> {t("card.offers", { count: offerCount })}
               </p>
             ) : null}
             {p.market === "amazon" && p.salesVolume && (
@@ -163,7 +170,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
               </p>
             )}
             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-2">
-              <Icon name="truck" size={13} /> Home delivery in 7-12 days
+              <Icon name="truck" size={13} /> {t("card.delivery")}
             </p>
           </div>
         </div>
@@ -191,6 +198,7 @@ export function ProductGrid({ items }: { items: Product[] }) {
 }
 
 export function Rail({ title, href, items, note }: { title: string; href?: string; items: Product[]; note?: string }) {
+  const { t } = useT();
   if (!items.length) return null;
   return (
     <section className="mt-8">
@@ -201,7 +209,7 @@ export function Rail({ title, href, items, note }: { title: string; href?: strin
         </div>
         {href && (
           <Link href={href} className="group inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-accent">
-            See all <Icon name="right" size={16} className="transition-transform group-hover:translate-x-0.5" />
+            {t("card.seeAll")} <Icon name="right" size={16} className="transition-transform group-hover:translate-x-0.5" />
           </Link>
         )}
       </div>

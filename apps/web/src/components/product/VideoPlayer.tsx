@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type HlsType from "hls.js";
 import { Icon } from "@/components/Icon";
+import { useT } from "@/i18n/client";
 
 type Phase = "idle" | "loading" | "playing" | "error";
 
@@ -24,6 +25,7 @@ export function VideoPlayer({
   title: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { t } = useT();
   const hlsRef = useRef<HlsType | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tried = useRef(false);
@@ -109,7 +111,7 @@ export function VideoPlayer({
         controls={phase === "playing"}
         playsInline
         preload="none"
-        aria-label={`Video: ${title}`}
+        aria-label={t("vid.aria", { title })}
         className={"max-h-full max-w-full rounded-2xl bg-black transition-opacity duration-300 " + (phase === "error" ? "opacity-30" : "opacity-100")}
         onPlaying={() => {
           if (timer.current) clearTimeout(timer.current);
@@ -127,13 +129,13 @@ export function VideoPlayer({
               type="button"
               onClick={() => void start()}
               className="pd-play group h-20 w-20 hover:scale-105 active:scale-95"
-              aria-label="Play video"
+              aria-label={t("gal.play")}
             >
               <Icon name="play" size={30} fill="currentColor" stroke={1} className="translate-x-0.5" />
             </button>
           )}
           {phase === "loading" && (
-            <span className="pd-play h-20 w-20" role="status" aria-label="Loading video">
+            <span className="pd-play h-20 w-20" role="status" aria-label={t("vid.loading")}>
               <svg width="34" height="34" viewBox="0 0 24 24" className="pd-spin" aria-hidden>
                 <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="2.4" />
                 <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
@@ -145,9 +147,9 @@ export function VideoPlayer({
               <span className="chip-icon mx-auto mb-3">
                 <Icon name="info" size={18} />
               </span>
-              <p className="text-sm font-bold">This video can&apos;t play here</p>
+              <p className="text-sm font-bold">{t("vid.cantPlay")}</p>
               <p className="mt-1 text-xs text-ink-2">
-                The seller&apos;s video on {source} could not be streamed in this browser. Photos above show the same item.
+                {t("vid.cantStream", { source })}
               </p>
               <button
                 type="button"
@@ -159,7 +161,7 @@ export function VideoPlayer({
                 }}
                 className="btn btn-ghost mt-3 text-sm"
               >
-                <Icon name="refresh" size={16} /> Try again
+                <Icon name="refresh" size={16} /> {t("common.tryAgain")}
               </button>
             </div>
           )}

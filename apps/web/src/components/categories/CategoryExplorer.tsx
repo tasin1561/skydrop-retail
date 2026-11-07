@@ -9,6 +9,7 @@ import type { MarketId, StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
 import { catHref, catLabel, filterTree, useIsBn } from "./useCategoryMenu";
+import { useT } from "@/i18n/client";
 
 const fold = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
 
@@ -32,6 +33,7 @@ const countFor = (n: CatNode) => n.count ?? 0;
 /** /categories: the full tree with live search, store filter, product counts and store availability chips. */
 export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode[]; initialStore?: StoreMode }) {
   const bn = useIsBn();
+  const { t, num } = useT();
   const { enabled } = useStore();
   const [store, setStore] = useState<StoreMode>(initialStore);
   const [text, setText] = useState("");
@@ -44,16 +46,16 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <label className="field flex min-h-11 flex-1 items-center gap-2 px-3">
           <Icon name="search" size={18} className="text-ink-3" />
-          <span className="sr-only">Find a category</span>
+          <span className="sr-only">{t("cat.find")}</span>
           <input
             type="search"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Find a category, e.g. earbuds, saree, tea"
+            placeholder={t("cat.findPlaceholder")}
             className="min-w-0 flex-1 bg-transparent text-base outline-none"
           />
         </label>
-        <div role="group" aria-label="Store" className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <div role="group" aria-label={t("cat.store")} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
           {stores.map((m) => (
             <button
               key={m}
@@ -66,27 +68,27 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
               }
             >
               <Icon name={STORES[m].icon} size={15} />
-              {m === "all" ? "All" : STORES[m].name}
+              {m === "all" ? t("common.all") : STORES[m].name}
             </button>
           ))}
         </div>
       </div>
 
       <p className="mt-3 text-xs text-ink-3" aria-live="polite">
-        {q ? `${shown.length} matching ${shown.length === 1 ? "department" : "departments"}` : `${shown.length} departments`}
+        {q ? t("cat.matching", { count: shown.length }) : t("cat.departments", { count: shown.length })}
       </p>
 
       {shown.length === 0 ? (
         <div className="card mt-4 p-8 text-center">
-          <p className="font-bold">No category called “{text}”</p>
-          <p className="mt-1 text-sm text-ink-2">Search the products instead, or ask us to find it.</p>
+          <p className="font-bold">{t("cat.noneCalled", { text })}</p>
+          <p className="mt-1 text-sm text-ink-2">{t("cat.noneHint")}</p>
           <div className="mt-4 flex flex-col justify-center gap-2 sm:flex-row">
             <Link href={`/search?q=${encodeURIComponent(text)}&store=${store}`} className="btn btn-primary">
-              Search products <Icon name="arrow" size={18} className="arrow" />
+              {t("cat.searchProducts")} <Icon name="arrow" size={18} className="arrow" />
             </Link>
             <Link href={`/request?q=${encodeURIComponent(text)}`} className="btn btn-ghost">
-              Request a product
-            </Link>
+{t("common.requestProduct")}
+</Link>
           </div>
         </div>
       ) : (
@@ -103,14 +105,14 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
                       {catLabel(top, bn)}
                     </Link>
                   </h2>
-                  {!bn && top.nameBn && (
-                    <p lang="bn" className="text-xs text-ink-3">
-                      {top.nameBn}
+                  {(bn ? top.name : top.nameBn) && (
+<p lang={bn ? "en" : "bn"} className="text-xs text-ink-3">
+                      {bn ? top.name : top.nameBn}
                     </p>
                   )}
                   <StoreChips stores={top.stores} />
                 </div>
-                <span className="shrink-0 text-xs font-semibold text-ink-3">{countFor(top)} items</span>
+                <span className="shrink-0 text-xs font-semibold text-ink-3">{t("cat.items", { count: num(countFor(top)) })}</span>
               </div>
               <ul className="mt-3 divide-y divide-line">
                 {top.children.map((l2) => (
@@ -119,7 +121,7 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
                       <Link href={catHref(l2.path, store)} className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-sm font-bold">
                         <Icon name={l2.icon} size={16} className="shrink-0 text-accent" />
                         <span className="truncate">{catLabel(l2, bn)}</span>
-                        {!!countFor(l2) && <span className="text-xs font-normal text-ink-3">{countFor(l2)}</span>}
+                        {!!countFor(l2) && <span className="text-xs font-normal text-ink-3">{num(countFor(l2))}</span>}
                       </Link>
                       <StoreChips stores={l2.stores} compact />
                     </div>
@@ -132,7 +134,7 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
                             className="cm-chip inline-flex min-h-9 items-center gap-1 rounded-full bg-surface-2 px-3 text-xs font-medium text-ink-2"
                           >
                             {catLabel(l3, bn)}
-                            {!!countFor(l3) && <span className="text-ink-3">{countFor(l3)}</span>}
+                            {!!countFor(l3) && <span className="text-ink-3">{num(countFor(l3))}</span>}
                           </Link>
                         ))}
                       </div>
@@ -149,8 +151,9 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
 }
 
 function StoreChips({ stores, compact }: { stores: MarketId[]; compact?: boolean }) {
+  const { t } = useT();
   return (
-    <span className={"flex flex-wrap gap-1 " + (compact ? "shrink-0" : "mt-1.5")} aria-label={`Sold by ${stores.map((s) => STORES[s].name).join(", ")}`}>
+    <span className={"flex flex-wrap gap-1 " + (compact ? "shrink-0" : "mt-1.5")} aria-label={t("cat.soldBy", { stores: stores.map((s) => STORES[s].name).join(", ") })}>
       {(["amazon", "flipkart", "bigbasket"] as MarketId[]).map((m) => (
         <span key={m} className="cm-store" data-on={stores.includes(m)} aria-hidden="true" title={STORES[m].source}>
           {compact ? STORES[m].short : STORES[m].name}

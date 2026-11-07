@@ -1,20 +1,23 @@
 import { Icon } from "@/components/Icon";
 import { deliveryWindow } from "@/lib/pricing";
+import { getT } from "@/i18n/server";
+import { rich } from "@/i18n/rich";
 
 function addDays(d: Date, n: number) {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
   return x;
 }
-const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Asia/Dhaka" });
 
-export function DeliveryCard({ source, kolkata, weightKg }: { source: string; kolkata?: string | null; weightKg: number }) {
+export async function DeliveryCard({ source, kolkata, weightKg }: { source: string; kolkata?: string | null; weightKg: number }) {
+  const { t, date, digits } = await getT();
+  const fmt = (d: Date) => date(d, { day: "numeric", month: "short", timeZone: "Asia/Dhaka" });
   const w = deliveryWindow();
   const now = new Date();
   const steps = [
-    { icon: "bag", title: "Bought from", body: `${source}, India` },
-    { icon: "pin", title: "Skydrop hub", body: "Kolkata, checked & packed" },
-    { icon: "home", title: "Your door", body: "Anywhere in Bangladesh" },
+    { icon: "bag", title: t("dc.boughtFrom"), body: t("dc.boughtFromBody", { source }) },
+    { icon: "pin", title: t("dc.hub"), body: t("dc.hubBody") },
+    { icon: "home", title: t("dc.door"), body: t("dc.doorBody") },
   ];
   return (
     <section aria-labelledby="pd-delivery" className="card p-4">
@@ -24,10 +27,10 @@ export function DeliveryCard({ source, kolkata, weightKg }: { source: string; ko
         </span>
         <div>
           <h2 id="pd-delivery" className="text-[15px] font-bold leading-tight">
-            Delivered in {w.min}-{w.max} days
+            {t("dc.deliveredIn", { min: w.min, max: w.max })}
           </h2>
           <p className="text-xs text-ink-2">
-            Estimated arrival <span className="font-semibold text-ink">{fmt(addDays(now, w.min))} - {fmt(addDays(now, w.max))}</span>
+            {t("dc.eta")} <span className="font-semibold text-ink">{fmt(addDays(now, w.min))} - {fmt(addDays(now, w.max))}</span>
           </p>
         </div>
       </div>
@@ -51,7 +54,7 @@ export function DeliveryCard({ source, kolkata, weightKg }: { source: string; ko
               <Icon name={s.icon} size={18} />
             </span>
             <span className="mt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-3">
-              {i + 1}. {s.title}
+              {digits(i + 1)}. {s.title}
             </span>
             <span className="text-xs font-semibold leading-snug text-ink">{s.body}</span>
           </li>
@@ -63,33 +66,34 @@ export function DeliveryCard({ source, kolkata, weightKg }: { source: string; ko
           <li className="flex items-center gap-2">
             <Icon name="clock" size={15} className="shrink-0 text-accent" />
             <span>
-              Reaches our Kolkata hub by <span className="font-semibold text-ink">{kolkata}</span>
+              {rich(t("dc.kolkata"), { date: <span className="font-semibold text-ink">{kolkata}</span> })}
             </span>
           </li>
         )}
         <li className="flex items-center gap-2">
           <Icon name="package" size={15} className="shrink-0 text-accent" />
           <span>
-            Shipping weight about <span className="font-semibold text-ink">{weightKg < 1 ? `${Math.round(weightKg * 1000)} g` : `${weightKg} kg`}</span>, charged in cart
+            {rich(t("dc.weight"), { weight: <span className="font-semibold text-ink">{weightKg < 1 ? t("dc.grams", { n: Math.round(weightKg * 1000) }) : t("dc.kg", { n: weightKg })}</span> })}
           </span>
         </li>
         <li className="flex items-center gap-2">
           <Icon name="cash" size={15} className="shrink-0 text-accent" />
-          <span>Cash on delivery, bKash, Nagad and cards at checkout</span>
+          <span>{t("dc.pay")}</span>
         </li>
       </ul>
     </section>
   );
 }
 
-export function StockLine({ stock, demo }: { stock?: string; demo?: boolean }) {
+export async function StockLine({ stock, demo }: { stock?: string; demo?: boolean }) {
+  const { t } = await getT();
   const s = (stock ?? "").toLowerCase();
   let tone: "good" | "warn" | "bad" | "info" = "info";
-  let word = "Availability checked at checkout";
+  let word = t("stock.checked");
   let icon = "info";
   if (/out of stock|unavailable/.test(s)) {
     tone = "bad";
-    word = "Out of stock";
+    word = t("stock.out");
     icon = "x";
   } else if (/only|few|left/.test(s)) {
     tone = "warn";
@@ -97,10 +101,10 @@ export function StockLine({ stock, demo }: { stock?: string; demo?: boolean }) {
     icon = "clock";
   } else if (/in stock/.test(s)) {
     tone = "good";
-    word = "In stock";
+    word = t("stock.in");
     icon = "check";
   } else if (demo) {
-    word = "Demo listing, not for sale yet";
+    word = t("stock.demo");
   }
   const color = { good: "var(--good)", warn: "var(--warn)", bad: "var(--bad)", info: "var(--ink-2)" }[tone];
   return (
@@ -112,7 +116,7 @@ export function StockLine({ stock, demo }: { stock?: string; demo?: boolean }) {
         <Icon name={icon} size={14} stroke={2.6} />
       </span>
       {word}
-      {tone === "good" && <span className="font-normal text-ink-2">at the store in India</span>}
+      {tone === "good" && <span className="font-normal text-ink-2">{t("stock.atStore")}</span>}
     </p>
   );
 }

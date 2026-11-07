@@ -30,7 +30,7 @@ class ReturnRequest extends Model
 
     protected function casts(): array
     {
-        return ['items' => 'array', 'photos' => 'array', 'timeline' => 'array', 'refund_bdt' => 'float',
+        return ['items' => 'array', 'photos' => 'array', 'timeline' => 'array', 'refund_bdt' => 'float', 'return_fee_bdt' => 'float', 'priority' => 'boolean',
             'pickup_at' => 'datetime', 'received_at' => 'datetime', 'resolved_at' => 'datetime'];
     }
 
@@ -58,7 +58,8 @@ class ReturnRequest extends Model
             'reason' => $this->reason, 'reasonLabel' => self::REASONS[$this->reason] ?? $this->reason, 'note' => $this->note,
             'photos' => $uploads->map(fn (Upload $u) => $u->signedUrl())->values()->all(),
             'resolution' => $this->resolution, 'status' => $this->status, 'statusLabel' => self::STATUSES[$this->status] ?? $this->status,
-            'refundBdt' => (int) round($this->refund_bdt), 'replacementOrderId' => $this->replacement_order_id,
+            'refundBdt' => (int) round($this->refund_bdt), 'returnFeeBdt' => (int) round((float) $this->return_fee_bdt), 'priority' => (bool) $this->priority,
+            'replacementOrderId' => $this->replacement_order_id,
             'pickupAt' => $this->pickup_at?->toIso8601String(), 'createdAt' => $this->created_at?->toIso8601String(),
             'timeline' => array_values(array_map(fn ($e) => ['status' => $e['status'], 'at' => $e['at'], 'note' => $e['note'] ?? null], (array) $this->timeline)),
         ];

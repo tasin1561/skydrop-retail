@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Shopping\OrderHooks;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -64,6 +66,23 @@ class Order extends Model
     public function supportRequests(): HasMany
     {
         return $this->hasMany(SupportRequest::class);
+    }
+
+    /** Order kinds: physical goods vs digital purchases (money module: gift cards, Skydrop Plus). */
+    public const KINDS = ['goods' => 'Goods', 'gift_card' => 'Gift card', 'membership' => 'Skydrop Plus'];
+
+    /**
+     * Physical goods orders only. Gift card and Skydrop Plus purchases have no items and never go through
+     * operations (purchase queue, hub, fraud, reminders) or count as goods revenue.
+     */
+    public function scopeGoods(Builder $query): Builder
+    {
+        return $query->where($query->qualifyColumn('kind'), 'goods');
+    }
+
+    public function isGoods(): bool
+    {
+        return ($this->kind ?? 'goods') === 'goods';
     }
 
     public function stageIndex(?string $status = null): int
@@ -137,6 +156,6 @@ class Order extends Model
             'timeline' => $this->events->map(fn (OrderEvent $e) => [
                 'status' => $e->status, 'at' => $e->at?->toIso8601String(), 'note' => $e->note,
             ])->values()->all(),
-        ] + \App\Services\Shopping\OrderHooks::api($this); // Shopping: bundle/group/pre-order fields
+        ] + OrderHooks::api($this); // Shopping: bundle/group/pre-order fields
     }
 }

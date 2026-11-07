@@ -9,10 +9,14 @@ use App\Models\OrderItem;
 use App\Models\OrderVerification;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Cms\RestrictionService;
 use App\Services\Commerce\Payments\PaymentService;
 use App\Services\Commerce\Verify\PriceVerifier;
 use App\Services\Growth\AffiliateService;
+use App\Services\Money\MoneyRules;
+use App\Services\Money\WalletPayments;
 use App\Services\PricingService;
+use App\Services\Shopping\OrderHooks;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -47,7 +51,7 @@ class OrderService
 
         // 1. Live re-verification. Never trust client prices.
         $lines = $this->checkout->lines($items);
-        app(\App\Services\Cms\RestrictionService::class)->assertOrderable($lines); // items that cannot ship to Bangladesh → 422
+        app(RestrictionService::class)->assertOrderable($lines); // items that cannot ship to Bangladesh → 422
         $check = $this->verifier->verify($items);
         $byId = collect($check['results'])->keyBy('productId');
         $tolerance = (float) config('retail.checkout.price_tolerance', 0.03);
@@ -84,7 +88,7 @@ class OrderService
 
         // 2. Totals (coupon + points) on verified prices.
         $quote = $this->checkout->quote($lines, $coupon, $user, (int) ($data['redeemPoints'] ?? 0),
-            \App\Services\Money\MoneyRules::opts(['payment' => $method] + $data, true) // money: Plus, wallet, card EMI
+            MoneyRules::opts(['payment' => $method] + $data, true) // money: Plus, wallet, card EMI
             + ['unboxing' => (bool) ($data['unboxing'] ?? false)]); // fulfilment: paid unboxing
         app(OrderLimits::class)->assertMinimum($quote); // System → Limits: min order value (422)
 
@@ -122,8 +126,8 @@ class OrderService
                 Coupon::query()->whereKey($coupon->id)->increment('used');
             }
             $this->points->redeem($user, $order, $quote['pointsRedeemed']);
-            app(\App\Services\Money\WalletPayments::class)->payFromWallet($user, $order, (int) ($quote['walletApplied'] ?? 0)); // money: store credit
-            app(\App\Services\Shopping\OrderHooks::class)->placed($order, $quote, $data); // Shopping: bundle saving, group-buy shipping split
+            app(WalletPayments::class)->payFromWallet($user, $order, (int) ($quote['walletApplied'] ?? 0)); // money: store credit
+            app(OrderHooks::class)->placed($order, $quote, $data); // Shopping: bundle saving, group-buy shipping split
 
             return $order;
         });
