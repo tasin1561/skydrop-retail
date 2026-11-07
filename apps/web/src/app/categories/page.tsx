@@ -5,6 +5,7 @@ import { isStoreMode, MARKET_IDS, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { CategoryExplorer } from "@/components/categories/CategoryExplorer";
 import { getT } from "@/i18n/server";
+import { StoreName } from "@/components/store/StoreName";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getT();
@@ -27,13 +28,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
         <h2 className="mb-3 text-lg font-extrabold">{t("cats.orStore")}</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {MARKET_IDS.map((m) => (
-            <Link key={m} href={`/store/${m}`} data-store={m} className="card cm-tile flex min-h-16 items-center gap-3 p-3">
-              <span className="chip-icon is-active">
-                <Icon name={STORES[m].icon} size={18} />
-              </span>
+            <Link key={m} href={`/store/${m}`} data-store={m} className="card cm-tile flex min-h-16 items-center gap-3 px-4 py-3">
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold">{STORES[m].name}</span>
-                <span className="block text-xs text-ink-3">{t("cats.fromSource", { source: STORES[m].source })}</span>
+                <StoreName mode={m} size="text-lg" className="block tracking-tight" />
+                <span className="block text-xs text-ink-2">{t("cats.fromSource", { source: STORES[m].source })}</span>
               </span>
               <Icon name="right" size={16} className="text-ink-3" />
             </Link>

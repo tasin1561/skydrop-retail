@@ -5,6 +5,7 @@ import { isStoreMode, STORES, STORE_MODES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
 import { getT } from "@/i18n/server";
+import { StoreName } from "@/components/store/StoreName";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getT()).t("deals.meta") };
@@ -39,13 +40,10 @@ export default async function DealsPage({ searchParams }: { searchParams: SP }) 
             href={m === "all" ? "/deals" : `/deals?store=${m}`}
             data-store={m}
             aria-current={m === store ? "page" : undefined}
-            className={
-              "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition " +
-              (m === store ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-accent")
-            }
+            className={"sn inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm transition " + (m === store ? "shadow-[var(--glow)]" : "bg-surface shadow-[var(--shadow-1)]")}
+            style={m === store ? { background: "var(--sn-fill)" } : undefined}
           >
-            <Icon name={STORES[m].icon} size={15} stroke={2} />
-            {m === "all" ? t("search.allStores") : STORES[m].name}
+            <StoreName mode={m} fill={m === store} name={m === "all" ? t("search.allStores") : STORES[m].name} />
           </Link>
         ))}
       </nav>

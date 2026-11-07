@@ -1,0 +1,111 @@
+/* StoreName: store names as text only (no logos, no icons), in our own per-store gradients.
+   Tokens are text-safe shades of each store's accent, picked so both gradient stops pass WCAG AA
+   (4.5:1) on surface, bg, surface-2 and the pill tint, in light and dark. --sn-fill is the
+   selected fill, dark enough for white text (>= 5.3:1). Nothing here is a third-party colour. */
+
+.sn {
+  --sn-shine: rgb(255 255 255 / 0.9);
+}
+.sn[data-store="all"] { --sn-a: #5b3df5; --sn-b: #c0301a; --sn-ring: #5b3df5; --sn-fill: linear-gradient(100deg, #5b3df5, #c0301a); }
+.sn[data-store="amazon"] { --sn-a: #5b3df5; --sn-b: #9426c4; --sn-ring: #5b3df5; --sn-fill: #5b3df5; }
+.sn[data-store="flipkart"] { --sn-a: #c8185f; --sn-b: #b8361a; --sn-ring: #e11d74; --sn-fill: #c8185f; }
+.sn[data-store="bigbasket"] { --sn-a: #0a7a55; --sn-b: #0b7287; --sn-ring: #0e9f6e; --sn-fill: #0a7a55; }
+
+/* dark theme (and tone="dark" for names sitting on deep store tints in light mode) */
+:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="all"],
+.sn[data-tone="dark"][data-store="all"] { --sn-a: #9a8cff; --sn-b: #ff7a5c; --sn-ring: #7c6cff; }
+:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="amazon"],
+.sn[data-tone="dark"][data-store="amazon"] { --sn-a: #9a8cff; --sn-b: #c98bff; --sn-ring: #7c6cff; }
+:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="flipkart"],
+.sn[data-tone="dark"][data-store="flipkart"] { --sn-a: #f25a9b; --sn-b: #ff8a6b; --sn-ring: #f0468f; }
+:root[data-theme="dark"] .sn:not([data-tone="light"])[data-store="bigbasket"],
+.sn[data-tone="dark"][data-store="bigbasket"] { --sn-a: #2fcf96; --sn-b: #5fd3e0; --sn-ring: #22c08a; }
+:root[data-theme="dark"] .sn { --sn-shine: rgb(255 255 255 / 0.95); }
+
+/* on a filled accent (selected pill, active segment): near-white text, the shine is a store tint */
+.sn[data-fill] {
+  --sn-a: #ffffff;
+  --sn-b: #ffffff;
+  --sn-shine: color-mix(in srgb, var(--sn-ring) 22%, #ffd9c9);
+}
+
+.sn-g {
+  background-image:
+    linear-gradient(105deg, transparent 0 42%, var(--sn-shine) 50%, transparent 58% 100%),
+    linear-gradient(90deg, var(--sn-a), var(--sn-b));
+  background-size: 260% 100%, 100% 100%;
+  background-position: -12% 0, 0 0; /* the shine waits off to the right */
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--sn-a); /* fallback when text clipping is unavailable */
+  -webkit-text-fill-color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+  .sn-g {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+@media (forced-colors: active) {
+  .sn-g {
+    background: none;
+    -webkit-text-fill-color: CanvasText;
+    color: CanvasText;
+  }
+}
+
+/* variants */
+.sn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  background: color-mix(in srgb, var(--sn-ring) 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sn-ring) 55%, transparent);
+  transition:
+    background-color var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease);
+}
+.sn-pill[data-fill] {
+  background: var(--sn-fill);
+  box-shadow: none;
+}
+/* the header segment draws its own sliding fill */
+.sn-pill[data-bare] {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* the shine: one ~900ms sweep when the name first scrolls into view, again on hover / keyboard
+   focus of its link or button, and when it becomes the selected store. Never loops. */
+@keyframes sn-sweep-in { from { background-position: 112% 0, 0 0; } to { background-position: -12% 0, 0 0; } }
+@keyframes sn-sweep-hover { from { background-position: 112% 0, 0 0; } to { background-position: -12% 0, 0 0; } }
+@keyframes sn-sweep-on { from { background-position: 112% 0, 0 0; } to { background-position: -12% 0, 0 0; } }
+
+.sn[data-seen="1"] .sn-g {
+  animation: sn-sweep-in 900ms var(--ease) 1;
+}
+@media (hover: hover) {
+  :is(a, button, [role="radio"], [role="tab"], label):not([aria-checked="true"], [aria-selected="true"], [aria-current="page"], [aria-pressed="true"]):hover .sn-g,
+  .sn:hover .sn-g {
+    animation: sn-sweep-hover 900ms var(--ease) 1;
+  }
+}
+:is(a, button, [role="radio"], [role="tab"], label):not([aria-checked="true"], [aria-selected="true"], [aria-current="page"], [aria-pressed="true"]):focus-visible .sn-g {
+  animation: sn-sweep-hover 900ms var(--ease) 1;
+}
+:is([aria-checked="true"], [aria-selected="true"], [aria-current="page"], [aria-pressed="true"]) .sn-g,
+.sn[data-fill] .sn-g {
+  animation: sn-sweep-on 900ms var(--ease) 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sn .sn-g {
+    animation: none !important;
+  }
+}

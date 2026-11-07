@@ -7,6 +7,7 @@ import { useT } from "@/i18n/client";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
+import { StoreName } from "../store/StoreName";
 
 type Scene = { mode: StoreMode; images: (string | null)[] };
 
@@ -41,10 +42,14 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
 
       <div className={`relative grid gap-6 ${fixed ? "p-4" : "p-5"} sm:p-8 md:grid-cols-[1.15fr_1fr] md:items-center lg:p-10`}>
         <div key={scene.mode} className="fade-in">
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white/90">
-            <Icon name={info.icon} size={14} stroke={2} />
-            {scene.mode === "all" ? "Skydrop Retail" : t("hero.sourced", { store: info.name, source: info.source })}
-          </span>
+          {scene.mode === "all" ? (
+            <span className="inline-flex items-center rounded-md border border-white/20 px-2 py-1 text-xs font-medium text-white/90">Skydrop Retail</span>
+          ) : (
+            <span className="inline-flex flex-wrap items-baseline gap-x-1.5 rounded-md border border-white/20 bg-black/20 px-2.5 py-1 text-xs font-medium text-white/85">
+              <StoreName mode={scene.mode} tone="dark" size="text-sm" />
+              <span>· {t("home.sourcedFrom", { source: info.source })}</span>
+            </span>
+          )}
           <h1 className={`${fixed ? "mt-2 text-[20px]" : "mt-3 text-[26px]"} font-bold leading-[1.15] tracking-tight sm:text-4xl lg:text-[44px]`}>{info.heroTitle}</h1>
           <p className={`mt-3 max-w-md text-sm text-white/85 sm:text-base ${fixed ? "hidden sm:block" : ""}`}>{info.heroText}</p>
           <div className={`${fixed ? "mt-3" : "mt-5"} flex flex-wrap gap-2`}>
@@ -116,8 +121,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
                 (s.mode === scene.mode ? "bg-white text-[color:var(--hero-a)]" : "bg-white/15 text-white hover:bg-white/25")
               }
             >
-              <Icon name={STORES[s.mode].icon} size={14} stroke={2} />
-              {s.mode === "all" ? t("store.all.name") : STORES[s.mode].name}
+              <StoreName mode={s.mode} tone={s.mode === scene.mode ? "light" : "dark"} name={s.mode === "all" ? t("store.all.name") : STORES[s.mode].name} />
             </button>
           ))}
         </div>

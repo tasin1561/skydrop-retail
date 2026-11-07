@@ -10,6 +10,7 @@ import { useFeatures } from "@/components/features/FeaturesProvider";
 import { useT } from "@/i18n/client";
 import { Icon } from "../Icon";
 import { useCurrentMode } from "../StoreTheme";
+import { StoreName } from "./StoreName";
 import { startRouteProgress } from "../motion/RouteProgress";
 import { ModalShell, useClosing } from "./ModalShell";
 
@@ -130,8 +131,8 @@ function StoreSegmented() {
         <span
           aria-hidden
           data-store={shown}
-          className="seg-ind absolute bottom-1 left-0 top-1 w-[100px] origin-left rounded-full bg-accent shadow-[0_1px_2px_rgb(0_0_0/0.12)]"
-          style={{ transform: `translateX(${pill.x}px) scaleX(${pill.w / 100})`, opacity: pill.ok ? 1 : 0 }}
+          className="sn seg-ind absolute bottom-1 left-0 top-1 w-[100px] origin-left rounded-full shadow-[0_1px_2px_rgb(0_0_0/0.12)]"
+          style={{ transform: `translateX(${pill.x}px) scaleX(${pill.w / 100})`, opacity: pill.ok ? 1 : 0, background: "var(--sn-fill)" }}
         />
         {modes.map((m) => {
           const on = m === shown;
@@ -146,16 +147,12 @@ function StoreSegmented() {
               data-mode={m}
               data-store={m}
               onClick={() => !on && pick(m)}
-              className={
-                "relative z-10 inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-offset-1 " +
-                (on ? "text-white" : "text-ink-2 hover:text-ink") +
-                // until the indicator is measured (server HTML) the checked option paints its own fill
-                (on && !pill.ok ? " bg-accent" : "")
-              }
+              className="sn relative z-10 inline-flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-sm focus-visible:outline-offset-1"
+              // until the indicator is measured (server HTML) the checked option paints its own fill
+              style={on && !pill.ok ? { background: "var(--sn-fill)" } : undefined}
             >
-              <Icon name={s.icon} size={15} stroke={2} className={on ? "" : "text-accent"} />
-              {m === "all" ? t("search.allStores") : s.name}
-              {m !== "all" && <span className={"hidden font-medium lg:inline " + (on ? "text-white/80" : "text-ink-3")}>· {s.source}</span>}
+              <StoreName mode={m} variant="pill" fill={on} bare name={m === "all" ? t("search.allStores") : s.name} />
+              {m !== "all" && <span className={"ml-1.5 hidden text-xs font-medium lg:inline " + (on ? "text-white/85" : "text-ink-2")}>· {s.source}</span>}
             </button>
           );
         })}
@@ -182,10 +179,7 @@ function StoreSwitchButton() {
         className="flex min-h-11 max-w-full items-center gap-2 rounded-full bg-surface-2 py-1.5 pl-3 pr-2.5 text-sm ring-1 ring-line/60 transition-colors duration-200 active:bg-line/40 md:hidden"
       >
         <span className="shrink-0 font-medium text-ink-2">{t("header.shoppingAt")}</span>
-        <span data-store={shown} className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-accent">
-          <Icon name={s.icon} size={14} stroke={2} />
-        </span>
-        <span className="min-w-0 truncate font-bold text-ink">{shown === "all" ? t("search.allStores") : s.name}</span>
+        <StoreName mode={shown} variant="pill" name={shown === "all" ? t("search.allStores") : s.name} className="min-w-0 truncate" />
         <Icon name="chevron" size={16} className="shrink-0 text-ink-3" />
       </button>
       {open && <StoreSheet onClose={() => setOpen(false)} current={shown} modes={modes} />}
@@ -244,19 +238,18 @@ function StoreSheet({ onClose, current, modes }: { onClose: () => void; current:
               onClick={() => choose(m)}
               className="sp-card flex min-h-[64px] w-full items-center gap-3 rounded-[14px] border border-line bg-surface px-3 py-2.5 text-left"
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-accent">
-                <Icon name={s.icon} size={20} stroke={2} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span className="font-bold text-ink">{m === "all" ? t("search.allStores") : s.name}</span>
-                  <span className="text-xs font-medium text-ink-3">{m === "all" ? s.source : t("picker.from", { source: s.source })}</span>
+              <span className="min-w-0 flex-1 pl-1">
+                <span className="flex flex-wrap items-baseline gap-x-2">
+                  <StoreName mode={m} name={m === "all" ? t("search.allStores") : s.name} size="text-[17px]" className="tracking-tight" />
+                  <span className="text-xs font-medium text-ink-2">{m === "all" ? s.source : t("picker.from", { source: s.source })}</span>
                 </span>
                 <span className="mt-0.5 block text-xs leading-snug text-ink-2">{s.tagline}</span>
               </span>
               <span
                 aria-hidden
-                className={"grid h-6 w-6 shrink-0 place-items-center rounded-full " + (on ? "bg-accent text-white" : "ring-1 ring-line")}
+                data-store={m}
+                className={"sn grid h-6 w-6 shrink-0 place-items-center rounded-full text-white " + (on ? "" : "ring-1 ring-line")}
+                style={on ? { background: "var(--sn-fill)" } : undefined}
               >
                 {on && <Icon name="check" size={14} stroke={2.6} />}
               </span>

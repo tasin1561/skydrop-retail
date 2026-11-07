@@ -16,6 +16,7 @@ import { getT } from "@/i18n/server";
 import { catLabel } from "@/lib/categories";
 import { parseBrands } from "@/lib/brands";
 import { ActiveFilters } from "@/components/search/ActiveFilters";
+import { StoreName } from "@/components/store/StoreName";
 
 type SP = Record<string, string | string[] | undefined>;
 type Params = { path: string[] };
@@ -167,16 +168,15 @@ export default async function CategoryPage({ params, searchParams }: { params: P
               key={m}
               href={href(path, m)}
               aria-current={on ? "page" : undefined}
-              className={
-                "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold " +
-                (on ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)]")
-              }
+              data-store={m}
+              className={"sn inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm " + (on ? "shadow-[var(--glow)]" : "bg-surface shadow-[var(--shadow-1)]")}
+              style={on ? { background: "var(--sn-fill)" } : undefined}
             >
-              <Icon name={STORES[m].icon} size={15} /> {label}
+              <StoreName mode={m} name={label} fill={on} />
             </Link>
           ) : (
-            <span key={m} aria-disabled="true" title={t("c.notSold", { source: STORES[m].source })} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm text-ink-3 opacity-60">
-              <Icon name={STORES[m].icon} size={15} /> {label}
+            <span key={m} aria-disabled="true" title={t("c.notSold", { source: STORES[m].source })} className="inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm opacity-50">
+              <StoreName mode={m} name={label} />
             </span>
           );
         })}

@@ -12,6 +12,7 @@ import { useFeature } from "@/components/features/FeaturesProvider";
 import { useT } from "@/i18n/client";
 import { Icon } from "../Icon";
 import { useUrlMode } from "../StoreTheme";
+import { StoreName } from "./StoreName";
 import { ModalShell, useClosing } from "./ModalShell";
 import { announce, useEnabledModes } from "./StoreSwitch";
 
@@ -127,13 +128,9 @@ function PickerDialog({ modes, onDone }: { modes: StoreMode[]; onDone: () => voi
                   className="sp-card group relative flex h-full w-full items-center gap-3 overflow-hidden rounded-[14px] border border-line bg-surface p-3.5 text-left sm:flex-col sm:items-start sm:gap-0 sm:p-4"
                 >
                   <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent sm:inset-x-0 sm:bottom-auto sm:top-0 sm:h-1 sm:w-auto" />
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft)] text-accent">
-                    <Icon name={s.icon} size={22} stroke={2} />
-                  </span>
-                  <span className="min-w-0 flex-1 sm:mt-3 sm:w-full">
-                    <span className="block text-base font-extrabold text-ink">{s.name}</span>
-                    <span className="block text-xs font-semibold text-accent">{t("picker.from", { source: s.source })}</span>
-                    <span className="mt-1.5 block text-xs leading-snug text-ink-2">{s.categories.slice(0, 3).map((c) => c.label).join(" · ")}</span>
+                  <span className="min-w-0 flex-1 pl-1 sm:w-full sm:pl-0 sm:pt-1">
+                    <StoreName mode={m} variant="hero" source size="text-[22px] sm:text-[26px]" />
+                    <span className="mt-2 block text-xs leading-snug text-ink-2">{s.categories.slice(0, 3).map((c) => c.label).join(" · ")}</span>
                   </span>
                   <Icon name="arrow" size={18} className="shrink-0 text-ink-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-accent sm:hidden" />
                 </button>
@@ -149,11 +146,8 @@ function PickerDialog({ modes, onDone }: { modes: StoreMode[]; onDone: () => voi
             onClick={() => choose("all", "browse_all")}
             className="sp-card flex min-h-[52px] w-full items-center gap-3 rounded-[14px] border border-dashed border-line bg-surface-2/60 px-3.5 py-2.5 text-left"
           >
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface text-ink-2 ring-1 ring-line">
-              <Icon name="globe" size={18} stroke={2} />
-            </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-ink">{t("picker.browseAll")}</span>
+              <StoreName mode="all" name={t("picker.browseAll")} size="text-[15px]" className="block" />
               <span className="block text-xs text-ink-2">{t("picker.browseAllText")}</span>
             </span>
           </button>

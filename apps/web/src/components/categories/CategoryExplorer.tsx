@@ -10,6 +10,7 @@ import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
 import { catHref, catLabel, filterTree, useIsBn } from "./useCategoryMenu";
 import { useT } from "@/i18n/client";
+import { StoreName } from "@/components/store/StoreName";
 
 const fold = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
 
@@ -62,13 +63,11 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
               type="button"
               aria-pressed={store === m}
               onClick={() => setStore(m)}
-              className={
-                "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold " +
-                (store === m ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)]")
-              }
+              data-store={m}
+              className={"sn inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm " + (store === m ? "shadow-[var(--glow)]" : "bg-surface shadow-[var(--shadow-1)]")}
+              style={store === m ? { background: "var(--sn-fill)" } : undefined}
             >
-              <Icon name={STORES[m].icon} size={15} />
-              {m === "all" ? t("common.all") : STORES[m].name}
+              <StoreName mode={m} fill={store === m} name={m === "all" ? t("common.all") : STORES[m].name} />
             </button>
           ))}
         </div>

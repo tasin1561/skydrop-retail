@@ -5,6 +5,7 @@ import { MARKET_IDS, storeText } from "@/lib/markets";
 import { useT } from "@/i18n/client";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
+import { StoreName } from "../store/StoreName";
 
 export function StoreCards() {
   const { enabled } = useStore();
@@ -24,17 +25,14 @@ export function StoreCards() {
               key={m}
               href={`/store/${m}`}
               data-store={m}
-              className="rise group relative w-[78vw] max-w-[320px] shrink-0 overflow-hidden rounded-3xl p-4 text-white sm:w-auto sm:max-w-none shadow-[var(--shadow-1)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
-              style={{ ["--i" as string]: i, background: "linear-gradient(135deg, var(--hero-a), var(--hero-b))" }}
+              className="sn rise group relative flex w-[78vw] max-w-[320px] shrink-0 flex-col overflow-hidden rounded-3xl border border-line bg-surface p-4 sm:w-auto sm:max-w-none sm:p-5 shadow-[var(--shadow-1)] transition hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--accent)_45%,var(--line))] hover:shadow-[var(--shadow-2)]"
+              style={{ ["--i" as string]: i, backgroundImage: "radial-gradient(120% 90% at 100% 0%, var(--accent-soft), transparent 60%)" }}
             >
-              <span aria-hidden className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 transition-transform duration-200 group-hover:scale-100" />
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/20">
-                <Icon name={s.icon} size={22} stroke={2} />
-              </span>
-              <h3 className="mt-3 text-lg font-extrabold">{s.name}</h3>
-              <p className="text-xs text-white/85">{t("home.sourcedFrom", { source: s.source })}</p>
-              <p className="mt-2 line-clamp-2 text-xs text-white/80">{s.tagline}</p>
-              <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold">
+              <h3>
+                <StoreName mode={m} variant="hero" source />
+              </h3>
+              <p className="mt-2 line-clamp-2 text-sm text-ink-2">{s.tagline}</p>
+              <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-[color:var(--sn-a)]">
                 {t("home.enterStore")} <Icon name="arrow" size={16} className="transition-transform group-hover:translate-x-1" />
               </span>
             </Link>

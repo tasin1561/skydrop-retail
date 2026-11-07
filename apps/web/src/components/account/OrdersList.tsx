@@ -12,6 +12,7 @@ import { ProgressBar, StatusChip, Thumb, orderDate, shortId } from "./OrderBits"
 import { useT } from "@/i18n/client";
 import { rich } from "@/i18n/rich";
 import type { MsgKey } from "@/i18n/core";
+import { StoreName } from "@/components/store/StoreName";
 
 type Tab = "all" | "active" | "delivered" | "cancelled";
 
@@ -136,9 +137,7 @@ function OrderCard({ o, s }: { o: Order; s: OrderStatus }) {
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {stores.map((m) => (
-              <span key={m} data-store={m} className="ac-chip h-6 text-[11px]">
-                <Icon name={STORES[m].icon} size={11} /> {STORES[m].source}
-              </span>
+              <StoreName key={m} mode={m} variant="pill" size="text-[11px]" source className="!min-h-6" />
             ))}
           </div>
         </div>

@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
 import { MARKET_IDS, STORES } from "@/lib/markets";
 import { LoadingBlock, PageHead, useShake } from "./ui";
+import { StoreName } from "@/components/store/StoreName";
 
 export function MarketplacesAdmin() {
   const { ready, enabled, setEnabled } = useStore();
@@ -76,13 +77,10 @@ export function MarketplacesAdmin() {
                 style={{ ["--i" as string]: i, ...(on ? { boxShadow: "var(--shadow-1), 0 0 0 2px var(--accent-soft)" } : {}) }}
               >
                 <div className="flex items-start gap-3">
-                  <span className="chip-icon h-11 w-11 shrink-0 rounded-2xl">
-                    <Icon name={s.icon} size={20} />
-                  </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 id={`mk-${m}`} className="font-bold">
-                        {s.name}
+                      <h2 id={`mk-${m}`}>
+                        <StoreName mode={m} size="text-xl" className="tracking-tight" />
                       </h2>
                       <span className="ac-chip" data-tone={on ? "good" : "muted"}>
                         <Icon name={on ? "check" : "x"} size={12} stroke={2.6} /> {on ? "Live" : "Hidden"}

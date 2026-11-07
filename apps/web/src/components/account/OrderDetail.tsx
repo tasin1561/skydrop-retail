@@ -19,6 +19,7 @@ import { useT } from "@/i18n/client";
 import { bdName } from "@/lib/bd";
 import { apiEnabled } from "@/lib/apiClient";
 import { SignedOut } from "./SignedOut";
+import { StoreName } from "@/components/store/StoreName";
 
 const TRACK_URL = "https://track.skydrop.online";
 
@@ -114,11 +115,10 @@ export function OrderDetail({ id }: { id: string }) {
           {(Object.entries(groupByMarket(order.items)) as [MarketId, Order["items"]][]).map(([m, items], gi) => (
             <div key={m} data-store={m} className="card rise overflow-hidden" style={{ ["--i" as string]: gi + 1 }}>
               <div className="flex items-center gap-3 px-4 py-3" style={{ background: "var(--accent-soft)" }}>
-                <span className="chip-icon is-active">
-                  <Icon name={STORES[m].icon} size={18} />
-                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold">{STORES[m].name}</p>
+                  <p>
+                    <StoreName mode={m} size="text-lg" className="tracking-tight" />
+                  </p>
                   <p className="text-xs text-ink-2">{t("od.boughtFrom", { source: STORES[m].source })}</p>
                 </div>
                 <span className="ac-chip tabular-nums">{t("cart.items", { count: items.reduce((n, i) => n + i.qty, 0) })}</span>
