@@ -9,11 +9,12 @@ import { haptic } from "@/lib/haptics";
 import { T } from "./ui";
 import { useT } from "@/i18n";
 import { DUR, timing } from "@/lib/motion";
+import { useFeature } from "@/lib/features";
 
 export function StoreSwitcher({
   value,
   onChange,
-  modes,
+  modes: allModes,
   compact,
   label,
 }: {
@@ -26,6 +27,13 @@ export function StoreSwitcher({
 }) {
   const { t } = useT();
   const { c } = useTheme();
+  // Admin store switches (feature store.*) hide a store everywhere, on top of the marketplaces list.
+  const flags: Record<string, boolean> = {
+    amazon: useFeature("store.amazon"),
+    flipkart: useFeature("store.flipkart"),
+    bigbasket: useFeature("store.bigbasket"),
+  };
+  const modes = allModes.filter((m) => m === "all" || flags[m] !== false);
   const [layouts, setLayouts] = useState<Record<string, { x: number; w: number }>>({});
   const x = useSharedValue(0);
   const w = useSharedValue(0);
