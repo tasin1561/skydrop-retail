@@ -1,6 +1,7 @@
 @php($alerts = \App\Support\Features::enabled('supplier_price_alerts') ? app(\App\Services\Fulfilment\PriceAlertService::class)->openAlerts() : collect())
 @if ($alerts->isNotEmpty())
-    <div role="alert" style="border:1px solid rgb(244,63,94);background:rgba(244,63,94,.08);color:rgb(190,18,60);border-radius:.75rem;padding:.75rem 1rem;display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap">
+    <style>.sr-price-alert{color:rgb(190,18,60)}.dark .sr-price-alert{color:rgb(253,164,175)}</style>
+    <div role="alert" class="sr-price-alert" style="border:1px solid rgb(244,63,94);background:rgba(244,63,94,.08);border-radius:.75rem;padding:.75rem 1rem;display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap">
         <strong style="flex:none">{{ $alerts->count() }} price alert(s)</strong>
         <span style="flex:1;min-width:14rem;color:inherit">
             @foreach ($alerts->take(4) as $i)
@@ -11,6 +12,10 @@
                 </span>
             @endforeach
         </span>
-        <a href="{{ \App\Filament\Pages\PriceAlerts::getUrl() }}" style="font-weight:700;text-decoration:underline;min-height:44px;display:inline-flex;align-items:center">Review before buying →</a>
+        @if (\App\Filament\Pages\PriceAlerts::canAccess())
+            <a href="{{ \App\Filament\Pages\PriceAlerts::getUrl() }}" style="font-weight:700;text-decoration:underline;min-height:44px;display:inline-flex;align-items:center">Review before buying →</a>
+        @else
+            <span style="font-weight:700;min-height:44px;display:inline-flex;align-items:center">Ask a manager to review before buying.</span>
+        @endif
     </div>
 @endif

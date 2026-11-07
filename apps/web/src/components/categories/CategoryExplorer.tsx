@@ -101,7 +101,7 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
                 </span>
                 <div className="min-w-0 flex-1">
                   <h2 id={`cat-${top.path}`} className="text-base font-extrabold leading-tight">
-                    <Link href={catHref(top.path, store)} className="hover:text-accent">
+                    <Link href={catHref(top.path, store)} className="-my-2.5 inline-flex min-h-11 items-center hover:text-accent">
                       {catLabel(top, bn)}
                     </Link>
                   </h2>

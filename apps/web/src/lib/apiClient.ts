@@ -7,13 +7,27 @@ import { takeTurnstileToken } from "./turnstile";
 export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 export const apiEnabled = API_URL.length > 0;
 
-let token: string | null = null;
+// undefined = not loaded yet. Child components can fetch before the store restores the session (effects run child-first),
+// so on first use read the token the store saved in localStorage ("skydrop-retail:v1") instead of calling signed out.
+let token: string | null | undefined = undefined;
+function currentToken(): string | null {
+  if (token === undefined) {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("skydrop-retail:v1") : null;
+      const t = raw ? (JSON.parse(raw) as { token?: unknown }).token : null;
+      token = typeof t === "string" && t ? t : null;
+    } catch {
+      token = null;
+    }
+  }
+  return token;
+}
 export function setApiToken(t: string | null) {
   token = t;
 }
 /** Current bearer token (used by the tracking lib for POST /track). */
 export function getApiToken() {
-  return token;
+  return currentToken();
 }
 
 export class ApiError extends Error {
@@ -32,7 +46,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: {
       Accept: "application/json",
       ...(init.body ? { "Content-Type": "application/json" } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(currentToken() ? { Authorization: `Bearer ${currentToken()}` } : {}),
       ...(init.headers ?? {}),
     },
   });

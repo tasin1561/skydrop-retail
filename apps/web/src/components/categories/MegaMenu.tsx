@@ -127,8 +127,8 @@ export function MegaMenu() {
         className="inline-flex h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold text-ink transition-transform active:scale-[0.97]"
       >
         <Icon name="grid" size={18} />
-        <span className="hidden lg:inline">{t("cat.allCategories")}</span>
-        <span className="lg:hidden">{t("cat.categories")}</span>
+        <span className="hidden 2xl:inline">{t("cat.allCategories")}</span>
+        <span className="2xl:hidden">{t("cat.categories")}</span>
         <Icon name="chevron" size={16} className="cm-chev" />
       </button>
 

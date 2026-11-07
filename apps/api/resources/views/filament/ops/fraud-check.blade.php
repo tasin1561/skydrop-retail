@@ -10,7 +10,7 @@
             <div style="display:flex;align-items:center;gap:1rem">
                 <div style="font-size:2.25rem;font-weight:800;color:{{ $color }}">{{ $result['score'] }}</div>
                 <div><b style="color:{{ $color }};text-transform:uppercase">{{ $result['level'] }} risk</b><br>
-                    <small style="opacity:.7">{{ $phone }} · courier success {{ $result['courier_success'] !== null ? round($result['courier_success'] * 100).'%' : 'no history' }} over {{ $result['courier_total'] }} parcel(s)</small></div>
+                    <small style="opacity:.7">{{ $phone }} · @if ($result['courier_success'] !== null)courier success {{ round($result['courier_success'] * 100) }}% over {{ $result['courier_total'] }} {{ \Illuminate\Support\Str::plural('parcel', $result['courier_total']) }}@else no courier history @endif</small></div>
             </div>
             <div>
                 <h3 style="font-weight:600">Reasons</h3>
@@ -27,7 +27,7 @@
                         <tr><td>{{ ucfirst($id) }}</td><td>{{ $c['total'] }}</td><td>{{ $c['delivered'] }}</td><td>{{ $c['cancelled'] }}</td>
                             <td style="opacity:.7">{{ isset($c['error']) ? 'error: '.$c['error'] : ($c['cached'] ? 'cached' : 'live') }}</td></tr>
                     @empty
-                        <tr><td colspan="5" style="opacity:.6">No courier accounts configured (set STEADFAST_API_KEY / STEADFAST_SECRET_KEY).</td></tr>
+                        <tr><td colspan="5" style="opacity:.6">No courier accounts connected. Add the Steadfast / Pathao / CarryBee merchant logins under System → Finance &amp; security.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

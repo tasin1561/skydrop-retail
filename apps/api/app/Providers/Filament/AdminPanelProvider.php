@@ -7,9 +7,10 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Middleware\AdminGuard;
 use App\Http\Middleware\AdminRequire2fa;
 use App\Http\Middleware\AuthorizePanelPage;
+use App\Support\BizTime;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
-use Filament\FontProviders\GoogleFontProvider;
-use Filament\Http\Middleware\Authenticate; // filters widgets by permission (RBAC)
+use Filament\FontProviders\GoogleFontProvider; // filters widgets by permission (RBAC)
+use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -17,6 +18,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,6 +30,12 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public function boot(): void
+    {
+        // Staff work in Bangladesh: every admin date/time picker and column shows and takes Dhaka time (stored as UTC).
+        FilamentTimezone::set(BizTime::TZ);
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel

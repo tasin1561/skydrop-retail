@@ -133,9 +133,9 @@ export function GiftCardShop({ redeem }: { redeem?: boolean }) {
         </p>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_380px]">
         <form onSubmit={buy} className="order-2 space-y-5 md:order-1" noValidate>
-          <fieldset className="card p-4">
+          <fieldset className="card min-w-0 p-4">
             <legend className="sr-only">{t("gc.amount")}</legend>
             <p className="mb-3 text-sm font-extrabold">{t("gc.step1")}</p>
             <div role="radiogroup" aria-label={t("gc.amount")} className="flex flex-wrap gap-2">
@@ -170,7 +170,7 @@ export function GiftCardShop({ redeem }: { redeem?: boolean }) {
             {custom && !inRange && <p className="mt-1 text-xs font-semibold text-bad">{t("gc.between", { min: bdt(cfg.minBdt), max: bdt(cfg.maxBdt) })}</p>}
           </fieldset>
 
-          <fieldset className="card p-4">
+          <fieldset className="card min-w-0 p-4">
             <legend className="sr-only">{t("gc.design")}</legend>
             <p className="mb-3 text-sm font-extrabold">{t("gc.step2")}</p>
             <div role="radiogroup" aria-label={t("gc.design")} className="grid grid-cols-5 gap-2">
@@ -190,7 +190,7 @@ export function GiftCardShop({ redeem }: { redeem?: boolean }) {
             </div>
           </fieldset>
 
-          <fieldset className="card space-y-3 p-4">
+          <fieldset className="card min-w-0 space-y-3 p-4">
             <legend className="sr-only">{t("gc.recipient")}</legend>
             <p className="text-sm font-extrabold">{t("gc.step3")}</p>
             {[
@@ -229,7 +229,7 @@ export function GiftCardShop({ redeem }: { redeem?: boolean }) {
             </div>
           </fieldset>
 
-          <fieldset className="card p-4">
+          <fieldset className="card min-w-0 p-4">
             <legend className="sr-only">{t("gc.payment")}</legend>
             <p className="mb-3 text-sm font-extrabold">{t("gc.step4")}</p>
             <div role="radiogroup" aria-label={t("pay.method")} className="flex flex-wrap gap-2">

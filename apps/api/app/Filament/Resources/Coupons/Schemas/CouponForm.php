@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Coupons\Schemas;
 
+use App\Models\Coupon;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -19,10 +20,21 @@ class CouponForm
         return $schema
             ->components([
                 Section::make()->columns(2)->schema([
-                    TextInput::make('code')->required()->maxLength(30)->unique(ignoreRecord: true)
+                    TextInput::make('code')->required()->maxLength(30)
+                        ->regex('/^\s*[A-Za-z0-9_-]+\s*$/')->validationMessages(['regex' => 'Use letters, numbers, - and _ only (no spaces).'])
+                        // Codes are stored upper-case, so "skydrop10" must clash with "SKYDROP10".
+                        ->rule(fn (?Coupon $record) => function (string $attribute, mixed $value, \Closure $fail) use ($record) {
+                            $taken = Coupon::query()->whereRaw('upper(code) = ?', [strtoupper(trim((string) $value))])
+                                ->when($record, fn ($q) => $q->whereKeyNot($record->getKey()))->exists();
+                            if ($taken) {
+                                $fail('This code already exists.');
+                            }
+                        })
                         ->dehydrateStateUsing(fn ($state) => strtoupper(trim((string) $state))),
                     Select::make('type')->options(self::TYPES)->required()->live(),
-                    TextInput::make('value')->numeric()->minValue(0)->default(0)
+                    TextInput::make('value')->numeric()->minValue(1)->default(0)
+                        ->required(fn (Get $get) => $get('type') !== 'free_shipping')
+                        ->maxValue(fn (Get $get) => $get('type') === 'percent_items' ? 100 : null)
                         ->suffix(fn (Get $get) => $get('type') === 'percent_items' ? '%' : '৳')
                         ->hidden(fn (Get $get) => $get('type') === 'free_shipping'),
                     TextInput::make('max_discount_bdt')->label('Max discount')->prefix('৳')->numeric()->minValue(0)

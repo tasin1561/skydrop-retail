@@ -2,9 +2,9 @@
 
 namespace App\Services\Finance;
 
-use App\Support\BizTime;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Support\BizTime;
 use App\Support\Knobs;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -97,7 +97,7 @@ class AccountingService
         $out = ['points' => ['label' => 'Skydrop Points', 'amount' => round($points / $block * $blockBdt, 2), 'note' => number_format($points).' points outstanding']];
 
         if (Schema::hasColumn('users', 'wallet_balance_bdt')) {
-            $out['wallet'] = ['label' => 'Store credit wallets', 'amount' => round((float) DB::table('users')->sum('wallet_balance_bdt'), 2), 'note' => 'users.wallet_balance_bdt'];
+            $out['wallet'] = ['label' => 'Store credit wallets', 'amount' => round((float) DB::table('users')->sum('wallet_balance_bdt'), 2), 'note' => 'Balance customers can still spend'];
         }
         if (Schema::hasTable('gift_cards')) {
             $q = DB::table('gift_cards')->where('status', 'active');

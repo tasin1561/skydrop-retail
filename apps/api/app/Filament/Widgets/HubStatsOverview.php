@@ -47,10 +47,10 @@ class HubStatsOverview extends StatsOverviewWidget
 
         return [
             Stat::make('Awaiting arrival', number_format($awaiting))->description('Items bought, not yet at the hub')
-                ->icon(Heroicon::OutlinedTruck)->color('warning')->url(HubReceive::getUrl()),
+                ->icon(Heroicon::OutlinedTruck)->color('warning')->url(HubReceive::canAccess() ? HubReceive::getUrl() : null),
             Stat::make('Received today', number_format($receivedToday))->description('Kolkata time')->icon(Heroicon::OutlinedInboxArrowDown)->color('success'),
             Stat::make('Discrepancies', number_format($openTasks))->description($discrepancies30.' damaged / wrong in 30 days')
-                ->icon(Heroicon::OutlinedExclamationTriangle)->color($openTasks ? 'danger' : 'gray')->url(HubTaskResource::getUrl()),
+                ->icon(Heroicon::OutlinedExclamationTriangle)->color($openTasks ? 'danger' : 'gray')->url(HubTaskResource::canViewAny() ? HubTaskResource::getUrl() : null),
             Stat::make('Purchase → hub', $avg !== null ? $avg.' days' : '—')->description('Average, last 30 days')->icon(Heroicon::OutlinedClock),
         ];
     }

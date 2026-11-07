@@ -22,11 +22,11 @@ class FlashSaleForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()->columns(3)->schema([
-                TextInput::make('title')->required()->maxLength(160)->columnSpan(2)->placeholder('Midnight electronics flash'),
+            Section::make()->columns(2)->schema([ // two columns: date-time pickers were too narrow to show the time
+                TextInput::make('title')->required()->maxLength(160)->placeholder('Midnight electronics flash'),
                 Select::make('store')->options(BannerForm::stores())->default('all')->required(),
-                DateTimePicker::make('starts_at')->required()->seconds(false)->default(now()->startOfHour()->addHour()),
-                DateTimePicker::make('ends_at')->required()->seconds(false)->after('starts_at'),
+                DateTimePicker::make('starts_at')->required()->seconds(false)->default(now()->startOfHour()->addHour())->helperText('Bangladesh time'),
+                DateTimePicker::make('ends_at')->required()->seconds(false)->after('starts_at')->helperText('Bangladesh time'),
                 TextInput::make('max_qty')->label('Max qty per order (per product)')->numeric()->minValue(1)->placeholder('No limit'),
                 Toggle::make('active')->default(true),
             ]),

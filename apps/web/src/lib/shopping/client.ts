@@ -53,7 +53,10 @@ export type HistoryInput = Pick<Product, "id" | "priceInr" | "category" | "effec
 
 export async function fetchPriceHistory(p: HistoryInput, days: number): Promise<PriceHistory> {
   if (!apiEnabled) return demoHistory(p, days);
-  return withTimeout(apiRequest.call<PriceHistory>(`/products/${enc(p.id)}/price-history?days=${days}`));
+  // Through our own server: the API only answers price history to the Next.js server (anti-scraping guard).
+  const res = await withTimeout(fetch(`/api/price-history/${enc(p.id)}?days=${days}`, { headers: { Accept: "application/json" } }));
+  if (!res.ok) throw new Error("price history " + res.status);
+  return (await res.json()) as PriceHistory;
 }
 
 // ---------------- compare stores at checkout ----------------

@@ -7,6 +7,7 @@ use App\Filament\Support\Admin;
 use App\Filament\Support\MoneyAdmin;
 use App\Models\GiftCard;
 use App\Services\Money\GiftCardService;
+use App\Support\BizTime;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
@@ -50,7 +51,7 @@ class GiftCardResource extends Resource
                 TextColumn::make('source')->badge()->color('gray'),
                 TextColumn::make('purchaser.name')->label('Bought by')->placeholder('—')->searchable(),
                 TextColumn::make('recipient_name')->label('Recipient')->description(fn (GiftCard $r) => $r->recipient_phone ?? $r->recipient_email)->placeholder('—'),
-                TextColumn::make('redeemer.name')->label('Redeemed by')->description(fn (GiftCard $r) => $r->redeemed_at?->format('d M Y H:i'))->placeholder('—'),
+                TextColumn::make('redeemer.name')->label('Redeemed by')->description(fn (GiftCard $r) => $r->redeemed_at?->copy()->setTimezone(BizTime::TZ)->format('d M Y H:i'))->placeholder('—'),
                 TextColumn::make('batch')->placeholder('—')->toggleable(isToggledHiddenByDefault: true)->searchable(),
                 TextColumn::make('expires_at')->date()->placeholder('Never')->sortable(),
                 TextColumn::make('created_at')->dateTime('d M Y')->sortable()->toggleable(),
@@ -125,9 +126,9 @@ class GiftCardResource extends Resource
             'Status' => GiftCard::STATUSES[$r->status] ?? $r->status, 'Order' => $r->order_id ?? '—',
             'Bought by' => $r->purchaser ? $r->purchaser->name.' ('.$r->purchaser->phone.')' : '—',
             'Recipient' => trim(($r->recipient_name ?? '').' '.($r->recipient_phone ?? '').' '.($r->recipient_email ?? '')) ?: '—',
-            'Message' => $r->message ?? '—', 'Delivered' => $r->delivered_at?->format('d M Y H:i') ?? '—',
-            'Redeemed by' => $r->redeemer ? $r->redeemer->name.' ('.$r->redeemer->phone.') on '.$r->redeemed_at?->format('d M Y H:i') : '—',
-            'Expires' => $r->expires_at?->format('d M Y') ?? 'Never', 'Void reason' => $r->void_reason ?? '—',
+            'Message' => $r->message ?? '—', 'Delivered' => $r->delivered_at?->copy()->setTimezone(BizTime::TZ)->format('d M Y H:i') ?? '—',
+            'Redeemed by' => $r->redeemer ? $r->redeemer->name.' ('.$r->redeemer->phone.') on '.$r->redeemed_at?->copy()->setTimezone(BizTime::TZ)->format('d M Y H:i') : '—',
+            'Expires' => $r->expires_at?->copy()->setTimezone(BizTime::TZ)->format('d M Y') ?? 'Never', 'Void reason' => $r->void_reason ?? '—',
         ];
         $html = '<dl style="display:grid;grid-template-columns:auto 1fr;gap:.4rem 1rem;font-size:.875rem">';
         foreach ($rows as $k => $v) {

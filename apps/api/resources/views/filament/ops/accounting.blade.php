@@ -23,7 +23,7 @@
                     <tr><td>Gift cards sold ({{ $c['gift_card_sales']['count'] }})<br><small style="opacity:.6">Liability until redeemed, not revenue</small></td><td>৳{{ number_format($c['gift_card_sales']['amount']) }}</td></tr>
                 @endif
                 @if ($c['estimated_orders'] > 0)
-                    <tr><td colspan="2" class="ops-warn" style="text-align:left">{{ $c['estimated_orders'] }} order(s) have no actual purchase amount yet (Purchase queue → Bought).</td></tr>
+                    <tr><td colspan="2" class="ops-warn" style="text-align:left;white-space:normal">{{ $c['estimated_orders'] }} order(s) have no actual purchase amount yet (Purchase queue → Bought).</td></tr>
                 @endif
             </tbody></table>
         </div>
@@ -41,7 +41,7 @@
             <h3>Liabilities (now)</h3>
             <table class="ops-table"><tbody>
                 @foreach ($d['liabilities'] as $l)
-                    <tr><td>{{ $l['label'] }}<br><small style="opacity:.6">{{ $l['note'] }}</small></td><td>৳{{ number_format($l['amount']) }}</td></tr>
+                    <tr><td style="white-space:normal">{{ $l['label'] }}<br><small style="opacity:.6">{{ $l['note'] }}</small></td><td>৳{{ number_format($l['amount']) }}</td></tr>
                 @endforeach
             </tbody></table>
         </div>

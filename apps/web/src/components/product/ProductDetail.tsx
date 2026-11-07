@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { storeText } from "@/lib/markets";
 import { getT } from "@/i18n/server";
+import { FollowProductStore } from "@/components/StoreTheme";
 import { discountPct, mrpBdt, priceBdt, weightKg } from "@/lib/pricing";
 import { Icon } from "@/components/Icon";
 import { OriginTag, PriceLine, Stars } from "@/components/ProductBits";
@@ -85,6 +86,7 @@ export async function ProductDetail({
 
   return (
     <div data-store={p.market} className="mx-auto max-w-7xl pb-8 sm:px-6 lg:px-8">
+      <FollowProductStore market={p.market} />
       {/* breadcrumb */}
       <nav aria-label={t("pd.breadcrumb")} className="px-4 pb-2 pt-3 sm:px-0 sm:pt-5">
         <ol className="no-scrollbar flex items-center gap-1 overflow-x-auto whitespace-nowrap text-xs text-ink-2 sm:text-sm">

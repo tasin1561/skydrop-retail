@@ -34,7 +34,7 @@ class LowMarginAlerts extends TableWidget
             ->query(Order::query()->with('items')->whereIn('id', $ids ?: ['__none__']))
             ->defaultSort('created_at')
             ->columns([
-                TextColumn::make('id')->label('Order')->weight('bold')->url(fn (Order $r) => OrderResource::getUrl('view', ['record' => $r])),
+                TextColumn::make('id')->label('Order')->weight('bold')->url(fn (Order $r) => OrderResource::canView($r) ? OrderResource::getUrl('view', ['record' => $r]) : null),
                 TextColumn::make('status')->badge()->formatStateUsing(fn ($state) => Admin::ORDER_STATUS_LABELS[$state] ?? $state)
                     ->color(fn ($state) => Admin::ORDER_STATUS_COLORS[$state] ?? 'gray'),
                 TextColumn::make('items_bdt')->label('Customer paid (items)')->state(fn (Order $r) => Admin::bdt($r->items->sum(fn ($i) => $i->unit_bdt * $i->qty))),

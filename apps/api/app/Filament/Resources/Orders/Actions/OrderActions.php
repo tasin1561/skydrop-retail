@@ -215,6 +215,7 @@ class OrderActions
             ->color('danger')
             ->visible(fn (Order $record) => Admin::can('orders.cancel') && $record->canCancel())
             ->requiresConfirmation()
+            ->modalSubmitActionLabel('Cancel order')->modalCancelActionLabel('Keep order') // "Cancel" next to "Confirm" was ambiguous
             ->modalDescription('Only possible before the items are bought in India. Online payments and redeemed points are refunded automatically.')
             ->schema([Textarea::make('reason')->required()->rows(2), self::refundToField()])
             ->action(function (Order $record, array $data) {

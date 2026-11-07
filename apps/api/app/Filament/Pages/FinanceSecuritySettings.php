@@ -2,10 +2,10 @@
 
 namespace App\Filament\Pages;
 
-use App\Support\AdminSecurity;
 use App\Filament\Concerns\HasPagePermission;
 use App\Models\Setting;
 use App\Services\Fraud\FraudService;
+use App\Support\AdminSecurity;
 use App\Support\Knobs;
 use BackedEnum;
 use Filament\Actions\Action;

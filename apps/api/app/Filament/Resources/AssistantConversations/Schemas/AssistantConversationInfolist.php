@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AssistantConversations\Schemas;
 use App\Models\Assistant\AssistantConversation;
 use App\Models\Assistant\AssistantMessage;
 use App\Services\Assistant\Pii;
+use App\Support\BizTime;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -38,7 +39,7 @@ class AssistantConversationInfolist
         foreach ($c->messages as $m) {
             /** @var AssistantMessage $m */
             $user = $m->role === 'user';
-            $meta = [$m->created_at?->format('d M H:i')];
+            $meta = [$m->created_at?->copy()->setTimezone(BizTime::TZ)->format('d M H:i')];
             if (! $user) {
                 $meta[] = $m->model ?: ($m->degraded ? 'basic mode' : null);
                 $meta[] = $m->cost_usd > 0 ? '$'.number_format($m->cost_usd, 4) : null;

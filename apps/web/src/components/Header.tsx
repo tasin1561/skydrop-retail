@@ -109,7 +109,7 @@ export function Header() {
         </Link>
         {!checkout && <MegaMenu />}
         {!checkout && (
-          <div className="hidden min-w-0 flex-1 md:block">
+          <div className="hidden min-w-0 flex-1 lg:block">
             <SearchBox />
           </div>
         )}
@@ -165,7 +165,8 @@ export function Header() {
         </div>
       </div>
       {!checkout && (
-        <div className="mx-auto max-w-7xl px-4 pb-2.5 md:hidden">
+        // tablets get the full-width search row too; inline it is too narrow to type in below lg
+        <div className="mx-auto max-w-7xl px-4 pb-2.5 lg:hidden">
           <SearchBox />
         </div>
       )}

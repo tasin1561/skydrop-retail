@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { STORES, STORE_MODES } from "@/lib/markets";
 import type { StoreMode } from "@/lib/types";
@@ -50,7 +50,16 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
   // the shopper's pick applies until they move to another store page
   const store = picked && picked.for === current ? picked.store : current;
   const setStore = (s: StoreMode) => setPicked({ store: s, for: current });
-  const [q, setQ] = useState("");
+  // on the results page the box keeps the query, so the shopper can refine it instead of retyping
+  const path = usePathname();
+  const params = useSearchParams();
+  const urlQ = path === "/search" ? (params.get("q") ?? "") : "";
+  const [q, setQ] = useState(urlQ);
+  const [seenUrlQ, setSeenUrlQ] = useState(urlQ);
+  if (urlQ !== seenUrlQ) {
+    setSeenUrlQ(urlQ);
+    setQ(urlQ);
+  }
   const [items, setItems] = useState<Sug[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -64,7 +73,8 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
   const example = t(examples[tick % examples.length]);
 
   useEffect(() => {
-    if (q.trim().length < 2) return;
+    // only while the list can show (a query prefilled from the URL does not fetch until focused)
+    if (!open || q.trim().length < 2) return;
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       fetch(`/api/suggest?q=${encodeURIComponent(q)}&store=${store}`, { signal: ctrl.signal })
@@ -76,7 +86,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [q, store]);
+  }, [q, store, open]);
 
   const modes = STORE_MODES.filter((m) => m === "all" || enabled[m]);
 
@@ -109,7 +119,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         <select
           value={store}
           onChange={(e) => setStore(e.target.value as StoreMode)}
-          className="h-full max-w-[96px] cursor-pointer appearance-none truncate bg-transparent py-2 pl-3 pr-7 text-xs font-semibold text-ink outline-none sm:max-w-none sm:text-sm"
+          className="h-full max-w-[96px] cursor-pointer appearance-none truncate bg-transparent py-2 pl-3 pr-7 text-xs font-semibold text-ink outline-none sm:max-w-[150px] sm:text-sm md:max-w-[112px] xl:max-w-none"
         >
           {modes.map((m) => (
             <option key={m} value={m}>

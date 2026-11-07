@@ -93,8 +93,8 @@ export function OrderDetail({ id }: { id: string }) {
         {s !== "cancelled" && <Timeline order={order} status={s} />}
 
         {/* tracking code */}
-        <TrackingCode code={order.trackingCode} />
-        <p className="mt-2 text-[11px] text-ink-3">{t("od.demo")}</p>
+        {s !== "cancelled" && <TrackingCode code={order.trackingCode} />}
+        {!apiEnabled && <p className="mt-2 text-[11px] text-ink-3">{t("od.demo")}</p>}
       </section>
 
       {/* fulfilment: route map + live rider, unboxing approval, returns */}

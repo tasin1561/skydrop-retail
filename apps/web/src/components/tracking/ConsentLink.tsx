@@ -10,7 +10,7 @@ export function ConsentLink({ className = "" }: { className?: string }) {
   const { t } = useT();
   if (!enabled) return null;
   return (
-    <button type="button" onClick={openConsent} className={"underline-offset-2 hover:text-accent hover:underline " + className}>
+    <button type="button" onClick={openConsent} className={"-my-3 inline-flex min-h-11 items-center underline-offset-2 hover:text-accent hover:underline " + className}>
       {t("cs.settings")}
     </button>
   );

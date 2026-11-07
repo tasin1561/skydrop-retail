@@ -58,7 +58,7 @@ class CategoryController extends CatalogController
             'brands' => $stats['brands'],
             'priceRange' => $stats['priceRange'],
             'available' => CategoryTree::storeOk($node, $store),
-        // Member-specific prices (early flash access) can affect the price range: never cache signed-in responses publicly.
+            // Member-specific prices (early flash access) can affect the price range: never cache signed-in responses publicly.
         ])->header('Cache-Control', request()->bearerToken() ? 'private, max-age=60' : 'public, max-age=120');
     }
 }

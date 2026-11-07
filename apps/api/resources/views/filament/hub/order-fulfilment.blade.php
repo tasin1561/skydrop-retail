@@ -19,7 +19,7 @@
                     @endif
                 </div>
             @endforeach
-            <a href="{{ \App\Filament\Pages\PriceAlerts::getUrl() }}" style="font-weight:700;text-decoration:underline">Absorb, ask the customer, switch store or cancel →</a>
+            @if (\App\Filament\Pages\PriceAlerts::canAccess())<a href="{{ \App\Filament\Pages\PriceAlerts::getUrl() }}" style="font-weight:700;text-decoration:underline">Absorb, ask the customer, switch store or cancel →</a>@endif
         </div>
     @endif
 
@@ -65,7 +65,7 @@
         <div>
             <strong>Returns</strong>
             @foreach ($returns as $r)
-                <div><a href="{{ \App\Filament\Resources\ReturnRequests\ReturnRequestResource::getUrl('view', ['record' => $r]) }}" style="text-decoration:underline">#{{ $r->id }}</a>
+                <div>@if (\App\Filament\Resources\ReturnRequests\ReturnRequestResource::canView($r))<a href="{{ \App\Filament\Resources\ReturnRequests\ReturnRequestResource::getUrl('view', ['record' => $r]) }}" style="text-decoration:underline">#{{ $r->id }}</a>@else #{{ $r->id }}@endif
                     · {{ \App\Models\Fulfilment\ReturnRequest::REASONS[$r->reason] ?? $r->reason }} · {{ \App\Models\Fulfilment\ReturnRequest::STATUSES[$r->status] ?? $r->status }}</div>
             @endforeach
         </div>

@@ -31,7 +31,7 @@ class TopAffiliates extends TableWidget
                 ->whereHas('commissions', $month))
             ->defaultSort('month_bdt', 'desc')
             ->columns([
-                TextColumn::make('code')->weight('bold')->url(fn (Affiliate $r) => AffiliateResource::getUrl('edit', ['record' => $r])),
+                TextColumn::make('code')->weight('bold')->url(fn (Affiliate $r) => AffiliateResource::canEdit($r) ? AffiliateResource::getUrl('edit', ['record' => $r]) : null),
                 TextColumn::make('user.name')->label('Name'),
                 TextColumn::make('month_clicks')->label('Clicks'),
                 TextColumn::make('month_orders')->label('Orders'),

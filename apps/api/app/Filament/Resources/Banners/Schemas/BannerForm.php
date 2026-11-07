@@ -38,8 +38,8 @@ class BannerForm
             Section::make('Placement and schedule')->columnSpan(1)->schema([
                 Select::make('store')->options(self::stores())->default('all')->required(),
                 Select::make('placement')->options(Banner::PLACEMENTS)->default('hero')->required(),
-                DateTimePicker::make('starts_at')->label('Starts')->seconds(false),
-                DateTimePicker::make('ends_at')->label('Ends')->seconds(false)->after('starts_at'),
+                DateTimePicker::make('starts_at')->label('Starts')->seconds(false)->helperText('Bangladesh time; empty = now'),
+                DateTimePicker::make('ends_at')->label('Ends')->seconds(false)->after('starts_at')->helperText('Bangladesh time; empty = no end'),
                 TextInput::make('sort')->numeric()->default(0)->helperText('Lower shows first.'),
                 Toggle::make('active')->default(true),
             ]),

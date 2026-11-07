@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\ActivityLogs;
 
-use Illuminate\Support\Str;
 use App\Filament\Resources\ActivityLogs\Pages\ListActivityLogs;
 use App\Filament\Support\Admin;
 use App\Models\ActivityLog;
@@ -24,6 +23,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use UnitEnum;
 
 /** Read-only staff activity log: model changes with diffs, admin actions, sign-ins, exports and security events. */
