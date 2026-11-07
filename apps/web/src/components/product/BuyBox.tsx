@@ -60,7 +60,7 @@ export function BuyBox({
   useEffect(() => {
     const el = actionsRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting && e.boundingClientRect.top < 0), {
+    const io = new IntersectionObserver(([e]) => setShowBar(!e.isIntersecting && e.boundingClientRect.bottom < 120), {
       threshold: 0,
       rootMargin: "-64px 0px 0px 0px",
     });

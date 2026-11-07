@@ -62,5 +62,7 @@ export function orderDate(iso: string) {
 }
 
 export function shortId(id: string) {
-  return "#" + id.replace(/^ord[_-]?/i, "").toUpperCase().slice(-8);
+  // Order ids look like "SR-7KQ2PX"; show them whole, trim only unusually long ids.
+  const clean = id.toUpperCase();
+  return clean.length <= 12 ? clean : "#" + clean.slice(-8);
 }

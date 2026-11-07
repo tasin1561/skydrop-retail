@@ -238,11 +238,13 @@ body {
   color: var(--accent);
 }
 .field.is-valid input,
-.field.is-valid select {
+.field.is-valid select,
+.field.is-valid textarea {
   border-color: color-mix(in srgb, var(--good) 60%, var(--line));
 }
 .field.is-invalid input,
-.field.is-invalid select {
+.field.is-invalid select,
+.field.is-invalid textarea {
   border-color: color-mix(in srgb, var(--bad) 60%, var(--line));
 }
 

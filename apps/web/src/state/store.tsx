@@ -2,7 +2,7 @@
 
 // Client-side store for the demo. Cart, wishlist, account, addresses, orders and the
 // marketplace toggles live in localStorage until the Laravel API is connected.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { Address, CartItem, MarketId, Order, StoreMode, User } from "@/lib/types";
 import { DEFAULT_ENABLED } from "@/lib/markets";
 
@@ -140,8 +140,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   return <StoreCtx.Provider value={api}>{children}</StoreCtx.Provider>;
 }
 
-export function useStore() {
+const noopSubscribe = () => () => {};
+
+// True only after this component has hydrated. Components hydrate at different times
+// (Suspense boundaries), so each consumer checks for itself.
+export function useHydrated() {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}
+
+export function useStore(): Ctx {
   const ctx = useContext(StoreCtx);
+  const hydrated = useHydrated();
   if (!ctx) throw new Error("useStore must be used inside StoreProvider");
+  // During hydration every consumer renders the same initial state the server rendered,
+  // then re-renders with the shopper's saved state. This avoids hydration mismatches.
+  if (!hydrated) return { ...ctx, ...INITIAL, ready: false, cartCount: 0 };
   return ctx;
 }

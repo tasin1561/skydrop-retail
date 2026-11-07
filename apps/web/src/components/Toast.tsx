@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import { Icon } from "./Icon";
 
-type Toast = { id: number; kind: "success" | "info" | "error"; title: string; body?: string; action?: { label: string; href: string } };
+type Toast = { id: number; kind: "success" | "info" | "error"; title: string; body?: string; action?: { label: string; href?: string; onClick?: () => void } };
 type Push = (t: Omit<Toast, "id">) => void;
 
 const ToastCtx = createContext<Push>(() => {});
@@ -34,11 +34,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <div className="min-w-0">
                 <p className="text-sm font-bold">{t.title}</p>
                 {t.body && <p className="text-xs text-ink-2">{t.body}</p>}
-                {t.action && (
-                  <a href={t.action.href} className="mt-1 inline-block text-xs font-bold text-accent">
-                    {t.action.label}
-                  </a>
-                )}
+                {t.action &&
+                  (t.action.onClick ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        t.action!.onClick!();
+                        setList((l) => l.filter((x) => x.id !== t.id));
+                      }}
+                      className="mt-1 inline-block text-xs font-bold text-accent"
+                    >
+                      {t.action.label}
+                    </button>
+                  ) : (
+                    <a href={t.action.href} className="mt-1 inline-block text-xs font-bold text-accent">
+                      {t.action.label}
+                    </a>
+                  ))}
               </div>
             </div>
             <button
