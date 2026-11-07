@@ -104,6 +104,7 @@ class Features
     {
         Setting::put("features.$key", $on);
         static::flush();
+        FeatureSync::fromFeature($key, $on); // store.* <-> marketplaces.enabled
     }
 
     public static function flush(): void

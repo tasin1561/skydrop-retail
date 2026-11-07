@@ -21,6 +21,8 @@ use UnitEnum;
 
 class UserResource extends Resource
 {
+    use \App\Filament\Concerns\HasResourcePermissions; // shares the User model with Staff: checks customers.{ability}
+
     protected static ?string $slug = 'customers';
 
     protected static ?string $model = User::class;
@@ -61,7 +63,7 @@ class UserResource extends Resource
 
     public static function canDelete(Model $record): bool
     {
-        return Admin::isAdmin();
+        return parent::canDelete($record); // RBAC: {slug}.ability via Gate
     }
 
     public static function getEloquentQuery(): Builder

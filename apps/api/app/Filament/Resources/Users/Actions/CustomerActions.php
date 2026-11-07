@@ -20,6 +20,7 @@ class CustomerActions
         return Action::make('notify')
             ->label('Send SMS / notification')
             ->icon(Heroicon::OutlinedChatBubbleLeftEllipsis)
+            ->visible(fn () => Admin::can('customers.message'))
             ->schema([
                 Radio::make('channel')->options(['sms' => 'SMS', 'push' => 'App notification', 'email' => 'Email'])->default('sms')->inline()->required(),
                 Textarea::make('message')->required()->maxLength(480)->rows(4)->helperText('Keep SMS under 160 characters (Bangla: 70).'),
@@ -44,7 +45,7 @@ class CustomerActions
         return Action::make('adjustPoints')
             ->label('Adjust points')
             ->icon(Heroicon::OutlinedGift)
-            ->visible(fn () => Admin::canManage())
+            ->visible(fn () => Admin::can('customers.adjust_points'))
             ->schema([
                 TextInput::make('points')->numeric()->integer()->required()->notIn([0])
                     ->helperText(fn (User $record) => 'Current balance: '.(int) $record->points_balance.'. Use a negative number to deduct.'),
@@ -67,7 +68,7 @@ class CustomerActions
             ->label(fn (User $record) => $record->blocked_at ? 'Unblock' : 'Block')
             ->icon(fn (User $record) => $record->blocked_at ? Heroicon::OutlinedLockOpen : Heroicon::OutlinedNoSymbol)
             ->color(fn (User $record) => $record->blocked_at ? 'success' : 'danger')
-            ->visible(fn () => Admin::canManage())
+            ->visible(fn () => Admin::can('customers.block'))
             ->requiresConfirmation()
             ->modalDescription(fn (User $record) => $record->blocked_at
                 ? 'The customer can sign in and order again.'

@@ -48,7 +48,7 @@ class MessagingSettings extends Page
 
     public static function canAccess(): bool
     {
-        return Admin::canManage();
+        return Admin::can('page.messaging-settings') && Admin::can('settings.manage'); // RBAC
     }
 
     public function mount(): void
@@ -141,7 +141,7 @@ class MessagingSettings extends Page
 
     public function save(): void
     {
-        abort_unless(Admin::canManage(), 403);
+        abort_unless(static::canAccess(), 403);
         $state = $this->form->getState();
         foreach (self::KEYS as $key) {
             if (str_starts_with($key, 'quiet_hours.')) {

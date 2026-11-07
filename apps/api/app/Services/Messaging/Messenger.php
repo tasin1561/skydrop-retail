@@ -3,6 +3,7 @@
 namespace App\Services\Messaging;
 
 use App\Jobs\Messaging\DeliverMessage;
+use App\Models\MessageTemplate;
 use App\Models\NotificationLog;
 use App\Models\User;
 use App\Models\UserNotification;
@@ -111,7 +112,7 @@ class Messenger
     }
 
     /** Admin "send test": renders a template with sample data and delivers it now (synchronously). */
-    public function test(\App\Models\MessageTemplate $t, string $to): ?NotificationLog
+    public function test(MessageTemplate $t, string $to): ?NotificationLog
     {
         $data = (Events::get($t->key)['sample'] ?? []) + ['name' => 'Rahim'];
         $user = null;

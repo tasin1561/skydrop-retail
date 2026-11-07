@@ -82,7 +82,9 @@ class OrderService
         $fx = $this->pricing->fx();
 
         // 2. Totals (coupon + points) on verified prices.
-        $quote = $this->checkout->quote($lines, $coupon, $user, (int) ($data['redeemPoints'] ?? 0));
+        $quote = $this->checkout->quote($lines, $coupon, $user, (int) ($data['redeemPoints'] ?? 0),
+            \App\Services\Money\MoneyRules::opts(['payment' => $method] + $data, true) // money: Plus, wallet, card EMI
+            + ['unboxing' => (bool) ($data['unboxing'] ?? false)]); // fulfilment: paid unboxing
 
         // 3. Persist.
         $order = DB::transaction(function () use ($user, $lines, $quote, $coupon, $address, $method, $via, $fx, $inr, $data, $check) {
@@ -95,6 +97,9 @@ class OrderService
                 'fx_rate' => $fx, 'points_redeemed' => $quote['pointsRedeemed'], 'points_discount_bdt' => $quote['pointsDiscount'],
                 'points_to_earn' => $quote['pointsToEarn'], 'return_url' => $data['returnUrl'] ?? null,
                 'attribution' => $data['attribution'] ?? null, // marketing attribution (App\Services\Tracking\Attribution)
+                'membership_discount_bdt' => $quote['membershipDiscount'] ?? 0, 'emi_charge_bdt' => $quote['emiCharge'] ?? 0,
+                'unboxing' => (bool) ($quote['unboxing']['selected'] ?? false), 'unboxing_fee_bdt' => $quote['unboxingFee'] ?? 0, // fulfilment
+                'emi' => ! empty($quote['emi']['eligible']) ? array_intersect_key($quote['emi'], array_flip(['tenure', 'bank', 'bankName', 'ratePct', 'monthlyBdt'])) : null,
             ]);
             foreach ($lines as $l) {
                 OrderItem::query()->create([
@@ -115,6 +120,8 @@ class OrderService
                 Coupon::query()->whereKey($coupon->id)->increment('used');
             }
             $this->points->redeem($user, $order, $quote['pointsRedeemed']);
+            app(\App\Services\Money\WalletPayments::class)->payFromWallet($user, $order, (int) ($quote['walletApplied'] ?? 0)); // money: store credit
+            app(\App\Services\Shopping\OrderHooks::class)->placed($order, $quote, $data); // Shopping: bundle saving, group-buy shipping split
 
             return $order;
         });

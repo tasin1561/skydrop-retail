@@ -11,6 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...MARKET_IDS.map((m) => ({ url: `${BASE}/store/${m}`, changeFrequency: "daily" as const, priority: 0.9 })),
     { url: `${BASE}/categories`, priority: 0.6 },
     { url: `${BASE}/how-it-works`, priority: 0.5 },
+    ...["/help", "/contact", "/legal/terms", "/legal/privacy", "/legal/refunds", "/legal/shipping"].map((path) => ({
+      url: `${BASE}${path}`,
+      changeFrequency: "monthly" as const,
+      priority: path.startsWith("/legal") ? 0.3 : 0.5,
+    })),
     ...products.map((p) => ({ url: `${BASE}/p/${p.id}`, changeFrequency: "weekly" as const, priority: 0.7 })),
   ];
 }

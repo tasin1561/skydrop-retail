@@ -16,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable implements Contracts\PanelUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use Concerns\HasRoles, HasApiTokens, HasFactory, Notifiable;
 
     protected function casts(): array
     {
@@ -31,10 +31,10 @@ class User extends Authenticatable implements Contracts\PanelUser
         ];
     }
 
-    /** Filament: only staff (is_admin) may open the admin panel. */
+    /** Filament: staff (is_admin or any role, see App\Support\Rbac) who are not blocked may open the admin panel. */
     public function canAccessPanel(mixed $panel): bool
     {
-        return (bool) $this->is_admin;
+        return app(\App\Support\Rbac\PermissionResolver::class)->isStaff($this);
     }
 
     public function addresses(): HasMany

@@ -20,7 +20,19 @@ require __DIR__.'/api_tracking.php';
 // Messaging: notification centre, notification prefs, push devices, cart sync, email verification.
 require __DIR__.'/api_messaging.php';
 
+// Money: Skydrop Wallet, gift cards, Skydrop Plus membership, card EMI.
+require __DIR__.'/api_wallet.php';
+
+// AI shopping assistant: streaming chat, feedback (feature "ai_assistant").
+require __DIR__.'/api_assistant.php';
+
 // Feature switches (Admin → System → Features) for web and mobile.
 Route::get('/features', fn () => ['features' => \App\Support\Features::all()]);
+
+// Shopping: price history, compare stores, bundles, group buy, pre-orders, product requests.
+require __DIR__.'/api_shopping.php';
+
+// Fulfilment: uploads, tracking map, unboxing approval, returns, price-difference payments.
+require __DIR__.'/api_fulfilment.php';
 
 Route::get('/health', fn () => ['ok' => true, 'time' => now()->toIso8601String()]);

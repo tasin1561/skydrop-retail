@@ -60,7 +60,7 @@ class OrderActions
             ->label('Mark purchased')
             ->icon(Heroicon::OutlinedShoppingCart)
             ->color('primary')
-            ->visible(fn (Order $record) => in_array($record->status, ['placed', 'verified'], true))
+            ->visible(fn (Order $record) => Admin::can('orders.mark_purchased') && in_array($record->status, ['placed', 'verified'], true))
             ->modalHeading('Mark items purchased in India')
             ->modalDescription('Enter the marketplace order reference for each item you bought.')
             ->fillForm(fn (Order $record) => ['refs' => $record->items->mapWithKeys(fn ($i) => [$i->id => $i->purchase_ref])->all()])
@@ -83,7 +83,7 @@ class OrderActions
             ->label('Hand to Skydrop')
             ->icon(Heroicon::OutlinedTruck)
             ->color('warning')
-            ->visible(fn (Order $record) => $record->status === 'purchased' || ($record->status === 'india_hub' && ! $record->skydrop_consignment_id))
+            ->visible(fn (Order $record) => Admin::can('orders.hand_to_skydrop') && ($record->status === 'purchased' || ($record->status === 'india_hub' && ! $record->skydrop_consignment_id)))
             ->requiresConfirmation()
             ->modalDescription('Creates the Skydrop consignment (Kolkata hub → Bangladesh) and assigns a tracking code.')
             ->action(fn (Order $record) => self::run(fn () => Ops::handToSkydrop($record), 'Consignment created'));
@@ -106,7 +106,7 @@ class OrderActions
         return Action::make('setStatus')
             ->label('Set status…')
             ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
-            ->visible(fn (Order $record) => Admin::canManage() && Ops::allowedNext($record) !== [])
+            ->visible(fn (Order $record) => Admin::can('orders.set_status') && Ops::allowedNext($record) !== [])
             ->schema([
                 Select::make('status')->required()
                     ->options(fn (Order $record) => array_intersect_key(Admin::ORDER_STATUS_LABELS, array_flip(Ops::allowedNext($record))))
@@ -143,7 +143,7 @@ class OrderActions
             ->label('Refund payment')
             ->icon(Heroicon::OutlinedReceiptRefund)
             ->color('danger')
-            ->visible(fn (Order $record) => Admin::canManage() && $record->payments()->where('status', 'paid')->exists())
+            ->visible(fn (Order $record) => Admin::can('orders.refund') && $record->payments()->where('status', 'paid')->exists())
             ->schema(fn (Order $record) => self::refundSchema($record->payments()->where('status', 'paid')->get()))
             ->action(fn (Order $record, array $data) => self::doRefund(Payment::query()->findOrFail($data['payment_id']), $data));
     }
@@ -154,7 +154,7 @@ class OrderActions
             ->label('Refund')
             ->icon(Heroicon::OutlinedReceiptRefund)
             ->color('danger')
-            ->visible(fn (Payment $record) => Admin::canManage() && in_array($record->status, ['paid'], true) && $record->amount_bdt > (float) $record->refunded_bdt)
+            ->visible(fn (Payment $record) => (Admin::can('payments.refund') || Admin::can('orders.refund')) && in_array($record->status, ['paid'], true) && $record->amount_bdt > (float) $record->refunded_bdt)
             ->schema(fn (Payment $record) => self::refundSchema(collect([$record])))
             ->action(fn (Payment $record, array $data) => self::doRefund($record, $data));
     }
@@ -186,7 +186,7 @@ class OrderActions
             ->label('Cancel order')
             ->icon(Heroicon::OutlinedXCircle)
             ->color('danger')
-            ->visible(fn (Order $record) => Admin::canManage() && $record->canCancel())
+            ->visible(fn (Order $record) => Admin::can('orders.cancel') && $record->canCancel())
             ->requiresConfirmation()
             ->modalDescription('Only possible before the items are bought in India. Online payments and redeemed points are refunded automatically.')
             ->schema([Textarea::make('reason')->required()->rows(2)])
@@ -214,6 +214,7 @@ class OrderActions
             BulkAction::make('bulkInvoices')->label('Print invoices')->icon(Heroicon::OutlinedPrinter)
                 ->action(fn (Collection $records, $livewire) => $livewire->js('window.open('.json_encode(route('filament.admin.invoices', ['ids' => $records->pluck('id')->implode(',')])).', "_blank")')),
             BulkAction::make('exportCsv')->label('Export CSV')->icon(Heroicon::OutlinedArrowDownTray)
+                ->visible(fn () => Admin::can('orders.export'))
                 ->action(fn (Collection $records) => self::csv($records)),
         ];
     }

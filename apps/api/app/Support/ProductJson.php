@@ -56,6 +56,8 @@ final class ProductJson
         return [
             'flashSale' => app(FlashSaleService::class)->forProduct($p),
             'restriction' => app(RestrictionService::class)->forProduct($p),
+            // Shopping: card badge { type: "lowest"|"drop", label, days?, dropBdt? } | null (feature "price_history").
+            'priceInsight' => $p instanceof Product ? app(\App\Services\Shopping\PriceHistoryService::class)->insight($p) : null,
         ];
     }
 }

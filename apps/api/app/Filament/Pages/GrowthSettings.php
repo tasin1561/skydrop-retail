@@ -39,8 +39,7 @@ class GrowthSettings extends Page
 
     public static function canAccess(): bool
     {
-        // TODO(rbac): Admin::can('growth-settings.update') once the RBAC helper lands.
-        return Admin::canManage();
+        return Admin::can('page.growth-settings'); // RBAC
     }
 
     /** @return array<string, string> category slug => label */
@@ -124,7 +123,7 @@ class GrowthSettings extends Page
 
     public function save(): void
     {
-        abort_unless(Admin::canManage(), 403);
+        abort_unless(static::canAccess(), 403);
         $state = $this->form->getState();
         foreach (self::keys() as $key) {
             $value = $state[self::field($key)] ?? null;

@@ -56,11 +56,11 @@ class SslCommerzGateway implements Gateway
             'cus_add1' => trim(($a['line'] ?? '').', '.($a['area'] ?? '')), 'cus_city' => $a['district'] ?? 'Dhaka',
             'cus_state' => $a['division'] ?? 'Dhaka', 'cus_postcode' => '1000', 'cus_country' => 'Bangladesh',
             'cus_phone' => $a['phone'] ?? $order->user?->phone,
-            'shipping_method' => 'NO', 'num_of_item' => $order->items->sum('qty'),
+            'shipping_method' => 'NO', 'num_of_item' => max(1, (int) $order->items->sum('qty')), // gift card / Plus orders have no items
             'product_name' => mb_substr($order->items->pluck('title')->implode(', '), 0, 250) ?: 'Skydrop Retail order',
             'product_category' => 'general', 'product_profile' => 'general',
             'value_a' => (string) $payment->id,
-        ]);
+        ] + self::emiParams($order));
         if (! $res->successful() || $res->json('status') !== 'SUCCESS' || ! $res->json('GatewayPageURL')) {
             throw new RuntimeException('SSLCommerz session failed: '.$res->json('failedreason', $res->body()));
         }
@@ -69,6 +69,21 @@ class SslCommerzGateway implements Gateway
         $payment->save();
 
         return ['status' => 'redirect', 'redirectUrl' => $res->json('GatewayPageURL'), 'ref' => $payment->gateway_ref];
+    }
+
+    /**
+     * Card EMI (order.payment_method = card_emi): emi_option=1 shows the EMI tab, emi_max_inst_option caps the tenure,
+     * emi_selected_inst preselects the shopper's tenure and emi_allow_only=1 hides non-EMI options.
+     */
+    public static function emiParams(Order $order): array
+    {
+        if ($order->payment_method !== 'card_emi') {
+            return [];
+        }
+        $tenure = (int) ($order->emi['tenure'] ?? 0);
+        $max = max([$tenure, ...app(\App\Services\Money\EmiService::class)->tenures()]);
+
+        return ['emi_option' => 1, 'emi_max_inst_option' => $max, 'emi_selected_inst' => $tenure ?: $max, 'emi_allow_only' => 1];
     }
 
     public function confirm(Payment $payment, Request $request): GatewayResult

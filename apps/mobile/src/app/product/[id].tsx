@@ -12,6 +12,7 @@ import { isUnavailableStock, unitMrp, unitPrice } from "@/lib/cart";
 import { comboExists, groupVariants, initialSelection, pickVariant } from "@/lib/variants";
 import { useAccent, useTheme } from "@/theme";
 import { haptic } from "@/lib/haptics";
+import { captureCode, sharePage } from "@/lib/share";
 import { Button, IconButton, Pill, Skeleton, Stars, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { QtyStepper } from "@/components/QtyStepper";
@@ -26,7 +27,12 @@ import { OffersSection, Countdown, headlineDeal } from "@/components/offers/offe
 type Phase = "idle" | "busy" | "done";
 
 export default function ProductScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, ref, invite } = useLocalSearchParams<{ id: string; ref?: string; invite?: string }>();
+  // Deep links like skydropretail://product/ID?ref=CODE (affiliate) or ?invite=CODE (refer a friend).
+  useEffect(() => {
+    if (ref) captureCode("ref", ref);
+    if (invite) captureCode("invite", invite);
+  }, [ref, invite]);
   return <ProductLoader key={id} id={id} />;
 }
 
@@ -122,7 +128,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const toast = useToast();
-  const { addToCart, wish, toggleWish, totals } = useStore();
+  const { addToCart, wish, toggleWish, totals, user } = useStore();
   const store = STORES[p.market];
   const variants = useMemo(() => p.variants ?? [], [p.variants]);
   const groups = useMemo(() => groupVariants(variants), [variants]);
@@ -341,6 +347,17 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
             {p.title}
           </T>
         </Animated.View>
+        <IconButton
+          icon="share-2"
+          label="Share this product"
+          onPress={() => {
+            haptic.light();
+            sharePage({ path: `/p/${encodeURIComponent(p.id)}`, title: p.title, user }).catch(() =>
+              toast({ kind: "error", title: "Couldn't open sharing" }),
+            );
+          }}
+        />
+        <View style={{ width: 8 }} />
         <IconButton
           icon="heart"
           label={wished ? "Remove from wishlist" : "Save to wishlist"}

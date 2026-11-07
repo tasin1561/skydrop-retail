@@ -5,6 +5,7 @@ namespace App\Services\Commerce;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\Messaging\Events;
 use App\Services\Messaging\Messenger;
@@ -277,7 +278,7 @@ class Notifier
 
     private function productImage(string $productId): ?string
     {
-        return rescue(fn () => \App\Models\Product::query()->whereKey($productId)->value('image'), null, false);
+        return rescue(fn () => Product::query()->whereKey($productId)->value('image'), null, false);
     }
 
     private function orderUrl(Order $order): string

@@ -75,7 +75,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           }}
         >
           {img ? (
-            // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+            // eslint-disable-next-line jsx-a11y/alt-text
             <img src={img} width={470} height={470} style={{ objectFit: "contain" }} />
           ) : (
             <div style={{ fontSize: 160, color: `hsl(${hue} 60% 45%)`, fontWeight: 800 }}>{(p.brand || p.title).slice(0, 1).toUpperCase()}</div>

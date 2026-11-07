@@ -18,7 +18,7 @@ class Order extends Model
     public const STATUSES = ['placed', 'verified', 'purchased', 'india_hub', 'in_transit', 'dhaka_hub', 'out_for_delivery', 'delivered', 'cancelled'];
 
     /** Shopper-facing label for the payment method (web `Order.payment`). */
-    public const PAYMENT_LABELS = ['bkash' => 'bKash', 'nagad' => 'Nagad', 'card' => 'Card (SSLCommerz)', 'advance50' => '50% advance, rest on delivery'];
+    public const PAYMENT_LABELS = ['bkash' => 'bKash', 'nagad' => 'Nagad', 'card' => 'Card (SSLCommerz)', 'advance50' => '50% advance, rest on delivery', 'card_emi' => 'Card EMI (SSLCommerz)'];
 
     protected function casts(): array
     {
@@ -28,6 +28,8 @@ class Order extends Model
             'points_redeemed' => 'integer', 'points_discount_bdt' => 'float', 'points_to_earn' => 'integer',
             'points_earned' => 'integer', 'delivered_at' => 'datetime', 'cancelled_at' => 'datetime',
             'attribution' => 'array',
+            // money module: wallet / Skydrop Plus / card EMI / digital orders (gift_card, membership)
+            'wallet_bdt' => 'float', 'membership_discount_bdt' => 'float', 'emi_charge_bdt' => 'float', 'emi' => 'array', 'meta' => 'array',
             // fulfilment module (hub, unboxing, tracking)
             'unboxing' => 'boolean', 'unboxing_fee_bdt' => 'float', 'unboxing_requested_at' => 'datetime', 'unboxing_decided_at' => 'datetime',
             'actual_weight_kg' => 'float', 'weight_flag' => 'array', 'price_alert' => 'boolean', 'pod' => 'array', 'rider_location' => 'array',
@@ -115,6 +117,12 @@ class Order extends Model
             'pointsDiscount' => (int) round($this->points_discount_bdt),
             'pointsToEarn' => (int) $this->points_to_earn,
             'pointsEarned' => (int) $this->points_earned,
+            // money module (docs/API.md "Wallet, gift cards, Plus, EMI")
+            'kind' => $this->kind ?? 'goods',
+            'walletBdt' => (int) round((float) $this->wallet_bdt),
+            'membershipDiscount' => (int) round((float) $this->membership_discount_bdt),
+            'emiChargeBdt' => (int) round((float) $this->emi_charge_bdt),
+            'emi' => $this->emi,
             'total' => (int) round($this->total_bdt),
             'status' => $this->status,
             'trackingCode' => (string) $this->tracking_code,
@@ -129,6 +137,6 @@ class Order extends Model
             'timeline' => $this->events->map(fn (OrderEvent $e) => [
                 'status' => $e->status, 'at' => $e->at?->toIso8601String(), 'note' => $e->note,
             ])->values()->all(),
-        ];
+        ] + \App\Services\Shopping\OrderHooks::api($this); // Shopping: bundle/group/pre-order fields
     }
 }

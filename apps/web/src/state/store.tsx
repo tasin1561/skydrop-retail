@@ -3,7 +3,7 @@
 // Client-side store. Cart, theme and store mode always live in localStorage. When
 // NEXT_PUBLIC_API_URL is set, account, addresses, wishlist and orders sync with the Laravel API;
 // without it the storefront runs fully in demo mode.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Address, CartItem, MarketId, Order, StoreMode, User } from "@/lib/types";
 import { DEFAULT_ENABLED, MARKET_IDS } from "@/lib/markets";
 import { api, apiEnabled, API_URL, setApiToken } from "@/lib/apiClient";
@@ -136,6 +136,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   };
   const synced = apiEnabled && !!state.token;
+
+  // Cart sync for signed-in shoppers (abandoned-cart reminders, cross-device): debounced PUT /cart, only when it changed.
+  const lastCart = useRef<string | null>(null);
+  useEffect(() => {
+    if (!ready || !synced) return;
+    const json = JSON.stringify(state.cart.map((i) => [i.productId, i.variant ?? null, i.qty, i.unitBdt]));
+    if (json === lastCart.current) return;
+    const t = setTimeout(() => {
+      api
+        .syncCart(state.cart)
+        .then(() => {
+          lastCart.current = json;
+        })
+        .catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [state.cart, ready, synced]);
 
   const value = useMemo<Ctx>(
     () => ({

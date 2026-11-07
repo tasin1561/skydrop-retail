@@ -12,7 +12,7 @@ class ActivityObserver
     public function created(Model $model): void
     {
         if (ActivityLogger::isStaff()) {
-            ActivityLogger::log('created', $model, collect($model->getAttributes())->except(self::IGNORE)->map(fn ($v) => [null, $v])->all());
+            ActivityLogger::log('created', $model, self::normalise(collect($model->getAttributes())->except(self::IGNORE)->map(fn ($v) => [null, $v])->all(), $model));
         }
     }
 
@@ -29,20 +29,24 @@ class ActivityObserver
             $diff[$field] = [$model->getOriginal($field), $model->getAttribute($field)];
         }
         if ($diff) {
-            ActivityLogger::log('updated', $model, self::normalise($diff));
+            ActivityLogger::log('updated', $model, self::normalise($diff, $model));
         }
     }
 
     public function deleted(Model $model): void
     {
         if (ActivityLogger::isStaff()) {
-            ActivityLogger::log('deleted', $model, collect($model->getAttributes())->except(self::IGNORE)->map(fn ($v) => [$v, null])->all());
+            ActivityLogger::log('deleted', $model, self::normalise(collect($model->getAttributes())->except(self::IGNORE)->map(fn ($v) => [$v, null])->all(), $model));
         }
     }
 
-    /** Dates, enums and casts → JSON-friendly scalars. */
-    private static function normalise(array $diff): array
+    /** Dates, enums and casts → JSON-friendly scalars; secret settings masked. */
+    private static function normalise(array $diff, ?Model $model = null): array
     {
+        if ($model instanceof \App\Models\Setting && \App\Models\Setting::isSecret((string) $model->getKey()) && isset($diff['value'])) {
+            $diff['value'] = array_map(fn ($v) => \App\Models\Setting::mask($v), $diff['value']);
+        }
+
         return array_map(fn ($pair) => array_map(fn ($v) => $v instanceof \DateTimeInterface ? $v->format(DATE_ATOM)
             : ($v instanceof \BackedEnum ? $v->value : $v), $pair), $diff);
     }

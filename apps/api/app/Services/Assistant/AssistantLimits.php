@@ -10,6 +10,7 @@ use Throwable;
 class AssistantLimits
 {
     private const MEMBERSHIP = [
+        'App\\Services\\Money\\MembershipService',
         'App\\Services\\Membership\\MembershipService',
         'App\\Services\\MembershipService',
         'App\\Services\\Commerce\\MembershipService',
@@ -48,6 +49,12 @@ class AssistantLimits
             }
             try {
                 $svc = app($class);
+                if (method_exists($svc, 'enabled') && ! $svc->enabled()) {
+                    return false;
+                }
+                if (method_exists($svc, 'current')) {
+                    return $svc->current($user) !== null; // Skydrop Plus: an active membership
+                }
                 foreach (['isPlus', 'isMember', 'isActive', 'active', 'hasActiveMembership'] as $m) {
                     if (method_exists($svc, $m)) {
                         return (bool) $svc->{$m}($user);

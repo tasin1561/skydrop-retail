@@ -28,7 +28,7 @@ class PaymentService
         return match ($name) {
             'bkash' => app(BkashGateway::class),
             'nagad' => app(NagadGateway::class),
-            'card', 'sslcommerz' => app(SslCommerzGateway::class),
+            'card', 'sslcommerz', 'card_emi' => app(SslCommerzGateway::class), // card_emi: SSLCommerz with emi_option=1
             default => throw new \InvalidArgumentException("Unknown payment gateway {$name}"),
         };
     }
@@ -37,8 +37,16 @@ class PaymentService
     public function amountNow(Order $order): float
     {
         $due = $order->balanceBdt();
-        if ($order->payment_method === 'advance50' && (float) $order->paid_bdt <= 0) {
-            return (float) ceil($order->total_bdt * config('retail.checkout.advance_ratio', 0.5));
+        if ($order->is_preorder && (float) $order->paid_bdt <= 0 && $order->deposit_bdt > 0) {
+            return min($due, (float) $order->deposit_bdt); // Shopping: pre-order deposit first, balance when stock is back
+        }
+        // Fraud check: high-risk orders pay in full up front instead of the 50% advance.
+        if ($order->payment_method === 'advance50' && \App\Services\Fraud\FraudGate::requiresFullPrepay($order)) {
+            return $due;
+        }
+        // Money module: store credit (wallet_bdt) counts towards the advance.
+        if ($order->payment_method === 'advance50' && (float) $order->paid_bdt <= (float) ($order->wallet_bdt ?? 0)) {
+            return max(0, (float) ceil($order->total_bdt * config('retail.checkout.advance_ratio', 0.5)) - (float) $order->paid_bdt);
         }
 
         return $due;
@@ -50,7 +58,7 @@ class PaymentService
         $amount = $this->amountNow($order);
         if ($amount <= 0) {
             if ($order->payment_status !== 'paid') {
-                $order->forceFill(['payment_status' => 'paid'])->save();
+                $order->forceFill(['payment_status' => $order->balanceBdt() > 0 ? 'partial' : 'paid'])->save(); // partial: advance covered by wallet
                 app(OrderWorkflow::class)->afterPayment($order);
             }
 
@@ -158,15 +166,18 @@ class PaymentService
     }
 
     /** Refunds every captured online payment of an order. Returns the resulting order payment status. */
-    public function refundAll(Order $order, string $reason): string
+    public function refundAll(Order $order, string $reason, ?string $destination = null): string
     {
+        $toWallet = app(\App\Services\Money\WalletPayments::class); // money: wallet payments / "refund to wallet" (destination wallet|original)
         $pending = false;
         $any = false;
         foreach ($order->payments()->where('status', 'paid')->where('gateway', '!=', 'skydrop_cod')->get() as $p) {
             $any = true;
             $amount = (float) $p->amount_bdt - (float) $p->refunded_bdt;
             try {
-                $r = $this->gateway($p->gateway)->refund($p, $amount, $reason);
+                $r = $toWallet->refundsToWallet($order, $p, $destination)
+                    ? $toWallet->creditRefund($p, $amount, $reason)
+                    : $this->gateway($p->gateway)->refund($p, $amount, $reason);
             } catch (\Throwable $e) {
                 $r = GatewayResult::pending(['error' => $e->getMessage()], $e->getMessage());
             }

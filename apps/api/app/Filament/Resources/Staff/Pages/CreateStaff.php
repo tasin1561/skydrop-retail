@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Staff\Pages;
 
 use App\Filament\Resources\Staff\StaffResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateStaff extends CreateRecord
 {
@@ -12,9 +14,14 @@ class CreateStaff extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $user = new (static::getModel());
-        $user->forceFill($data + ['is_admin' => true])->save();
+        $state = $this->form->getRawState();
 
-        return $user;
+        return DB::transaction(function () use ($data, $state) {
+            $user = new User;
+            $user->forceFill($data + ['is_admin' => true, 'role' => 'support', 'blocked_at' => ! empty($state['blocked']) ? now() : null])->save();
+            $user->syncRoles($state['role_ids'] ?? []);
+
+            return $user;
+        });
     }
 }

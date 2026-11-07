@@ -70,7 +70,7 @@ categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effe
 - Rate limit: 3 codes per 10 min per phone and per IP → `429 { message, retryAfter }`. Codes are hashed, expire in 5 min,
   only the newest code is valid, 5 wrong attempts burns the code (`429`).
 
-`POST /auth/otp/verify { phone, code, name?, device? }` → `{ token, user: { id, name, phone, email?, points }, isNew }`
+`POST /auth/otp/verify { phone, code, name?, device?, invite? }` → `{ token, user: { id, name, phone, email?, points }, isNew }`
 - New phone without `name` → `422 { errors: { name: [...] }, needsName: true }`; the code stays valid so the client resends with `name`.
 - Blocked account → `403 { code: "blocked" }`. New accounts get the signup points bonus.
 
@@ -133,7 +133,8 @@ items: [{ productId, variant, qty, unitBdt, weightKg, market, changed }] }`
 
 `POST /orders { items: [{ productId, variant?, qty, unitBdt }], addressId | address: {name, phone, division, district, area, line},
 payment: "bkash"|"nagad"|"card"|"advance50" ("half" accepted), paymentVia?: "bkash"|"nagad"|"card" (wallet for advance50, default bkash),
-coupon?, redeemPoints?, returnUrl? }`
+coupon?, redeemPoints?, returnUrl?, ref? }`
+(`ref` = affiliate code, see Growth)
 → `201 { order: Order, payment: { status: "pending"|"redirect"|"paid", redirectUrl?, amount, paymentId?, message? } }`
 - Server re-verifies every item live. Price moved > 3% vs the client's `unitBdt` → `409 { code: "price_changed", prices: [{ productId, variant, title, oldBdt, freshBdt }], results }`;
   unavailable → `422 { code: "unavailable", unavailable: [...] }`. Within 3% the order uses the fresh price.
@@ -196,3 +197,49 @@ landing, referrer, at }, fbp?, fbc?, ttp?, gaClientId?, consent?: "all"|"essenti
 `GET /feeds/meta.csv` · `GET /feeds/google.xml`: `?store=amazon|flipkart|bigbasket`, and `?key=` when setting `tracking.feed_key` is set (otherwise 403). Cached for 1 h.
 - Skips hidden and unpriced products. Price comes from `PricingService::productBdt`; `price` is the MRP when higher, with `sale_price` set.
 - Other fields: `link` is `{WEB_URL}/p/{id}`, `custom_label_0` is the store.
+
+## Growth: affiliate program, refer a friend, sharing
+
+Feature switches: `affiliate`, `referral`, `share` (Admin → System → Features). Off → `404 { error: "feature_disabled", feature }`;
+with `affiliate` off, orders are not attributed and commissions don't start/auto-approve (reversals still run); with `referral` off,
+invites are not linked or rewarded. Settings (Admin → Growth → Growth settings; settings table, defaults in `config/growth.php`):
+`affiliate.rates.{category}` (percent; `affiliate.rates.default` = 3), `affiliate.cookie_days` 30, `affiliate.hold_days` 7,
+`affiliate.min_payout_bdt` 500, `affiliate.max_per_order_bdt` 1000 (0 = no cap), `referral.inviter_points` 200, `referral.friend_points` 100.
+
+### Affiliates
+`GET /affiliate/program` (public) → `{ program: { defaultRate, rates: { category: percent }, cookieDays, holdDays, minPayoutBdt, maxPerOrderBdt, payoutMethods } }`
+
+`POST /r/click { code, productId?, url? }` (public, 60/min) → `{ ok, valid, cookieDays }` — records a click for an approved affiliate
+(IP stored as an HMAC hash; the same visitor + product within 30 min counts once).
+
+`POST /affiliate/apply { code?, payoutMethod?: "bkash"|"nagad", payoutNumber?, about? }` (auth) → `201` dashboard (below); `200` when already applied.
+Code: 4-16 letters/digits, uppercase, unique; generated from the name when omitted. Status starts `pending`; staff approve in the admin.
+
+`GET /affiliate/me` (auth) → `{ affiliate: null | { code, status: "pending"|"approved"|"suspended", rate (own % or null), payoutMethod,
+payoutNumber, codeEditable, link, approvedAt, createdAt }, stats?: { clicks, clicks30d, orders, conversion (%), pendingBdt, approvedBdt,
+paidBdt, availableBdt, requestedBdt }, commissions?: [{ id, order: "SR-••••AB", baseBdt, rate, amountBdt, status, approveAfter, at }] (latest 20),
+payouts?: [{ id, amountBdt, method, status: "requested"|"paid"|"rejected", reference, requestedAt, paidAt }], program }`
+
+`PATCH /affiliate/me { code?, payoutMethod?, payoutNumber? }` (auth) → dashboard. The code can be changed once (`422 errors.code` after).
+
+`POST /affiliate/payouts` (auth) → `201 { payout, ...dashboard }` — bundles every approved, unpaid commission. `422 { code: "below_minimum",
+availableBdt, minPayoutBdt }`, `409 { code: "payout_pending" }`, `403 { code: "not_approved" }`. Staff mark it paid with a bKash/Nagad reference.
+
+Attribution: last click. The storefront keeps the latest `?ref=` for `cookie_days` and sends it as `ref` on `POST /orders`.
+`orders.affiliate_id` + `orders.ref_code` are stored. No commission for self-referrals (same account, or the buyer's account phone /
+delivery phone equals the affiliate's phone or payout number).
+Commission = items subtotal − coupon item discount − points discount (shipping excluded) × category rate (or the affiliate's own rate), capped per order.
+Lifecycle: `pending` (placed) → delivered: `approveAfter = deliveredAt + hold_days` → `approved` (hourly job `ApproveAffiliateCommissions`) →
+`paid` (payout marked paid). Cancelled or refunded before payout → `reversed`.
+
+### Refer a friend
+`GET /referrals/me` (auth) → `{ code, link: "{WEB_URL}/?invite=CODE", invited, rewarded, pointsEarned, rules: { inviterPoints, friendPoints },
+friends: [{ name: "Karim U.", joinedAt, status: "joined"|"rewarded" }] }`
+New accounts send `invite` at `POST /auth/otp/verify`. When the friend's first order is delivered, both get points through the points
+ledger (type `adjust`, note "Referral bonus: …" / "Referral welcome bonus: …"), once per friend. No reward when the order is delivered to
+the inviter's phone.
+
+### Shared wishlists
+`POST /wishlist/share` (auth) → `{ code, url: "{WEB_URL}/w/{code}" }` (stable per user)
+`GET /wishlists/{code}` (public) → `{ code, owner: { name (first name only) }, count, items: Product[] }` · unknown → `404`
+

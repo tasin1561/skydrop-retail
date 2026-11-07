@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Messaging\TemplateRenderer;
 use Illuminate\Database\Eloquent\Model;
 
 class MessageTemplate extends Model
@@ -19,7 +20,7 @@ class MessageTemplate extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => app(\App\Services\Messaging\TemplateRenderer::class)->flush());
-        static::deleted(fn () => app(\App\Services\Messaging\TemplateRenderer::class)->flush());
+        static::saved(fn () => app(TemplateRenderer::class)->flush());
+        static::deleted(fn () => app(TemplateRenderer::class)->flush());
     }
 }

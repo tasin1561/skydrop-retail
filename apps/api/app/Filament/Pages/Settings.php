@@ -39,14 +39,15 @@ class Settings extends Page
 
     public static function canAccess(): bool
     {
-        return Admin::canManage();
+        return Admin::can('page.settings') && Admin::can('settings.manage'); // RBAC
     }
 
     public function mount(): void
     {
         $state = [];
         foreach (array_keys(Admin::SETTINGS) as $key) {
-            Arr::set($state, $key, Admin::setting($key));
+            $value = Admin::setting($key);
+            Arr::set($state, $key, Setting::isSecret($key) ? Setting::mask($value) : $value); // secrets: ••••last4, blank = keep
         }
         $this->form->fill($state);
     }
@@ -123,11 +124,14 @@ class Settings extends Page
 
     public function save(): void
     {
-        abort_unless(Admin::canManage(), 403);
+        abort_unless(static::canAccess(), 403);
         $state = $this->form->getState();
         $numeric = ['oxylabs.monthly_budget_usd', 'oxylabs.hedge_after', 'variants.max', 'prefetch_top', 'pricing.fx_buffer'];
         foreach (array_keys(Admin::SETTINGS) as $key) {
             $value = Arr::get($state, $key);
+            if (Setting::isSecret($key) && ($value === null || $value === '' || Setting::isMasked($value))) {
+                continue; // secret left blank or unchanged (masked): keep the stored value
+            }
             if (str_starts_with($key, 'ttl.') || str_starts_with($key, 'pricing.shipping.') || in_array($key, $numeric, true)) {
                 $value = $value === null || $value === '' ? null : $value + 0;
             }

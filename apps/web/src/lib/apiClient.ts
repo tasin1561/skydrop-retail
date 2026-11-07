@@ -53,6 +53,26 @@ type ApiOrder = Order & {
   canCancel?: boolean;
   dueOnDelivery?: number;
 };
+/** In-app notification (GET /notifications). */
+export type AppNotification = {
+  id: number;
+  type: string;
+  title: string;
+  body: string | null;
+  icon: string | null;
+  link: string | null;
+  image: string | null;
+  data: Record<string, unknown>;
+  read: boolean;
+  createdAt: string;
+};
+export type NotificationsPage = { items: AppNotification[]; unreadCount: number; page: number; total: number; hasMore: boolean };
+export type NotifyPrefs = {
+  locale: "en" | "bn";
+  marketing: { sms: boolean; email: boolean; push: boolean; inapp: boolean };
+  email: string | null;
+  emailVerified: boolean;
+};
 /** Body of a 409 price_changed response from POST /orders. */
 export type PriceChange = { productId: string; oldBdt: number; freshBdt: number };
 
@@ -112,4 +132,23 @@ export const api = {
     post<unknown>("/watches", { productId, type, targetBdt }),
   requestSupport: (orderId: string, type: string, message: string) =>
     post<unknown>(`/orders/${orderId}/support`, { type, message }),
+
+  // ---- messaging (notification centre, prefs, cart sync, push) ----
+  notifications: (page = 1, perPage = 20) =>
+    call<NotificationsPage>(`/notifications?page=${page}&perPage=${perPage}`),
+  notificationRead: (id: number) => post<{ unreadCount: number }>(`/notifications/${id}/read`, {}),
+  notificationsReadAll: () => post<{ unreadCount: number }>("/notifications/read-all", {}),
+  notificationDelete: (id: number) => call<{ unreadCount: number }>(`/notifications/${id}`, { method: "DELETE" }),
+  notifyPrefs: () => call<NotifyPrefs>("/me/notifications"),
+  saveNotifyPrefs: (p: { locale?: "en" | "bn"; marketing?: Partial<NotifyPrefs["marketing"]> }) =>
+    call<NotifyPrefs>("/me/notifications", { method: "PATCH", body: JSON.stringify(p) }),
+  syncCart: (items: CartItem[]) =>
+    call<{ ok: boolean }>("/cart", {
+      method: "PUT",
+      body: JSON.stringify({
+        items: items.map((i) => ({ productId: i.productId, market: i.market, title: i.title, image: i.image, variant: i.variant ?? null, unitBdt: i.unitBdt, qty: i.qty })),
+      }),
+    }),
+  /** Web Push: stored server side; delivery is a documented TODO until minishlink/web-push is installed on the API. */
+  pushSubscribe: (sub: PushSubscriptionJSON) => post<{ ok: boolean; delivering: boolean }>("/push/subscribe", sub),
 };

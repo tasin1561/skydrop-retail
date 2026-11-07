@@ -24,7 +24,9 @@ class EditMessageTemplate extends EditRecord
                 ->modalDescription('Sends the saved version of this template, rendered with sample data, right now.')
                 ->schema(fn () => [
                     TextInput::make('to')->required()
-                        ->label(fn () => match ($this->record->channel) { 'sms' => 'Phone', 'email' => 'Email', default => 'User id or phone (needs the app installed)' })
+                        ->label(fn () => match ($this->record->channel) {
+                            'sms' => 'Phone', 'email' => 'Email', default => 'User id or phone (needs the app installed)'
+                        })
                         ->default(fn () => match ($this->record->channel) {
                             'sms' => Filament::auth()->user()?->phone, 'email' => Filament::auth()->user()?->email, default => Filament::auth()->user()?->id,
                         }),

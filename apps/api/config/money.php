@@ -4,7 +4,7 @@
 // from Admin → Payments → Wallet, gift cards & EMI (settings table key "money.{key}", see App\Services\Money\MoneySettings).
 return [
     'wallet' => [
-        'refund_default' => 'wallet', // wallet | original: preselected destination for refunds (cancel + admin refund)
+        'refund_default' => 'original', // wallet | original: preselected destination for refunds (cancel + admin refund)
         'refund_bonus_pct' => 0,       // extra % credited when a refund goes to the wallet (e.g. 2 = +2%)
     ],
 

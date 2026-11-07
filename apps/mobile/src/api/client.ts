@@ -24,6 +24,7 @@ import type {
   Suggestion,
   VerifyResponse,
 } from "./types";
+import { storedCode } from "@/lib/growthCodes";
 
 const RAW_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
 const BASE = RAW_URL ? RAW_URL + "/api/v1" : "";
@@ -231,7 +232,7 @@ export const api = {
     ),
   otpVerify: async (phone: string, code: string, name?: string) => {
     const r = await either(
-      () => http<OtpVerifyResponse>("POST", "/auth/otp/verify", { body: { phone, code, name } }),
+      async () => http<OtpVerifyResponse>("POST", "/auth/otp/verify", { body: { phone, code, name, invite: await storedCode("invite") } }),
       () => demo.otpVerify(phone, code, name),
     );
     await tokenStore.set(r.token);
@@ -308,10 +309,11 @@ export const api = {
   // orders
   placeOrder: (req: OrderRequest, address: Address) =>
     either(
-      () =>
+      async () =>
         http<OrderResponse>("POST", "/orders", {
           body: {
             ...req,
+            ref: await storedCode("ref"), // affiliate code from a deep link (growth module)
             items: req.items.map(stripWeight),
             // Server-side ids are numeric; anything else is a local draft the API can't resolve.
             addressId: /^\d+$/.test(req.addressId) ? Number(req.addressId) : req.addressId,

@@ -21,12 +21,12 @@ class MarketplacesTable
             ->columns([
                 TextColumn::make('name')->label('Store')->weight('bold')->description(fn (Marketplace $r) => $r->source),
                 ToggleColumn::make('enabled')->label('ON / OFF')->onColor('success')->offColor('danger')
-                    ->disabled(fn () => ! Admin::canManage())
+                    ->disabled(fn () => ! Admin::can('marketplaces.toggle'))
                     ->afterStateUpdated(fn (Marketplace $r, $state) => Notification::make()
                         ->title($r->name.($state ? ' is now ON for shoppers' : ' is now OFF and hidden from all shoppers'))
                         ->{$state ? 'success' : 'warning'}()->send()),
                 ToggleColumn::make('live_fetch')->label('Live fetch')
-                    ->disabled(fn () => ! Admin::canManage()),
+                    ->disabled(fn () => ! Admin::can('marketplaces.toggle')),
                 TextColumn::make('pincode'),
                 TextColumn::make('budget_share')->label('Budget share')->suffix('%'),
                 TextColumn::make('products_count')->label('Products')

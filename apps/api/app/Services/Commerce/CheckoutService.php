@@ -86,7 +86,7 @@ class CheckoutService
      *
      * @return array<string, mixed>
      */
-    public function quote(array $lines, ?Coupon $coupon = null, ?User $user = null, int $redeemPoints = 0): array
+    public function quote(array $lines, ?Coupon $coupon = null, ?User $user = null, int $redeemPoints = 0, array $opts = []): array
     {
         $byMarket = [];
         foreach ($lines as $l) {
@@ -125,11 +125,14 @@ class CheckoutService
             }
         }
 
-        $plan = $this->points->plan($user, $redeemPoints, max(0, $subtotal - $itemDiscount));
-        $discount = $itemDiscount + $shipDiscount + $plan['discount'];
+        // Shopping module: curated bundle saving (margin-funded; 0 when the "bundles" feature is off).
+        $bundle = app(\App\Services\Shopping\BundleService::class)->discountFor($lines);
+        $bundle['discount'] = (int) min($bundle['discount'], max(0, $subtotal - $itemDiscount));
+        $plan = $this->points->plan($user, $redeemPoints, max(0, $subtotal - $itemDiscount - $bundle['discount']));
+        $discount = $itemDiscount + $shipDiscount + $plan['discount'] + $bundle['discount'];
         $total = max(0, $subtotal + $shipping - $discount);
 
-        return [
+        $quote = [
             'groups' => $groups,
             'count' => array_sum(array_column($groups, 'count')),
             'subtotal' => $subtotal,
@@ -140,15 +143,25 @@ class CheckoutService
             'pointsRedeemed' => $plan['points'],
             'pointsDiscount' => $plan['discount'],
             'maxRedeemPoints' => $plan['maxPoints'],
-            'pointsToEarn' => $this->points->toEarn($subtotal - $itemDiscount - $plan['discount']),
+            'pointsToEarn' => $this->points->toEarn($subtotal - $itemDiscount - $bundle['discount'] - $plan['discount']),
             'discount' => $discount,
             'total' => (int) $total,
             'coupon' => $coupon ? self::couponApi($coupon) : null,
+            'bundleDiscount' => $bundle['discount'], // Shopping: curated bundles (already inside discount)
+            'bundles' => $bundle['applied'],
             // CMS: flash savings already inside the subtotal, and warn/surcharge notices per item.
             'flashDiscount' => (int) array_sum(array_map(fn ($l) => (int) ($l['flash']['extraOffBdt'] ?? 0) * $l['qty'], $lines)),
             'restrictions' => array_values(array_filter(array_map(fn ($l) => empty($l['restriction']) ? null
                 : ['productId' => $l['product_id'], 'title' => $l['title']] + $l['restriction'], $lines))),
         ];
+
+        // Fulfilment module: optional paid unboxing at the Kolkata hub (opts.unboxing), added to the total.
+        $quote['unboxing'] = app(\App\Services\Fulfilment\UnboxingService::class)->fee($groups, (bool) ($opts['unboxing'] ?? false), $user);
+        $quote['unboxingFee'] = $quote['unboxing']['feeBdt'];
+        $quote['total'] = (int) $quote['total'] + $quote['unboxingFee'];
+
+        // Money module: Skydrop Plus benefits, wallet (opts.useWallet) and card EMI (opts.payment = card_emi).
+        return app(\App\Services\Money\MoneyQuote::class)->apply($quote, $user, $opts);
     }
 
     private function marketRank(string $m): int

@@ -6,5 +6,8 @@ return [
     App\Providers\GrowthServiceProvider::class,
     App\Providers\TrackingServiceProvider::class,
     App\Providers\MessagingServiceProvider::class,
+    App\Providers\MoneyServiceProvider::class,
+    App\Providers\RbacServiceProvider::class,
+    App\Providers\OpsServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
 ];

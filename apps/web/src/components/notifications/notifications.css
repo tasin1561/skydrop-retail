@@ -1,0 +1,48 @@
+/* Notification centre: bell badge, dropdown panel, rows (premium but light: transforms/opacity only). */
+.nc-badge {
+  animation: nc-pop 0.5s var(--spring) both;
+}
+@keyframes nc-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.nc-ring {
+  animation: nc-ring 0.9s var(--ease, ease) 1;
+  transform-origin: 50% 2px;
+}
+@keyframes nc-ring {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  75% { transform: rotate(2deg); }
+}
+.nc-panel {
+  transform-origin: top right;
+  animation: nc-panel-in 0.28s var(--spring) both;
+}
+@keyframes nc-panel-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+}
+.nc-row {
+  animation: nc-rise 0.32s var(--ease, ease) both;
+  touch-action: pan-y;
+}
+@keyframes nc-rise {
+  from { opacity: 0; transform: translateY(6px); }
+}
+.nc-row-inner {
+  transition: transform 0.25s var(--spring), background-color 0.2s;
+}
+.nc-row-inner.dragging {
+  transition: none;
+}
+.nc-unread-dot {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nc-badge, .nc-ring, .nc-panel, .nc-row { animation: none; }
+  .nc-row-inner { transition: none; }
+}

@@ -46,6 +46,12 @@ class OrderResource extends Resource
         return OrdersTable::configure($table);
     }
 
+    /** RBAC row scoping (e.g. Hub Staff: orders.scope.hub_only). */
+    public static function getEloquentQuery(): Builder
+    {
+        return \App\Support\Rbac\ResourceScopes::apply('orders', parent::getEloquentQuery());
+    }
+
     public static function canCreate(): bool
     {
         return false;
@@ -53,7 +59,7 @@ class OrderResource extends Resource
 
     public static function canDelete(Model $record): bool
     {
-        return Admin::isAdmin();
+        return parent::canDelete($record); // RBAC: {slug}.ability via Gate
     }
 
     public static function getGloballySearchableAttributes(): array

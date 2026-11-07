@@ -29,9 +29,11 @@ class CheckoutController extends Controller
         $data = $request->validate(self::itemRules() + [
             'coupon' => ['nullable', 'string', 'max:30'],
             'redeemPoints' => ['nullable', 'integer', 'min:0'],
-        ]);
+            'unboxing' => ['nullable', 'boolean'], // fulfilment: paid unboxing at the Kolkata hub
+        ] + \App\Services\Money\MoneyRules::quote());
         $lines = $checkout->lines($data['items']);
-        $quote = $checkout->quote($lines, $checkout->coupon($data['coupon'] ?? null), $request->user('sanctum'), (int) ($data['redeemPoints'] ?? 0));
+        $quote = $checkout->quote($lines, $checkout->coupon($data['coupon'] ?? null), $request->user('sanctum'), (int) ($data['redeemPoints'] ?? 0),
+            \App\Services\Money\MoneyRules::opts($data) + ['unboxing' => (bool) ($data['unboxing'] ?? false)]);
         $quote['items'] = array_map(fn ($l) => ['productId' => $l['product_id'], 'variant' => $l['variant'], 'qty' => $l['qty'],
             'unitBdt' => (int) $l['unit_bdt'], 'weightKg' => $l['weight_kg'], 'market' => $l['market'],
             'changed' => $l['client_bdt'] !== null && (int) round($l['client_bdt']) !== (int) $l['unit_bdt'],

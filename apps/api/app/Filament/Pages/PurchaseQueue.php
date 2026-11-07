@@ -30,6 +30,7 @@ use UnitEnum;
 /** Items still to buy in India, grouped by marketplace, with direct links to the source product pages. */
 class PurchaseQueue extends Page implements HasTable
 {
+    use \App\Filament\Concerns\HasPagePermission; // page.purchase-queue
     use InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
@@ -51,7 +52,8 @@ class PurchaseQueue extends Page implements HasTable
     {
         return OrderItem::query()
             ->whereNull('purchase_ref')
-            ->whereIn('order_id', Order::query()->select('id')->whereIn('status', ['placed', 'verified']));
+            ->whereIn('order_id', Order::query()->select('id')->whereIn('status', ['placed', 'verified'])
+                ->where(fn ($q) => $q->where('is_preorder', false)->orWhere('status', '!=', 'placed'))); // Shopping: unpaid pre-orders wait for stock
     }
 
     public function content(Schema $schema): Schema

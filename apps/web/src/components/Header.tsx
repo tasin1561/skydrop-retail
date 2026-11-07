@@ -7,6 +7,7 @@ import { STORES, STORE_MODES } from "@/lib/markets";
 import { useStore } from "@/state/store";
 import { Icon, Logo } from "./Icon";
 import { SearchBox } from "./SearchBox";
+import { NotificationBell } from "./notifications/NotificationBell";
 import { useCurrentMode } from "./StoreTheme";
 
 export function StoreSwitcher({ className }: { className?: string }) {
@@ -99,6 +100,7 @@ export function Header() {
           </div>
         )}
         <div className="ml-auto flex items-center gap-1">
+          <NotificationBell />
           <button
             className="grid h-11 w-11 place-items-center rounded-full text-ink-2 transition hover:bg-surface-2 hover:text-ink"
             aria-label="Toggle dark mode"

@@ -44,6 +44,9 @@ class SkydropWebhookController extends Controller
             $order->forceFill(['skydrop_consignment_id' => (string) $data['consignment_id']])->save();
         }
 
+        // Fulfilment module: keep every scan, rider lat/lng and proof of delivery for the tracking map.
+        rescue(fn () => app(\App\Services\Fulfilment\TrackingRecorder::class)->record($order, $event, $data), null, true);
+
         $status = SkydropClient::mapEvent($event);
         if (! $status) {
             return response()->json(['ok' => true, 'ignored' => $event]);

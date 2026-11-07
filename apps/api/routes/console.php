@@ -35,3 +35,19 @@ Illuminate\Support\Facades\Schedule::job(new App\Jobs\Messaging\SendReviewReques
 Illuminate\Support\Facades\Schedule::job(new App\Jobs\Messaging\SendPointsExpiryReminders)->dailyAt('04:30')->name('messaging:points-expiring')->onOneServer(); // 10:30 Dhaka when app TZ is UTC
 Illuminate\Support\Facades\Schedule::command('retail:sms-balance --alert')->everySixHours()->name('messaging:sms-balance')->onOneServer();
 // ---- end messaging module schedule ----
+
+// ---- Money module schedule (wallet, gift cards, Skydrop Plus) ----
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Money\CreditMembershipWallets)->dailyAt('03:40')->name('money:plus-credits')->onOneServer();
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Money\MoneyHousekeeping)->dailyAt('04:05')->name('money:housekeeping')->onOneServer(); // 10:05 Dhaka
+// ---- end money module schedule ----
+
+// ---- Shopping module schedule ----
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Shopping\CloseDueGroups)->everyFiveMinutes()->name('shopping:close-groups')->onOneServer();
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Shopping\ProcessPreorders)->hourlyAt(25)->name('shopping:preorders')->onOneServer();
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Shopping\MatchProducts)->dailyAt('03:40')->name('shopping:match-products')->onOneServer();
+// ---- end shopping module schedule ----
+
+// ---- Fulfilment module schedule ----
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Fulfilment\CheckSupplierPrices)->cron('10 */2 * * *')->name('fulfilment:supplier-prices')->onOneServer();
+Illuminate\Support\Facades\Schedule::job(new App\Jobs\Fulfilment\AutoApproveUnboxing)->hourlyAt(25)->name('fulfilment:unboxing-auto-approve')->onOneServer();
+// ---- end fulfilment module schedule ----

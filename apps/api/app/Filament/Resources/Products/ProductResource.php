@@ -52,7 +52,7 @@ class ProductResource extends Resource
 
     public static function canDelete(Model $record): bool
     {
-        return Admin::canManage();
+        return parent::canDelete($record); // RBAC: {slug}.ability via Gate
     }
 
     public static function getGloballySearchableAttributes(): array

@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Models\Setting;
+use App\Support\Rbac\PermissionResolver;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\HtmlString;
@@ -13,7 +14,8 @@ use Throwable;
  */
 class Admin
 {
-    public const ROLES = ['admin' => 'Admin', 'manager' => 'Manager', 'support' => 'Support'];
+    /** Legacy users.role values (fallback when a staff member has no roles assigned). */
+    public const ROLES = ['admin' => 'Admin', 'manager' => 'Manager', 'support' => 'Support', 'hub' => 'Hub staff'];
 
     public const MARKETS = ['amazon' => 'Mega Store (amazon.in)', 'flipkart' => 'Style Bazaar (flipkart.com)', 'bigbasket' => 'Daily Basket (bigbasket.com)'];
 
@@ -84,25 +86,53 @@ class Admin
         }
     }
 
+    /**
+     * THE permission check for the admin (App\Support\Rbac). Keys: "{resource-slug}.{viewAny|view|create|update|delete|export}",
+     * custom actions like "orders.refund", "page.{slug}", "widget.{slug}". Non-staff and blocked staff get false.
+     */
+    public static function can(string $key, ?Authenticatable $user = null): bool
+    {
+        $user ??= self::currentUser();
+
+        return app(PermissionResolver::class)->can($user, $key);
+    }
+
+    /** Legacy role string (admin / manager / support / hub). Prefer Admin::can(). */
     public static function role(?Authenticatable $user = null): ?string
     {
-        $user ??= Filament::auth()->user();
-        if (! $user || ! $user->is_admin) {
+        $user ??= self::currentUser();
+        if (! $user || ! app(PermissionResolver::class)->isStaff($user)) {
             return null;
         }
 
         return $user->role ?: 'admin';
     }
 
-    /** Destructive actions (cancel, refund, delete, points adjust, blocking, settings) need admin or manager. */
+    /** Legacy helper: manager-level actions inside sections the user can open (approve, mark paid, bulk delete, reset). */
     public static function canManage(?Authenticatable $user = null): bool
     {
-        return in_array(self::role($user), ['admin', 'manager'], true);
+        return self::can('actions.manage', $user);
     }
 
+    /** Legacy helper: refunds and other money-moving order actions. */
+    public static function isManager(?Authenticatable $user = null): bool
+    {
+        return self::can('orders.refund', $user);
+    }
+
+    /** Legacy helper: staff management (was role "admin"). */
     public static function isAdmin(?Authenticatable $user = null): bool
     {
-        return self::role($user) === 'admin';
+        return self::can('staff.manage', $user);
+    }
+
+    private static function currentUser(): ?Authenticatable
+    {
+        try {
+            return Filament::auth()->user() ?? auth()->user();
+        } catch (Throwable) {
+            return auth()->user();
+        }
     }
 
     /** Public product page on the source marketplace. */
