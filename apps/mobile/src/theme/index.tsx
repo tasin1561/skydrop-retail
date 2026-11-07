@@ -29,9 +29,10 @@ export const ACCENTS: Record<StoreMode, Accent> = {
 export type StoreTextTokens = { a: string; b: string; ring: string };
 export const STORE_TEXT: Record<StoreMode, { light: StoreTextTokens; dark: StoreTextTokens; fill: [string, string] }> = {
   all: { light: { a: "#5b3df5", b: "#c0301a", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#ff7a5c", ring: "#7c6cff" }, fill: ["#5b3df5", "#c0301a"] },
-  amazon: { light: { a: "#5b3df5", b: "#9426c4", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#c98bff", ring: "#7c6cff" }, fill: ["#5b3df5", "#5b3df5"] },
-  flipkart: { light: { a: "#c8185f", b: "#b8361a", ring: "#e11d74" }, dark: { a: "#f25a9b", b: "#ff8a6b", ring: "#f0468f" }, fill: ["#c8185f", "#c8185f"] },
-  bigbasket: { light: { a: "#0a7a55", b: "#0b7287", ring: "#0e9f6e" }, dark: { a: "#2fcf96", b: "#5fd3e0", ring: "#22c08a" }, fill: ["#0a7a55", "#0a7a55"] },
+  // Store names in each provider's brand colours (owner's decision): Amazon ink + orange, Flipkart blue + yellow, BigBasket green.
+  amazon: { light: { a: "#232f3e", b: "#c45500", ring: "#ff9900" }, dark: { a: "#ff9900", b: "#ffb84d", ring: "#ff9900" }, fill: ["#232f3e", "#232f3e"] },
+  flipkart: { light: { a: "#2874f0", b: "#1a56c4", ring: "#2874f0" }, dark: { a: "#5b9bff", b: "#ffe11b", ring: "#2874f0" }, fill: ["#2874f0", "#2874f0"] },
+  bigbasket: { light: { a: "#4e8a16", b: "#5f9e1c", ring: "#84c225" }, dark: { a: "#9bd43a", b: "#c6e86e", ring: "#84c225" }, fill: ["#4e8a16", "#4e8a16"] },
 };
 
 const light = {

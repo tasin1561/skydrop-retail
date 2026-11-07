@@ -1,25 +1,25 @@
-/* StoreName: store names as text only (no logos, no icons), in our own per-store gradients.
-   Tokens are text-safe shades of each store's accent, picked so both gradient stops pass WCAG AA
-   (4.5:1) on surface, bg, surface-2 and the pill tint, in light and dark. --sn-fill is the
-   selected fill, dark enough for white text (>= 5.3:1). Nothing here is a third-party colour. */
+/* StoreName: store names as text only (no logos, no icons). Owner's decision (Nov 2026): the names Amazon,
+   Flipkart and BigBasket are written in each provider's brand colours (Amazon squid ink + orange, Flipkart blue
+   + yellow, BigBasket green), in our own font. Light-mode stops are the darker brand shades so small text stays
+   readable; --sn-fill is the selected fill with white text. Site accents elsewhere stay ours. */
 
 .sn {
   --sn-shine: rgb(255 255 255 / 0.9);
 }
 .sn[data-store="all"] { --sn-a: #5b3df5; --sn-b: #c0301a; --sn-ring: #5b3df5; --sn-fill: linear-gradient(100deg, #5b3df5, #c0301a); }
-.sn[data-store="amazon"] { --sn-a: #5b3df5; --sn-b: #9426c4; --sn-ring: #5b3df5; --sn-fill: #5b3df5; }
-.sn[data-store="flipkart"] { --sn-a: #c8185f; --sn-b: #b8361a; --sn-ring: #e11d74; --sn-fill: #c8185f; }
-.sn[data-store="bigbasket"] { --sn-a: #0a7a55; --sn-b: #0b7287; --sn-ring: #0e9f6e; --sn-fill: #0a7a55; }
+.sn[data-store="amazon"] { --sn-a: #232f3e; --sn-b: #c45500; --sn-ring: #ff9900; --sn-fill: #232f3e; }
+.sn[data-store="flipkart"] { --sn-a: #2874f0; --sn-b: #1a56c4; --sn-ring: #2874f0; --sn-fill: #2874f0; }
+.sn[data-store="bigbasket"] { --sn-a: #4e8a16; --sn-b: #5f9e1c; --sn-ring: #84c225; --sn-fill: #4e8a16; }
 
 /* dark theme (and tone="dark" for names sitting on deep store tints in light mode) */
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="all"],
 .sn[data-tone="dark"][data-store="all"] { --sn-a: #9a8cff; --sn-b: #ff7a5c; --sn-ring: #7c6cff; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="amazon"],
-.sn[data-tone="dark"][data-store="amazon"] { --sn-a: #9a8cff; --sn-b: #c98bff; --sn-ring: #7c6cff; }
+.sn[data-tone="dark"][data-store="amazon"] { --sn-a: #ff9900; --sn-b: #ffb84d; --sn-ring: #ff9900; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="flipkart"],
-.sn[data-tone="dark"][data-store="flipkart"] { --sn-a: #f25a9b; --sn-b: #ff8a6b; --sn-ring: #f0468f; }
+.sn[data-tone="dark"][data-store="flipkart"] { --sn-a: #5b9bff; --sn-b: #ffe11b; --sn-ring: #2874f0; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="bigbasket"],
-.sn[data-tone="dark"][data-store="bigbasket"] { --sn-a: #2fcf96; --sn-b: #5fd3e0; --sn-ring: #22c08a; }
+.sn[data-tone="dark"][data-store="bigbasket"] { --sn-a: #9bd43a; --sn-b: #c6e86e; --sn-ring: #84c225; }
 :root[data-theme="dark"] .sn { --sn-shine: rgb(255 255 255 / 0.95); }
 
 /* on a filled accent (selected pill, active segment): near-white text, the shine is a store tint */
