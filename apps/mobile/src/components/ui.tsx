@@ -1,4 +1,5 @@
 // Small design-system primitives used across screens.
+import { brandFont } from "@/theme/fonts";
 import { useEffect, type ReactNode } from "react";
 import {
   ActivityIndicator,
@@ -47,7 +48,8 @@ export function T({
 }: TextProps & { v?: Variant; tone?: "ink" | "ink2" | "ink3" | "good" | "bad" | "warn" | "white" | "brand" | string }) {
   const { c } = useTheme();
   const map: Record<string, string> = { ink: c.ink, ink2: c.ink2, ink3: c.ink3, good: c.good, bad: c.bad, warn: c.warn, white: "#fff", brand: c.brand };
-  return <RNText {...rest} style={[SIZES[v], { color: map[tone] ?? tone }, style]} />;
+  const flat = StyleSheet.flatten([SIZES[v], style]) ?? {};
+  return <RNText {...rest} style={[SIZES[v], { color: map[tone] ?? tone }, style, brandFont(flat.fontWeight)]} />;
 }
 
 // ---------- pressable with spring scale ----------

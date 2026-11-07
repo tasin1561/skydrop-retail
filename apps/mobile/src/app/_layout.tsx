@@ -1,5 +1,7 @@
 import "react-native-reanimated";
 import { useEffect } from "react";
+import { useFonts } from "expo-font";
+import { brandFont, FONT_FILES, setFontsLoaded } from "@/theme/fonts";
 import { Platform } from "react-native";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavTheme } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -18,6 +20,10 @@ export const unstable_settings = { anchor: "(tabs)" };
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
+  // Load the brand font; never block the app on it (system font until ready, or if loading fails).
+  const [fontsLoaded, fontError] = useFonts(FONT_FILES);
+  setFontsLoaded(fontsLoaded && !fontError);
+  if (!fontsLoaded && !fontError) return null; // splash stays up meanwhile
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -56,7 +62,7 @@ function Nav() {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: c.bg },
           headerTintColor: c.ink,
-          headerTitleStyle: { fontWeight: "800" },
+          headerTitleStyle: { fontWeight: "800", ...(brandFont("800") as { fontFamily?: string }) },
           headerBackButtonDisplayMode: "minimal",
           contentStyle: { backgroundColor: c.bg },
           // Native slide on Android, native push with swipe-back on iOS.
