@@ -1,0 +1,107 @@
+/* Category mega menu, mobile drill-down sheet and category pages. Classes are prefixed "cm-".
+   Only transform and opacity animate; the global prefers-reduced-motion rule shortens every animation. */
+
+/* ---------- mega menu ---------- */
+.cm-panel {
+  animation: cm-drop 0.28s var(--ease) both;
+  transform-origin: top center;
+}
+@keyframes cm-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.99);
+  }
+}
+.cm-indicator {
+  transition: transform 0.35s var(--spring), opacity 0.2s var(--ease);
+  will-change: transform;
+}
+.cm-swap {
+  animation: cm-swap 0.3s var(--ease) both;
+}
+@keyframes cm-swap {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+.cm-col {
+  animation: rise 0.4s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+.cm-chev {
+  transition: transform 0.25s var(--ease);
+}
+[aria-expanded="true"] > .cm-chev {
+  transform: rotate(180deg);
+}
+.cm-link {
+  transition: transform 0.2s var(--ease);
+}
+.cm-link:hover,
+.cm-link:focus-visible {
+  transform: translateX(2px);
+}
+
+/* ---------- mobile drill-down sheet ---------- */
+.cm-backdrop {
+  animation: fade 0.25s ease both;
+}
+.cm-sheet {
+  animation: sheet 0.35s var(--ease) both;
+}
+.cm-level-fwd {
+  animation: cm-fwd 0.3s var(--ease) both;
+}
+.cm-level-back {
+  animation: cm-back 0.3s var(--ease) both;
+}
+@keyframes cm-fwd {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+@keyframes cm-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+.cm-row {
+  transition: transform 0.15s var(--ease);
+}
+.cm-row:active {
+  transform: scale(0.985);
+}
+
+/* ---------- /categories and /c/... ---------- */
+.cm-tile {
+  transition: transform 0.25s var(--ease);
+}
+.cm-tile:hover {
+  transform: translateY(-2px);
+}
+.cm-chip {
+  transition: transform 0.2s var(--ease);
+}
+.cm-chip:hover {
+  transform: translateY(-2px);
+}
+.cm-store {
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.cm-store[data-on="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cm-hide {
+  display: none !important;
+}

@@ -257,6 +257,10 @@ Event map: `picked_up|received_at_origin_hub|india_hub → india_hub`, `in_trans
 `dhaka_intake|received_at_destination_hub → dhaka_hub`, `out_for_delivery|assigned_to_rider → out_for_delivery`, `delivered → delivered`.
 Duplicates/backward events are acknowledged and ignored. The consignment (two legs: Kolkata hub → Dhaka intake → door, COD = unpaid balance)
 is booked by a queued job when the order reaches `purchased`.
+Fulfilment: every webhook event is also stored in `skydrop_events` (any event, even unmapped ones like `rider_location`). Rider coordinates
+are read from `lat`/`lng`, `location.{lat,lng}` or `rider.{lat,lng,name}` and kept as the order's latest rider location; proof of delivery from
+`pod` / `proof_of_delivery` `{ photo_url, signature_url, received_by }` (http(s) URLs only). Dev: `php artisan retail:simulate-tracking SR-XXXXXX
+--steps=0 --rider=5` sends 5 rider pings (Dhaka hub → customer district) when the order is out for delivery.
 
 `GET|POST /webhooks/payments/{bkash|nagad|sslcommerz|mock}?payment={id}` — browser return (redirects to `returnUrl`) or IPN (JSON).
 Always re-validated with the gateway (bKash execute/query, Nagad verify, SSLCommerz validator API, HMAC for mock); idempotent.
@@ -443,3 +447,58 @@ daysLeft } | null, benefits, savings: { totalBdt, ordersBdt, creditsBdt, orders,
 **EMI** `GET /emi?amount=` → `{ enabled, minOrderBdt, tenures, banks: [{ code, name, rates: { "3": pct, … } }], amountBdt?, eligible?,
 fromMonthlyBdt?, options?: EmiPlan[] }` (public; `enabled:false` when `pay.emi` or the EMI setting is off). Charge = rate % of the amount
 paid by card, paid by the customer, added to the order total. bKash "pay later" is a TODO (needs merchant approval).
+
+## Fulfilment: Kolkata hub, paid unboxing, returns, tracking map, supplier price alerts
+
+Features (Admin → System → Features): `unboxing`, `returns`, `live_tracking_map`, `supplier_price_alerts`; off → `404 { error: "feature_disabled" }`.
+Settings (Admin → Hub → Fulfilment settings, keys `fulfilment.*`, defaults `config/fulfilment.php`): weight variance % (15), unboxing fee
+(৳150) per `shipment` (store group) or `item`, unboxing auto-approve hours (48), return window days (7), changed-mind returns (off),
+price-alert rise % (5).
+
+**Order** gains `unboxing` (bool), `unboxingFee`, `unboxingStatus` (`awaiting_customer_approval` | `approved` | `auto_approved` | `problem` | null:
+a flag, not a workflow status) and `replacementOf` (original order id for zero-charge replacements).
+
+**Checkout:** `POST /checkout/quote` and `POST /orders` accept `unboxing: true` → quote adds `unboxing: { available, selected, feeBdt, per, unitBdt,
+waived }` and `unboxingFee` (inside `total`). Skydrop Plus benefit `free_unboxing` waives the fee.
+
+`POST /uploads` (auth, feature `returns`, multipart `file`: image, ≤ 5 MB) → `201 { upload: { id, url, mime, size } }`. Stored on the private disk;
+`url` is a signed link (60 min) to `GET /uploads/{id}`.
+
+`GET /orders/{id}/tracking` (auth, feature `live_tracking_map`) → `{ tracking: { orderId, status, trackingCode, points: [{ id: kolkata|border|dhaka|customer,
+label, short, lat, lng }], legs: [{ id, from, to, label, state: done|current|next }], currentLeg (0-2 | null before Kolkata), stage, progress (0..1, three
+equal legs), position {lat,lng} | null, eta { from, to } (dates) | null, lastEvent, events: [{ type: status|scan, status, event?, note, at, source, lat?, lng? }],
+rider { lat, lng, at } | null (only while out_for_delivery and fresher than 10 min), liveMap, pod { photoUrl, signatureUrl, receivedBy, at } | null
+(delivered only), unboxingHold } }`.
+
+`GET /orders/{id}/unboxing` (feature `unboxing`; 404 when the order has no unboxing) → `{ unboxing: { orderId, selected, feeBdt, status, requestedAt,
+autoApproveAt, decidedAt, reasons, items: [{ id, title, variant, qty, image, market, condition, note, photos: url[], video: url|null }] } }`
+`POST /orders/{id}/unboxing/approve` → `{ unboxing, order }` (409 `not_awaiting` unless awaiting approval) ·
+`POST /orders/{id}/unboxing/problem { reason: damaged|wrong_item|not_as_described|size_issue, note? }` → `{ unboxing, return }` (opens an India-stage
+return/replacement case). No answer within 48 h → auto-approved (hourly job). The order cannot leave the hub (Hand to Skydrop / advance hidden)
+while awaiting approval or after a problem.
+
+Returns (feature `returns`): `GET /orders/{id}/returns` → `{ eligibility: { eligible, reason: not_delivered|window_closed|already_requested|disabled|null,
+windowDays, windowEndsAt, reasons, resolutions, items: [{ id, productId, title, variant, image, market, qty, returnableQty, unitBdt }] }, items: Return[] }` ·
+`POST /orders/{id}/returns { items: [{ orderItemId, qty? }], reason: damaged|wrong_item|not_as_described|size_issue|changed_mind (only if allowed),
+note?, photos?: uploadId[] (required for damaged / wrong_item), resolution: refund|replacement|store_credit }` → `201 { return }` (422 with `code`
+when not eligible) · `GET /returns` → `{ items: Return[] }`.
+`Return`: `{ id, orderId, stage: india|delivered, items, reason, reasonLabel, note, photos: signedUrl[], resolution, status, statusLabel, refundBdt,
+replacementOrderId, pickupAt, createdAt, timeline: [{ status, at, note }] }`. Status flow: `requested → approved | rejected → pickup_scheduled →
+received → refunded | replaced | credited` (India-stage cases may go from `approved` straight to a resolution). Refunds go back through the payment
+gateway(s); any part a gateway cannot refund goes to the wallet when the `wallet` feature is on. Replacement = new zero-charge order linked by
+`replacementOf`, starting at `verified` (enters the purchase queue).
+
+`POST /orders/{id}/pay-difference` → `{ order, payment }`: pays a balance added after ordering (supplier price rise the customer agreed to pay, or
+extra weight). `409 nothing_due`; `409 collected_on_delivery` for `advance50` orders (the rider collects it).
+
+**Admin (Filament):** Hub group (permission `hub.receive`, role Hub staff): **Receive parcel** (phone-first; camera scan via BarcodeDetector or typed
+marketplace ref / AWB / `SR-…` / `IT-…` / tracking code; weight, dimensions, condition ok/damaged/wrong item, notes, photos and an optional
+video to the public disk; last item of an order → `india_hub`; damaged/wrong → customer SMS + return-to-seller task; unboxing orders require photos and
+then wait for the customer), **Pack & label** (one box per order, Code 128 label print view at `/hub/labels?orders=SR-A,SR-B`, weight-flag
+absorb/charge, Hand to Skydrop), **Return to seller** tasks, **Fulfilment settings**; dashboard widget *Kolkata hub* (awaiting arrival, received today,
+discrepancies, avg days purchase → hub). Weight flag: measured weight above the estimate by more than the setting; `orders.actual_weight_kg` feeds the
+profit report. Sales → **Returns** (approve / reject / schedule pickup (Skydrop reverse pickup TODO) / mark received / refund / store credit /
+replacement; permission `returns.resolve`) and **Price alerts** (source INR price re-checked every 2 h via `FetchProductJob` and right before buying
+from the purchase queue; rise above the threshold or out of stock → red banner in the purchase queue and order view with old vs new and margin impact,
+Filament database notification + ops email; actions absorb, ask the customer (pay link), cancel the item with a refund, switch to a matched listing
+from `product_matches`).

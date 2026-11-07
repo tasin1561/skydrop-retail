@@ -24,6 +24,7 @@ import { VariantGroup } from "@/components/product/Variants";
 import { DeliveryRoute, PriceBreakdown, Reviews, Specs } from "@/components/product/Details";
 import { FetchingLive, ProductExtras } from "@/components/product/Extras";
 import { OffersSection, Countdown, headlineDeal } from "@/components/offers/offers";
+import { ShoppingSections } from "@/components/shopping/ShoppingSections";
 
 type Phase = "idle" | "busy" | "done";
 
@@ -334,6 +335,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           <PriceBreakdown p={p} />
           <Specs p={p} />
           <Reviews p={p} />
+          <ShoppingSections p={p} inStock={available} />
         </View>
 
         <Rail title={`More from ${store.name}`} items={related.data ?? []} loading={related.loading} />

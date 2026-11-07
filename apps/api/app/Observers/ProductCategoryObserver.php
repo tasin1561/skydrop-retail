@@ -5,9 +5,9 @@ namespace App\Observers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductDetail;
+use App\Services\Catalog\CategoryGuesser;
 use App\Services\Categories\CategoryMatcher;
 use App\Services\Categories\CategoryTree;
-use App\Services\Catalog\CategoryGuesser;
 
 /**
  * Keeps products.category_id (tree node) and products.category (pricing group) in step on every upsert, without
@@ -27,7 +27,8 @@ class ProductCategoryObserver
     {
         $category = (string) $p->category;
         // A search run with category=<tree path> hands the path to the writer: treat it like a hint too.
-        $isPath = $category !== '' && ! in_array($category, Category::PRICING_GROUPS, true) && str_contains($category, '/') || ($category !== '' && ! in_array($category, Category::PRICING_GROUPS, true) && $this->tree->byPath($category));
+        $isPath = $category !== '' && ! str_starts_with($category, self::HINT) && ! in_array($category, Category::PRICING_GROUPS, true)
+            && $this->tree->byPath($category) !== null;
         if (str_starts_with($category, self::HINT) || $isPath) {
             $node = $isPath ? $this->tree->byPath($category) : $this->tree->find((int) substr($category, strlen(self::HINT)));
             if ($node && ! $p->category_id) {

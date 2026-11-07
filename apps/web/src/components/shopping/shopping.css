@@ -41,6 +41,10 @@
 /* ---- chart ---- */
 .sh-chart {
   position: relative;
+  /* Crosshair/wipe layers move with translateX(%): clip horizontally so they never widen the page
+     (overflow-y stays visible for the tooltip above the plot). */
+  overflow-x: clip;
+  overflow-clip-margin: 8px;
   touch-action: pan-y;
   cursor: crosshair;
   border-radius: 12px;

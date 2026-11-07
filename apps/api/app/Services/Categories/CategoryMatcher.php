@@ -53,7 +53,7 @@ class CategoryMatcher
             $out[] = substr($kw, 0, -1);
         } elseif (str_ends_with($kw, 'y') && ! preg_match('/[aeiou]y$/', $kw)) {
             $out[] = substr($kw, 0, -1).'ies';
-        } else {
+        } elseif (! str_ends_with($kw, 's')) {
             $out[] = $kw.'s';
         }
 

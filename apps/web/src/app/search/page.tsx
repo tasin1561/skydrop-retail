@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
 import { FilterSidebar, SortAndFilterBar } from "@/components/search/Filters";
 import { TrackSearch } from "@/components/tracking/TrackSearch";
+import { RequestCta } from "@/components/shopping/RequestLinks";
 import { HelpMeChoose } from "@/components/assistant/AskAssistant";
 import { LiveSearch } from "@/components/resilience/LiveSearch";
 import { StaleNote } from "@/components/resilience/LiveRefresh";
@@ -60,7 +61,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </p>
           <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">{heading}</h1>
           <p className="text-sm text-ink-2">
-            {res.total} {res.total === 1 ? "product" : "products"} · prices in BDT include import duty and service
+            {res.status === "pending" && !res.total ? "Looking for the best matches" : `${res.total} ${res.total === 1 ? "product" : "products"}`} · prices in BDT include
+            import duty and service
           </p>
         </div>
         <Suspense>
@@ -102,6 +104,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </div>
             </div>
           )}
+
+          <SafeSection label="Request a product" quiet>
+            <RequestCta q={q} count={res.total} />
+          </SafeSection>
 
           {res.pages > 1 && (
             <nav aria-label="Pages" className="mt-8 flex items-center justify-center gap-1">

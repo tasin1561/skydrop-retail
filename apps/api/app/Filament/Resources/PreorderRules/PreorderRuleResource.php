@@ -50,7 +50,7 @@ class PreorderRuleResource extends Resource
                     ->getSearchResultsUsing(fn (string $search) => FlashSaleForm::search($search))
                     ->getOptionLabelUsing(fn ($value) => FlashSaleForm::label(Product::query()->find($value))),
                 Select::make('target')->label('Category')->required()->visible(fn (Get $get) => $get('scope') === 'category')
-                    ->options(fn () => Category::query()->distinct()->orderBy('slug')->pluck('name', 'slug')->all() + ['electronics' => 'Electronics', 'fashion' => 'Fashion', 'beauty' => 'Beauty', 'grocery' => 'Grocery', 'home' => 'Home']),
+                    ->options(fn () => Category::query()->where('market', '!=', Category::UNIFIED)->distinct()->orderBy('slug')->pluck('name', 'slug')->all() + ['electronics' => 'Electronics', 'fashion' => 'Fashion', 'beauty' => 'Beauty', 'grocery' => 'Grocery', 'home' => 'Home']),
                 TextInput::make('deposit_pct')->label('Deposit')->numeric()->minValue(5)->maxValue(100)->default(30)->suffix('%')->required(),
                 TextInput::make('eta_days')->label('ETA after order')->numeric()->minValue(1)->maxValue(180)->default(21)->suffix('days')->required(),
                 TextInput::make('note')->maxLength(255)->columnSpanFull()->placeholder('Shown to shoppers, e.g. "New stock lands in India mid-December"'),

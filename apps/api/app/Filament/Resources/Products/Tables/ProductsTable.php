@@ -52,7 +52,7 @@ class ProductsTable
                 SelectFilter::make('market')->options(Admin::MARKETS),
                 SelectFilter::make('category')
                     ->options(fn () => Product::query()->distinct()->orderBy('category')->pluck('category', 'category')->all()
-                        + Category::query()->orderBy('slug')->pluck('name', 'slug')->all())
+                        + Category::query()->where('market', '!=', Category::UNIFIED)->orderBy('slug')->pluck('name', 'slug')->all())
                     ->searchable(),
                 TernaryFilter::make('hidden'),
                 TernaryFilter::make('in_stock'),

@@ -1,6 +1,7 @@
 import data from "@/data/catalog.json";
 import type { MarketId, Product, StoreMode } from "./types";
 import { priceBdt } from "./pricing";
+import { inCategory } from "./categories";
 
 const ALL = (data as { products: Product[] }).products;
 
@@ -35,7 +36,7 @@ export function searchProducts(sp: SearchParams) {
     .filter((w) => w.length > 1);
   let list = ALL.map((p) => ({ p, s: score(p, words) })).filter((x) => x.s > 0);
   if (sp.store && sp.store !== "all") list = list.filter((x) => x.p.market === sp.store);
-  if (sp.category) list = list.filter((x) => x.p.category === sp.category);
+  if (sp.category) list = list.filter((x) => inCategory(x.p, sp.category!)); // tree path (with descendants) or pricing group
   if (sp.min) list = list.filter((x) => priceBdt(x.p) >= sp.min!);
   if (sp.max) list = list.filter((x) => priceBdt(x.p) <= sp.max!);
   if (sp.rating) list = list.filter((x) => x.p.rating >= sp.rating!);

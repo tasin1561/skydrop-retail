@@ -9,6 +9,7 @@ import { Icon, Logo } from "./Icon";
 import { SearchBox } from "./SearchBox";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { useCurrentMode } from "./StoreTheme";
+import { RequestHeaderLink } from "./shopping/RequestLinks";
 
 export function StoreSwitcher({ className }: { className?: string }) {
   const mode = useCurrentMode();
@@ -115,6 +116,7 @@ export function Header() {
             <Icon name="user" size={19} />
             {user ? user.name.split(" ")[0] : "Sign in"}
           </Link>
+          <RequestHeaderLink />
           <Link
             href="/deals"
             className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-bad transition hover:bg-surface-2 md:inline-flex"

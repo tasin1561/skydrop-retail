@@ -620,7 +620,7 @@ body {
     fill: var(--ink-2);
   }
   .wait-story .ws-parcel {
-    offset-path: path("M20 70 C 90 10, 150 10, 170 45 S 260 85, 300 30");
+    offset-path: path("M28 64 C 90 10, 140 10, 160 42 S 250 80, 292 30");
     offset-rotate: 0deg;
     animation: ws-move 6s cubic-bezier(0.5, 0, 0.2, 1) infinite;
   }

@@ -79,6 +79,8 @@ function Nav() {
         <Stack.Screen name="login" options={{ title: "Sign in", presentation: "modal" }} />
         <Stack.Screen name="addresses" options={{ title: "Addresses" }} />
         <Stack.Screen name="wishlist" options={{ title: "Wishlist" }} />
+        <Stack.Screen name="request" options={{ title: "Request a product" }} />
+        <Stack.Screen name="requests" options={{ title: "My requests" }} />
         <Stack.Screen name="profile" options={{ title: "Profile" }} />
         <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
       </Stack>

@@ -4,6 +4,7 @@ import * as local from "./catalog";
 import type { SearchParams } from "./catalog";
 import type { Product, StoreMode } from "./types";
 import { demoDecorate } from "./cms";
+import { localCategoryPage, localTree, type CatNode, type CategoryPageData } from "./categories";
 
 const API = process.env.API_URL?.replace(/\/$/, "");
 
@@ -29,6 +30,17 @@ export function lastGoodFor<T>(path: string): T | null {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** The shopper's user agent, forwarded so the API never spends Oxylabs credits on bots/crawlers. */
+async function clientUa(): Promise<Record<string, string>> {
+  try {
+    const { headers } = await import("next/headers");
+    const ua = (await headers()).get("user-agent");
+    return ua ? { "X-Client-UA": ua.slice(0, 300) } : {};
+  } catch {
+    return {}; // outside a request (build time): no forwarding
+  }
+}
+
 /**
  * Fetch from the Laravel API with a hard timeout and one quick retry on network errors / 502-504.
  * Never throws. status 0 = network error or timeout.
@@ -36,12 +48,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function apiFetch<T>(path: string, { revalidate = 60, timeoutMs = 8000 }: { revalidate?: number; timeoutMs?: number } = {}): Promise<ApiResult<T>> {
   if (!API) return { ok: false, status: 0 };
   const started = Date.now();
+  const ua = await clientUa();
   for (let attempt = 0; attempt < 2; attempt++) {
     const left = timeoutMs - (Date.now() - started);
     if (left < 500) break;
     try {
       const res = await fetch(API + path, {
-        headers: { Accept: "application/json", ...internalHeaders },
+        headers: { Accept: "application/json", ...internalHeaders, ...ua },
         next: { revalidate },
         signal: AbortSignal.timeout(left),
       });
@@ -71,7 +84,18 @@ function qs(params: Record<string, string | number | boolean | undefined>) {
   return u.toString();
 }
 
-export type SearchResult = { total: number; page: number; pages: number; items: Product[]; status?: "ready" | "pending"; jobId?: string; stale?: boolean };
+export type SearchFacets = { categories: { path: string; name: string; nameBn?: string | null; icon: string; count: number }[] };
+export type SearchResult = {
+  total: number;
+  page: number;
+  pages: number;
+  items: Product[];
+  status?: "ready" | "pending";
+  jobId?: string;
+  stale?: boolean;
+  /** child-category counts of the whole result (API mode) */
+  facets?: SearchFacets;
+};
 
 export async function searchProducts(sp: SearchParams): Promise<SearchResult> {
   const r = await api<SearchResult>(
@@ -194,4 +218,22 @@ export async function offersFeed(store: StoreMode, limit = 40): Promise<Product[
   const discounted = local.deals(store, limit);
   const seen = new Set<string>();
   return [...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit).map(demoDecorate);
+}
+
+// ---------- category tree (GET /categories, GET /categories/{path}); demo / API-down fallback: the bundled tree ----------
+
+/** Tree filtered to what the store sells, with product counts. Never throws. */
+export async function getCategoryTree(store: StoreMode = "all", depth?: number): Promise<CatNode[]> {
+  const r = await api<{ items: CatNode[] }>(`/categories?${qs({ store, depth })}`, 300);
+  return r?.items?.length ? r.items : localTree(store, depth);
+}
+
+/** Category landing data, or null for an unknown path. Never throws. */
+export async function getCategoryPage(path: string, store: StoreMode = "all"): Promise<CategoryPageData | null> {
+  if (API) {
+    const r = await apiFetch<CategoryPageData>(`/categories/${path.split("/").map(encodeURIComponent).join("/")}?${qs({ store })}`, { revalidate: 120 });
+    if (r.ok) return { ...r.data, node: { ...r.data.node, children: r.data.node.children ?? [] } };
+    if (r.status === 404) return null; // the API's tree is authoritative (admin edits)
+  }
+  return localCategoryPage(path, store);
 }

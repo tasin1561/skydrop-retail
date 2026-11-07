@@ -16,6 +16,7 @@ export default function Account() {
   const { user, signOut, wish, demo } = useStore();
   const walletOn = useFeature("wallet");
   const plusOn = useFeature("membership");
+  const requestsOn = useFeature("product_requests");
 
   const row = (icon: string, title: string, sub: string, onPress: () => void) => (
     <Tap onPress={onPress} accessibilityLabel={title} style={styles.row} scaleTo={0.98}>
@@ -80,6 +81,7 @@ export default function Account() {
         {plusOn && row("award", "Skydrop Plus", "Free shipping on every order", () => router.push("/plus"))}
         <Divider style={{ marginLeft: 60 }} />
         {row("heart", "Wishlist", `${wish.length} saved`, () => router.push("/wishlist"))}
+        {requestsOn && row("search", "Request a product", "We source anything from Indian stores", () => router.push("/requests"))}
         <Divider style={{ marginLeft: 60 }} />
         {row("package", "Orders", "Track from India to your door", () => router.navigate("/orders"))}
       </Card>

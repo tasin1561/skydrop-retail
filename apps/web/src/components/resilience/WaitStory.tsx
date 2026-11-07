@@ -25,16 +25,18 @@ export function WaitStory() {
   return (
     <div className="wait-story card overflow-hidden p-4" aria-hidden="false">
       <svg viewBox="0 0 320 90" className="h-auto w-full" role="img" aria-label="Your parcel's journey from India to Bangladesh">
-        <path id="ws-route" d="M20 70 C 90 10, 150 10, 170 45 S 260 85, 300 30" className="ws-route" fill="none" />
-        <path d="M20 70 C 90 10, 150 10, 170 45 S 260 85, 300 30" className="ws-route-done" fill="none" pathLength={100} />
-        {[
-          [20, 70, "India store"],
-          [170, 45, "Kolkata hub"],
-          [300, 30, "Your door"],
-        ].map(([x, y, label]) => (
-          <g key={label as string}>
-            <circle cx={x as number} cy={y as number} r="5" className="ws-stop" />
-            <text x={x as number} y={(y as number) + 18} textAnchor="middle" className="ws-label">
+        <path id="ws-route" d="M28 64 C 90 10, 140 10, 160 42 S 250 80, 292 30" className="ws-route" fill="none" />
+        <path d="M28 64 C 90 10, 140 10, 160 42 S 250 80, 292 30" className="ws-route-done" fill="none" pathLength={100} />
+        {(
+          [
+            [28, 64, "India store", "start", -10],
+            [160, 42, "Kolkata hub", "middle", 0],
+            [292, 30, "Your door", "end", 10],
+          ] as const
+        ).map(([x, y, label, anchor, dx]) => (
+          <g key={label}>
+            <circle cx={x} cy={y} r="5" className="ws-stop" />
+            <text x={x + dx} y={y + 18} textAnchor={anchor} className="ws-label">
               {label}
             </text>
           </g>

@@ -46,7 +46,7 @@ class GrowthSettings extends Page
     public static function categories(): array
     {
         try {
-            $cats = Category::query()->orderBy('name')->get();
+            $cats = Category::query()->where('market', '!=', Category::UNIFIED)->orderBy('name')->get(); // legacy store rows: tree nodes are not pricing slugs
         } catch (Throwable) {
             return [];
         }
