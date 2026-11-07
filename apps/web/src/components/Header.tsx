@@ -3,80 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { STORES, STORE_MODES } from "@/lib/markets";
 import { useStore } from "@/state/store";
 import { Icon, Logo } from "./Icon";
 import { SearchBox } from "./SearchBox";
 import { MegaMenu } from "./categories/MegaMenu";
 import { CategorySheetButton } from "./categories/CategorySheet";
 import { NotificationBell } from "./notifications/NotificationBell";
-import { useCurrentMode } from "./StoreTheme";
+import { StoreLiveRegion, StoreSwitcher } from "./store/StoreSwitch";
 import { RequestHeaderLink } from "./shopping/RequestLinks";
 import { LangSwitch } from "./LangSwitch";
 import { useT } from "@/i18n/client";
-
-export function StoreSwitcher({ className }: { className?: string }) {
-  const mode = useCurrentMode();
-  const { enabled } = useStore();
-  const modes = STORE_MODES.filter((m) => m === "all" || enabled[m]);
-  const { t } = useT();
-  const wrap = useRef<HTMLDivElement>(null);
-  const [pill, setPill] = useState({ x: 0, w: 0, ok: false });
-
-  useEffect(() => {
-    const box = wrap.current;
-    const el = box?.querySelector<HTMLElement>(`[data-mode="${mode}"]`);
-    if (!box || !el) return;
-    const measure = () => setPill({ x: el.offsetLeft, w: el.offsetWidth, ok: true });
-    measure();
-    box.scrollTo({ left: Math.max(0, el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2), behavior: "smooth" });
-    // labels change width when the web fonts (or the Bangla font) finish loading: keep the pill on its tab
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [mode, modes.length]);
-
-  return (
-    <div
-      ref={wrap}
-      role="tablist"
-      aria-label={t("header.chooseStore")}
-      className={"no-scrollbar relative flex items-center gap-1 overflow-x-auto rounded-full bg-surface-2 p-1 " + (className ?? "")}
-    >
-      <span
-        aria-hidden
-        className="absolute bottom-1 top-1 w-[100px] origin-left rounded-full bg-accent transition-transform duration-200"
-        style={{
-          // transform only: travel with translateX, size with scaleX against a 100px base
-          transform: `translateX(${pill.x - 4}px) scaleX(${pill.w / 100})`,
-          opacity: pill.ok ? 1 : 0,
-          transitionTimingFunction: "var(--ease)",
-        }}
-      />
-      {modes.map((m) => {
-        const on = m === mode;
-        return (
-          <Link
-            key={m}
-            data-mode={m}
-            role="tab"
-            aria-selected={on}
-            href={m === "all" ? "/" : `/store/${m}`}
-            className={
-              "relative z-10 inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:min-h-0 sm:text-sm " +
-              (on ? "text-white" : "text-ink-2 hover:text-ink") +
-              // until the sliding pill is measured (server HTML, before hydration) the active tab paints its own fill
-              (on && !pill.ok ? " bg-accent" : "")
-            }
-          >
-            <Icon name={STORES[m].icon} size={15} stroke={2} />
-            {m === "all" ? t("store.all.name") : STORES[m].name}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
 
 export function Header() {
   const { cartCount, user, theme, setTheme } = useStore();
@@ -184,10 +120,11 @@ export function Header() {
         </div>
       )}
       {!checkout && (
-        <div className="mx-auto max-w-7xl px-4 pb-2.5">
-          <StoreSwitcher className="w-fit max-w-full" />
+        <div className="mx-auto max-w-7xl px-4 pb-2.5 empty:hidden">
+          <StoreSwitcher />
         </div>
       )}
+      <StoreLiveRegion />
     </header>
   );
 }

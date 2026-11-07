@@ -1,0 +1,78 @@
+/* Store switcher sheet + first-visit store picker. One curve (--ease), 200ms in, 160ms out.
+   Reduced motion: the global rule in globals.css makes these jump to their end state. */
+
+.sp-backdrop {
+  animation: sp-fade 200ms var(--ease) both;
+}
+.sp-panel {
+  animation: sp-sheet-in var(--dur-3) var(--ease) both;
+}
+@media (min-width: 640px) {
+  .sp-panel {
+    animation: sp-pop-in 200ms var(--ease) both;
+  }
+}
+.sp-root[data-state="closing"] .sp-backdrop {
+  animation: sp-fade-out 160ms var(--ease) both;
+}
+.sp-root[data-state="closing"] .sp-panel {
+  animation: sp-sheet-out 160ms var(--ease) both;
+}
+@media (min-width: 640px) {
+  .sp-root[data-state="closing"] .sp-panel {
+    animation: sp-pop-out 160ms var(--ease) both;
+  }
+}
+
+@keyframes sp-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sp-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes sp-sheet-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sp-sheet-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(16px); }
+}
+@keyframes sp-pop-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sp-pop-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: scale(0.98); }
+}
+
+/* Store option cards: border and fill follow the card's own store accent (data-store on the card). */
+.sp-card {
+  transition:
+    border-color var(--dur-2) var(--ease),
+    background-color var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+.sp-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background-color: color-mix(in srgb, var(--accent) 4%, var(--surface));
+}
+.sp-card:active {
+  transform: scale(0.99);
+}
+.sp-card[aria-checked="true"] {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+/* Segmented control: the indicator slides on transform only, 200ms. */
+.seg-ind {
+  transition:
+    transform 200ms var(--ease),
+    background-color 200ms var(--ease),
+    opacity var(--dur-1) var(--ease);
+}

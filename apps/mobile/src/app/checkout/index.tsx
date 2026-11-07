@@ -13,7 +13,7 @@ import { useStore } from "@/state/store";
 import type { Address, CartItem } from "@/lib/types";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow } from "@/lib/pricing";
-import { addDays, cartKey, computeTotals } from "@/lib/cart";
+import { addDays, cartKey, computeTotals, couponStore } from "@/lib/cart";
 import { maxRedeem } from "@/lib/points";
 import { prettyPhone } from "@/lib/phone";
 import { sized } from "@/lib/variants";
@@ -73,7 +73,7 @@ export default function Checkout() {
   const [unboxing, setUnboxing] = useState(false);
   const unboxingOn = useFeature("unboxing");
   const emiActive = !!emi && !!emiCfg && baseTotals.total >= emiCfg.minOrderBdt;
-  const { quote, failed: quoteFailed } = useMoneyQuote(
+  const { quote, failed: quoteFailed, couponError } = useMoneyQuote(
     cart,
     {
       coupon: coupon?.code,
@@ -341,7 +341,7 @@ export default function Checkout() {
             <>
               <T v="small" tone="ink2">{t("del.intro")}</T>
               {totals.groups.map((g) => {
-                const free = g.shipping === 0 || coupon?.kind === "freeship";
+                const free = g.shipping === 0 || (coupon?.kind === "freeship" && (couponStore(coupon) ?? g.market) === g.market && (quote ? (quote.shipDiscount ?? 0) > 0 : totals.shipDiscount > 0));
                 return (
                   <Card key={g.market} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
                     <IconChip icon="truck" mode={g.market} />
@@ -541,7 +541,7 @@ export default function Checkout() {
                 </Tap>
               )}
               <Card>
-                <CouponField />
+                <CouponField error={couponError} />
               </Card>
               {(phase === "verifying" || checks.some((s) => s !== "wait")) && <VerifyPanel states={checks} changed={changed} failed={failed} error={verifyError} />}
               {failed.length > 0 && (
@@ -555,7 +555,13 @@ export default function Checkout() {
                   }}
                 />
               )}
-              <SummaryLines t={totals} extra={quoteExtraLines(quote, t)} total={quote?.total} earn={quote?.pointsToEarn} />
+              {/* Coupon lines from the server quote once it is in (admin rules), else the cart estimate. */}
+              <SummaryLines
+                t={quote ? { ...totals, itemDiscount: quote.itemDiscount ?? totals.itemDiscount, shipDiscount: quote.shipDiscount ?? totals.shipDiscount } : totals}
+                extra={quoteExtraLines(quote, t)}
+                total={quote?.total}
+                earn={quote?.pointsToEarn}
+              />
               <CheckoutMoney q={quote} useWallet={useWallet} setUseWallet={setUseWallet} lock={phase !== "idle"} methodLabel={methodText} />
               {quoteFailed && !demo && <T v="tiny" tone="ink3">{t("mx.quoteFail")}</T>}
               <T v="tiny" tone="ink3">{t("m.agreeShort")}</T>

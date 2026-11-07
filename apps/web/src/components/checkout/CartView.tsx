@@ -9,7 +9,8 @@ import { STORES } from "@/lib/markets";
 import { PRICING } from "@/lib/pricing";
 import type { CartItem } from "@/lib/types";
 import { useStore } from "@/state/store";
-import { computeTotals, useCoupon, type Group } from "./cart-math";
+import { computeTotals, useCoupon, type Group, type Totals } from "./cart-math";
+import { useCouponTotals } from "./useCouponTotals";
 import { CouponField } from "./CouponField";
 import { EmptyCart } from "./EmptyCart";
 import { QtyStepper } from "./QtyStepper";
@@ -39,7 +40,8 @@ export function CartView() {
     if (timer.current) clearTimeout(timer.current);
   }, []);
 
-  const t = useBundleTotals(computeTotals(cart, coupon), cart); // Shopping: bundle saving
+  // API mode: coupon discount from the server quote; Shopping: bundle saving
+  const t = useBundleTotals(useCouponTotals(computeTotals(cart, coupon), cart, coupon), cart);
 
   // Let the row slide out and its space close first (about 480ms), then remove it from the store.
   const animateOut = (item: CartItem, after: () => void) => {
@@ -164,7 +166,7 @@ export function CartView() {
   );
 }
 
-function SideCard({ t, coupon, withCta }: { t: ReturnType<typeof computeTotals>; coupon: ReturnType<typeof useCoupon>[0]; withCta?: boolean }) {
+function SideCard({ t, coupon, withCta }: { t: Totals & { couponError?: string | null }; coupon: ReturnType<typeof useCoupon>[0]; withCta?: boolean }) {
   const { cart } = useStore(); // money module: Plus nudge needs the cart lines
   const { t: tr } = useT();
   return (
@@ -172,7 +174,7 @@ function SideCard({ t, coupon, withCta }: { t: ReturnType<typeof computeTotals>;
       <h2 id="sum-h" className="text-base font-extrabold">
 {tr("cart.summary")}
 </h2>
-      <CouponField />
+      <CouponField error={t.couponError} />
       <SummaryLines t={t} coupon={coupon} perStore />
       <CartPlusNudge cart={cart} coupon={coupon?.code} />
       {withCta && (

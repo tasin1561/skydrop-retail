@@ -14,6 +14,8 @@ import { Pager } from "@/components/categories/Pager";
 import "@/components/categories/categories.css";
 import { getT } from "@/i18n/server";
 import { catLabel } from "@/lib/categories";
+import { parseBrands } from "@/lib/brands";
+import { ActiveFilters } from "@/components/search/ActiveFilters";
 
 type SP = Record<string, string | string[] | undefined>;
 type Params = { path: string[] };
@@ -63,6 +65,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
     q: one(sp.q) || undefined,
     store,
     category: path,
+    brand: parseBrands(one(sp.brand)),
     sort: (one(sp.sort) as never) || undefined,
     min: Number(one(sp.min)) || undefined,
     max: Number(one(sp.max)) || undefined,
@@ -209,8 +212,9 @@ export default async function CategoryPage({ params, searchParams }: { params: P
             {brands.slice(0, 8).map((b) => (
               <Link
                 key={b.name}
-                href={href(path, store, { q: b.name })}
-                className="cm-chip inline-flex min-h-9 items-center gap-1 rounded-full bg-surface-2 px-3 text-xs font-semibold text-ink-2"
+                href={`/search?${new URLSearchParams({ q: "", ...(store !== "all" ? { store } : {}), category: path, brand: b.name }).toString()}`}
+                aria-label={t("c.shopBrand", { brand: b.name, category: catLabel(node, bn) })}
+                className="cm-chip inline-flex min-h-11 items-center gap-1 rounded-full bg-surface-2 px-3 text-xs font-semibold text-ink-2 sm:min-h-9"
               >
                 {b.name} <span className="text-ink-3">{b.count}</span>
               </Link>
@@ -221,14 +225,15 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
       <div className="mt-4 flex flex-col gap-3">
         <Suspense>
-          <SortAndFilterBar total={res.total} hideCategory />
+          <SortAndFilterBar total={res.total} hideCategory brands={res.facets?.brands} />
+          <ActiveFilters />
         </Suspense>
         {res.stale && <StaleNote what="results" />}
       </div>
 
       <div className="mt-4 flex gap-6">
         <Suspense>
-          <FilterSidebar hideCategory />
+          <FilterSidebar hideCategory brands={res.facets?.brands} />
         </Suspense>
         <div className="min-w-0 flex-1">
           {res.items.length ? (

@@ -107,7 +107,8 @@ function demoHome(store: StoreMode): CmsHome {
     { id: "demo-flash", title: "Flash hour: extra taka off, every six hours", subtitle: "A fresh set of deals with an extra Skydrop discount. Limited to 2 per order.", image: shot("amazon"), link: "#fs-demo-live", cta: "See flash deals", store: "amazon", placement: "hero" },
     { id: "demo-fashion", title: "New season kurtas, sarees and sneakers", subtitle: `${STORES.flipkart.name} brings ${STORES.flipkart.source} fashion to every district.`, image: shot("flipkart"), link: "/store/flipkart", cta: `Shop ${STORES.flipkart.name}`, store: "flipkart", placement: "hero" },
     { id: "demo-pantry", title: "Indian pantry, delivered", subtitle: "Spices, snacks and tea from bigbasket.com. Duty and customs already in the price.", image: shot("bigbasket"), link: "/store/bigbasket", cta: `Shop ${STORES.bigbasket.name}`, store: "bigbasket", placement: "hero" },
-    { id: "demo-coupon", title: "SKYDROP10: 10% off your first order", subtitle: "Up to ৳1,000 off items. Apply it at checkout.", image: shot("amazon", 1), link: "/deals", cta: "Find a deal", store: "all", placement: "hero" },
+    // Demo only. Live coupon promos come from the admin (featured coupons, GET /coupons/featured).
+    { id: "demo-coupon", title: "Save more with Skydrop coupons", subtitle: "Enter a coupon code in your cart or at checkout.", image: shot("amazon", 1), link: "/deals", cta: "Find a deal", store: "all", placement: "hero" },
   ];
   const banners: Banner[] = promos
     .filter((b) => store === "all" || b.store === "all" || b.store === store)

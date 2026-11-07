@@ -14,6 +14,7 @@ import { trackCheckout } from "@/lib/track";
 import { demoLedger, maxRedeem } from "@/lib/points";
 import { AddressStep, addressText } from "./AddressStep";
 import { computeTotals, useCoupon } from "./cart-math";
+import { useCouponTotals } from "./useCouponTotals";
 import { EmptyCart } from "./EmptyCart";
 import { DeliveryStep, PAYMENTS, PaymentStep, paymentLabel, type PaymentId } from "./Options";
 import { QuickSignIn } from "./QuickSignIn";
@@ -110,7 +111,11 @@ export function CheckoutView() {
     : cart.map((i) => (fresh[itemKey(i)] ? { ...i, unitBdt: fresh[itemKey(i)] } : i));
   const pointsBalance = apiEnabled ? (apiPoints ?? 0) : demoLedger(store.orders, user ? "" : undefined).balance;
   const redeemable = maxRedeem(pointsBalance, computeTotals(items, coupon).subtotal);
-  const t0 = useBundleTotals(computeTotals(items, coupon, usePoints && !placed ? redeemable.points : (placed?.pointsRedeemed ?? 0)), items); // Shopping: bundle saving
+  // API mode: coupon discount from the server quote (admin rules); Shopping: bundle saving
+  const t0 = useBundleTotals(
+    useCouponTotals(computeTotals(items, coupon, usePoints && !placed ? redeemable.points : (placed?.pointsRedeemed ?? 0)), items, placed ? null : coupon),
+    items,
+  );
   const unboxingFee = unboxingFeeFor(unboxingOn && unboxing, t0.groups.length);
   const t = unboxingFee ? { ...t0, unboxingFee, total: t0.total + unboxingFee } : t0;
   const address = addresses.find((a) => a.id === addrPick) ?? addresses.find((a) => a.isDefault) ?? addresses[0] ?? null;

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState, type ReactElement } from "rea
 import { ActivityIndicator, FlatList, RefreshControl, View, useWindowDimensions } from "react-native";
 import { useIsFocused } from "expo-router";
 import { api, waitForJob } from "@/api/client";
-import type { SearchParams } from "@/api/types";
+import type { BrandFacet, SearchParams } from "@/api/types";
 import type { Product } from "@/lib/types";
 import { useTheme } from "@/theme";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
@@ -11,7 +11,18 @@ import { Empty, T } from "./ui";
 import { FetchingLive } from "./product/Extras";
 import { useT } from "@/i18n";
 
-export function ProductGrid({ params, header, onTotal }: { params: SearchParams; header?: ReactElement; onTotal?: (n: number) => void }) {
+export function ProductGrid({
+  params,
+  header,
+  onTotal,
+  onBrands,
+}: {
+  params: SearchParams;
+  header?: ReactElement;
+  onTotal?: (n: number) => void;
+  /** top brands of the result (search facets), reported with page 1 */
+  onBrands?: (b: BrandFacet[]) => void;
+}) {
   const { t } = useT();
   const { c } = useTheme();
   const { width } = useWindowDimensions();
@@ -48,6 +59,7 @@ export function ProductGrid({ params, header, onTotal }: { params: SearchParams;
         setPages(r.pages);
         setError(null);
         onTotal?.(r.total);
+        if (pg === 1) onBrands?.(r.facets?.brands ?? []);
         // pending: the API is fetching fresh results from the store; poll the job, then reload.
         if (pg === 1) setJob(r.status === "pending" ? (r.jobId ?? null) : null);
       } catch (e) {

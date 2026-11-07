@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
-import { couponFromApi, couponHint, findCoupon, type Totals } from "@/lib/cart";
+import { DEMO_COUPONS, couponFromApi, couponHint, couponText, findCoupon, type Totals } from "@/lib/cart";
+import { useFeaturedCoupons } from "@/api/coupons";
 import { api, ApiError } from "@/api/client";
 import { useStore } from "@/state/store";
 import { radius, useTheme } from "@/theme";
@@ -11,10 +12,13 @@ import { Button, Card, Divider, T } from "./ui";
 import { useT } from "@/i18n";
 import { enterFade } from "@/lib/motion";
 
-export function CouponField() {
-  const { t } = useT();
+/** `error`: the server's reason when the applied coupon no longer fits the cart (checkout quote). */
+export function CouponField({ error }: { error?: string | null } = {}) {
+  const tr = useT();
+  const { t } = tr;
   const { c } = useTheme();
   const { coupon, setCoupon, cart, demo } = useStore();
+  const featured = useFeaturedCoupons();
   const [text, setText] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,8 +34,14 @@ export function CouponField() {
             {t("coupon.applied", { code: coupon.code })}
           </T>
           <T v="tiny" tone="ink2">
-            {coupon.code === "SKYDROP10" || coupon.code === "FREESHIP" ? t(`coupon.${coupon.code}`) : coupon.label}
+            {couponText(coupon, tr)}
+            {coupon.firstOrderOnly ? " · " + t("coupon.firstOrder") : ""}
           </T>
+          {!!error && (
+            <T v="tiny" tone="bad">
+              {t("coupon.notApplied", { reason: error })}
+            </T>
+          )}
         </View>
         <Button label={t("cart.remove")} kind="ghost" onPress={() => setCoupon("")} style={{ minHeight: 44, paddingHorizontal: 12 }} />
       </Animated.View>
@@ -62,6 +72,7 @@ export function CouponField() {
       const found = couponFromApi((q as { coupon?: unknown }).coupon);
       if (found) ok(found);
       else fail(t("mx.couponInvalid"));
+      // Per-customer / first-order / store / schedule messages come back as 422 errors.coupon (shown below).
     } catch (e) {
       // 422 → the server's reason ("expired", "add ৳X more"…); network → generic retry message
       const reason = e instanceof ApiError ? (e.errors?.coupon?.[0] ?? (e.status === 422 ? e.message : null)) : null;
@@ -101,8 +112,39 @@ export function CouponField() {
         />
       </View>
       <T v="tiny" tone={err ? "bad" : "ink3"} style={{ marginTop: 6 }}>
-        {err ?? (demo ? t("coupon.try") : t("mx.couponHint"))}
+        {err ??
+          (demo
+            ? t("coupon.tryDemo", { codes: Object.keys(DEMO_COUPONS).join(", ") })
+            : featured.length
+              ? t("coupon.tryFeatured", { codes: featured.slice(0, 2).map((x) => x.code).join(", ") })
+              : t("mx.couponHint"))}
       </T>
+    </View>
+  );
+}
+
+/** Admin-featured coupons (GET /coupons/featured) for the home screen and cart; renders nothing when none is live. */
+export function CouponPromo({ store = "all", style }: { store?: "all" | "amazon" | "flipkart" | "bigbasket"; style?: StyleProp<ViewStyle> }) {
+  const tr = useT();
+  const { c } = useTheme();
+  const items = useFeaturedCoupons(store).slice(0, 2);
+  if (!items.length) return null;
+  return (
+    <View style={[{ gap: 8 }, style]}>
+      {items.map((cp) => (
+        <View key={cp.code} style={[styles.promo, { backgroundColor: c.surface2 }]} accessibilityRole="text">
+          <Icon name="tag" size={18} color={c.brand} />
+          <View style={{ flex: 1 }}>
+            <T v="h3" style={{ fontSize: 14 }}>
+              {cp.code}
+            </T>
+            <T v="tiny" tone="ink2">
+              {couponText(cp, tr)}
+              {cp.firstOrderOnly ? " · " + tr.t("coupon.firstOrder") : ""}
+            </T>
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
@@ -151,5 +193,6 @@ export function SummaryLines({ t: tot, extra = [], total, earn }: { t: Totals; e
 const styles = StyleSheet.create({
   input: { flex: 1, minWidth: 0, minHeight: 50, borderRadius: radius.md, paddingHorizontal: 14, fontSize: 15, fontWeight: "700", letterSpacing: 1, borderWidth: 1.5 },
   applied: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: radius.md },
+  promo: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: radius.md },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 });

@@ -94,6 +94,18 @@ export const mxEn = {
   "mx.shipping": "Shipping",
   "mx.opensWeb": "Opens in the browser",
   "mx.signInFor": "Sign in to continue",
+
+  // search / category filters: brand
+  "mx.brand": "Brand",
+  "mx.brandN": "Brand ({count})",
+  "mx.brandSearch": "Search brands",
+  "mx.brandMore": "Show {count} more",
+  "mx.brandLess": "Show fewer",
+  "mx.brandNone": "No brand matches \"{q}\"",
+  "mx.brandMax": "You can pick up to {count} brands",
+  "mx.brandA11y": "{name}, {count} product|{name}, {count} products",
+  "mx.removeBrand": "Remove brand {name}",
+  "mx.brandClear": "Clear brands",
 } as const;
 
 export type MxKey = keyof typeof mxEn;
@@ -183,4 +195,14 @@ export const mxBn: Partial<Record<MxKey, string>> = {
   "mx.shipping": "শিপিং",
   "mx.opensWeb": "ব্রাউজারে খুলবে",
   "mx.signInFor": "চালিয়ে যেতে সাইন ইন করুন",
+  "mx.brand": "ব্র্যান্ড",
+  "mx.brandN": "ব্র্যান্ড ({count})",
+  "mx.brandSearch": "ব্র্যান্ড খুঁজুন",
+  "mx.brandMore": "আরও {count}টি দেখুন",
+  "mx.brandLess": "কম দেখান",
+  "mx.brandNone": "\"{q}\" নামে কোনো ব্র্যান্ড নেই",
+  "mx.brandMax": "সর্বোচ্চ {count}টি ব্র্যান্ড বেছে নিতে পারবেন",
+  "mx.brandA11y": "{name}, {count}টি পণ্য",
+  "mx.removeBrand": "{name} ব্র্যান্ড সরান",
+  "mx.brandClear": "ব্র্যান্ড মুছুন",
 };

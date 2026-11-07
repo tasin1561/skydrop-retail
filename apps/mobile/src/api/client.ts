@@ -187,7 +187,7 @@ export const api = {
 
   search: (p: SearchParams) =>
     either(
-      () => http<SearchResponse>("GET", "/search", { query: { ...p, perPage: undefined } }),
+      () => http<SearchResponse>("GET", "/search", { query: { ...p, brand: p.brand?.join(",") || undefined, perPage: undefined } }),
       () => demo.search(p),
     ),
 

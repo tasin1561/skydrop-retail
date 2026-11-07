@@ -75,6 +75,12 @@ export function search(sp: SearchParams): SearchResponse {
   if (sp.max) list = list.filter((x) => priceBdt(x.p) <= sp.max!);
   if (sp.rating) list = list.filter((x) => x.p.rating >= sp.rating!);
   if (sp.fast) list = list.filter((x) => x.p.prime);
+  // Brand facets ignore the brand filter itself (same as the API), so shoppers can switch brands.
+  const brands = brandFacets(list.map((x) => x.p));
+  if (sp.brand?.length) {
+    const want = new Set(sp.brand.map((b) => b.toLowerCase()));
+    list = list.filter((x) => want.has((x.p.brand ?? "").trim().toLowerCase()));
+  }
   const disc = (p: Product) => (p.mrpInr > p.priceInr ? 1 - p.priceInr / p.mrpInr : 0);
   switch (sp.sort) {
     case "price_asc":
@@ -101,7 +107,25 @@ export function search(sp: SearchParams): SearchResponse {
     page,
     pages: Math.max(1, Math.ceil(total / perPage)),
     items: list.slice((page - 1) * perPage, page * perPage).map((x) => x.p),
+    facets: { brands },
   };
+}
+
+/** Top 20 brands (most products first), counts capped like the API. */
+function brandFacets(items: Product[]): { name: string; count: number }[] {
+  const m = new Map<string, { name: string; count: number }>();
+  for (const p of items) {
+    const name = (p.brand ?? "").trim();
+    if (!name || name.length > 60) continue;
+    const k = name.toLowerCase();
+    const f = m.get(k);
+    if (f) f.count++;
+    else m.set(k, { name, count: 1 });
+  }
+  return [...m.entries()]
+    .sort(([ka, a], [kb, b]) => b.count - a.count || (ka < kb ? -1 : ka > kb ? 1 : 0))
+    .slice(0, 20)
+    .map(([, f]) => ({ name: f.name, count: Math.min(f.count, 500) }));
 }
 
 export function suggest(q: string, store: StoreMode): Suggestion[] {

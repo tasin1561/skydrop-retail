@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { byMarket, deals } from "@/lib/data";
+import { byMarket, deals, searchProducts } from "@/lib/data";
+import { parseBrands } from "@/lib/brands";
 import { isMarket, MARKET_IDS, STORES, storeText } from "@/lib/markets";
 import { getT } from "@/i18n/server";
 import { StoreHero } from "@/components/home/StoreHero";
@@ -24,16 +25,26 @@ export async function generateMetadata({ params }: { params: Promise<{ market: s
   return { title: t("storePage.metaTitle", { store: STORES[market].name, source: STORES[market].source }), description: storeText(market, t).tagline };
 }
 
-export default async function StorePage({ params }: { params: Promise<{ market: string }> }) {
+export default async function StorePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ market: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { market } = await params;
   if (!isMarket(market)) notFound();
   const { t } = await getT();
   const s = storeText(market, t);
-  const [top, dealItems, all, perCat] = await Promise.all([
+  // ?brand=A,B narrows the "Everything" grid (the URL is the state; the rail's Brand section edits it).
+  const brand = parseBrands((await searchParams).brand);
+  const [top, dealItems, all, perCat, facets] = await Promise.all([
     byMarket(market, 6),
     deals(market, 14),
-    byMarket(market, 30),
+    byMarket(market, 30, undefined, brand),
     Promise.all(s.categories.map((c) => byMarket(market, 14, c.slug))),
+    // store-wide top brands for the rail (search facets ignore the brand filter, so no brand here)
+    searchProducts({ q: "", store: market, page: 1 }).then((r) => r.facets?.brands ?? []),
   ]);
   const images = top.map((p) => p.image).slice(0, 3);
   return (
@@ -56,7 +67,7 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
         </nav>
         <StoreHero scenes={[{ mode: market, images }]} fixed />
         <CategoryChips mode={market} />
-        <StoreQuickBar market={market} />
+        <StoreQuickBar market={market} hasBrands={facets.length > 0} />
         <CmsHero store={market} />
         <PromoStrip />
         <CmsTiles store={market} />
@@ -71,10 +82,10 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
           />
         ))}
         <HowItWorks />
-        <section className="mt-10">
+        <section id="everything" className="mt-10 scroll-mt-[calc(var(--hdr-h,0px)+1rem)]">
           <h2 className="px-4 text-lg font-bold tracking-tight sm:px-0 sm:text-xl">{t("storePage.everything", { store: s.name })}</h2>
-          <StoreBrowse market={market}>
-            <EnabledGrid items={all} />
+          <StoreBrowse market={market} brands={facets} selected={brand}>
+            {all.length ? <EnabledGrid items={all} /> : <p className="card p-6 text-center text-sm text-ink-2">{t("sp.noMatches")}</p>}
           </StoreBrowse>
         </section>
       </div>

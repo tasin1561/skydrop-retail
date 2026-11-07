@@ -4,6 +4,7 @@ import { Icon } from "@/components/Icon";
 import { STORES } from "@/lib/markets";
 import { deliveryWindow } from "@/lib/pricing";
 import type { Coupon, Totals } from "./cart-math";
+import { couponStore } from "@/lib/coupons";
 import { addDays } from "./cart-math";
 import { useT } from "@/i18n/client";
 import { hasKey, type MsgKey, type TFn, type Translator } from "@/i18n/core";
@@ -38,7 +39,8 @@ export function DeliveryStep({ t, coupon }: { t: Totals; coupon: Coupon | null }
       </p>
       <ul aria-label={tr("del.perStore")} className="grid gap-3">
         {t.groups.map((g) => {
-          const free = g.shipping === 0 || coupon?.kind === "freeship";
+          // Free-shipping coupon: only when the (server) quote gave a shipping discount, and only for the coupon's store.
+          const free = g.shipping === 0 || (coupon?.kind === "freeship" && t.shipDiscount > 0 && (couponStore(coupon) ?? g.market) === g.market);
           return (
             <li key={g.market} data-store={g.market} className="co-option is-active cursor-default">
               <span className="chip-icon is-active shrink-0">

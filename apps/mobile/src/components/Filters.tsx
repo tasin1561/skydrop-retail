@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import type { SearchParams, Sort } from "@/api/types";
+import type { BrandFacet, SearchParams, Sort } from "@/api/types";
 import type { StoreMode } from "@/lib/types";
 import { STORES , storeText } from "@/lib/markets";
 import { radius, useAccent, useTheme } from "@/theme";
@@ -11,7 +11,21 @@ import { Icon } from "./Icon";
 import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
 
-export type Filters = Pick<SearchParams, "store" | "category" | "min" | "max" | "rating" | "sort">;
+export type Filters = Pick<SearchParams, "store" | "category" | "brand" | "min" | "max" | "rating" | "sort">;
+
+/** API limit for ?brand= (CatalogQuery::MAX_BRANDS). */
+export const MAX_BRANDS = 10;
+const BRANDS_SHOWN = 6;
+const BRAND_SEARCH_FROM = 10;
+
+const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+
+/** Adds or removes one brand (case-insensitive); undefined when none is left. */
+export function toggleBrand(list: string[] | undefined, name: string): string[] | undefined {
+  const cur = list ?? [];
+  const next = cur.some((b) => same(b, name)) ? cur.filter((b) => !same(b, name)) : [...cur, name].slice(-MAX_BRANDS);
+  return next.length ? next : undefined;
+}
 
 /** label is a dictionary key: show it with t(). */
 export const SORTS: { id: Sort; label: MsgKey }[] = [
@@ -23,7 +37,7 @@ export const SORTS: { id: Sort; label: MsgKey }[] = [
 ];
 
 export function activeFilterCount(f: Filters) {
-  return [f.category, f.min, f.max, f.rating].filter(Boolean).length;
+  return [f.category, f.min, f.max, f.rating, f.brand?.length].filter(Boolean).length;
 }
 
 function Chip({ label, on, onPress, mode = "all" }: { label: string; on: boolean; onPress: () => void; mode?: StoreMode }) {
@@ -47,7 +61,147 @@ function Chip({ label, on, onPress, mode = "all" }: { label: string; on: boolean
   );
 }
 
-export function FilterSheet({ open, onClose, value, onApply, stores }: { open: boolean; onClose: () => void; value: Filters; onApply: (f: Filters) => void; stores: StoreMode[] }) {
+/**
+ * Brand multi-select: top brands of the current result (search facets, counts shown), 6 at first with "Show more",
+ * a search box when there are more than 10. Selected brands missing from the facets stay listed so they can be unticked.
+ */
+export function BrandList({ brands, value, onChange, mode = "all" }: { brands: BrandFacet[]; value?: string[]; onChange: (v: string[] | undefined) => void; mode?: StoreMode }) {
+  const { t, num } = useT();
+  const { c } = useTheme();
+  const a = useAccent(mode);
+  const [more, setMore] = useState(false);
+  const [query, setQuery] = useState("");
+  const picked = value ?? [];
+  const all: BrandFacet[] = [...picked.filter((p) => !brands.some((b) => same(b.name, p))).map((name) => ({ name, count: 0 })), ...brands];
+  if (!all.length) return null;
+  const isOn = (n: string) => picked.some((p) => same(p, n));
+  const full = picked.length >= MAX_BRANDS;
+  const q = query.trim().toLowerCase();
+  const matches = q ? all.filter((b) => b.name.toLowerCase().includes(q)) : all;
+  const visible = q || more ? matches : matches.filter((b, i) => i < BRANDS_SHOWN || isOn(b.name));
+  const hidden = matches.length - visible.length;
+
+  return (
+    <View style={{ gap: 2 }}>
+      {all.length > BRAND_SEARCH_FROM && (
+        <View style={[styles.search, { backgroundColor: c.surface2 }]}>
+          <Icon name="search" size={16} color={c.ink3} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("mx.brandSearch")}
+            placeholderTextColor={c.ink3}
+            accessibilityLabel={t("mx.brandSearch")}
+            autoCorrect={false}
+            maxLength={60}
+            style={{ flex: 1, color: c.ink, fontSize: 16, minHeight: 44 }}
+          />
+        </View>
+      )}
+      {visible.map((b) => {
+        const on = isOn(b.name);
+        const off = !on && full;
+        return (
+          <Tap
+            key={b.name}
+            disabled={off}
+            onPress={() => {
+              haptic.tap();
+              onChange(toggleBrand(value, b.name));
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: on, disabled: off }}
+            accessibilityLabel={b.count ? t("mx.brandA11y", { name: b.name, count: b.count }) : b.name}
+            scaleTo={0.99}
+            style={[styles.brandRow, off && { opacity: 0.45 }]}
+          >
+            <View style={[styles.box, { borderColor: on ? a.accent : c.line, backgroundColor: on ? a.accent : c.surface }]}>
+              {on && <Icon name="check" size={13} color="#fff" />}
+            </View>
+            <T v="body" numberOfLines={1} style={{ flex: 1, fontWeight: on ? "700" : "500" }}>
+              {b.name}
+            </T>
+            {b.count > 0 && (
+              <T v="small" tone="ink3">
+                {num(b.count)}
+              </T>
+            )}
+          </Tap>
+        );
+      })}
+      {!!q && !matches.length && (
+        <T v="small" tone="ink3" style={{ paddingVertical: 8 }}>
+          {t("mx.brandNone", { q: query.trim() })}
+        </T>
+      )}
+      {full && (
+        <T v="tiny" tone="ink3" style={{ paddingTop: 4 }}>
+          {t("mx.brandMax", { count: MAX_BRANDS })}
+        </T>
+      )}
+      {!q && matches.length > BRANDS_SHOWN && (hidden > 0 || more) && (
+        <Tap onPress={() => setMore(!more)} accessibilityRole="button" accessibilityState={{ expanded: more }} style={styles.more}>
+          <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
+            {more ? t("mx.brandLess") : t("mx.brandMore", { count: hidden })}
+          </T>
+          <Icon name={more ? "chevron-up" : "chevron-down"} size={16} color={a.ink} />
+        </Tap>
+      )}
+    </View>
+  );
+}
+
+/** Brand-only sheet (category screen). Applies on "Show results", like the full filter sheet. */
+export function BrandSheet({ open, onClose, value, onApply, brands, mode }: { open: boolean; onClose: () => void; value?: string[]; onApply: (v: string[] | undefined) => void; brands: BrandFacet[]; mode: StoreMode }) {
+  const { t } = useT();
+  const [v, setV] = useState<string[] | undefined>(value);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setV(value);
+  }
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={t("mx.brand")}
+      footer={
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <Button label={t("mx.brandClear")} kind="ghost" onPress={() => setV(undefined)} style={{ flex: 1 }} />
+          <Button
+            label={t("m.showResults")}
+            mode={mode}
+            onPress={() => {
+              haptic.light();
+              onApply(v);
+              onClose();
+            }}
+            style={{ flex: 2 }}
+          />
+        </View>
+      }
+    >
+      <BrandList brands={brands} value={v} onChange={setV} mode={mode} />
+    </Sheet>
+  );
+}
+
+export function FilterSheet({
+  open,
+  onClose,
+  value,
+  onApply,
+  stores,
+  brands = [],
+}: {
+  open: boolean;
+  onClose: () => void;
+  value: Filters;
+  onApply: (f: Filters) => void;
+  stores: StoreMode[];
+  /** top brands of the current result (search facets) */
+  brands?: BrandFacet[];
+}) {
   const { t, bdt } = useT();
   const { c } = useTheme();
   const [f, setF] = useState<Filters>(value);
@@ -102,6 +256,14 @@ export function FilterSheet({ open, onClose, value, onApply, stores }: { open: b
         <Chip key="any" label={t("m.any")} mode={mode} on={!f.category} onPress={() => setF({ ...f, category: undefined })} />,
         ...cats.map((cat) => <Chip key={cat.slug} mode={mode} label={cat.label} on={f.category === cat.slug} onPress={() => setF({ ...f, category: cat.slug })} />),
       ])}
+      {(brands.length > 0 || !!f.brand?.length) && (
+        <View style={{ gap: 6, marginBottom: 18 }}>
+          <T v="label" tone="ink3">
+            {t("mx.brand")}
+          </T>
+          <BrandList brands={brands} value={f.brand} onChange={(b) => setF({ ...f, brand: b })} mode={mode} />
+        </View>
+      )}
       <View style={{ gap: 10, marginBottom: 18 }}>
         <T v="label" tone="ink3">{t("m.priceBdt")}</T>
         <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
@@ -184,4 +346,8 @@ const styles = StyleSheet.create({
   chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: 14, justifyContent: "center", borderWidth: 1.5 },
   input: { flex: 1, minHeight: 48, borderRadius: radius.sm, paddingHorizontal: 12, fontSize: 16 },
   row: { flexDirection: "row", alignItems: "center", minHeight: 52, paddingHorizontal: 12, borderRadius: 12 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44, paddingHorizontal: 4, borderRadius: 10 },
+  box: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  search: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, borderRadius: radius.sm, marginBottom: 4 },
+  more: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 44, alignSelf: "flex-start", paddingHorizontal: 4 },
 });

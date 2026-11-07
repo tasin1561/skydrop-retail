@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { emiPlan, moneyApi, type EmiChoice, type EmiConfig, type MoneyQuote, type QuoteOptions } from "@/api/money";
-import { isDemo } from "@/api/client";
+import { ApiError, isDemo } from "@/api/client";
 import { useFeature } from "@/lib/features";
 import { UNBOXING_FEE_BDT } from "@/api/fulfilment";
 import { haptic } from "@/lib/haptics";
@@ -191,6 +191,7 @@ export function UnboxingToggle({ checked, onChange, shipments, disabled }: { che
 export function useMoneyQuote(items: CartItem[], o: QuoteOptions, enabled: boolean) {
   const [q, setQ] = useState<MoneyQuote | null>(null);
   const [failed, setFailed] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
   const key =
     items.map((i) => `${i.productId}:${i.variant ?? ""}:${i.qty}:${i.unitBdt}`).join("|") +
     `|${o.coupon}|${o.redeemPoints}|${o.payment}|${o.emiTenure}|${o.emiBank}|${o.useWallet}|${o.unboxing}`;
@@ -208,11 +209,14 @@ export function useMoneyQuote(items: CartItem[], o: QuoteOptions, enabled: boole
           if (!live) return;
           setQ(r);
           setFailed(false);
+          setCouponError(null);
         })
-        .catch(() => {
+        .catch((e: unknown) => {
           if (!live) return;
           setQ(null);
           setFailed(true);
+          // 422 errors.coupon: per customer, first order, store, schedule… (admin rules)
+          setCouponError(e instanceof ApiError ? (e.errors?.coupon?.[0] ?? null) : null);
         });
     }, 250);
     return () => {
@@ -222,7 +226,7 @@ export function useMoneyQuote(items: CartItem[], o: QuoteOptions, enabled: boole
     // `key` captures every input
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, active]);
-  return { quote: active ? q : null, failed: active && failed };
+  return { quote: active ? q : null, failed: active && failed, couponError: active ? couponError : null };
 }
 
 /** Server-quote lines the cart maths doesn't know (Plus, unboxing, bundles, EMI), for SummaryLines. */

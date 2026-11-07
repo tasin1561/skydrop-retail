@@ -100,7 +100,11 @@ function qs(params: Record<string, string | number | boolean | undefined>) {
   return u.toString();
 }
 
-export type SearchFacets = { categories: { path: string; name: string; nameBn?: string | null; icon: string; count: number }[] };
+export type SearchFacets = {
+  categories: { path: string; name: string; nameBn?: string | null; icon: string; count: number }[];
+  /** top brands of the result without the brand filter (API and demo mode) */
+  brands?: { name: string; count: number }[];
+};
 export type SearchResult = {
   total: number;
   page: number;
@@ -115,7 +119,7 @@ export type SearchResult = {
 
 export async function searchProducts(sp: SearchParams): Promise<SearchResult> {
   const r = await api<SearchResult>(
-    `/search?${qs({ q: sp.q, store: sp.store, category: sp.category, sort: sp.sort, min: sp.min, max: sp.max, rating: sp.rating, fast: sp.fast, page: sp.page })}`,
+    `/search?${qs({ q: sp.q, store: sp.store, category: sp.category, brand: sp.brand?.join(",") || undefined, sort: sp.sort, min: sp.min, max: sp.max, rating: sp.rating, fast: sp.fast, page: sp.page })}`,
     30,
   );
   if (r) return r;
@@ -183,9 +187,10 @@ export async function jobStatus(id: string): Promise<{ status: "queued" | "runni
   };
 }
 
-export async function byMarket(m: StoreMode, limit = 12, category?: string): Promise<Product[]> {
-  const r = await api<{ items: Product[] }>(`/products/popular?${qs({ store: m, limit, category })}`, 300);
-  return r?.items ?? local.byMarket(m, limit, category).map(demoDecorate);
+export async function byMarket(m: StoreMode, limit = 12, category?: string, brands: string[] = []): Promise<Product[]> {
+  const brand = brands.join(",") || undefined;
+  const r = await api<{ items: Product[] }>(`/products/popular?${qs({ store: m, limit, category, brand })}`, 300);
+  return r?.items ?? local.byMarket(m, limit, category, brands).map(demoDecorate);
 }
 
 export async function deals(m: StoreMode, limit = 12): Promise<Product[]> {

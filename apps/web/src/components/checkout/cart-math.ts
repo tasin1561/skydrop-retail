@@ -5,35 +5,19 @@ import type { CartItem, MarketId } from "@/lib/types";
 import { MARKET_IDS } from "@/lib/markets";
 import { PRICING, groupByMarket, shippingFor } from "@/lib/pricing";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { fmtDate, hasKey, type Lang, type TFn } from "@/i18n/core";
+import { fmtDate, type Lang } from "@/i18n/core";
+import { apiEnabled } from "@/lib/apiClient";
+import { DEMO_COUPONS, couponStore, findDemoCoupon, type Coupon } from "@/lib/coupons";
 
-// ---------- coupons (demo codes until the Laravel promotions API exists) ----------
-export type Coupon = {
-  code: string;
-  label: string;
-  kind: "percent" | "freeship" | "fixed";
-  /** percent: % off items; fixed: BDT off items (from POST /checkout/quote `coupon`) */
-  value?: number;
-  maxDiscountBdt?: number | null;
-  minSubtotalBdt?: number;
-};
+// ---------- coupons (admin-managed; see src/lib/coupons.ts) ----------
+export type { Coupon } from "@/lib/coupons";
 
-// Demo codes; in API mode any admin-created code is validated with POST /checkout/quote (see CouponField).
-export const COUPONS: Record<string, Coupon> = {
-  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent", value: 10, maxDiscountBdt: 1000 },
-  FREESHIP: { code: "FREESHIP", label: "Free Skydrop shipping on every store", kind: "freeship" },
-};
-
-export function findCoupon(raw: string): Coupon | null {
-  return COUPONS[raw.trim().toUpperCase()] ?? null;
-}
-
-/** Live hint while typing: exact match, could still become a code, or no match. */
+/** Demo mode only: live hint while typing against the local demo codes. */
 export function couponHint(raw: string): "empty" | "match" | "partial" | "unknown" {
   const v = raw.trim().toUpperCase();
   if (!v) return "empty";
-  if (COUPONS[v]) return "match";
-  if (Object.keys(COUPONS).some((c) => c.startsWith(v))) return "partial";
+  if (DEMO_COUPONS[v]) return "match";
+  if (Object.keys(DEMO_COUPONS).some((c) => c.startsWith(v))) return "partial";
   return "unknown";
 }
 
@@ -83,7 +67,9 @@ export function useCoupon() {
     window.dispatchEvent(new Event(COUPON_EVT));
   }, []);
   const enabled = useFeature("coupons"); // Admin → Features → Coupons off: ignore any saved code
-  return [enabled ? (findCoupon(code) ?? readCouponMeta(code)) : null, set] as const;
+  // API mode: only a server-validated coupon (its details saved when POST /checkout/quote accepted it). Demo: local codes.
+  const c = enabled ? (apiEnabled ? readCouponMeta(code) : (findDemoCoupon(code) ?? readCouponMeta(code))) : null;
+  return [c, set] as const;
 }
 
 // ---------- totals ----------
@@ -129,15 +115,19 @@ export function computeTotals(items: CartItem[], coupon: Coupon | null, redeemPo
   });
   const subtotal = groups.reduce((s, g) => s + g.sub, 0);
   const shipping = groups.reduce((s, g) => s + g.shipping, 0);
-  const meetsMin = subtotal >= (coupon?.minSubtotalBdt ?? 0);
+  // Demo mode estimate only: in API mode the coupon discount comes from the server quote (useCouponTotals).
+  const only = couponStore(coupon);
+  const eligible = only ? groups.filter((g) => g.market === only) : groups;
+  const base = eligible.reduce((s, g) => s + g.sub, 0);
+  const meetsMin = !!coupon && eligible.length > 0 && base >= (coupon.minSubtotalBdt ?? 0);
   const itemDiscount = !coupon || !meetsMin
     ? 0
     : coupon.kind === "percent"
-      ? Math.min(coupon.maxDiscountBdt ?? Infinity, Math.round((subtotal * (coupon.value ?? 10)) / 100))
+      ? Math.min(coupon.maxDiscountBdt ?? Infinity, Math.round((base * (coupon.value ?? 10)) / 100))
       : coupon.kind === "fixed"
-        ? Math.min(subtotal, Math.round(coupon.value ?? 0))
+        ? Math.min(base, Math.round(coupon.value ?? 0))
         : 0;
-  const shipDiscount = coupon?.kind === "freeship" && meetsMin ? shipping : 0;
+  const shipDiscount = coupon?.kind === "freeship" && meetsMin ? eligible.reduce((s, g) => s + g.shipping, 0) : 0;
   const pointsDiscount = pointsValueBdt(redeemPoints);
   const discount = itemDiscount + shipDiscount + pointsDiscount;
   return {
@@ -193,10 +183,4 @@ export function addDays(iso: string, days: number, lang: Lang = "en") {
   const d = new Date(iso);
   d.setDate(d.getDate() + days);
   return fmtDate(d, lang, { day: "numeric", month: "short" });
-}
-
-/** Coupon description in the shopper's language (demo codes have Bangla text; API coupons show the admin's label). */
-export function couponLabel(c: Pick<Coupon, "code" | "label">, t: TFn) {
-  const k = "coupon." + c.code;
-  return hasKey(k) ? t(k) : c.label;
 }

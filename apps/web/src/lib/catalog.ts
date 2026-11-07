@@ -2,6 +2,7 @@ import data from "@/data/catalog.json";
 import type { MarketId, Product, StoreMode } from "./types";
 import { priceBdt } from "./pricing";
 import { inCategory } from "./categories";
+import { brandFacets } from "./brands";
 
 const ALL = (data as { products: Product[] }).products;
 
@@ -9,6 +10,8 @@ export type SearchParams = {
   q?: string;
   store?: StoreMode;
   category?: string;
+  /** brand names, ORed, case-insensitive exact match (see lib/brands.ts) */
+  brand?: string[];
   sort?: "relevance" | "price_asc" | "price_desc" | "rating" | "discount";
   min?: number;
   max?: number;
@@ -41,6 +44,12 @@ export function searchProducts(sp: SearchParams) {
   if (sp.max) list = list.filter((x) => priceBdt(x.p) <= sp.max!);
   if (sp.rating) list = list.filter((x) => x.p.rating >= sp.rating!);
   if (sp.fast) list = list.filter((x) => x.p.prime);
+  // Brand facets ignore the brand filter itself (same as the API), so shoppers can switch brands.
+  const brands = brandFacets(list.map((x) => x.p));
+  if (sp.brand?.length) {
+    const want = new Set(sp.brand.map((b) => b.toLowerCase()));
+    list = list.filter((x) => want.has((x.p.brand ?? "").trim().toLowerCase()));
+  }
 
   const disc = (p: Product) => (p.mrpInr > p.priceInr ? 1 - p.priceInr / p.mrpInr : 0);
   switch (sp.sort) {
@@ -67,6 +76,7 @@ export function searchProducts(sp: SearchParams) {
     page,
     pages: Math.max(1, Math.ceil(total / perPage)),
     items: list.slice((page - 1) * perPage, page * perPage).map((x) => x.p),
+    facets: { categories: [], brands },
   };
 }
 
@@ -74,8 +84,9 @@ export function getProduct(id: string) {
   return ALL.find((p) => p.id === id) ?? null;
 }
 
-export function byMarket(m: StoreMode, limit = 12, category?: string) {
-  return ALL.filter((p) => (m === "all" || p.market === m) && (!category || p.category === category))
+export function byMarket(m: StoreMode, limit = 12, category?: string, brands: string[] = []) {
+  const want = new Set(brands.map((b) => b.toLowerCase()));
+  return ALL.filter((p) => (m === "all" || p.market === m) && (!category || p.category === category) && (!want.size || want.has((p.brand ?? "").trim().toLowerCase())))
     .sort((a, b) => b.reviews - a.reviews)
     .slice(0, limit);
 }

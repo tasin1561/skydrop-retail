@@ -37,6 +37,9 @@ export type MoneyQuote = {
   unboxing?: { available: boolean; selected: boolean; feeBdt: number; per: string; unitBdt: number; waived: boolean } | null;
   unboxingFee?: number;
   bundleDiscount?: number;
+  /** coupon part of the discount (server rules: store, minimum, per customer, first order) */
+  itemDiscount?: number;
+  shipDiscount?: number;
 };
 export type QuoteOptions = { coupon?: string; redeemPoints?: number; useWallet?: boolean; payment?: string; emiTenure?: number; emiBank?: string; unboxing?: boolean };
 type QuoteItem = { productId: string; variant?: string; qty: number; unitBdt: number };

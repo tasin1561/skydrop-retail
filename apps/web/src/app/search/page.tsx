@@ -6,6 +6,8 @@ import { isStoreMode, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
 import { FilterSidebar, SortAndFilterBar } from "@/components/search/Filters";
+import { ActiveFilters } from "@/components/search/ActiveFilters";
+import { parseBrands } from "@/lib/brands";
 import { TrackSearch } from "@/components/tracking/TrackSearch";
 import { RequestCta } from "@/components/shopping/RequestLinks";
 import { HelpMeChoose } from "@/components/assistant/AskAssistant";
@@ -32,10 +34,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const storeRaw = one(sp.store);
   const store = isStoreMode(storeRaw) ? storeRaw : "all";
   const page = Number(one(sp.page) ?? 1) || 1;
+  const brand = parseBrands(one(sp.brand));
   const res = await searchProducts({
     q,
     store,
     category: one(sp.category) || undefined,
+    brand,
     sort: (one(sp.sort) as never) || undefined,
     min: Number(one(sp.min)) || undefined,
     max: Number(one(sp.max)) || undefined,
@@ -72,7 +76,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </p>
         </div>
         <Suspense>
-          <SortAndFilterBar total={res.total} />
+          <SortAndFilterBar total={res.total} brands={res.facets?.brands} />
+          <ActiveFilters />
         </Suspense>
         <TrackSearch q={q} store={store} ids={res.items.slice(0, 10).map((p) => p.id)} />
         {res.items.length > 1 && (
@@ -86,7 +91,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
       <div className="flex gap-6">
         <Suspense>
-          <FilterSidebar />
+          <FilterSidebar brands={res.facets?.brands} />
         </Suspense>
         <div className="min-w-0 flex-1">
           {res.items.length ? (

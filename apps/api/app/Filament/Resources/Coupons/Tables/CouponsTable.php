@@ -24,7 +24,7 @@ class CouponsTable
         return $table
             ->defaultSort('created_at', 'desc')
             // Read-only stats from orders that used the coupon (cancelled orders excluded).
-            ->modifyQueryUsing(fn (Builder $q) => $q
+            ->modifyQueryUsing(fn (Builder $query) => $query
                 ->withSum(['orders as discount_given' => fn ($o) => $o->where('status', '!=', 'cancelled')], 'coupon_discount_bdt')
                 ->withMax('orders as last_used_at', 'created_at'))
             ->columns([
@@ -55,8 +55,8 @@ class CouponsTable
                 TernaryFilter::make('active'),
                 TernaryFilter::make('featured')->label('Show as promo'),
                 TernaryFilter::make('first_order_only')->label('First order only'),
-                Filter::make('live')->label('Live now')->query(fn (Builder $q) => $q->live()),
-                Filter::make('ended')->label('Ended')->query(fn (Builder $q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', now())),
+                Filter::make('live')->label('Live now')->query(fn (Builder $query) => $query->live()),
+                Filter::make('ended')->label('Ended')->query(fn (Builder $query) => $query->whereNotNull('expires_at')->where('expires_at', '<=', now())),
             ])
             ->recordActions([EditAction::make()])
             ->toolbarActions([

@@ -14,6 +14,7 @@ import { IconButton, Pill, T, Tap } from "@/components/ui";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useNotifications } from "@/lib/notifications";
 import { AskAiButton } from "@/components/AskAiButton";
+import { CouponPromo } from "@/components/CartBits";
 import { useT } from "@/i18n";
 
 export default function Home() {
@@ -79,6 +80,7 @@ export default function Home() {
       <StoreHero mode={mode} />
       <View style={{ height: 16 }} />
       <CategoryChips mode={mode} />
+      <CouponPromo store={mode} style={{ paddingHorizontal: 16, marginTop: 14 }} />
 
       {mode === "all" && markets.length > 0 && (
         <View style={{ marginTop: 20, paddingHorizontal: 16, gap: 10 }}>

@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { api } from "@/api/client";
-import type { Sort, Suggestion } from "@/api/types";
+import type { BrandFacet, Sort, Suggestion } from "@/api/types";
 import type { StoreMode } from "@/lib/types";
 import { STORES, isStoreMode , storeText } from "@/lib/markets";
 import { useStore } from "@/state/store";
@@ -14,12 +14,12 @@ import { IconButton, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { StoreSwitcher } from "@/components/StoreSwitcher";
 import { ProductGrid } from "@/components/ProductGrid";
-import { FilterSheet, SORTS, SortSheet, activeFilterCount, type Filters } from "@/components/Filters";
+import { BrandSheet, FilterSheet, MAX_BRANDS, SORTS, SortSheet, activeFilterCount, toggleBrand, type Filters } from "@/components/Filters";
 import { useT } from "@/i18n";
 
 export default function Search() {
   const { t, digits } = useT();
-  const params = useLocalSearchParams<{ q?: string; store?: string; category?: string; sort?: string; focus?: string }>();
+  const params = useLocalSearchParams<{ q?: string; store?: string; category?: string; brand?: string; sort?: string; focus?: string }>();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { enabled, mode: homeMode } = useStore();
@@ -28,12 +28,15 @@ export default function Search() {
   const [f, setF] = useState<Filters>({
     store: isStoreMode(params.store) ? params.store : homeMode,
     category: params.category || undefined,
+    brand: params.brand ? params.brand.split(",").map((b) => b.trim()).filter(Boolean).slice(0, MAX_BRANDS) : undefined,
     sort: (SORTS.find((s) => s.id === params.sort)?.id ?? "relevance") as Sort,
   });
   const [sug, setSug] = useState<{ term: string; items: Suggestion[] }>({ term: "", items: [] });
   const [focused, setFocused] = useState(params.focus === "1");
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
+  const [brands, setBrands] = useState<BrandFacet[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const input = useRef<TextInputInstance>(null);
   const mode: StoreMode = f.store ?? "all";
@@ -63,6 +66,7 @@ export default function Search() {
   const searchParams = useMemo(() => ({ q, ...f }), [q, f]);
   const nFilters = activeFilterCount(f);
   const catLabel = f.category ? storeText("all", t).categories.find((x) => x.slug === f.category)?.label : null;
+  const nBrands = f.brand?.length ?? 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top + 6 }}>
@@ -113,6 +117,18 @@ export default function Search() {
             {nFilters ? ` (${digits(nFilters)})` : ""}
           </T>
         </Tap>
+        {(brands.length > 0 || nBrands > 0) && (
+          <Tap
+            onPress={() => setBrandOpen(true)}
+            accessibilityLabel={nBrands ? t("mx.brandN", { count: nBrands }) : t("mx.brand")}
+            style={[styles.tool, { backgroundColor: nBrands ? a.soft : c.surface, borderColor: nBrands ? a.accent : c.line }]}
+          >
+            <T v="small" style={{ fontWeight: "700", color: nBrands ? a.ink : c.ink }}>
+              {nBrands ? t("mx.brandN", { count: nBrands }) : t("mx.brand")}
+            </T>
+            <Icon name="chevron-down" size={14} color={nBrands ? a.ink : c.ink} />
+          </Tap>
+        )}
         <Tap onPress={() => setSortOpen(true)} accessibilityLabel={t("m.sort")} style={[styles.tool, { backgroundColor: c.surface, borderColor: c.line }]}>
           <Icon name="bar-chart" size={16} color={c.ink} />
           <T v="small" style={{ fontWeight: "700" }} numberOfLines={1}>
@@ -126,18 +142,28 @@ export default function Search() {
           </T>
         )}
       </View>
-      {catLabel && (
-        <View style={{ paddingHorizontal: 16, marginBottom: 8, flexDirection: "row" }}>
-          <Tap onPress={() => setF({ ...f, category: undefined })} accessibilityLabel={t("m.removeCat", { name: catLabel })} style={[styles.tag, { backgroundColor: a.soft }]}>
-            <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
-              {catLabel}
-            </T>
-            <Icon name="x" size={14} color={a.ink} />
-          </Tap>
+      {(catLabel || nBrands > 0) && (
+        <View style={{ paddingHorizontal: 16, marginBottom: 8, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          {catLabel && (
+            <Tap onPress={() => setF({ ...f, category: undefined })} accessibilityLabel={t("m.removeCat", { name: catLabel })} style={[styles.tag, { backgroundColor: a.soft }]}>
+              <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
+                {catLabel}
+              </T>
+              <Icon name="x" size={14} color={a.ink} />
+            </Tap>
+          )}
+          {f.brand?.map((b) => (
+            <Tap key={b} onPress={() => setF({ ...f, brand: toggleBrand(f.brand, b) })} accessibilityLabel={t("mx.removeBrand", { name: b })} style={[styles.tag, { backgroundColor: a.soft }]}>
+              <T v="small" style={{ color: a.ink, fontWeight: "700" }} numberOfLines={1}>
+                {b}
+              </T>
+              <Icon name="x" size={14} color={a.ink} />
+            </Tap>
+          ))}
         </View>
       )}
 
-      <ProductGrid params={searchParams} onTotal={setTotal} />
+      <ProductGrid params={searchParams} onTotal={setTotal} onBrands={setBrands} />
 
       {sugs.length > 0 && focused && (
         <Animated.View entering={FadeIn.duration(140)} exiting={FadeOut.duration(120)} style={[styles.sugs, { top: insets.top + 64, backgroundColor: c.surface }, shadow(c, 2)]}>
@@ -171,7 +197,8 @@ export default function Search() {
         </Animated.View>
       )}
 
-      <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} value={f} onApply={setF} stores={enabled} />
+      <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} value={f} onApply={setF} stores={enabled} brands={brands} />
+      <BrandSheet open={brandOpen} onClose={() => setBrandOpen(false)} value={f.brand} onApply={(b) => setF({ ...f, brand: b })} brands={brands} mode={mode} />
       <SortSheet open={sortOpen} onClose={() => setSortOpen(false)} value={f.sort ?? "relevance"} onPick={(s) => setF({ ...f, sort: s })} mode={mode} />
     </View>
   );
@@ -182,7 +209,7 @@ const styles = StyleSheet.create({
   field: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 1.5 },
   tools: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, marginBottom: 10 },
   tool: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, paddingHorizontal: 12, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth, maxWidth: 200 },
-  tag: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 12, borderRadius: 999 },
+  tag: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, paddingHorizontal: 12, borderRadius: 999, maxWidth: 220 },
   sugs: { position: "absolute", left: 16, right: 16, borderRadius: radius.md, paddingVertical: 6, zIndex: 50 },
   sug: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 48, paddingHorizontal: 14 },
 });

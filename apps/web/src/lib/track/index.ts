@@ -98,6 +98,25 @@ export function track(event: TrackEvent, payload: TrackPayload = {}): string {
   return eventId;
 }
 
+/**
+ * A non-commerce UI event (e.g. "store_selected") for analytics only: GA4 + dataLayer (GTM), Meta as a custom
+ * event. Same consent rules as track(): nothing before "Accept all", dropped on "Essential only". Not sent to the API.
+ */
+export function trackCustom(name: string, params: Record<string, string | number | boolean | undefined> = {}) {
+  if (typeof window === "undefined" || disabled) return;
+  const consent = getConsent();
+  if (consent !== "all" || !ids || !hasAnyTag(ids)) return;
+  const clean = compact(params);
+  try {
+    if (ids.ga4Id && window.gtag) window.gtag("event", name, clean);
+    if (ids.metaPixelId && window.fbq) window.fbq("trackCustom", name, clean);
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: name, ...clean });
+  } catch {
+    /* a blocked or broken tag must never break the shop */
+  }
+}
+
 const compact = <T extends Record<string, unknown>>(o: T) =>
   Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "")) as Partial<T>;
 

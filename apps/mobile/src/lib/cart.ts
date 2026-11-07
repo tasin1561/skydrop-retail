@@ -1,11 +1,14 @@
 // Cart totals and coupons. Same math as apps/web/src/components/checkout/cart-math.ts.
 import type { CartItem, MarketId, Product } from "./types";
-import { MARKET_IDS } from "./markets";
+import { MARKET_IDS, STORES } from "./markets";
 import { PRICING, groupByMarket, mrpBdt, priceBdt, shippingFor } from "./pricing";
 import { pointsToEarn, pointsValueBdt } from "./points";
-import { fmtDate, type Lang } from "@/i18n/core";
+import { fmtDate, type Lang, type Translator } from "@/i18n/core";
 
-/** A coupon. Built-in demo codes below; live codes come from the server (POST /checkout/quote → coupon). */
+/**
+ * A coupon. All coupons are managed in the admin (Sales → Coupons): live mode validates every code with
+ * POST /checkout/quote and shows promos from GET /coupons/featured. DEMO_COUPONS are for demo mode only.
+ */
 export type Coupon = {
   code: string;
   label: string;
@@ -14,20 +17,28 @@ export type Coupon = {
   value?: number;
   maxDiscountBdt?: number | null;
   minSubtotalBdt?: number | null;
+  /** "all" or the one store whose items / shipping it discounts */
+  store?: "all" | MarketId;
+  firstOrderOnly?: boolean;
+  promoText?: { en?: string | null; bn?: string | null };
+  endsAt?: string | null;
 };
 
-export const COUPONS: Record<string, Coupon> = {
-  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent", value: 10, maxDiscountBdt: 1000 },
-  FREESHIP: { code: "FREESHIP", label: "Free Skydrop shipping on every store", kind: "freeship" },
+/** Demo mode only (no API). */
+export const DEMO_COUPONS: Record<string, Coupon> = {
+  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent", value: 10, maxDiscountBdt: 1000, store: "all" },
+  FREESHIP: { code: "FREESHIP", label: "Free Skydrop shipping on every store", kind: "freeship", store: "all" },
 };
 
-/** Coupon from the API's quote (`coupon: { code, label, kind, value, maxDiscountBdt, minSubtotalBdt }`). */
+/** Coupon from the API (quote `coupon`, featured items). */
 export function couponFromApi(c: unknown): Coupon | null {
   if (!c || typeof c !== "object") return null;
   const o = c as Record<string, unknown>;
   const kind = o.kind === "percent" || o.kind === "freeship" || o.kind === "fixed" ? o.kind : null;
   if (typeof o.code !== "string" || !kind) return null;
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  const str = (v: unknown) => (typeof v === "string" && v ? v : null);
+  const promo = o.promoText && typeof o.promoText === "object" ? (o.promoText as Record<string, unknown>) : {};
   return {
     code: o.code.toUpperCase(),
     label: typeof o.label === "string" ? o.label : o.code,
@@ -35,10 +46,19 @@ export function couponFromApi(c: unknown): Coupon | null {
     value: num(o.value) ?? undefined,
     maxDiscountBdt: num(o.maxDiscountBdt),
     minSubtotalBdt: num(o.minSubtotalBdt),
+    store: o.store === "amazon" || o.store === "flipkart" || o.store === "bigbasket" ? o.store : "all",
+    firstOrderOnly: o.firstOrderOnly === true,
+    promoText: { en: str(promo.en), bn: str(promo.bn) },
+    endsAt: str(o.endsAt),
   };
 }
 
-/** Item discount for a coupon (same rules as the API's CheckoutService::quote). */
+/** The store a coupon is limited to, or null for every store. */
+export function couponStore(c: Pick<Coupon, "store"> | null | undefined): MarketId | null {
+  return c?.store && c.store !== "all" ? c.store : null;
+}
+
+/** Item discount for a coupon on the eligible subtotal (same rules as the API's CheckoutService::quote). */
 export function couponItemDiscount(coupon: Coupon | null, subtotal: number): number {
   if (!coupon || (coupon.minSubtotalBdt ?? 0) > subtotal) return 0;
   if (coupon.kind === "percent") {
@@ -49,17 +69,35 @@ export function couponItemDiscount(coupon: Coupon | null, subtotal: number): num
   return 0;
 }
 
+/** Demo mode lookup. */
 export function findCoupon(raw: string | null | undefined): Coupon | null {
   if (!raw) return null;
-  return COUPONS[raw.trim().toUpperCase()] ?? null;
+  return DEMO_COUPONS[raw.trim().toUpperCase()] ?? null;
 }
 
+/** Demo mode typing hint against the local codes. */
 export function couponHint(raw: string): "empty" | "match" | "partial" | "unknown" {
   const v = raw.trim().toUpperCase();
   if (!v) return "empty";
-  if (COUPONS[v]) return "match";
-  if (Object.keys(COUPONS).some((c) => c.startsWith(v))) return "partial";
+  if (DEMO_COUPONS[v]) return "match";
+  if (Object.keys(DEMO_COUPONS).some((c) => c.startsWith(v))) return "partial";
   return "unknown";
+}
+
+/** What the coupon gives, in the shopper's language (admin promo text wins). */
+export function couponText(c: Coupon, tr: Pick<Translator, "t" | "bdt" | "lang">): string {
+  const promo = c.promoText?.[tr.lang]?.trim();
+  if (promo) return promo;
+  const base =
+    c.kind === "freeship"
+      ? tr.t("coupon.kindFreeship")
+      : c.kind === "percent"
+        ? c.maxDiscountBdt
+          ? tr.t("coupon.kindPercentCap", { value: c.value ?? 0, max: tr.bdt(c.maxDiscountBdt) })
+          : tr.t("coupon.kindPercent", { value: c.value ?? 0 })
+        : tr.t("coupon.kindFixed", { amount: tr.bdt(c.value ?? 0) });
+  const store = couponStore(c);
+  return store ? tr.t("coupon.onStore", { label: base, store: STORES[store].name }) : base;
 }
 
 export type Group = {
@@ -102,8 +140,13 @@ export function computeTotals(items: CartItem[], coupon: Coupon | null, redeemPo
   });
   const subtotal = groups.reduce((s, g) => s + g.sub, 0);
   const shipping = groups.reduce((s, g) => s + g.shipping, 0);
-  const itemDiscount = couponItemDiscount(coupon, subtotal);
-  const shipDiscount = coupon?.kind === "freeship" && (coupon.minSubtotalBdt ?? 0) <= subtotal ? shipping : 0;
+  // Live mode: an estimate; the checkout shows the server quote's coupon discount.
+  const only = couponStore(coupon);
+  const eligible = only ? groups.filter((g) => g.market === only) : groups;
+  const base = eligible.reduce((s, g) => s + g.sub, 0);
+  const itemDiscount = eligible.length ? couponItemDiscount(coupon, base) : 0;
+  const shipDiscount =
+    coupon?.kind === "freeship" && eligible.length && (coupon.minSubtotalBdt ?? 0) <= base ? eligible.reduce((s, g) => s + g.shipping, 0) : 0;
   const pointsDiscount = pointsValueBdt(redeemPoints);
   const discount = itemDiscount + shipDiscount + pointsDiscount;
   return {

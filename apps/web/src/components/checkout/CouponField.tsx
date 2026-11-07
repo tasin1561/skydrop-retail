@@ -5,14 +5,16 @@ import { Icon } from "@/components/Icon";
 import { API_URL, apiEnabled } from "@/lib/apiClient";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { couponHint, couponLabel, findCoupon, useCoupon, type Coupon } from "./cart-math";
+import { couponHint, useCoupon } from "./cart-math";
+import { useFeaturedCoupons } from "./useCouponTotals";
+import { DEMO_COUPONS, couponTerms, couponText, findDemoCoupon, parseCoupon } from "@/lib/coupons";
 import { useT } from "@/i18n/client";
 
 type QuoteError = { message?: string; errors?: Record<string, string[]> };
 
 /**
- * API mode: validate with POST /checkout/quote (server prices, so admin-created coupons and minimum-spend rules work).
- * Returns the coupon, an error message for the shopper, or null when the API could not answer (use the demo list).
+ * API mode: every code is validated with POST /checkout/quote (all coupon rules live in the admin).
+ * Returns the coupon, the server's message for the shopper, or null when the API could not answer.
  */
 async function validateWithApi(code: string, items: { productId: string; variant?: string; qty: number; unitBdt: number }[], token: string | null) {
   try {
@@ -21,8 +23,9 @@ async function validateWithApi(code: string, items: { productId: string; variant
       headers: { Accept: "application/json", "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ items: items.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt })), coupon: code }),
     });
-    const data = (await res.json().catch(() => ({}))) as { coupon?: Coupon | null } & QuoteError;
-    if (res.ok && data.coupon) return { coupon: data.coupon };
+    const data = (await res.json().catch(() => ({}))) as { coupon?: unknown } & QuoteError;
+    const coupon = res.ok ? parseCoupon(data.coupon) : null;
+    if (coupon) return { coupon };
     if (data.errors?.coupon?.[0]) return { error: data.errors.coupon[0] };
     return null;
   } catch {
@@ -31,23 +34,24 @@ async function validateWithApi(code: string, items: { productId: string; variant
 }
 
 // Coupon input with live staged validation; an applied code becomes a removable success chip.
-export function CouponField() {
+export function CouponField({ error: cartError }: { error?: string | null } = {}) {
   const enabled = useFeature("coupons");
-  return enabled ? <CouponFieldInner /> : null;
+  return enabled ? <CouponFieldInner cartError={cartError ?? null} /> : null;
 }
 
-function CouponFieldInner() {
+function CouponFieldInner({ cartError }: { cartError: string | null }) {
   const [coupon, setCoupon] = useCoupon();
+  const featured = useFeaturedCoupons();
   const [value, setValue] = useState("");
   const [shake, setShake] = useState(0);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { cart, token } = useStore();
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const id = useId();
-  const rawHint = couponHint(value);
-  // With the API any code may exist, so an unknown code is not "invalid" until the server says so.
-  const hint = apiEnabled && rawHint === "unknown" ? "partial" : rawHint;
+  // Demo mode hints against the local list; with the API any code may exist, so only the server decides.
+  const hint = apiEnabled ? (value ? "partial" : "empty") : couponHint(value);
 
   if (coupon) {
     return (
@@ -59,7 +63,8 @@ function CouponFieldInner() {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-extrabold tracking-wide">{t("coupon.applied", { code: coupon.code })}</p>
-          <p className="text-xs text-ink-2">{couponLabel(coupon, t)}</p>
+          <p className="text-xs text-ink-2">{[couponText(coupon, tr), ...couponTerms(coupon, tr)].join(" · ")}</p>
+          {cartError && <p className="mt-0.5 text-xs font-semibold text-bad">{t("coupon.notApplied", { reason: cartError })}</p>}
         </div>
         <button
           type="button"
@@ -82,7 +87,8 @@ function CouponFieldInner() {
     const code = value.trim().toUpperCase();
     if (!code) return fail(t("coupon.enter"));
     if (busy) return;
-    if (apiEnabled && cart.length) {
+    if (apiEnabled) {
+      if (!cart.length) return fail(t("coupon.addItems"));
       setBusy(true);
       const r = await validateWithApi(code, cart, token);
       setBusy(false);
@@ -92,9 +98,9 @@ function CouponFieldInner() {
         setError("");
         return;
       }
-      if (r?.error) return fail(r.error);
+      return fail(r?.error ?? t("coupon.offline"));
     }
-    const c = findCoupon(code); // demo list (and fallback when the API is unreachable)
+    const c = findDemoCoupon(code); // demo mode (no API)
     if (c) {
       setCoupon(c.code);
       setValue("");
@@ -104,16 +110,22 @@ function CouponFieldInner() {
     }
   };
 
+  const demoMatch = !apiEnabled && hint === "match" ? findDemoCoupon(value) : null;
+  const hintText = apiEnabled
+    ? featured.length
+      ? t("coupon.tryFeatured", { codes: featured.slice(0, 2).map((c) => c.code).join(", ") })
+      : t("coupon.enterHint")
+    : t("coupon.tryDemo", { codes: Object.keys(DEMO_COUPONS).join(", ") });
   const state = error || hint === "unknown" ? "invalid" : hint === "match" ? "valid" : "";
   const msg =
     error ||
-    (hint === "match"
-      ? t("coupon.found", { label: couponLabel(findCoupon(value)!, t) })
+    (demoMatch
+      ? t("coupon.found", { label: couponText(demoMatch, tr) })
       : hint === "unknown"
         ? t("coupon.noMatch")
         : apiEnabled && value
           ? t("coupon.tapCheck")
-          : t("coupon.try"));
+          : hintText);
 
   return (
     <form

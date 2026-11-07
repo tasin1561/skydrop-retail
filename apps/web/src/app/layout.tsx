@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { Noto_Sans_Bengali, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/state/store";
@@ -14,6 +15,8 @@ import { Header } from "@/components/Header";
 import { MobileNav } from "@/components/MobileNav";
 import { Footer } from "@/components/Footer";
 import { StoreTheme } from "@/components/StoreTheme";
+import { StorePicker } from "@/components/store/StorePicker";
+import { STORE_PICKED_COOKIE } from "@/lib/storePick";
 import { RefCapture } from "@/components/growth/RefCapture";
 import { Tracking } from "@/components/tracking/Tracking";
 import { SupportButton } from "@/components/support/SupportButton";
@@ -46,7 +49,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [{ features, maintenance }, lang, { t }] = await Promise.all([getFeaturesResponse(), getLang(), getT()]);
+  const [{ features, maintenance }, lang, { t }, jar] = await Promise.all([getFeaturesResponse(), getLang(), getT(), cookies()]);
+  // returning shoppers already chose a store: the first-visit picker is not even rendered
+  const storePicked = jar.has(STORE_PICKED_COOKIE);
   return (
     <html lang={lang} data-store="all" className={jakarta.variable + " " + bengali.variable} suppressHydrationWarning>
       <body className="min-h-dvh">
@@ -84,6 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <SupportButton />
               <Assistant />
               <RouteProgress />
+              {!storePicked && <StorePicker />}
             </Suspense>
             <MotionRuntime />
           </ToastProvider>

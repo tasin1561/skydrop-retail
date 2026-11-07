@@ -7,6 +7,8 @@ export type SearchParams = {
   q?: string;
   store?: StoreMode;
   category?: string;
+  /** brand names, ORed, case-insensitive exact match (API: ?brand=A,B, max 10) */
+  brand?: string[];
   sort?: Sort;
   min?: number;
   max?: number;
@@ -23,7 +25,11 @@ export type SearchResponse = {
   page: number;
   pages: number;
   items: Product[];
+  /** brands: top brands of the result without the brand filter */
+  facets?: { brands?: BrandFacet[] };
 };
+
+export type BrandFacet = { name: string; count: number };
 
 export type Suggestion = { id: string; title: string; market: MarketId };
 export type Marketplace = { id: MarketId; name: string; source: string; enabled: boolean };

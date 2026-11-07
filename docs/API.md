@@ -40,10 +40,18 @@ Field names in JSON responses are **camelCase** so the web and app types (`apps/
 All catalog reads detect crawlers by User-Agent (the storefront may forward the shopper's agent as `X-Client-UA`);
 crawler requests never trigger provider fetches. Callers must be the Next.js server or a signed app (see "Client authentication").
 
-`GET /search?q=&store=all|amazon|flipkart|bigbasket&category=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
+`GET /search?q=&store=all|amazon|flipkart|bigbasket&category=&brand=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
 → `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[], facets }` (24 per page; `category` may be a
 tree path including descendants, see "Categories")
 - Scoring, filters (`min`/`max` are BDT) and sorts match `apps/web/src/lib/catalog.ts`.
+- `brand`: one or more brands, comma-separated (`brand=Nike,Red%20Tape`), at most 10 names of at most 60 characters each
+  (else `422` on `brand`; duplicates and empty parts are dropped). Case-insensitive exact match on `products.brand`, ORed;
+  combines with every other filter. Brand never changes which store pages are fetched.
+- `facets.brands: [{ name, count }]`: the top 20 brands of the result **without** the brand filter (so a shopper can switch
+  or add brands), most products first; products without a brand are skipped, each `count` is capped at 500 and the list
+  is cached for 10 minutes per filter set (q, store, category, price, rating, fast). Same throttle and page cap as search,
+  so facets are no cheaper a way to list the catalog than search itself.
+- The database-only fallback (live search unavailable, `stale: true`) applies `brand` and returns the same facets.
 - Cache first per (store, query, store page, sort): 6 h fresh, 7 days stale-while-revalidate. One store page (~48 items)
   is one provider call. On a miss for a live marketplace the API returns local matches immediately with
   `status:"pending"` and a `jobId`; the client polls `GET /jobs/{jobId}` or re-requests. Store-ranked results are then
@@ -59,7 +67,7 @@ tree path including descendants, see "Categories")
 
 `GET /products?ids=a,b,c` → `{ items: Product[] }` (cards, max 100, request order)
 
-`GET /products/popular?store=&category=&limit=12` · `GET /products/deals?store=&limit=12` (with `offers`) ·
+`GET /products/popular?store=&category=&brand=&limit=12` (`brand` as in search: comma-separated, max 10) · `GET /products/deals?store=&limit=12` (with `offers`) ·
 `GET /products/{id}/related?limit=8` → `{ items: Product[] }`
 
 `POST /products/{id}/cancel-variants` → `{ ok, pending }` — shopper bounced: drops the queued size-variant phase.
@@ -112,8 +120,8 @@ brands: [{ name, count }], priceRange: { minBdt, maxBdt } | null, available }` (
 Search: `GET /search?category=<path>` includes every descendant node. The five pricing groups
 (`electronics|fashion|beauty|grocery|home`) keep the old filter on `products.category` (a pricing group wins over a
 node with the same path, e.g. `fashion`). Every search response also has
-`facets: { categories: [{ path, name, nameBn, icon, count }] }`: counts of the whole result under each child of the
-requested node (top-level nodes when no path was given). `GET /products/popular?category=` accepts a path too.
+`facets: { categories: [{ path, name, nameBn, icon, count }], brands: [{ name, count }] }`: category counts of the whole
+result under each child of the requested node (top-level nodes when no path was given); brands as described under "Search". `GET /products/popular?category=` accepts a path too.
 
 Products carry `category_id` (deepest matching node, normally a leaf) and `category_source` (`auto|hint|manual`). The
 `CategoryMatcher` maps store breadcrumbs (Amazon wayfinding, Flipkart/BigBasket crumbs) and title keywords to a node on
@@ -198,14 +206,48 @@ new price), `pincodeVerified` and `provider`. Provider failure → `ok:false, re
 `POST /checkout/quote { items, coupon?, redeemPoints? }` (token optional; needed for points) →
 `{ groups: [{ market, count, subtotal, shipping, weightKg }], count, subtotal, shipping, itemDiscount, shipDiscount, couponDiscount,
 pointsRedeemed, pointsDiscount, maxRedeemPoints, pointsToEarn, discount, total,
-coupon?: { code, label, kind: "percent"|"freeship"|"fixed", value, maxDiscountBdt, minSubtotalBdt },
+coupon?: Coupon,
 flashDiscount, restrictions: [{ productId, title, action, message, surchargeBdt }],
 items: [{ productId, variant, qty, unitBdt, weightKg, market, changed, flashSale, restriction }] }`
 - `flashDiscount`: flash-sale savings already inside `subtotal`. More than the sale's `maxQty` of one product → `422 { code: "flash_limit", productId, maxQty }`.
 - The web `CouponField` calls this endpoint to validate any code (admin-created ones too) and keeps `coupon` to price the cart.
 - Uses **server** prices (client `unitBdt` only sets `changed`). Shipping per marketplace group (`PricingService::shipping`).
-- Coupons (table `coupons`): `SKYDROP10` = 10% off items up to ৳1,000; `FREESHIP` = all shipping free. Invalid → `422 errors.coupon`.
-  Feature `coupons` off → any code is rejected with `422 errors.coupon`.
+- Coupons are **fully controlled in Admin → Sales → Coupons** (clients never hardcode codes or rules). Any failure →
+  `422 errors.coupon` with a shopper-friendly message. Feature `coupons` off → any code is rejected the same way.
+
+### Coupons
+
+`Coupon = { code, label, kind: "percent"|"freeship"|"fixed", value, maxDiscountBdt, minSubtotalBdt, store: "all"|"amazon"|"flipkart"|"bigbasket",
+firstOrderOnly, promoText: { en, bn }, startsAt, endsAt }` (ISO-8601; `label` is English). Never includes usage, limits or the phone list.
+
+`GET /coupons/featured?store=` → `{ items: Coupon[] }` — coupons with **Show as promo** on that are active, inside their schedule, have
+uses left and are open to everyone (no phone list), soonest-ending first, max 10. `store` = a marketplace returns its own plus all-store
+coupons. Feature `coupons` off → `{ items: [] }`. Web caches it ~60 s; the promo strip / app home show `promoText` (locale) or a label
+built from `kind`/`value`, and hide when the list is empty.
+
+Admin fields (all optional except code/type/value): active; starts/ends (Asia/Dhaka in the panel, UTC in the DB: `starts_at`, `expires_at`);
+type percent off items / fixed ৳ off / free shipping; max discount (percent); min subtotal; store (discount and min subtotal count only that
+store's items, free shipping only that store's shipping); total uses (`max_uses`); uses per customer (`per_customer_limit`, default 1 for
+new coupons, blank = unlimited); first order only; allowed phones (`allowed_phones`); show as promo + promo text en/bn. The table shows
+uses, discount given (non-cancelled orders) and last used. Changes are in the activity log; permissions are the `coupons.*` abilities.
+
+Rules (quote pre-checks, `POST /orders` re-checks under a row lock on the coupon and claims one use atomically):
+| Rule | Message (`errors.coupon.0`) |
+|---|---|
+| inactive / unknown | "This coupon is no longer available." / "This coupon code is not valid." |
+| before `starts_at` / after end | "This coupon starts on 8 Nov, 12:00 PM (Bangladesh time)." / "This coupon has expired." |
+| `max_uses` reached | "This coupon has been fully used." (race at order time: "This coupon has just run out.") |
+| store restriction, no items from it | "This coupon only works on Style Bazaar (flipkart.com) items." |
+| min subtotal | "Add ৳X more [from <store>] to use this coupon." |
+| phone list or first-order-only, guest quote | "Sign in to use this coupon." |
+| phone not in list | "This coupon is not available for your account." |
+| first order only, shopper has a non-cancelled goods order | "This coupon is only for your first order." |
+| per-customer limit (non-cancelled orders with this coupon) | "You have already used this coupon." |
+
+A guest may preview a coupon that only has a per-customer limit; it is enforced when the order is placed (orders need a token).
+Orders store `coupon_id`. Cancelling an order gives the use back (`used` − 1 and it no longer counts per customer). An order whose
+payment failed but is still `placed` keeps its use until it is cancelled. Seeded examples: `SKYDROP10` (10% off items up to ৳1,000,
+featured, 1 per customer), `FREESHIP` (all shipping free, not featured, 1 per customer).
 
 ## Orders (auth)
 
