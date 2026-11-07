@@ -7,7 +7,6 @@ export type StoreInfo = {
   short: string;
   source: string; // shown to shoppers: where the product really comes from
   tagline: string;
-  icon: string;
   heroTitle: string;
   heroText: string;
   categories: { slug: string; label: string; icon: string }[];
@@ -22,7 +21,6 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     short: "All",
     source: "Every connected Indian store",
     tagline: "India's biggest stores, delivered to Bangladesh",
-    icon: "globe",
     heroTitle: "Shop India. Delivered to your door in Bangladesh.",
     heroText: "Search every connected Indian store at once. Prices in BDT, delivered by Skydrop.",
     categories: [
@@ -39,7 +37,6 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     short: "Mega",
     source: "amazon.in",
     tagline: "Electronics, beauty and everything else, sourced from amazon.in",
-    icon: "bolt",
     heroTitle: "Millions of products from amazon.in, priced in taka",
     heroText: "Phones, audio, beauty and daily needs. We buy in India and Skydrop brings it home.",
     categories: [
@@ -55,7 +52,6 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     short: "Style",
     source: "flipkart.com",
     tagline: "Fashion, gadgets and home, sourced from flipkart.com",
-    icon: "spark",
     heroTitle: "India's trending fashion and gadgets, now in Bangladesh",
     heroText: "Big brands and big offers from flipkart.com, with Skydrop delivery to your district.",
     categories: [
@@ -71,7 +67,6 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     short: "Basket",
     source: "bigbasket.com",
     tagline: "Indian groceries and kitchen staples, sourced from bigbasket.com",
-    icon: "basket",
     heroTitle: "The Indian pantry you miss, delivered to Bangladesh",
     heroText: "Rice, tea, spices, snacks and more from bigbasket.com, packed and shipped by Skydrop.",
     categories: [
