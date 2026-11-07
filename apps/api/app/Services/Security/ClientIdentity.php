@@ -10,7 +10,7 @@ class ClientIdentity
     public static function ip(Request $request): string
     {
         // Cloudflare in front: CF-Connecting-IP is the client (set TrustProxies / only accept it from Cloudflare ranges at deploy).
-        return (string) ($request->header('CF-Connecting-IP') && config('security.trust_cf_header', true) ? $request->header('CF-Connecting-IP') : $request->ip());
+        return (string) ($request->header('CF-Connecting-IP') && config('security.trust_cf_header', false) ? $request->header('CF-Connecting-IP') : $request->ip());
     }
 
     public static function device(Request $request): string

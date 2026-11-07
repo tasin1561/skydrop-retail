@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Support\Rbac\PermissionResolver;
 use Database\Factories\UserFactory;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'phone', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements Contracts\PanelUser, \Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication, \Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery
+class User extends Authenticatable implements Contracts\PanelUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
     use Concerns\HasAdminTwoFactor, Concerns\HasRoles, HasApiTokens, HasFactory, Notifiable; // HasAdminTwoFactor: admin TOTP (security module)
@@ -34,7 +37,7 @@ class User extends Authenticatable implements Contracts\PanelUser, \Filament\Aut
     /** Filament: staff (is_admin or any role, see App\Support\Rbac) who are not blocked may open the admin panel. */
     public function canAccessPanel(mixed $panel): bool
     {
-        return app(\App\Support\Rbac\PermissionResolver::class)->isStaff($this);
+        return app(PermissionResolver::class)->isStaff($this);
     }
 
     public function addresses(): HasMany

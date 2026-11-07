@@ -96,7 +96,7 @@ STEADFAST_API_KEY=... STEADFAST_SECRET_KEY=...
   3. `/admin*`: managed challenge unless IP in your office/VPN list.
   4. Country rule: challenge (not block) traffic from outside BD/IN for `/login`, `/api/v1/auth/*`.
 - Rate limiting rules: web `/search*` 60/min per IP; web `/p/*` 120/min per IP; API `/api/v1/auth/otp/*` 10/min per IP.
-- Restrict the origin to Cloudflare IP ranges (firewall) and trust `CF-Connecting-IP` only from them.
+- Restrict the origin to Cloudflare IP ranges (firewall), then set `TRUST_CF_CONNECTING_IP=true` so rate limits and blocks use the real client IP.
 - Turnstile: create a widget for the web host; put the keys in env.
 
 ### Key rotation

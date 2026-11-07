@@ -40,7 +40,7 @@ class Qr
             return false;
         }
         $own = array_filter([parse_url((string) config('retail.web_url'), PHP_URL_HOST), parse_url((string) config('app.url'), PHP_URL_HOST),
-            ...array_map('trim', explode(',', (string) env('QR_ALLOWED_HOSTS', '')))]);
+            ...array_map('trim', explode(',', (string) config('security.qr_allowed_hosts', '')))]);
 
         return in_array(strtolower($host), array_map('strtolower', $own), true);
     }

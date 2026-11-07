@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Orders\Schemas;
 
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Support\Admin;
+use App\Filament\Support\FulfilmentOrderSection;
 use App\Models\Order;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -22,7 +23,7 @@ class OrderInfolist
             ->columns(3)
             ->components([
                 Grid::make(1)->columnSpan(2)->schema([
-                    \App\Filament\Support\FulfilmentOrderSection::make(), // fulfilment: price alerts, hub, unboxing, returns
+                    FulfilmentOrderSection::make(), // fulfilment: price alerts, hub, unboxing, returns
                     Section::make('Summary')->columns(4)->schema([
                         TextEntry::make('status')->badge()
                             ->formatStateUsing(fn ($state) => Admin::ORDER_STATUS_LABELS[$state] ?? $state)

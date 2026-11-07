@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Services\Commerce\Notifier;
 use App\Services\Commerce\OrderWorkflow;
+use App\Services\Fraud\FraudGate;
+use App\Services\Money\WalletPayments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,7 +43,7 @@ class PaymentService
             return min($due, (float) $order->deposit_bdt); // Shopping: pre-order deposit first, balance when stock is back
         }
         // Fraud check: high-risk orders pay in full up front instead of the 50% advance.
-        if ($order->payment_method === 'advance50' && \App\Services\Fraud\FraudGate::requiresFullPrepay($order)) {
+        if ($order->payment_method === 'advance50' && FraudGate::requiresFullPrepay($order)) {
             return $due;
         }
         // Money module: store credit (wallet_bdt) counts towards the advance.
@@ -168,7 +170,7 @@ class PaymentService
     /** Refunds every captured online payment of an order. Returns the resulting order payment status. */
     public function refundAll(Order $order, string $reason, ?string $destination = null): string
     {
-        $toWallet = app(\App\Services\Money\WalletPayments::class); // money: wallet payments / "refund to wallet" (destination wallet|original)
+        $toWallet = app(WalletPayments::class); // money: wallet payments / "refund to wallet" (destination wallet|original)
         $pending = false;
         $any = false;
         foreach ($order->payments()->where('status', 'paid')->where('gateway', '!=', 'skydrop_cod')->get() as $p) {

@@ -2,13 +2,17 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
 use App\Http\Controllers\Admin\InvoiceController;
-use Filament\Http\Middleware\Authenticate;
+use App\Http\Middleware\AdminGuard;
+use App\Http\Middleware\AdminRequire2fa;
+use App\Http\Middleware\AuthorizePanelPage;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Http\Middleware\Authenticate; // filters widgets by permission (RBAC)
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use App\Filament\Pages\Dashboard; // filters widgets by permission (RBAC)
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -33,10 +37,10 @@ class AdminPanelProvider extends PanelProvider
             // Security module: TOTP 2FA with recovery codes (required for admin/manager), profile page to manage it.
             ->profile(isSimple: false)
             ->multiFactorAuthentication(
-                [\Filament\Auth\MultiFactor\App\AppAuthentication::make()->recoverable()->brandName('Skydrop Retail Admin')],
+                [AppAuthentication::make()->recoverable()->brandName('Skydrop Retail Admin')],
                 isRequired: true, // routes always registered; AdminRequire2fa decides per user (admin/manager) at runtime
             )
-            ->multiFactorAuthenticationRequiredMiddlewareName(\App\Http\Middleware\AdminRequire2fa::class)
+            ->multiFactorAuthenticationRequiredMiddlewareName(AdminRequire2fa::class)
             ->brandName('Skydrop Retail Admin')
             ->brandLogo(fn () => new HtmlString(
                 '<span style="display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:1.05rem">'
@@ -76,7 +80,7 @@ class AdminPanelProvider extends PanelProvider
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 AuthenticateSession::class,
-                \App\Http\Middleware\AdminGuard::class, // IP allowlist + idle timeout (security module)
+                AdminGuard::class, // IP allowlist + idle timeout (security module)
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,
@@ -88,7 +92,7 @@ class AdminPanelProvider extends PanelProvider
             })
             ->authMiddleware([
                 Authenticate::class,
-                \App\Http\Middleware\AuthorizePanelPage::class, // RBAC: page.{slug} backstop
+                AuthorizePanelPage::class, // RBAC: page.{slug} backstop
             ]);
     }
 }

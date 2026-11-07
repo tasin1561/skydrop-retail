@@ -5,6 +5,8 @@ namespace App\Services\Commerce;
 use App\Jobs\Commerce\CreateSkydropConsignment;
 use App\Models\Order;
 use App\Models\OrderEvent;
+use App\Services\Fraud\FraudGate;
+use App\Services\Money\DigitalOrders;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -120,11 +122,11 @@ class OrderWorkflow
     {
         $order->refresh();
         // Money module: gift card / Skydrop Plus orders have no fulfilment pipeline; issue them once paid.
-        if (in_array($order->kind ?? 'goods', \App\Services\Money\DigitalOrders::KINDS, true)) {
+        if (in_array($order->kind ?? 'goods', DigitalOrders::KINDS, true)) {
             if ($order->payment_status === 'paid' && $order->status === 'placed') {
-                app(\App\Services\Money\DigitalOrders::class)->fulfil($order);
+                app(DigitalOrders::class)->fulfil($order);
                 $order->forceFill(['status' => 'delivered', 'delivered_at' => now()])->save();
-                $this->event($order, 'delivered', 'system', \App\Services\Money\DigitalOrders::LABELS[$order->kind].' issued');
+                $this->event($order, 'delivered', 'system', DigitalOrders::LABELS[$order->kind].' issued');
             }
 
             return;
@@ -132,7 +134,7 @@ class OrderWorkflow
         if ($order->is_preorder && $order->balanceBdt() > 0) {
             return; // Shopping: a pre-order stays "placed" on its deposit until the balance is paid
         }
-        if (\App\Services\Fraud\FraudGate::holds($order)) {
+        if (FraudGate::holds($order)) {
             return; // Fraud check: high risk, staff verify by hand ("Needs review")
         }
         if ($order->status === 'placed' && in_array($order->payment_status, ['paid', 'partial'], true)) {

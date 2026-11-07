@@ -77,4 +77,9 @@ return [
     ],
 
     'activity' => ['retention_days' => 365],
+
+    // Use CF-Connecting-IP as the client IP. Only enable when the origin accepts traffic from Cloudflare ranges only.
+    'trust_cf_header' => (bool) env('TRUST_CF_CONNECTING_IP', false),
+
+    'qr_allowed_hosts' => env('QR_ALLOWED_HOSTS', ''), // extra hosts GET /qr may encode (WEB_URL and APP_URL always allowed)
 ];

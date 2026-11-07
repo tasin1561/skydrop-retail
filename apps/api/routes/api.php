@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Features;
 use Illuminate\Support\Facades\Route;
 
 // Ops: honeypot, bot challenge, QR codes (security module). Registered before the catalog so
@@ -35,7 +36,7 @@ require __DIR__.'/api_wallet.php';
 require __DIR__.'/api_assistant.php';
 
 // Feature switches (Admin → System → Features) for web and mobile.
-Route::get('/features', fn () => ['features' => \App\Support\Features::all()]);
+Route::get('/features', fn () => ['features' => Features::all()]);
 require __DIR__.'/api_features.php'; // GET checkout/options (payment methods that are switched on)
 
 // Shopping: price history, compare stores, bundles, group buy, pre-orders, product requests.

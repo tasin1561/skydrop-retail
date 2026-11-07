@@ -2,11 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasPagePermission;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Support\Admin;
 use App\Filament\Support\Ops;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\Fulfilment\PriceAlertService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -14,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\EmbeddedTable;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
@@ -30,7 +33,7 @@ use UnitEnum;
 /** Items still to buy in India, grouped by marketplace, with direct links to the source product pages. */
 class PurchaseQueue extends Page implements HasTable
 {
-    use \App\Filament\Concerns\HasPagePermission; // page.purchase-queue
+    use HasPagePermission; // page.purchase-queue
     use InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
@@ -60,7 +63,7 @@ class PurchaseQueue extends Page implements HasTable
     public function content(Schema $schema): Schema
     {
         // Fulfilment: red banner for supplier price alerts (old vs new price, margin impact).
-        return $schema->components([\Filament\Schemas\Components\View::make('filament.hub.price-alert-banner'), EmbeddedTable::make()]);
+        return $schema->components([View::make('filament.hub.price-alert-banner'), EmbeddedTable::make()]);
     }
 
     public function table(Table $table): Table
@@ -89,10 +92,10 @@ class PurchaseQueue extends Page implements HasTable
             ])
             ->recordActions([
                 Action::make('recheckPrice')->label('Check price')->icon(Heroicon::OutlinedArrowPath)->color('gray') // fulfilment: right before buying
-                    ->visible(fn () => app(\App\Services\Fulfilment\PriceAlertService::class)->enabled())
+                    ->visible(fn () => app(PriceAlertService::class)->enabled())
                     ->action(function (OrderItem $record) {
-                        \App\Filament\Support\Ops::refreshProduct($record->product_id);
-                        $flagged = app(\App\Services\Fulfilment\PriceAlertService::class)->check($record);
+                        Ops::refreshProduct($record->product_id);
+                        $flagged = app(PriceAlertService::class)->check($record);
                         Notification::make()->title($flagged ? 'Price alert: review before buying' : 'Price OK')->{$flagged ? 'danger' : 'success'}()->send();
                     }),
                 Action::make('open')->label('Open')->icon(Heroicon::OutlinedArrowTopRightOnSquare)->color('gray')
