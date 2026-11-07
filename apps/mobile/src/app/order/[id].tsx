@@ -150,7 +150,8 @@ export default function OrderDetail() {
         {[
           ["Items", formatBdt(order.subtotal)],
           ["Skydrop shipping", order.shipping ? formatBdt(order.shipping) : "Free"],
-          ...(order.discount ? [["Discount", "-" + formatBdt(order.discount)]] : []),
+          ...(order.discount - (order.pointsDiscount ?? 0) > 0 ? [["Discount", "-" + formatBdt(order.discount - (order.pointsDiscount ?? 0))]] : []),
+          ...(order.pointsDiscount ? [[`${order.pointsRedeemed ?? 0} Skydrop Points`, "-" + formatBdt(order.pointsDiscount)]] : []),
         ].map(([k, v]) => (
           <View key={k} style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <T v="small" tone="ink2">
@@ -165,6 +166,11 @@ export default function OrderDetail() {
           <T v="h3">Total</T>
           <T v="h2">{formatBdt(order.total)}</T>
         </View>
+        {!!order.pointsEarned && status !== "cancelled" && (
+          <T v="tiny" style={{ color: c.brand, fontWeight: "800" }}>
+            {status === "delivered" ? `You earned ${order.pointsEarned} Skydrop Points` : `You'll earn ${order.pointsEarned} Skydrop Points when it's delivered`}
+          </T>
+        )}
       </Card>
 
       <Card style={{ gap: 10 }}>

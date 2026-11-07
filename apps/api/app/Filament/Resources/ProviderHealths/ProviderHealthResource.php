@@ -16,6 +16,8 @@ use UnitEnum;
 
 class ProviderHealthResource extends Resource
 {
+    protected static ?string $slug = 'provider-health';
+
     protected static ?string $model = ProviderHealth::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSignal;

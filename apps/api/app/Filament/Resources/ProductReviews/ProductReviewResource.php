@@ -18,6 +18,8 @@ use UnitEnum;
 
 class ProductReviewResource extends Resource
 {
+    protected static ?string $slug = 'reviews';
+
     protected static ?string $model = ProductReview::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedStar;

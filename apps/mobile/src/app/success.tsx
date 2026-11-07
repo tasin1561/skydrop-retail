@@ -21,7 +21,7 @@ import { haptic } from "@/lib/haptics";
 import { Button, Card, T } from "@/components/ui";
 
 export default function Success() {
-  const { id, total } = useLocalSearchParams<{ id: string; total?: string }>();
+  const { id, total, paid } = useLocalSearchParams<{ id: string; total?: string; paid?: string }>();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
@@ -71,6 +71,7 @@ export default function Success() {
           {[
             ["Order", id],
             ["Total", total ? formatBdt(Number(total)) : "-"],
+            ...(paid ? [["Payment", paid === "paid" ? "Paid" : paid]] : []),
             ["Estimated delivery", `${addDays(now, w.min)} - ${addDays(now, w.max)}`],
           ].map(([k, v]) => (
             <View key={k} style={{ flexDirection: "row", justifyContent: "space-between" }}>

@@ -16,6 +16,8 @@ use UnitEnum;
 
 class PointsLedgerResource extends Resource
 {
+    protected static ?string $slug = 'points-ledger';
+
     protected static ?string $model = PointsLedger::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedGift;

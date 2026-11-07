@@ -20,6 +20,8 @@ use UnitEnum;
 
 class SupportRequestResource extends Resource
 {
+    protected static ?string $slug = 'support';
+
     protected static ?string $model = SupportRequest::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLifebuoy;

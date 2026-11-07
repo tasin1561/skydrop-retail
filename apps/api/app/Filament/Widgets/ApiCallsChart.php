@@ -27,7 +27,7 @@ class ApiCallsChart extends ChartWidget
         return ['7' => 'Last 7 days', '14' => 'Last 14 days', '30' => 'Last 30 days'];
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): string|\Illuminate\Contracts\Support\Htmlable|null
     {
         [$hits, $calls] = self::hitStats((int) $this->filter);
         $total = $hits + $calls;
