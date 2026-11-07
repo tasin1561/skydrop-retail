@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getProduct } from "@/lib/catalog";
 import { verifyItems } from "@/lib/data";
 import { priceBdt } from "@/lib/pricing";
+import { demoDecorate } from "@/lib/cms";
 
 // Mock of the live checkout verification. In production this calls Oxylabs for each item
 // (pincode 700001) and compares the fresh price and stock with what the shopper saw.
@@ -12,8 +13,11 @@ export async function POST(req: Request) {
   if (live) return NextResponse.json(live);
   await new Promise((r) => setTimeout(r, 900));
   const results = items.map((i) => {
-    const p = getProduct(i.productId);
+    const p = demoDecorate(getProduct(i.productId));
     if (!p) return { productId: i.productId, ok: false, reason: "not_found" };
+    // Items that cannot ship to Bangladesh (same rules as the API's restricted_rules).
+    if (p.restriction?.action === "block")
+      return { productId: i.productId, ok: false, deliverable: false, reason: "restricted", message: p.restriction.message };
     const fresh = priceBdt(p);
     return { productId: i.productId, ok: true, freshBdt: fresh, changed: fresh !== i.unitBdt, deliverable: true };
   });

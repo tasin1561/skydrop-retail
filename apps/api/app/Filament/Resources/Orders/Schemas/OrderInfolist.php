@@ -104,6 +104,7 @@ class OrderInfolist
                     Section::make('Skydrop')->schema([
                         TextEntry::make('skydrop_consignment_id')->label('Consignment')->copyable()->placeholder('not created'),
                     ]),
+                    OrderAttributionSection::make(),
                     Section::make('Staff notes')->schema([
                         TextEntry::make('staff_notes')->hiddenLabel()->placeholder('No notes')->prose(),
                         TextEntry::make('notes')->label('Customer note')->placeholder('—'),

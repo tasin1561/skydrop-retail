@@ -14,6 +14,7 @@ use App\Sources\Exceptions\ProductGoneException;
 use App\Sources\Support\ApiLogger;
 use App\Sources\Support\SourceProduct;
 use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -46,7 +47,7 @@ class CatalogService
 
     /**
      * @param  array<string, mixed>  $sp  q, store, category, sort, min, max, rating, fast, page
-     * @return array{status: string, jobId?: string, total: int, page: int, pages: int, items: \Illuminate\Support\Collection<int, Product>}
+     * @return array{status: string, jobId?: string, total: int, page: int, pages: int, items: Collection<int, Product>}
      */
     public function search(array $sp, bool $crawler = false): array
     {

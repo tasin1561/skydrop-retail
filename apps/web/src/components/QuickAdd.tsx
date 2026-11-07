@@ -4,6 +4,7 @@ import type { Product } from "@/lib/types";
 import { priceBdt, weightKg } from "@/lib/pricing";
 import { useStore } from "@/state/store";
 import { Icon } from "./Icon";
+import { restrictionOf } from "@/lib/restrictions";
 
 // Grocery-style add-to-basket on the card: "Add" becomes a +/- stepper.
 export function QuickAdd({ p }: { p: Product }) {
@@ -20,6 +21,13 @@ export function QuickAdd({ p }: { p: Product }) {
       weightKg: weightKg(p),
       qty: 1,
     });
+  const blocked = restrictionOf(p)?.action === "block";
+  if (blocked)
+    return (
+      <button type="button" disabled className="btn btn-ghost mt-2 min-h-10 w-full rounded-xl text-xs" aria-label={`${p.title} cannot ship to Bangladesh`}>
+        Can&apos;t ship to BD
+      </button>
+    );
   if (!line)
     return (
       <button

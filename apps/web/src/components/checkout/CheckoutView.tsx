@@ -10,6 +10,8 @@ import { formatBdt } from "@/lib/pricing";
 import type { CartItem, Order } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { api, apiEnabled, ApiError, type PriceChange } from "@/lib/apiClient";
+import { getRef } from "@/lib/growth";
+import { trackCheckout } from "@/lib/track";
 import { demoLedger, maxRedeem } from "@/lib/points";
 import { AddressStep, addressText } from "./AddressStep";
 import { computeTotals, useCoupon } from "./cart-math";
@@ -76,6 +78,10 @@ export function CheckoutView() {
     };
   }, []);
 
+  useEffect(() => {
+    if (ready) trackCheckout("InitiateCheckout", cart);
+  }, [ready, cart]);
+
   // After placeOrder clears the cart, keep rendering the order that was just placed.
   const items: CartItem[] = placed
     ? placed.items
@@ -113,6 +119,9 @@ export function CheckoutView() {
       setNudge((n) => ({ n: (n?.n ?? 0) + 1, msg: blockedReason }));
       return;
     }
+    // funnel events (once per cart contents, see trackCheckout)
+    if (step === 0) trackCheckout("AddShippingInfo", items, { value: t.total, shipping: t.shipping, coupon: coupon?.code });
+    if (step === 2) trackCheckout("AddPaymentInfo", items, { value: t.total, method: payment ?? undefined, coupon: coupon?.code });
     if (step < 3) go(step + 1);
     else placeFlow();
   };
@@ -132,6 +141,7 @@ export function CheckoutView() {
             coupon: coupon?.code,
             redeemPoints: tt.pointsRedeemed || undefined,
             returnUrl: `${window.location.origin}/checkout/success`,
+            ref: getRef(),
           }),
           wait(Math.max(0, 700 - (msSince(startedAt)))),
         ]);

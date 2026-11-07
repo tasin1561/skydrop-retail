@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class ProductDetail extends Model
 {
     protected $primaryKey = 'product_id';
+
     protected $keyType = 'string';
+
     public $incrementing = false;
+
     protected $guarded = [];
 
     protected function casts(): array

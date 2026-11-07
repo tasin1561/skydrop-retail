@@ -42,7 +42,8 @@ class OtpService
             ]);
         });
 
-        $this->sms->otp()->send($phone, "Your Skydrop Retail code is {$code}. It expires in ".intdiv($ttl, 60).' minutes. Never share it.');
+        // Messaging module: OTP template (user's language), sent synchronously through the OTP SMS chain, never queued as marketing.
+        app(\App\Services\Messaging\Messenger::class)->otp($phone, $code, $ttl, User::query()->where('phone', $phone)->first());
 
         $out = ['ok' => true, 'expiresIn' => $ttl];
         if (config('retail.otp.driver') === 'log') {
@@ -100,6 +101,7 @@ class OtpService
         if ($isNew) {
             $this->points->signupBonus($user);
             $user->refresh();
+            app(Notifier::class)->welcome($user); // messaging module
         }
 
         return ['user' => $user, 'isNew' => $isNew];

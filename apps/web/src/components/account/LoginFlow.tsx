@@ -8,6 +8,7 @@ import { PhoneField, Spinner, useShake } from "./ui";
 import { checkPhone, formatPhone, toE164 } from "./phone";
 import { OtpInput } from "./OtpInput";
 import { api, apiEnabled, ApiError } from "@/lib/apiClient";
+import { clearInvite, getInvite } from "@/lib/growth";
 
 type Step = "phone" | "code" | "name";
 
@@ -110,9 +111,10 @@ export function LoginFlow({ next }: { next: string }) {
     setFinishing(true);
     if (apiEnabled && pendingCode) {
       api
-        .verifyOtp(phone, pendingCode, n)
+        .verifyOtp(phone, pendingCode, n, getInvite())
         .then((r) => {
-          login(r.user, r.token);
+          if (r.isNew) clearInvite();
+          login(r.user, r.token, r.isNew);
           setLive(`Signed in as ${r.user.name}`);
           router.replace(next);
         })
@@ -123,7 +125,7 @@ export function LoginFlow({ next }: { next: string }) {
       return;
     }
     remember(phone, n);
-    login({ name: n, phone });
+    login({ name: n, phone }, undefined, true); // demo: the name step only appears for a new number
     setLive(`Signed in as ${n}`);
     router.replace(next);
   }
@@ -132,12 +134,12 @@ export function LoginFlow({ next }: { next: string }) {
     if (apiEnabled) {
       setApiError("");
       api
-        .verifyOtp(toE164(digits), code)
+        .verifyOtp(toE164(digits), code, undefined, getInvite())
         .then((r) => {
           setVerified(true);
           setLive("Code verified");
           setTimeout(() => {
-            login(r.user, r.token);
+            login(r.user, r.token, r.isNew);
             router.replace(next);
           }, 900);
         })

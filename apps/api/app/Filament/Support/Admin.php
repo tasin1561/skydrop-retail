@@ -55,6 +55,22 @@ class Admin
         'pricing.shipping.free_above_bdt' => 'pricing.shipping.free_above_bdt',
         'pricing.fx_buffer' => 'pricing.fx_buffer',
         'alerts.telegram_chat' => 'alerts.telegram_chat',
+        // Marketing tracking (App\Filament\Support\TrackingSettingsSection)
+        'tracking.driver' => 'tracking.driver',
+        'tracking.purchase_on' => 'tracking.purchase_on',
+        'tracking.send_delivered' => 'tracking.send_delivered',
+        'tracking.meta.pixel_id' => 'tracking.meta.pixel_id',
+        'tracking.meta.access_token' => 'tracking.meta.access_token',
+        'tracking.meta.test_event_code' => 'tracking.meta.test_event_code',
+        'tracking.ga4.measurement_id' => 'tracking.ga4.measurement_id',
+        'tracking.ga4.api_secret' => 'tracking.ga4.api_secret',
+        'tracking.tiktok.pixel_id' => 'tracking.tiktok.pixel_id',
+        'tracking.tiktok.access_token' => 'tracking.tiktok.access_token',
+        'tracking.tiktok.test_event_code' => 'tracking.tiktok.test_event_code',
+        'tracking.gtm_id' => 'tracking.gtm_id',
+        'tracking.delivro.endpoint' => 'tracking.delivro.endpoint',
+        'tracking.delivro.key' => 'tracking.delivro.key',
+        'tracking.feed_key' => 'tracking.feed_key',
     ];
 
     /** A runtime setting: settings table first, then config/retail.php. */

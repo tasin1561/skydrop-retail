@@ -22,8 +22,16 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
     
+        // ---- catalog module seeders (runs first: commerce data may reference products) ----
+        $this->call([MarketplaceSeeder::class, CategorySeeder::class, PricingRuleSeeder::class, CatalogSeeder::class]);
+        // ---- end catalog module seeders ----
+
         // ---- commerce module seeders ----
         $this->call([CouponSeeder::class, AdminUserSeeder::class]);
         // ---- end commerce module seeders ----
+
+        // ---- messaging module seeders ----
+        $this->call([MessageTemplateSeeder::class]);
+        // ---- end messaging module seeders ----
     }
 }

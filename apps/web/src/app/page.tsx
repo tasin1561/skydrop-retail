@@ -8,6 +8,7 @@ import { PromoStrip } from "@/components/home/PromoStrip";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { EnabledRail } from "@/components/home/Gates";
 import { RecentlyViewed } from "@/components/home/RecentlyViewed";
+import { CmsFlash, CmsHero, CmsTiles } from "@/components/cms/CmsSlots";
 
 async function heroImages(m: StoreMode) {
   return (await byMarket(m, 6))
@@ -29,9 +30,12 @@ export default async function Home() {
     <div className="mx-auto max-w-7xl pt-3 sm:px-4">
       <StoreHero scenes={scenes} />
       <CategoryChips mode="all" />
+      <CmsHero store="all" />
       <StoreCards />
       <RecentlyViewed />
       <PromoStrip />
+      <CmsTiles store="all" />
+      <CmsFlash store="all" />
       <EnabledRail title="Live deals and offers" note="Coupons, deals and bank offers from every connected store" href="/deals" items={dealItems} />
       <HowItWorks />
       {MARKET_IDS.map((m, i) => (

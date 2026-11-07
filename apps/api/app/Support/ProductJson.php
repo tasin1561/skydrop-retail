@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Models\Product;
+use App\Services\Cms\FlashSaleService;
+use App\Services\Cms\RestrictionService;
 use App\Services\PricingService;
 use Illuminate\Http\Request;
 
@@ -27,7 +29,7 @@ final class ProductJson
         if (class_exists(self::RESOURCE)) {
             $class = self::RESOURCE;
 
-            return (new $class($p))->resolve($request ?? request());
+            return (new $class($p))->resolve($request ?? request()) + self::cms($p);
         }
         $pricing = app(PricingService::class);
 
@@ -41,6 +43,19 @@ final class ProductJson
             'placeholder' => $p->placeholder, 'prime' => (bool) $p->prime, 'bestSeller' => (bool) $p->best_seller,
             'amazonsChoice' => (bool) $p->amazons_choice, 'salesVolume' => (string) $p->sales_volume, 'detailed' => (bool) $p->detailed,
             'demo' => (bool) $p->demo, 'stock' => $p->in_stock ? 'In stock' : 'Out of stock',
+        ] + self::cms($p);
+    }
+
+    /**
+     * CMS fields for any product JSON (also merged into ProductResource):
+     * `flashSale: { saleId, title, endsAt, extraOffBdt, maxQty } | null` (priceBdt already includes extraOffBdt) and
+     * `restriction: { action: "block"|"warn"|"surcharge", message, surchargeBdt } | null`.
+     */
+    public static function cms(object $p): array
+    {
+        return [
+            'flashSale' => app(FlashSaleService::class)->forProduct($p),
+            'restriction' => app(RestrictionService::class)->forProduct($p),
         ];
     }
 }

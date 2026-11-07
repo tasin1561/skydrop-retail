@@ -79,7 +79,14 @@ export type Product = {
   couponInr?: number | null;
   effectivePriceInr?: number | null;
   dealEndsAt?: string | null;
+  /** CMS flash sale: extra Skydrop discount already inside the API priceBdt (web priceBdt() subtracts it while live). */
+  flashSale?: FlashSaleInfo | null;
+  /** Can this ship to Bangladesh? block = cannot order, warn = info, surcharge = added to price. */
+  restriction?: Restriction | null;
 };
+
+export type FlashSaleInfo = { saleId?: number | string; title?: string; endsAt: string; extraOffBdt: number; maxQty?: number | null };
+export type Restriction = { action: "block" | "warn" | "surcharge"; message: string; surchargeBdt?: number };
 
 export type CartItem = {
   productId: string;

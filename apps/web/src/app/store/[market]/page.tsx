@@ -6,6 +6,7 @@ import { StoreHero } from "@/components/home/StoreHero";
 import { CategoryChips } from "@/components/home/CategoryChips";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { PromoStrip } from "@/components/home/PromoStrip";
+import { CmsFlash, CmsHero, CmsTiles } from "@/components/cms/CmsSlots";
 import { EnabledGrid, EnabledRail, StoreGate } from "@/components/home/Gates";
 
 export function generateStaticParams() {
@@ -34,7 +35,10 @@ export default async function StorePage({ params }: { params: Promise<{ market: 
       <div data-store={market} className="mx-auto max-w-7xl pt-3 sm:px-4">
         <StoreHero scenes={[{ mode: market, images }]} fixed />
         <CategoryChips mode={market} />
+        <CmsHero store={market} />
         <PromoStrip />
+        <CmsTiles store={market} />
+        <CmsFlash store={market} />
         <EnabledRail title="Deals of the day" note={`Biggest discounts on ${s.source}`} href={`/search?q=&store=${market}&sort=discount`} items={dealItems} />
         {s.categories.map((c, i) => (
           <EnabledRail

@@ -18,7 +18,8 @@ class OrderWorkflow
 
     public const SOURCES = ['system', 'skydrop', 'admin', 'customer'];
 
-    public const NOTIFY = ['purchased', 'out_for_delivery', 'delivered', 'cancelled'];
+    // Messaging module: every customer-visible step notifies (SMS for minor steps is off by default in message_templates).
+    public const NOTIFY = ['verified', 'purchased', 'india_hub', 'in_transit', 'dhaka_hub', 'out_for_delivery', 'delivered', 'cancelled'];
 
     public const DEFAULT_NOTES = [
         'placed' => 'Order placed',

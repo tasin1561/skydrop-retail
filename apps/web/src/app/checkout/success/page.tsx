@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { OrderSuccess } from "@/components/checkout/OrderSuccess";
+import { TrackPurchase } from "@/components/tracking/TrackPurchase";
 import "@/components/checkout/checkout.css";
 
 export const metadata: Metadata = {
@@ -12,5 +13,11 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
   const raw = sp.order;
   const orderId = (Array.isArray(raw) ? raw[0] : raw) ?? "";
   const st = Array.isArray(sp.status) ? sp.status[0] : sp.status;
-  return <OrderSuccess orderId={orderId} payStatus={st === "failed" || st === "cancelled" ? st : st === "paid" ? "paid" : undefined} />;
+  const payStatus = st === "failed" || st === "cancelled" ? st : st === "paid" ? "paid" : undefined;
+  return (
+    <>
+      <TrackPurchase orderId={orderId} payStatus={payStatus} />
+      <OrderSuccess orderId={orderId} payStatus={payStatus} />
+    </>
+  );
 }

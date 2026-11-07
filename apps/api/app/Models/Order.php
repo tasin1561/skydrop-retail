@@ -27,6 +27,7 @@ class Order extends Model
             'total_bdt' => 'float', 'paid_bdt' => 'float', 'fx_rate' => 'float', 'coupon_discount_bdt' => 'float',
             'points_redeemed' => 'integer', 'points_discount_bdt' => 'float', 'points_to_earn' => 'integer',
             'points_earned' => 'integer', 'delivered_at' => 'datetime', 'cancelled_at' => 'datetime',
+            'attribution' => 'array',
         ];
     }
 

@@ -12,6 +12,10 @@ class Alerts
     public function send(string $message, string $level = 'warning'): void
     {
         Log::log($level, '[alert] '.$message);
+        // Messaging module: also email ALERT_EMAIL (queued; no-op when unset).
+        if (config('retail.alerts.email')) {
+            rescue(fn () => app(\App\Services\Messaging\Messenger::class)->admin(ucfirst($level).' alert', $message), null, false);
+        }
         $bot = config('retail.alerts.telegram_bot');
         $chat = config('retail.alerts.telegram_chat');
         if (! $bot || ! $chat) {

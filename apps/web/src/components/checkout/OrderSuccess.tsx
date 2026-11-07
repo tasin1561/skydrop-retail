@@ -9,6 +9,7 @@ import { deliveryWindow, formatBdt, groupByMarket } from "@/lib/pricing";
 import type { MarketId } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { addDays } from "./cart-math";
+import { TellAFriend } from "@/components/share/TellAFriend";
 
 const CONFETTI = [
   [-90, -60, "var(--brand-2)"],
@@ -209,6 +210,8 @@ export function OrderSuccess({ orderId, payStatus }: { orderId: string; payStatu
           ))}
         </ol>
       </section>
+
+      <TellAFriend style={{ ["--i" as string]: 11 }} />
 
       <div className="rise mt-6 flex flex-col gap-2 sm:flex-row" style={{ ["--i" as string]: 12 }}>
         <Link href={`/orders/${order.id}`} className="btn btn-primary flex-1">

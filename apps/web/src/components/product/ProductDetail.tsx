@@ -14,8 +14,10 @@ import { PriceBreakdown } from "./PriceBreakdown";
 import { ProductExtras } from "./ProductExtras";
 import { OffersSection } from "../offers/OffersSection";
 import { ReviewList, StarBars } from "./Reviews";
-import { ShareButton } from "./ShareButton";
+import { ShareButton } from "@/components/share/ShareButton";
 import type { BuyInfo, Media } from "./types";
+import { FlashNotice, isBlocked, RestrictionNotice } from "@/components/cms/ProductNotices";
+import { ShopperReviews } from "@/components/cms/ShopperReviews";
 
 // Server component: shapes the product into small serialisable props for the client parts.
 export function ProductDetail({
@@ -53,7 +55,7 @@ export function ProductDetail({
     discount: discountPct(p),
     weightKg: weightKg(p),
     variants: p.variants ?? [],
-    available: !isUnavailableStock(p.stock),
+    available: !isUnavailableStock(p.stock) && !isBlocked(p),
   };
 
   const specs = Object.entries(p.specs ?? {}).filter(([k, v]) => v && !/customer reviews|best sellers rank/i.test(k));
@@ -147,7 +149,7 @@ export function ProductDetail({
               {p.brand && <p className="mt-2 text-sm font-semibold text-accent">{p.brand}</p>}
             </div>
             <div className="flex shrink-0 gap-2">
-              <ShareButton title={p.title} />
+              <ShareButton title={p.title} path={`/p/${encodeURIComponent(p.id)}`} qr />
               <WishButton id={p.id} />
             </div>
           </div>
@@ -156,7 +158,7 @@ export function ProductDetail({
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             {p.rating > 0 ? (
-              <a href="#reviews" className="rounded-full hover:opacity-80">
+              <a href="#source-reviews" className="rounded-full hover:opacity-80">
                 <Stars rating={p.rating} reviews={p.reviews} />
               </a>
             ) : (
@@ -168,6 +170,7 @@ export function ProductDetail({
           <div className="mt-4">
             <PriceLine p={p} big />
             <p className="mt-0.5 text-xs text-ink-2">Includes import duty and service. Shipping by weight in cart.</p>
+            <FlashNotice p={p} />
           </div>
 
           <div className="mt-3">
@@ -179,6 +182,8 @@ export function ProductDetail({
           <div className="mt-4">
             <StockLine stock={p.stock} demo={p.demo} />
           </div>
+
+          <RestrictionNotice p={p} />
 
           <div className="mt-5">
             <BuyBox key={p.id} info={info} knownIds={knownIds} unavailableIds={unavailableIds} />
@@ -275,14 +280,17 @@ export function ProductDetail({
           )}
         </div>
 
+        <div className="flex flex-col gap-4">
+        {/* Our shoppers' reviews first; the source store's rating stays separate below. */}
+        <ShopperReviews productId={p.id} source={source} sourceRating={p.rating} sourceCount={p.reviews} />
         {(breakdown.length > 0 || reviews.length > 0 || p.rating > 0) && (
-          <section id="reviews" className="scroll-mt-24" aria-labelledby="pd-reviews">
+          <section id="source-reviews" className="scroll-mt-24" aria-labelledby="pd-reviews">
             <div className="card p-4 sm:p-5">
               <h2 id="pd-reviews" className="flex items-center gap-3 text-lg font-extrabold tracking-tight">
                 <span className="chip-icon">
                   <Icon name="star" size={18} />
                 </span>
-                Ratings and reviews
+                Ratings on {source}
               </h2>
               <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">
                 <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-start sm:gap-1">
@@ -310,6 +318,7 @@ export function ProductDetail({
             )}
           </section>
         )}
+        </div>
       </div>
 
       {children}

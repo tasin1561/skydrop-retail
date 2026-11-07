@@ -27,6 +27,7 @@ class User extends Authenticatable implements Contracts\PanelUser
             'is_admin' => 'boolean',
             'blocked_at' => 'datetime',
             'points_balance' => 'integer',
+            'notify_prefs' => 'array', // messaging module: marketing opt-outs (App\Services\Messaging\Prefs)
         ];
     }
 

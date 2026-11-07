@@ -6,6 +6,7 @@ import { formatBdt, priceBdt } from "@/lib/pricing";
 import { Rail } from "@/components/ProductBits";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { isUnavailableStock } from "@/components/product/DeliveryCard";
+import { TrackView } from "@/components/tracking/TrackView";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -14,10 +15,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getProduct(decodeURIComponent(id));
   if (!p) return { title: "Product not found" };
   const source = STORES[p.market].source;
+  const title = p.title.length > 70 ? p.title.slice(0, 67).trimEnd() + "..." : p.title;
+  const description = `${p.brand ? p.brand + " · " : ""}${formatBdt(priceBdt(p))} delivered to Bangladesh. Bought for you from ${source}, India and delivered by Skydrop.`;
+  const path = `/p/${encodeURIComponent(p.id)}`;
+  // og:image comes from ./opengraph-image.tsx (product card with BDT price); X/Twitter falls back to it.
   return {
-    title: p.title.length > 70 ? p.title.slice(0, 67).trimEnd() + "..." : p.title,
-    description: `${p.brand ? p.brand + " · " : ""}${formatBdt(priceBdt(p))} delivered to Bangladesh. Bought for you from ${source}, India and delivered by Skydrop.`,
-    openGraph: p.image ? { images: [{ url: p.image }] } : undefined,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://retail.skydrop.online"),
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "website", siteName: "Skydrop Retail", url: path, title: p.title, description, locale: "en_BD" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -42,6 +50,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <ProductDetail p={p} knownIds={knownIds} unavailableIds={unavailableIds}>
+      <TrackView product={{ id: p.id, title: p.title, brand: p.brand, category: p.category, priceBdt: priceBdt(p) }} />
       <div className="mt-4">
         <Rail
           title="More like this"

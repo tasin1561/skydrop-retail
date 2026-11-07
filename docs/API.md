@@ -7,29 +7,61 @@ Field names in JSON responses are **camelCase** so the web and app types (`apps/
 
 ## Marketplaces
 
-`GET /marketplaces` → `{ items: [{ id: "amazon"|"flipkart"|"bigbasket", name, source, enabled }] }`
+`GET /marketplaces` → `{ items: [{ id: "amazon"|"flipkart"|"bigbasket", name, source, enabled, liveFetch }] }`
+- `liveFetch:false` (the default in dev) means the store is served from the local catalog only and never calls a provider.
 
 ## Catalog
 
-`GET /search?q=&store=all|amazon|flipkart|bigbasket&category=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
-→ `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[] }`
-- Cache first (6 h fresh, 7 days stale-while-revalidate). On a miss for an enabled live marketplace the API returns
-  catalog matches immediately with `status:"pending"` and a `jobId`; the client polls `GET /jobs/{jobId}` or re-requests.
+All catalog reads detect crawlers by User-Agent (the storefront may forward the shopper's agent as `X-Client-UA`);
+crawler requests never trigger provider fetches. `search`, `products/{id}`: 60 req/min per IP. `products/resolve`: 20/min.
 
-`GET /suggest?q=&store=` → `{ items: [{ id, title, market }] }` (local DB only, never calls a provider)
+`GET /search?q=&store=all|amazon|flipkart|bigbasket&category=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
+→ `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[] }` (24 per page)
+- Scoring, filters (`min`/`max` are BDT) and sorts match `apps/web/src/lib/catalog.ts`.
+- Cache first per (store, query, store page, sort): 6 h fresh, 7 days stale-while-revalidate. One store page (~48 items)
+  is one provider call. On a miss for a live marketplace the API returns local matches immediately with
+  `status:"pending"` and a `jobId`; the client polls `GET /jobs/{jobId}` or re-requests. Store-ranked results are then
+  included even when not every word matches the title.
+
+`GET /suggest?q=&store=&limit=6` → `{ items: [{ id, title, market }] }` (local DB only, never calls a provider)
 
 `GET /products/{id}` → `{ status: "ready"|"pending", jobId?, product: Product }`
-- Fresh (< 24 h) → ready. Stale or listing-only → returns cached data with `status:"pending"` and queues a refresh
-  (raw HTML + own parser), plus fetch of all variants (colours first, then sizes).
+- Fresh (< 24 h; 30 min while a deal ends within 24 h; immediately stale once `dealEndsAt` passed) → ready.
+  Stale or listing-only → cached data with `status:"pending"` and a queued refresh (raw HTML + own parser), followed by
+  the variants (colours first, then sizes). Unknown id on a live store → fetched synchronously (hedged) → ready, else 404.
+- Unavailable/undeliverable products stay reachable here (SEO) but are hidden from lists.
 
-`GET /products?ids=a,b,c` → `{ items: Product[] }` (cards, max 100)
+`GET /products?ids=a,b,c` → `{ items: Product[] }` (cards, max 100, request order)
 
-`GET /jobs/{id}` → `{ id, status: "queued"|"running"|"done"|"failed", type, result?: any, error?: string }`
+`GET /products/popular?store=&category=&limit=12` · `GET /products/deals?store=&limit=12` (with `offers`) ·
+`GET /products/{id}/related?limit=8` → `{ items: Product[] }`
+
+`POST /products/{id}/cancel-variants` → `{ ok, pending }` — shopper bounced: drops the queued size-variant phase.
+
+`POST /products/resolve { url }` — "paste any link". Accepts amazon.in (`/dp/ASIN`, `/gp/product/ASIN`, `amzn.in`/`amzn.to`/`a.co`
+short links, followed via redirect), flipkart.com (`/p/itm…`, `fkrt.it`/`dl.flipkart.com` short links) and bigbasket.com (`/pd/{id}/`).
+→ `200 { status: "ready"|"pending", jobId?, productId, market, product }` when known, or
+`202 { status: "pending", jobId, productId, market }` (fetch queued; poll the job, then `GET /products/{productId}`).
+Other domains, links without a product id, or a store that is not live → `422 { errors: { url: [friendly message] } }`.
+
+`GET /offers?store=&type=&limit=24` → `{ items: Product[] }` — "Live deals": products with an active coupon, deal price or
+deal badge, biggest saving first; expired deals excluded. `type` is one of the offer types below.
+
+`GET /jobs/{id}` → `{ id, status: "queued"|"running"|"done"|"failed", type: "search"|"product"|"variants", result?: any, error?: string }`
 
 `Product` (camelCase, same as web `Product` type): `id, market, category, title, brand, priceInr, mrpInr, priceBdt, mrpBdt,
-rating, reviews, image, images[], placeholder?, prime, bestSeller, amazonsChoice, salesVolume, detailed, demo?, stock?,
+rating, reviews, image, images[], placeholder?, prime, bestSeller, amazonsChoice, salesVolume, detailed, demo?, inStock, stock?,
 bullets?, specs?, weight?, variants?, aplus?, hasVideos?, videos?, reviewList?, starBreakdown?, deliveryKolkata?,
-categoryPath?, fetchedAt?, pincodeVerified?`
+categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effectivePriceInr, dealEndsAt`
+- `variants[]`: `{ id, label, dimensions, swatch, selected, available }` (`available:false` only when the sibling is known
+  to be out of stock or undeliverable).
+- `priceBdt` is `PricingService::productBdt()`: it uses `effectivePriceInr` (deal price minus a clippable coupon) while the
+  deal is live and the admin setting `pass_coupons` is on (default), else `priceInr`.
+- `offers[]`: `{ type, title, detail?, savingInr?, appliesToOurPrice, endsAt?, claimedPct? }` with `type` one of
+  `coupon, deal, lightning, bank, cashback, emi, partner, combo, special_price, subscribe, exchange, other`.
+  `appliesToOurPrice:true` (coupons, deal/lightning/special prices) are passed through to our price;
+  `false` (bank/card, cashback, EMI, exchange, partner, combo, subscribe) are shown as "Available on the source store".
+  Cards from lists other than `/products/deals` and `/offers` carry `offers: []`; the columns `dealBadge`/`couponInr` are always set.
 
 ## Auth (phone OTP)
 
@@ -86,6 +118,9 @@ the product (`403 { code: "not_a_buyer" }` otherwise). New reviews are `pending`
 `POST /checkout/verify { items: [{ productId, variant?, qty, unitBdt }] }`
 → `{ ok, checkedAt, results: [{ productId, ok, freshBdt, changed, deliverable, reason? }] }`
 Always a live provider call per item (Oxylabs with pincode 700001), never cached (delegates to `CatalogService::verify`).
+`CatalogService::verify` results also carry `offerExpired` (a coupon/deal behind the shopper's price ended; `freshBdt` is the
+new price), `pincodeVerified` and `provider`. Provider failure → `ok:false, reason:"verify_failed"`. Stores with
+`liveFetch:false` verify against the stored catalog row.
 
 `POST /checkout/quote { items, coupon?, redeemPoints? }` (token optional; needed for points) →
 `{ groups: [{ market, count, subtotal, shipping, weightKg }], count, subtotal, shipping, itemDiscount, shipDiscount, couponDiscount,

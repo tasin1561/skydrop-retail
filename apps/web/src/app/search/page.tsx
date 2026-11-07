@@ -6,6 +6,7 @@ import { isStoreMode, STORES } from "@/lib/markets";
 import { Icon } from "@/components/Icon";
 import { EnabledGrid } from "@/components/home/Gates";
 import { FilterSidebar, SortAndFilterBar } from "@/components/search/Filters";
+import { TrackSearch } from "@/components/tracking/TrackSearch";
 
 type SP = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -61,6 +62,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <Suspense>
           <SortAndFilterBar total={res.total} />
         </Suspense>
+        <TrackSearch q={q} store={store} ids={res.items.slice(0, 10).map((p) => p.id)} />
       </div>
 
       <div className="flex gap-6">

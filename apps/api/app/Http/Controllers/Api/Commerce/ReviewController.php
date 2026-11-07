@@ -24,6 +24,7 @@ class ReviewController extends Controller
             'items' => $items->map->toApi()->values(),
             'count' => $approved->count(),
             'average' => $approved->count() ? round($approved->avg('rating'), 2) : null,
+            'breakdown' => collect([5, 4, 3, 2, 1])->map(fn ($r) => ['rating' => $r, 'count' => $approved->where('rating', $r)->count()])->all(),
             'canReview' => $userId ? (bool) $this->deliveredOrderId($userId, $id) : false,
         ]);
     }
@@ -35,6 +36,7 @@ class ReviewController extends Controller
             'title' => ['nullable', 'string', 'max:120'],
             'body' => ['required_without:content', 'nullable', 'string', 'min:5', 'max:4000'],
             'content' => ['required_without:body', 'nullable', 'string', 'min:5', 'max:4000'],
+            'photoUrl' => ['nullable', 'url:https', 'max:1000'],
         ]);
         $user = $request->user();
         $orderId = $this->deliveredOrderId($user->id, $id);
@@ -43,7 +45,7 @@ class ReviewController extends Controller
         }
         $review = ProductReview::query()->updateOrCreate(['user_id' => $user->id, 'product_id' => $id], [
             'order_id' => $orderId, 'rating' => $data['rating'], 'title' => $data['title'] ?? null,
-            'body' => $data['body'] ?? $data['content'], 'verified_purchase' => true, 'status' => 'pending',
+            'body' => $data['body'] ?? $data['content'], 'photo_url' => $data['photoUrl'] ?? null, 'verified_purchase' => true, 'status' => 'pending',
         ]);
 
         return response()->json(['review' => $review->load('user')->toApi()], 201);

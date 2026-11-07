@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Product extends Model
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
+
     protected $guarded = [];
 
     protected function casts(): array
@@ -26,5 +28,4 @@ class Product extends Model
     {
         return $this->hasOne(ProductDetail::class, 'product_id');
     }
-
 }

@@ -3,6 +3,7 @@
 import * as local from "./catalog";
 import type { SearchParams } from "./catalog";
 import type { Product, StoreMode } from "./types";
+import { demoDecorate } from "./cms";
 
 const API = process.env.API_URL?.replace(/\/$/, "");
 
@@ -32,28 +33,30 @@ export async function searchProducts(sp: SearchParams): Promise<SearchResult> {
     `/search?${qs({ q: sp.q, store: sp.store, category: sp.category, sort: sp.sort, min: sp.min, max: sp.max, rating: sp.rating, fast: sp.fast, page: sp.page })}`,
     30,
   );
-  return r ?? local.searchProducts(sp);
+  if (r) return r;
+  const res = local.searchProducts(sp);
+  return { ...res, items: res.items.map(demoDecorate) };
 }
 
 export async function getProduct(id: string): Promise<(Product & { pending?: boolean }) | null> {
   const r = await api<{ product: Product; status: string }>(`/products/${encodeURIComponent(id)}`, 30);
   if (r?.product) return { ...r.product, pending: r.status === "pending" };
-  return local.getProduct(id);
+  return demoDecorate(local.getProduct(id));
 }
 
 export async function byMarket(m: StoreMode, limit = 12, category?: string): Promise<Product[]> {
   const r = await api<{ items: Product[] }>(`/products/popular?${qs({ store: m, limit, category })}`, 300);
-  return r?.items ?? local.byMarket(m, limit, category);
+  return r?.items ?? local.byMarket(m, limit, category).map(demoDecorate);
 }
 
 export async function deals(m: StoreMode, limit = 12): Promise<Product[]> {
   const r = await api<{ items: Product[] }>(`/products/deals?${qs({ store: m, limit })}`, 300);
-  return r?.items ?? local.deals(m, limit);
+  return r?.items ?? local.deals(m, limit).map(demoDecorate);
 }
 
 export async function related(p: Product, limit = 8): Promise<Product[]> {
   const r = await api<{ items: Product[] }>(`/products/${encodeURIComponent(p.id)}/related?${qs({ limit })}`, 300);
-  return r?.items ?? local.related(p, limit);
+  return r?.items ?? local.related(p, limit).map(demoDecorate);
 }
 
 export async function suggestions(q: string, store: StoreMode, limit = 6) {
@@ -65,7 +68,7 @@ export async function productsByIds(ids: string[]): Promise<Product[]> {
   if (!ids.length) return [];
   const r = await api<{ items: Product[] }>(`/products?ids=${ids.map(encodeURIComponent).join(",")}`, 30);
   if (r?.items) return r.items;
-  return ids.map((id) => local.getProduct(id)).filter((p): p is Product => !!p);
+  return ids.map((id) => demoDecorate(local.getProduct(id))).filter((p): p is Product => !!p);
 }
 
 export async function verifyItems(items: { productId: string; unitBdt: number; qty?: number; variant?: string }[]) {
@@ -90,5 +93,5 @@ export async function offersFeed(store: StoreMode, limit = 40): Promise<Product[
   const withOffers = local.searchProducts({ store, perPage: 400 }).items.filter((p) => (p.offers?.length ?? 0) > 0);
   const discounted = local.deals(store, limit);
   const seen = new Set<string>();
-  return [...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit);
+  return [...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit).map(demoDecorate);
 }

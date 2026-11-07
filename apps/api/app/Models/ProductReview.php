@@ -30,7 +30,7 @@ class ProductReview extends Model
         return [
             'id' => (string) $this->id, 'productId' => $this->product_id, 'author' => $author, 'rating' => $this->rating,
             'title' => (string) $this->title, 'content' => $this->body, 'date' => $this->created_at?->toIso8601String(),
-            'verifiedPurchase' => $this->verified_purchase, 'status' => $this->status,
+            'verifiedPurchase' => $this->verified_purchase, 'status' => $this->status, 'photoUrl' => $this->photo_url,
         ];
     }
 }

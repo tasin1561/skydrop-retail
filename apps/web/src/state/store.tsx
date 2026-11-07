@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, u
 import type { Address, CartItem, MarketId, Order, StoreMode, User } from "@/lib/types";
 import { DEFAULT_ENABLED, MARKET_IDS } from "@/lib/markets";
 import { api, apiEnabled, API_URL, setApiToken } from "@/lib/apiClient";
+import { cartItems, track } from "@/lib/track";
 
 type State = {
   cart: CartItem[];
@@ -42,7 +43,8 @@ type Ctx = State & {
   clearCart: () => void;
   repriceCart: (prices: { productId: string; freshBdt: number }[]) => void;
   toggleWish: (id: string) => void;
-  login: (u: User, token?: string) => void;
+  /** isNew: account just created (fires CompleteRegistration) */
+  login: (u: User, token?: string, isNew?: boolean) => void;
   logout: () => void;
   saveAddress: (a: Address) => void;
   removeAddress: (id: string) => void;
@@ -140,7 +142,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...state,
       ready,
       cartCount: state.cart.reduce((n, i) => n + i.qty, 0),
-      addToCart: (item) =>
+      addToCart: (item) => {
+        track("AddToCart", { items: cartItems([item]) });
         update((s) => {
           const found = s.cart.find((c) => c.productId === item.productId && c.variant === item.variant);
           return {
@@ -149,7 +152,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               ? s.cart.map((c) => (c === found ? { ...c, qty: Math.min(10, c.qty + item.qty) } : c))
               : [...s.cart, item],
           };
-        }),
+        });
+      },
       setQty: (id, variant, qty) =>
         update((s) => ({
           ...s,
@@ -169,14 +173,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }),
         })),
       toggleWish: (id) => {
+        if (!state.wishlist.includes(id)) track("AddToWishlist", { items: [{ id }] });
         if (synced) remote(state.wishlist.includes(id) ? api.wishlistRemove(id) : api.wishlistAdd(id));
         update((s) => ({
           ...s,
           wishlist: s.wishlist.includes(id) ? s.wishlist.filter((w) => w !== id) : [...s.wishlist, id],
         }));
       },
-      login: (u, token) => {
+      login: (u, token, isNew) => {
         if (token) setApiToken(token);
+        if (isNew) track("CompleteRegistration", { method: "otp" });
         update((s) => ({ ...s, user: u, token: token ?? s.token }));
       },
       logout: () => {

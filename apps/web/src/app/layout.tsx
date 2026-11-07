@@ -2,11 +2,15 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "./globals.css";
 import { StoreProvider } from "@/state/store";
+import { FeaturesProvider } from "@/components/features/FeaturesProvider";
+import { getFeatures } from "@/lib/features";
 import { ToastProvider } from "@/components/Toast";
 import { Header } from "@/components/Header";
 import { MobileNav } from "@/components/MobileNav";
 import { Footer } from "@/components/Footer";
 import { StoreTheme } from "@/components/StoreTheme";
+import { RefCapture } from "@/components/growth/RefCapture";
+import { Tracking } from "@/components/tracking/Tracking";
 
 export const metadata: Metadata = {
   title: { default: "Skydrop Retail: shop Indian stores from Bangladesh", template: "%s · Skydrop Retail" },
@@ -24,7 +28,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-store="all" suppressHydrationWarning>
       <body className="min-h-dvh">
@@ -36,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </linearGradient>
           </defs>
         </svg>
+        <FeaturesProvider value={await getFeatures()}>
         <StoreProvider>
           <ToastProvider>
             <Suspense>
@@ -43,12 +48,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Header />
             </Suspense>
             <main className="min-h-[60vh]">{children}</main>
+            <RefCapture />
             <Footer />
             <Suspense>
               <MobileNav />
             </Suspense>
           </ToastProvider>
         </StoreProvider>
+        </FeaturesProvider>
+        <Tracking />
       </body>
     </html>
   );

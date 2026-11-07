@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon, Logo } from "./Icon";
+import { ConsentLink } from "./tracking/ConsentLink";
 
 export function Footer() {
   const cols = [
@@ -41,6 +42,8 @@ export function Footer() {
       </div>
       <div className="border-t border-line px-4 py-4 text-center text-xs text-ink-3">
         © {new Date().getFullYear()} Skydrop Retail. Independent reseller; product names and brands belong to their owners. Products are purchased from the named Indian store on your behalf.
+        <span aria-hidden> · </span>
+        <ConsentLink />
       </div>
     </footer>
   );

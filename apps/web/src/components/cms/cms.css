@@ -1,0 +1,223 @@
+/* CMS blocks: hero carousel, flash sale rail, notices. Transform/opacity animations only. */
+
+/* ---------- hero carousel ---------- */
+.hc-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  border-radius: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.hc-track::-webkit-scrollbar {
+  display: none;
+}
+.hc-slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 188px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--hero-a), var(--hero-b));
+}
+@media (min-width: 640px) {
+  .hc-slide {
+    min-height: 260px;
+  }
+}
+.hc-slide .hc-cover {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.06);
+  transition: transform 6s var(--ease);
+}
+.hc-slide[data-active="true"] .hc-cover {
+  transform: scale(1);
+}
+.hc-slide .hc-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(11 16 32 / 0.78), rgb(11 16 32 / 0.25) 65%, transparent);
+}
+.hc-slide .hc-shot {
+  transform: translateY(8px) rotate(-3deg) scale(0.96);
+  opacity: 0;
+  transition: transform 0.7s var(--spring), opacity 0.5s var(--ease);
+}
+.hc-slide[data-active="true"] .hc-shot {
+  transform: none;
+  opacity: 1;
+}
+.hc-slide .hc-copy > * {
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform 0.55s var(--ease), opacity 0.45s var(--ease);
+  transition-delay: calc(var(--d, 0) * 70ms + 80ms);
+}
+.hc-slide[data-active="true"] .hc-copy > * {
+  transform: none;
+  opacity: 1;
+}
+.hc-blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.14);
+  animation: hc-drift 14s ease-in-out infinite alternate;
+}
+@keyframes hc-drift {
+  to {
+    transform: translate(-24px, 16px) scale(1.12);
+  }
+}
+
+/* travelling dots: a bead follows the scroll position (set as --hc-pos, in slides) */
+.hc-dots {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.hc-dot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 44px;
+}
+.hc-dot > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ink-3);
+  opacity: 0.45;
+  transition: opacity 0.2s;
+}
+.hc-dot:hover > span {
+  opacity: 0.8;
+}
+.hc-bead {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 18px;
+  height: 7px;
+  margin: -3.5px 0 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: var(--glow);
+  transform: translateX(calc(var(--hc-pos, 0) * 28px));
+  pointer-events: none;
+}
+.hc-progress {
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.hc-progress[data-run="true"] {
+  animation: hc-progress var(--hc-ms, 6000ms) linear forwards;
+}
+@keyframes hc-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---------- flash sale ---------- */
+.fs-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--brand-2) 22%, transparent), transparent 60%),
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%),
+    var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.fs-bolt {
+  animation: fs-zap 2.4s var(--ease) infinite;
+}
+@keyframes fs-zap {
+  0%,
+  70%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+  76% {
+    transform: scale(1.18) rotate(-8deg);
+  }
+  82% {
+    opacity: 0.55;
+  }
+}
+.fs-digits {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.fs-cell {
+  display: grid;
+  min-width: 2.1em;
+  padding: 0.28em 0.3em;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--bg);
+  text-align: center;
+  font-weight: 800;
+  line-height: 1;
+  overflow: hidden;
+}
+.fs-cell small {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.42em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.fs-tick {
+  display: inline-block;
+  animation: fs-tick 0.35s var(--ease) both;
+}
+@keyframes fs-tick {
+  from {
+    transform: translateY(-55%);
+    opacity: 0;
+  }
+}
+.fs-sep {
+  font-weight: 800;
+  opacity: 0.5;
+  animation: fs-blink 1s steps(2, start) infinite;
+}
+@keyframes fs-blink {
+  to {
+    opacity: 0.15;
+  }
+}
+
+/* ---------- restriction notice ---------- */
+.rx-note {
+  animation: rise 0.45s var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-track {
+    scroll-behavior: auto;
+  }
+  .hc-blob,
+  .fs-bolt,
+  .fs-sep {
+    animation: none;
+  }
+}

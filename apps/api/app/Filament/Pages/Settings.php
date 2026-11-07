@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Support\Admin;
+use App\Filament\Support\TrackingSettingsSection;
 use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -102,6 +103,7 @@ class Settings extends Page
                         TextInput::make('alerts.telegram_chat')->label('Alert Telegram chat id')->maxLength(64)
                             ->helperText('Budget, provider-down and low-margin alerts are posted here.'),
                     ]),
+                TrackingSettingsSection::make(),
             ]);
     }
 

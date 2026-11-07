@@ -1,6 +1,7 @@
 // Browser-side client for the Skydrop Retail API (docs/API.md).
 // Active only when NEXT_PUBLIC_API_URL is set; otherwise the storefront runs in demo mode.
 import type { Address, CartItem, Order, User } from "./types";
+import { getAttribution, type OrderAttribution } from "./track/attribution";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 export const apiEnabled = API_URL.length > 0;
@@ -8,6 +9,10 @@ export const apiEnabled = API_URL.length > 0;
 let token: string | null = null;
 export function setApiToken(t: string | null) {
   token = t;
+}
+/** Current bearer token (used by the tracking lib for POST /track). */
+export function getApiToken() {
+  return token;
 }
 
 export class ApiError extends Error {
@@ -37,6 +42,9 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 const post = <T,>(path: string, body: unknown) => call<T>(path, { method: "POST", body: JSON.stringify(body) });
 
+/** Authenticated request helpers for feature modules (e.g. lib/growth.ts). */
+export const apiRequest = { call, post };
+
 type ApiAddress = Address;
 type ApiOrder = Order & {
   paymentStatus?: string;
@@ -50,8 +58,8 @@ export type PriceChange = { productId: string; oldBdt: number; freshBdt: number 
 
 export const api = {
   requestOtp: (phone: string) => post<{ ok: boolean; expiresIn: number; demoCode?: string }>("/auth/otp/request", { phone }),
-  verifyOtp: (phone: string, code: string, name?: string) =>
-    post<{ token: string; user: User & { id: number }; isNew: boolean }>("/auth/otp/verify", { phone, code, name }),
+  verifyOtp: (phone: string, code: string, name?: string, invite?: string) =>
+    post<{ token: string; user: User & { id: number }; isNew: boolean }>("/auth/otp/verify", { phone, code, name, invite: invite || undefined }),
   me: () => call<{ user: User }>("/me"),
   logout: () => post<{ ok: boolean }>("/auth/logout", {}),
 
@@ -78,6 +86,10 @@ export const api = {
     coupon?: string;
     redeemPoints?: number;
     returnUrl: string;
+    /** affiliate code captured by RefCapture (last click wins) */
+    ref?: string;
+    /** marketing attribution (utm, click ids, _fbp/_fbc); defaults to getAttribution() from src/lib/track */
+    attribution?: OrderAttribution;
   }) =>
     post<{ order: ApiOrder; payment: { status: string; redirectUrl?: string } }>("/orders", {
       items: input.items.map((i) => ({ productId: i.productId, variant: i.variant, qty: i.qty, unitBdt: i.unitBdt })),
@@ -88,6 +100,9 @@ export const api = {
       coupon: input.coupon || undefined,
       redeemPoints: input.redeemPoints || undefined,
       returnUrl: input.returnUrl,
+      ref: input.ref || undefined,
+      // defaults to the attribution captured on landing (first + last touch, 30 days)
+      attribution: input.attribution ?? (typeof window !== "undefined" ? getAttribution() : undefined),
     }),
   points: () =>
     call<{ balance: number; pending: number; valueBdt: number; history: { type: string; points: number; note: string; at: string; orderId?: string }[] }>(

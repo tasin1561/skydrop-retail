@@ -6,6 +6,7 @@ import { useStore } from "@/state/store";
 import { ProductCard } from "@/components/ProductBits";
 import { Icon } from "@/components/Icon";
 import { EmptyState, PageHead } from "./ui";
+import { ShareWishlist } from "@/components/share/ShareWishlist";
 
 type Load = { key: string; items: Product[]; error: boolean };
 
@@ -48,6 +49,7 @@ export function WishlistGrid() {
         icon="heart"
         back={{ href: "/account", label: "Account" }}
       />
+      {!loading && shown.length > 0 && <ShareWishlist ids={[...wishlist].reverse()} />}
       <p className="sr-only" aria-live="polite">
         {loading ? "Loading wishlist" : `${shown.length} items in your wishlist`}
       </p>

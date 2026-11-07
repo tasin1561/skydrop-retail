@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Commerce;
 
 use App\Http\Controllers\Controller;
 use App\Services\Commerce\OtpService;
+use App\Services\Growth\ReferralService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -26,8 +27,12 @@ class AuthController extends Controller
             'code' => ['required', 'string', 'regex:/^\d{6}$/'],
             'name' => ['nullable', 'string', 'max:80'],
             'device' => ['nullable', 'string', 'max:60'],
+            'invite' => ['nullable', 'string', 'max:20'], // refer-a-friend code (growth module)
         ]);
         $r = $this->otp->verify($data['phone'], $data['code'], $data['name'] ?? null);
+        if ($r['isNew'] && ! empty($data['invite'])) {
+            rescue(fn () => app(ReferralService::class)->attachInvite($r['user'], $data['invite']), null, true);
+        }
         $token = $r['user']->createToken($data['device'] ?? 'web', ['shopper'])->plainTextToken;
 
         return response()->json(['token' => $token, 'user' => $r['user']->toApi(), 'isNew' => $r['isNew']]);

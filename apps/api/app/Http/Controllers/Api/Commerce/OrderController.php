@@ -9,6 +9,7 @@ use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OrderService;
 use App\Services\Commerce\OrderWorkflow;
 use App\Services\Commerce\Payments\PaymentService;
+use App\Services\Tracking\Attribution;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -45,12 +46,14 @@ class OrderController extends Controller
             'paymentVia' => ['nullable', Rule::in(PaymentService::WALLETS)],
             'coupon' => ['nullable', 'string', 'max:30'],
             'redeemPoints' => ['nullable', 'integer', 'min:0'],
+            'ref' => ['nullable', 'string', 'max:20'], // affiliate code (growth module, last click)
             'returnUrl' => ['nullable', 'string', 'max:500', function ($attr, $value, $fail) {
                 if (! self::allowedReturnUrl($value)) {
                     $fail('returnUrl must point to the storefront.');
                 }
             }],
-        ] + $addressRules);
+        ] + $addressRules + Attribution::rules());
+        $data['attribution'] = Attribution::fromRequest($request, $request->input('attribution'));
 
         $r = $orders->place($request->user(), $data);
 

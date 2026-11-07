@@ -29,10 +29,18 @@ export function buyPriceInr(p: Pick<Product, "priceInr" | "effectivePriceInr">) 
   return p.effectivePriceInr && p.effectivePriceInr > 0 && p.effectivePriceInr < p.priceInr ? p.effectivePriceInr : p.priceInr;
 }
 
-export function priceBdt(p: Pick<Product, "priceInr" | "category" | "effectivePriceInr">) {
+export function priceBdt(p: Pick<Product, "priceInr" | "category" | "effectivePriceInr"> & Partial<Pick<Product, "flashSale" | "restriction">>) {
   const base = buyPriceInr(p) * PRICING.fxInrToBdt * (1 + PRICING.fxBuffer);
   const withImport = base * (1 + (PRICING.importPct[p.category] ?? 0.1));
-  return roundUp10(withImport * (1 + PRICING.margin));
+  const regular = roundUp10(withImport * (1 + PRICING.margin));
+  // CMS adjustments, same as the API's PricingService::productBdt: live flash discount, restricted-item surcharge.
+  return Math.max(0, regular - flashOffBdt(p) + (p.restriction?.action === "surcharge" ? (p.restriction.surchargeBdt ?? 0) : 0));
+}
+
+/** Live flash-sale discount in BDT (0 when there is none or it has ended). */
+export function flashOffBdt(p: Partial<Pick<Product, "flashSale">>) {
+  const f = p.flashSale;
+  return f && f.extraOffBdt > 0 && Date.parse(f.endsAt) > Date.now() ? f.extraOffBdt : 0;
 }
 
 export function mrpBdt(p: Pick<Product, "mrpInr" | "category">) {

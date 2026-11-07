@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
 import { api, apiEnabled } from "@/lib/apiClient";
+import { track } from "@/lib/track";
 import { pointsToEarn } from "@/lib/points";
 import { formatBdt } from "@/lib/pricing";
 import { useStore } from "@/state/store";
@@ -50,6 +51,7 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
     setBusy(true);
     try {
       if (apiEnabled && !watching) await api.watch(id, type, inStock ? priceBdt - 1 : undefined);
+      if (!watching) track("Lead", { items: [{ id, price: priceBdt }], value: priceBdt });
       const list = readJson<string[]>(WATCH_KEY, []);
       const next = watching ? list.filter((x) => x !== id) : [...list, id];
       localStorage.setItem(WATCH_KEY, JSON.stringify(next));

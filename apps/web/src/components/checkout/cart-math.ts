@@ -6,10 +6,19 @@ import { MARKET_IDS } from "@/lib/markets";
 import { PRICING, groupByMarket, shippingFor } from "@/lib/pricing";
 
 // ---------- coupons (demo codes until the Laravel promotions API exists) ----------
-export type Coupon = { code: string; label: string; kind: "percent" | "freeship" };
+export type Coupon = {
+  code: string;
+  label: string;
+  kind: "percent" | "freeship" | "fixed";
+  /** percent: % off items; fixed: BDT off items (from POST /checkout/quote `coupon`) */
+  value?: number;
+  maxDiscountBdt?: number | null;
+  minSubtotalBdt?: number;
+};
 
+// Demo codes; in API mode any admin-created code is validated with POST /checkout/quote (see CouponField).
 export const COUPONS: Record<string, Coupon> = {
-  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent" },
+  SKYDROP10: { code: "SKYDROP10", label: "10% off items, up to ৳1,000", kind: "percent", value: 10, maxDiscountBdt: 1000 },
   FREESHIP: { code: "FREESHIP", label: "Free Skydrop shipping on every store", kind: "freeship" },
 };
 
@@ -29,6 +38,17 @@ export function couponHint(raw: string): "empty" | "match" | "partial" | "unknow
 // Applied coupon persists between /cart and /checkout (per browser) via its own key.
 const COUPON_KEY = "skydrop-retail:coupon";
 const COUPON_EVT = "skydrop-retail:coupon";
+const COUPON_META_KEY = "skydrop-retail:coupon-meta"; // API-validated coupon details
+
+function readCouponMeta(code: string): Coupon | null {
+  if (!code) return null;
+  try {
+    const c = JSON.parse(localStorage.getItem(COUPON_META_KEY) ?? "null") as Coupon | null;
+    return c && c.code === code ? c : null;
+  } catch {
+    return null;
+  }
+}
 
 function readCoupon() {
   try {
@@ -49,16 +69,18 @@ function subscribeCoupon(cb: () => void) {
 
 export function useCoupon() {
   const code = useSyncExternalStore(subscribeCoupon, readCoupon, () => "");
-  const set = useCallback((next: string) => {
+  const set = useCallback((next: string, meta?: Coupon) => {
     try {
       if (next) localStorage.setItem(COUPON_KEY, next);
       else localStorage.removeItem(COUPON_KEY);
+      if (meta) localStorage.setItem(COUPON_META_KEY, JSON.stringify(meta));
+      else if (!next) localStorage.removeItem(COUPON_META_KEY);
     } catch {
       /* storage unavailable */
     }
     window.dispatchEvent(new Event(COUPON_EVT));
   }, []);
-  return [findCoupon(code), set] as const;
+  return [findCoupon(code) ?? readCouponMeta(code), set] as const;
 }
 
 // ---------- totals ----------
@@ -102,8 +124,15 @@ export function computeTotals(items: CartItem[], coupon: Coupon | null, redeemPo
   });
   const subtotal = groups.reduce((s, g) => s + g.sub, 0);
   const shipping = groups.reduce((s, g) => s + g.shipping, 0);
-  const itemDiscount = coupon?.kind === "percent" ? Math.min(1000, Math.round(subtotal * 0.1)) : 0;
-  const shipDiscount = coupon?.kind === "freeship" ? shipping : 0;
+  const meetsMin = subtotal >= (coupon?.minSubtotalBdt ?? 0);
+  const itemDiscount = !coupon || !meetsMin
+    ? 0
+    : coupon.kind === "percent"
+      ? Math.min(coupon.maxDiscountBdt ?? Infinity, Math.round((subtotal * (coupon.value ?? 10)) / 100))
+      : coupon.kind === "fixed"
+        ? Math.min(subtotal, Math.round(coupon.value ?? 0))
+        : 0;
+  const shipDiscount = coupon?.kind === "freeship" && meetsMin ? shipping : 0;
   const pointsDiscount = pointsValueBdt(redeemPoints);
   const discount = itemDiscount + shipDiscount + pointsDiscount;
   return {

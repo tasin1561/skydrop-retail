@@ -5,6 +5,8 @@ namespace App\Services\Commerce;
 use App\Models\Coupon;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Cms\FlashSaleService;
+use App\Services\Cms\RestrictionService;
 use App\Services\PricingService;
 
 // Cart lines, coupons and totals. Same maths as apps/web/src/components/checkout/cart-math.ts.
@@ -29,7 +31,7 @@ class CheckoutService
             throw new CommerceException('Some items are no longer in our catalog.', 422, ['errors' => ['items' => ['Unknown product: '.implode(', ', $missing)]], 'missing' => $missing]);
         }
 
-        return array_map(function ($i) use ($products) {
+        $lines = array_map(function ($i) use ($products) {
             $p = $products[(string) $i['productId']];
 
             return [
@@ -41,6 +43,9 @@ class CheckoutService
                 'weight_kg' => (float) $this->pricing->weightKg($p->details?->weight, (string) $p->category),
             ];
         }, array_values($items));
+
+        // CMS hook: flash-sale info + per-order limit (line 'flash'), shipping restrictions (line 'restriction').
+        return app(RestrictionService::class)->annotate(app(FlashSaleService::class)->lines($lines));
     }
 
     public function coupon(?string $code): ?Coupon
@@ -68,7 +73,8 @@ class CheckoutService
             default => '৳'.number_format($c->value).' off items',
         };
 
-        return ['code' => $c->code, 'label' => $label, 'kind' => $kind];
+        return ['code' => $c->code, 'label' => $label, 'kind' => $kind, 'value' => (float) $c->value,
+            'maxDiscountBdt' => $c->max_discount_bdt !== null ? (int) $c->max_discount_bdt : null, 'minSubtotalBdt' => (int) $c->min_subtotal_bdt];
     }
 
     /**
@@ -134,6 +140,10 @@ class CheckoutService
             'discount' => $discount,
             'total' => (int) $total,
             'coupon' => $coupon ? self::couponApi($coupon) : null,
+            // CMS: flash savings already inside the subtotal, and warn/surcharge notices per item.
+            'flashDiscount' => (int) array_sum(array_map(fn ($l) => (int) ($l['flash']['extraOffBdt'] ?? 0) * $l['qty'], $lines)),
+            'restrictions' => array_values(array_filter(array_map(fn ($l) => empty($l['restriction']) ? null
+                : ['productId' => $l['product_id'], 'title' => $l['title']] + $l['restriction'], $lines))),
         ];
     }
 

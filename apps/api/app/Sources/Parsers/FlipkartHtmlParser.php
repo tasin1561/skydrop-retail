@@ -81,14 +81,15 @@ class FlipkartHtmlParser
             for ($i = 0; $i < 6 && $card->parentNode instanceof \DOMElement && ! str_contains($card->textContent, '₹'); $i++) {
                 $card = $card->parentNode;
             }
-            preg_match_all('/₹\s*([\d,]+)/u', $card->textContent, $pm);
+            $text = implode(' ', array_map(fn ($n) => trim($n->textContent), iterator_to_array($doc->x->query('.//text()', $card) ?: [])));
+            preg_match_all('/₹\s*([\d,]+)/u', $text, $pm);
             $prices = array_map(fn ($p) => (float) str_replace(',', '', $p), $pm[1]);
             $title = $a->getAttribute('title') ?: $doc->text('.//img/@alt', $a) ?: Text::clean($a->textContent);
             if (! $prices || $title === '') {
                 continue;
             }
             $img = $doc->x->query('.//img', $card)?->item(0);
-            $rating = preg_match('/\b([1-5]\.\d)\b/', $card->textContent, $rm) ? (float) $rm[1] : 0.0;
+            $rating = preg_match('/(?<![\d,.])([1-5]\.\d)(?![\d,])/', $text, $rm) ? (float) $rm[1] : 0.0;
             $rows[$m[1]] = [
                 'id' => strtolower($m[1]),
                 'market' => 'flipkart',
@@ -97,7 +98,7 @@ class FlipkartHtmlParser
                 'price_inr' => $prices[0],
                 'mrp_inr' => max($prices[1] ?? $prices[0], $prices[0]),
                 'rating' => $rating,
-                'reviews' => preg_match('/([\d,]+)\s*Ratings/i', $card->textContent, $cm) ? Text::count($cm[1]) : 0,
+                'reviews' => preg_match('/([\d,]+)\s*Ratings/i', $text, $cm) ? Text::count($cm[1]) : 0,
                 'image' => $img instanceof \DOMElement ? ($img->getAttribute('src') ?: null) : null,
                 'prime' => false, 'best_seller' => false, 'amazons_choice' => false, 'sales_volume' => '',
                 'offers' => [],

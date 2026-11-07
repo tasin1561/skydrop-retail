@@ -4,12 +4,17 @@ namespace App\Services;
 
 use App\Models\FxRate;
 use App\Models\PricingRule;
+use App\Services\Catalog\RetailSettings;
+use App\Services\Cms\FlashSaleService;
+use App\Services\Cms\RestrictionService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 // Same formula as apps/web/src/lib/pricing.ts; rules come from the pricing_rules table when present.
 class PricingService
 {
     private const IMPORT = ['electronics' => 15, 'fashion' => 10, 'beauty' => 10, 'grocery' => 5, 'home' => 10];
+
     private const WEIGHT = ['electronics' => 0.4, 'fashion' => 0.6, 'beauty' => 0.15, 'grocery' => 1, 'home' => 1.2];
 
     public function fx(): float
@@ -20,13 +25,16 @@ class PricingService
     /** @return array{margin: float, import: float, weight: float} */
     public function rule(string $category): array
     {
-        $rules = Cache::remember('pricing:rules', 600, fn () => PricingRule::query()->get()->keyBy('category'));
+        // Plain arrays: the cache store does not unserialize model classes (cache.serializable_classes=false).
+        $rules = Cache::remember('pricing:rules', 600, fn () => PricingRule::query()->get()
+            ->mapWithKeys(fn ($r) => [$r->category => ['margin_pct' => (float) $r->margin_pct, 'import_pct' => (float) $r->import_pct, 'default_weight_kg' => (float) $r->default_weight_kg]])
+            ->all());
         $r = $rules[$category] ?? $rules['*'] ?? null;
 
         return [
-            'margin' => $r ? (float) $r->margin_pct / 100 : 0.10,
-            'import' => $r ? (float) $r->import_pct / 100 : (self::IMPORT[$category] ?? 10) / 100,
-            'weight' => $r ? (float) $r->default_weight_kg : (self::WEIGHT[$category] ?? 0.5),
+            'margin' => $r ? $r['margin_pct'] / 100 : 0.10,
+            'import' => $r ? $r['import_pct'] / 100 : (self::IMPORT[$category] ?? 10) / 100,
+            'weight' => $r ? $r['default_weight_kg'] : (self::WEIGHT[$category] ?? 0.5),
         ];
     }
 
@@ -37,14 +45,25 @@ class PricingService
         $eff = (float) ($p->effective_price_inr ?? 0);
         // Offers (deal price minus clippable coupon) only count while the deal is live and coupons are passed through.
         $ends = $p->deal_ends_at ?? null;
-        $expired = $ends !== null && \Illuminate\Support\Carbon::parse($ends)->isPast();
-        $pass = \App\Services\Catalog\RetailSettings::bool('pass_coupons', (bool) config('retail.offers.pass_coupons', true));
+        $expired = $ends !== null && Carbon::parse($ends)->isPast();
+        $pass = RetailSettings::bool('pass_coupons', (bool) config('retail.offers.pass_coupons', true));
 
         return $pass && ! $expired && $eff > 0 && $eff < $price ? $eff : $price;
     }
 
     /** Shopper price for a product row; single source of truth for catalog, checkout and orders. */
     public function productBdt(object $p): int
+    {
+        $base = $this->basePriceBdt($p);
+
+        // CMS hook: live flash-sale discount (margin-funded) and restricted-item surcharge.
+        $flash = app(FlashSaleService::class)->offer($p, $base);
+
+        return max(0, $base - (int) ($flash['extraOffBdt'] ?? 0) + app(RestrictionService::class)->surchargeBdt($p));
+    }
+
+    /** Regular Skydrop price before CMS adjustments (flash sales, surcharges). */
+    public function basePriceBdt(object $p): int
     {
         return $this->priceBdt($this->buyInr($p), (string) ($p->category ?? ''));
     }

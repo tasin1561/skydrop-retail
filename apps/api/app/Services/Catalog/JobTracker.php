@@ -4,8 +4,8 @@ namespace App\Services\Catalog;
 
 use App\Models\FetchJob;
 use Closure;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\DB;
 
 /**
  * fetch_jobs rows behind GET /jobs/{id}. dispatch() de-duplicates: while a job for the same key is queued or

@@ -6,7 +6,6 @@ use App\Sources\Exceptions\SourceException;
 use App\Sources\Support\HttpJsonSource;
 use App\Sources\Support\SearchPage;
 use App\Sources\Support\SourceProduct;
-use App\Sources\Support\Text;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 

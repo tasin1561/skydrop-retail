@@ -1,5 +1,11 @@
 <?php
 
+use App\Sources\OmkarAmazonSource;
+use App\Sources\OpenWebNinjaAmazonSource;
+use App\Sources\OxylabsAmazonSource;
+use App\Sources\OxylabsBigBasketSource;
+use App\Sources\OxylabsFlipkartSource;
+
 // Skydrop Retail settings. Values marked "admin" can be overridden at runtime from the admin panel (settings table).
 return [
     'pincode' => env('RETAIL_PINCODE', '700001'), // Kolkata receiving pincode for "Deliver to"
@@ -48,9 +54,9 @@ return [
 
     // Which providers serve each marketplace, in order (catalog ProviderChain). Fallbacks are Amazon only.
     'sources' => [
-        'amazon' => [App\Sources\OxylabsAmazonSource::class, App\Sources\OmkarAmazonSource::class, App\Sources\OpenWebNinjaAmazonSource::class],
-        'flipkart' => [App\Sources\OxylabsFlipkartSource::class],
-        'bigbasket' => [App\Sources\OxylabsBigBasketSource::class],
+        'amazon' => [OxylabsAmazonSource::class, OmkarAmazonSource::class, OpenWebNinjaAmazonSource::class],
+        'flipkart' => [OxylabsFlipkartSource::class],
+        'bigbasket' => [OxylabsBigBasketSource::class],
     ],
 
     'fx_feed_url' => env('FX_FEED_URL'), // optional JSON endpoint returning {"rate": <BDT per INR>}
@@ -124,4 +130,35 @@ return [
     ],
 
     'web_url' => env('WEB_URL', 'http://localhost:3000'),
+
+    // ---- Marketing tracking (browser + server dedupe). Every key is overridable from Admin → Settings → Tracking. ----
+    'tracking' => [
+        'driver' => env('TRACKING_DRIVER', 'off'),            // off | delivro | direct | both
+        'purchase_on' => env('TRACKING_PURCHASE_ON', 'paid'), // paid | placed | delivered
+        'send_delivered' => (bool) env('TRACKING_SEND_DELIVERED', false), // also send a custom "Delivered" event
+        'gtm_id' => env('GTM_ID'),
+        'meta' => [
+            'pixel_id' => env('META_PIXEL_ID'),
+            'access_token' => env('META_CAPI_TOKEN'),
+            'test_event_code' => env('META_TEST_EVENT_CODE'),
+            'api_version' => 'v21.0',
+        ],
+        'ga4' => [
+            'measurement_id' => env('GA4_MEASUREMENT_ID'),
+            'api_secret' => env('GA4_API_SECRET'),
+        ],
+        'tiktok' => [
+            'pixel_id' => env('TIKTOK_PIXEL_ID'),
+            'access_token' => env('TIKTOK_ACCESS_TOKEN'),
+            'test_event_code' => env('TIKTOK_TEST_EVENT_CODE'),
+        ],
+        // Delivro (https://delivro.app): the owner's server-side tracking SaaS. Fans the event out to the ad platforms.
+        'delivro' => [
+            'endpoint' => env('DELIVRO_ENDPOINT'),
+            'key' => env('DELIVRO_API_KEY'),
+        ],
+        'feed_key' => env('FEED_KEY'), // optional ?key= for /feeds/*
+        'feed_cache_minutes' => 60,
+        'timeout' => 8,
+    ],
 ];

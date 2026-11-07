@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\Commerce\Payments\PaymentService;
 use App\Services\Commerce\Verify\PriceVerifier;
+use App\Services\Growth\AffiliateService;
 use App\Services\PricingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -45,6 +46,7 @@ class OrderService
 
         // 1. Live re-verification. Never trust client prices.
         $lines = $this->checkout->lines($items);
+        app(\App\Services\Cms\RestrictionService::class)->assertOrderable($lines); // items that cannot ship to Bangladesh → 422
         $check = $this->verifier->verify($items);
         $byId = collect($check['results'])->keyBy('productId');
         $tolerance = (float) config('retail.checkout.price_tolerance', 0.03);
@@ -92,6 +94,7 @@ class OrderService
                 'coupon_code' => $coupon?->code, 'address' => $address->snapshot(), 'tracking_code' => $this->newTrackingCode(),
                 'fx_rate' => $fx, 'points_redeemed' => $quote['pointsRedeemed'], 'points_discount_bdt' => $quote['pointsDiscount'],
                 'points_to_earn' => $quote['pointsToEarn'], 'return_url' => $data['returnUrl'] ?? null,
+                'attribution' => $data['attribution'] ?? null, // marketing attribution (App\Services\Tracking\Attribution)
             ]);
             foreach ($lines as $l) {
                 OrderItem::query()->create([
@@ -115,6 +118,9 @@ class OrderService
 
             return $order;
         });
+
+        // Growth module: affiliate attribution (ref code, last click). Never blocks the order.
+        rescue(fn () => app(AffiliateService::class)->attribute($order, $data['ref'] ?? null), null, true);
 
         $this->notifier->orderPlaced($order);
         $payment = $this->payments->start($order);
