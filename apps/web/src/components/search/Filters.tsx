@@ -68,7 +68,7 @@ function FilterBody({ hideCategory = false, brands = [], brandId }: FilterProps 
         (on ? "bg-[var(--accent-soft)] font-semibold text-accent" : "text-ink-2 hover:bg-surface-2 hover:text-ink")
       }
     >
-      <span className={"grid h-5 w-5 place-items-center rounded-full border-2 transition " + (on ? "border-accent bg-accent text-white" : "border-line")}>
+      <span className={"grid h-5 w-5 place-items-center rounded-full border-2 transition " + (on ? "border-primary bg-primary text-on-primary" : "border-line")}>
         {on && <Icon name="check" size={12} stroke={3} />}
       </span>
       {children}
@@ -119,9 +119,9 @@ function FilterBody({ hideCategory = false, brands = [], brandId }: FilterProps 
           role="switch"
           aria-checked={fast}
           onClick={() => set({ fast: fast ? null : "1" })}
-          className={"relative h-7 w-14 rounded-full text-[10px] font-bold transition " + (fast ? "bg-accent text-white" : "bg-line text-ink-2")}
+          className={"relative h-7 w-14 rounded-full text-[10px] font-bold transition " + (fast ? "bg-primary text-on-primary" : "bg-line text-ink-2")}
         >
-          <span className={"absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform " + (fast ? "translate-x-8" : "translate-x-1")} />
+          <span className={"absolute top-1 h-5 w-5 rounded-full bg-surface shadow transition-transform " + (fast ? "translate-x-8" : "translate-x-1")} />
           <span className={"absolute top-1.5 " + (fast ? "left-2" : "right-2")}>{fast ? t("f.on") : t("f.off")}</span>
         </button>
       </label>
@@ -174,7 +174,7 @@ export function SortAndFilterBar({ total, hideCategory, brands = [] }: FilterPro
     <div className="flex items-center gap-2">
       <button type="button" onClick={() => setOpen("all")} className="btn btn-ghost min-h-11 shrink-0 px-4 text-sm lg:hidden">
         <Icon name="filter" size={16} /> {t("f.filters")}
-        {active > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] text-white">{digits(active)}</span>}
+        {active > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] text-on-primary">{digits(active)}</span>}
       </button>
       {showBrand && (
         <button
@@ -184,7 +184,7 @@ export function SortAndFilterBar({ total, hideCategory, brands = [] }: FilterPro
           className={"btn min-h-11 shrink-0 px-3.5 text-sm lg:hidden " + (brandCount ? "btn-ghost border-accent text-accent" : "btn-ghost")}
         >
           {t("f.brand")}
-          {brandCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] text-white">{digits(brandCount)}</span>}
+          {brandCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] text-on-primary">{digits(brandCount)}</span>}
           <Icon name="chevron" size={14} />
         </button>
       )}

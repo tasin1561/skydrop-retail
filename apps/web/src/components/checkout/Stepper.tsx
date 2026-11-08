@@ -30,11 +30,11 @@ export function Stepper({ step, reached, onGo }: { step: number; reached: number
         <div className="relative flex h-11 items-center justify-between overflow-hidden rounded-full bg-surface px-4 shadow-[var(--shadow-1)]">
           <span
             aria-hidden
-            className="co-pill-fill opacity-15"
+            className="co-pill-fill opacity-[0.06]"
             style={{ transform: `scaleX(${(step + 1) / n})` }}
           />
           <span className="relative flex items-center gap-2 text-sm font-bold">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs text-white">{digits(step + 1)}</span>
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-xs text-on-primary">{digits(step + 1)}</span>
 {t(STEPS[step].label)}
           </span>
           <span className="relative text-xs font-semibold text-ink-2" aria-current="step">
@@ -72,11 +72,11 @@ export function Stepper({ step, reached, onGo }: { step: number; reached: number
                 onClick={() => onGo(i)}
                 aria-current={i === step ? "step" : undefined}
                 aria-label={t("co.stepAria", { label: t(s.label), n: i + 1, total: n }) + (state === "done" ? t("co.completed") : state === "current" ? t("co.current") : "")}
-                className={"co-step-dot " + (state === "current" ? "ring-2 ring-accent/30 ring-offset-2 ring-offset-surface" : "") + (can ? " cursor-pointer" : "")}
+                className={"co-step-dot" + (can ? " cursor-pointer" : "")}
               >
                 {state === "done" ? <DrawnCheck /> : digits(i + 1)}
               </button>
-              <span className={"text-xs font-semibold " + (state === "todo" ? "text-ink-3" : "text-ink")}>{t(s.label)}</span>
+              <span className={"text-xs " + (state === "todo" ? "text-ink-3" : "font-medium text-ink")}>{t(s.label)}</span>
             </li>
           );
         })}

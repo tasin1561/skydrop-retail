@@ -20,8 +20,8 @@
     bottom: calc(80px + env(safe-area-inset-bottom));
   }
   .sc-main {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
   }
 }
 @media (min-width: 768px) {
@@ -36,13 +36,13 @@
 .sc-main {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
-  /* on-theme: ink pill (light) / bright pill (dark), neutral shadow */
-  color: var(--bg);
-  background: var(--brand);
-  box-shadow: var(--shadow-2);
+  /* quiet: white with a hairline border, grey icon; never attention-grabbing */
+  color: var(--ink-2);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line-2), 0 4px 12px -6px rgb(0 0 0 / 0.18);
   transition: transform var(--dur-3) var(--ease);
   animation: sc-in var(--dur-3) var(--ease) 0.8s both;
 }
@@ -71,7 +71,7 @@
   background: var(--surface);
   color: var(--ink);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   box-shadow: var(--shadow-2);
   transform: translateY(6px);
   transform-origin: right center;
@@ -93,7 +93,8 @@
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  color: #fff;
+  color: var(--ink-2);
+  background: var(--surface-2);
 }
 @keyframes sc-in {
   from {

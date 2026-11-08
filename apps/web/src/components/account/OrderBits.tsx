@@ -43,7 +43,7 @@ export function Thumb({ item, size = 44 }: { item: Pick<CartItem, "image" | "tit
   const hue = item.placeholder?.hue ?? 210;
   return (
     <span
-      className="grid shrink-0 place-items-center overflow-hidden rounded-xl bg-white"
+      className="grid shrink-0 place-items-center overflow-hidden rounded-xl img-well bg-surface-2"
       style={{ width: size, height: size }}
       title={item.title}
     >

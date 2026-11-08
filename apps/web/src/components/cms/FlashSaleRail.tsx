@@ -52,7 +52,7 @@ function FlashBlock({ s }: { s: FlashSale }) {
               className="rise group flex w-[44vw] max-w-[200px] shrink-0 flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-1)] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[184px]"
               style={{ ["--i" as string]: i % 12 }}
             >
-              <div className="relative aspect-square bg-white p-3">
+              <div className="relative aspect-square img-well bg-surface-2 p-3">
                 <ProductImage p={it.product} className="h-full w-full transition-transform duration-200 group-hover:scale-100" />
                 {it.extraOffBdt > 0 && (
                   <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-full bg-bad px-2 py-0.5 text-[11px] font-extrabold text-white shadow">

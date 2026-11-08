@@ -51,10 +51,10 @@ export function BoughtTogether({ data, canBuyAnchor }: { data: Data; canBuyAncho
                   disabled={disabled}
                   onChange={(e) => setOn((s) => ({ ...s, [p.id]: e.target.checked }))}
                 />
-                <span aria-hidden className={"grid h-6 w-6 shrink-0 place-items-center rounded-lg border-2 " + (on[p.id] ? "border-accent bg-accent text-white" : "border-line bg-surface")}>
+                <span aria-hidden className={"grid h-6 w-6 shrink-0 place-items-center rounded-lg border-2 " + (on[p.id] ? "border-primary bg-primary text-on-primary" : "border-line bg-surface")}>
                   <Icon name="check" size={14} stroke={3} className="sh-tick" />
                 </span>
-                <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl img-well bg-surface-2 p-1">
                   <ProductImage p={p} className="h-full w-full" />
                 </span>
                 <span className="min-w-0 flex-1">

@@ -252,7 +252,7 @@ export function UndoToast({ toast, onDone, ms = 5000 }: { toast: UndoToastState;
           style={{ boxShadow: "0 12px 32px color-mix(in srgb, var(--accent) 22%, transparent)" }}
         >
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-white">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-on-primary">
               <Icon name="trash" size={17} />
             </span>
             <div className="min-w-0 flex-1">

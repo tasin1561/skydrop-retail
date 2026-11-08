@@ -69,8 +69,8 @@ export function LiveMap({ tracking, onUpdate }: { tracking: Tracking; onUpdate?:
         const m = L.marker([start.lat, start.lng], { icon, keyboard: false }).addTo(map);
         m.bindTooltip(tr.t("lm.rider"));
         rider.current = m;
-        if (hub) L.circleMarker([hub.lat, hub.lng], { radius: 6, color: "#5b3df5" }).addTo(map).bindTooltip(hub.label);
-        L.circleMarker([dest.lat, dest.lng], { radius: 7, color: "#16a34a" }).addTo(map).bindTooltip(tr.t("lm.area", { label: dest.label }));
+        if (hub) L.circleMarker([hub.lat, hub.lng], { radius: 6, color: "#233056" }).addTo(map).bindTooltip(hub.label);
+        L.circleMarker([dest.lat, dest.lng], { radius: 7, color: "#1a7f4b" }).addTo(map).bindTooltip(tr.t("lm.area", { label: dest.label }));
         map.fitBounds([[start.lat, start.lng], [dest.lat, dest.lng]], { padding: [32, 32], maxZoom: 14 });
       })
       .catch((e: Error) => !dead && setError(e.message));

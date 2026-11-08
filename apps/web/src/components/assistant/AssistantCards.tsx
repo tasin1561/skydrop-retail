@@ -119,9 +119,9 @@ function MiniProduct({ p, onNavigate }: { p: AssistantProduct; onNavigate: () =>
   return (
     <article className="ai-prod" data-store={p.market}>
       <Link href={`/p/${encodeURIComponent(p.id)}`} onClick={onNavigate} className="flex flex-1 flex-col">
-        <div className="relative aspect-square bg-white p-2">
+        <div className="relative aspect-square img-well bg-surface-2 p-2">
           <ProductImage p={{ title: p.title, image: p.image, placeholder: p.placeholder ?? undefined }} className="h-full w-full" />
-          {off >= 10 && <span className="absolute left-1.5 top-1.5 rounded-full bg-brand-2 px-1.5 py-0.5 text-[10px] font-bold text-white">-{off}%</span>}
+          {off >= 10 && <span className="absolute left-1.5 top-1.5 rounded-[4px] bg-ink px-1.5 py-0.5 text-[10px] font-medium text-surface">-{off}%</span>}
         </div>
         <div className="flex flex-1 flex-col gap-1 p-2.5">
           <span className="text-[10px] font-bold uppercase tracking-wide text-accent">{STORES[p.market]?.source ?? p.market}</span>

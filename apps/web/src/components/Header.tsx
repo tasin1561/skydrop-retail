@@ -43,17 +43,18 @@ export function Header() {
     <header
       ref={bar}
       className={
-        "sticky top-0 z-40 border-b transition-[background-color,border-color] duration-200 " +
-        (scrolled ? "border-line bg-surface/95 backdrop-blur-md" : "border-transparent bg-bg")
+        // one clean white bar; the only per-store colour is the 2px rule on top (transparent on All stores)
+        "sticky top-0 z-40 border-b border-t-2 border-t-[var(--store-rule)] bg-surface transition-[border-color,box-shadow] duration-200 " +
+        (scrolled ? "border-b-line shadow-[0_1px_0_var(--line)]" : "border-b-line")
       }
     >
-      <div className="bg-[var(--hero-a)] px-4 py-1.5 text-center text-[11px] font-medium text-white/90 sm:text-xs">
-        <Icon name="truck" size={13} className="mr-1 inline -mt-0.5" />
+      <div className="border-b border-line bg-surface-2 px-4 py-1 text-center text-[11px] text-ink-2 sm:text-xs">
+        <Icon name="truck" size={13} className="mr-1.5 inline -mt-0.5 text-ink-3" />
         <span className="sm:hidden">{t("header.strip.short")}</span>
         <span className="hidden sm:inline">{t("header.strip.long")}</span>
       </div>
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5">
-        <Link href="/" aria-label={t("header.home")} className="shrink-0 text-[17px] sm:text-lg">
+        <Link href="/" aria-label={t("header.home")} className="shrink-0 text-[16px] sm:text-[17px]">
           <Logo />
         </Link>
         {!checkout && <MegaMenu />}
@@ -67,7 +68,7 @@ export function Header() {
           <NotificationBell />
           <LangSwitch size="sm" className="hidden xl:grid" />
           <button
-            className="grid h-11 w-11 place-items-center rounded-full text-ink-2 transition hover:bg-surface-2 hover:text-ink"
+            className="grid h-11 w-11 place-items-center rounded-[8px] text-ink-2 transition hover:bg-surface-2 hover:text-ink"
             aria-label={t("header.darkMode")}
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
@@ -78,35 +79,35 @@ export function Header() {
             href={user ? "/account" : "/login"}
             aria-label={user ? t("nav.account") : t("nav.signIn")}
             title={user ? user.name : t("nav.signIn")}
-            className="hidden h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink md:inline-flex"
+            className="hidden h-11 min-w-11 items-center justify-center gap-1.5 rounded-[8px] px-2.5 text-sm font-medium text-ink-2 transition hover:bg-surface-2 hover:text-ink md:inline-flex"
           >
             <Icon name="user" size={19} />
-            <span className="hidden max-w-[8rem] truncate 2xl:inline">{user ? user.name.split(" ")[0] : t("nav.signIn")}</span>
+            <span className="hidden max-w-[8rem] truncate xl:inline">{user ? user.name.split(" ")[0] : t("nav.signIn")}</span>
           </Link>
           <RequestHeaderLink />
           <Link
             href="/deals"
-            className="hidden h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-bad transition hover:bg-surface-2 md:inline-flex"
+            className="hidden h-11 items-center gap-1.5 rounded-[8px] px-2.5 text-sm font-medium text-ink-2 transition hover:bg-surface-2 hover:text-ink md:inline-flex"
           >
-            <Icon name="bolt" size={19} /> {t("nav.deals")}
+            <Icon name="tag" size={18} /> {t("nav.deals")}
           </Link>
           <Link
             href="/orders"
             aria-label={t("nav.orders")}
             title={t("nav.orders")}
-            className="hidden h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold text-ink-2 transition hover:bg-surface-2 hover:text-ink lg:inline-flex"
+            className="hidden h-11 min-w-11 items-center justify-center gap-1.5 rounded-[8px] px-2.5 text-sm font-medium text-ink-2 transition hover:bg-surface-2 hover:text-ink lg:inline-flex"
           >
-            <Icon name="receipt" size={19} /> <span className="hidden 2xl:inline">{t("nav.orders")}</span>
+            <Icon name="receipt" size={19} /> <span className="hidden xl:inline">{t("nav.orders")}</span>
           </Link>
           <Link
             href="/cart"
             data-cart-target=""
             aria-label={cartCount > 0 ? t("nav.cartCount", { count: cartCount }) : t("nav.cart")}
-            className="relative hidden h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-[color-mix(in_srgb,var(--accent)_88%,black)] md:inline-flex"
+            className="relative ml-1 hidden h-11 items-center gap-2 rounded-[8px] bg-surface px-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_var(--line-2)] transition-colors hover:bg-surface-2 md:inline-flex"
           >
             <Icon name="cart" size={19} /> {t("nav.cart")}
             {cartCount > 0 && (
-              <span key={cartCount} className="mo-badge grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-[11px] font-bold tabular-nums text-accent">
+              <span key={cartCount} className="mo-badge grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-medium tabular-nums text-on-primary">
                 {digits(cartCount)}
               </span>
             )}

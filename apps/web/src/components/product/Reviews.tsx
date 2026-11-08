@@ -80,7 +80,7 @@ function ReviewCard({ r, source }: { r: Review; source: string }) {
   return (
     <article className="rise rounded-2xl bg-surface p-4 shadow-[var(--shadow-1)]">
       <header className="flex items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[var(--accent-soft)] text-sm font-bold text-accent">{initials || "?"}</span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-medium text-ink-2">{initials || "?"}</span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{r.author}</p>
           <p className="text-[11px] text-ink-3">

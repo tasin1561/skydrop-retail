@@ -30,7 +30,7 @@ export function UnboxingToggle({ checked, onChange, shipments, disabled }: { che
 {shipments > 1 ? t("ub.perStore", { fee: bdt(UNBOXING_FEE_BDT), count: shipments }) : ""}
         </span>
       </span>
-      <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (checked ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
+      <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (checked ? "bg-primary text-on-primary" : "bg-surface-2 text-ink-2")}>
         {checked ? t("f.on") : t("f.off")}
       </span>
     </label>

@@ -2,19 +2,19 @@
 
 :root {
   --plus-a: #0b0b0f;
-  --plus-b: #3a24b8;
-  --plus-gold: #f5c451;
+  --plus-b: #1b1b20;
+  --plus-gold: #c9a24a;
   --plus-ink: #fff8e1;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --plus-a: #09090c;
-    --plus-b: #2a1d8f;
+    --plus-b: #1d1d22;
   }
 }
 :root[data-theme="dark"] {
   --plus-a: #09090c;
-  --plus-b: #2a1d8f;
+  --plus-b: #1d1d22;
 }
 
 /* ---------- gift card visual ---------- */
@@ -38,11 +38,11 @@
   display: none; /* moving sheen retired */
   z-index: -1;
 }
-.gc-card[data-design="classic"] { background: linear-gradient(135deg, #0b0b0f, #5b3df5); }
-.gc-card[data-design="eid"] { background: linear-gradient(135deg, #065f46, #10b981); }
-.gc-card[data-design="birthday"] { background: linear-gradient(135deg, #be185d, #f472b6); }
-.gc-card[data-design="thanks"] { background: linear-gradient(135deg, #b45309, #f59e0b); }
-.gc-card[data-design="wedding"] { background: linear-gradient(135deg, #6d28d9, #c084fc); }
+.gc-card[data-design="classic"] { background: #18181b; }
+.gc-card[data-design="eid"] { background: #1f3a2e; }
+.gc-card[data-design="birthday"] { background: #3d2430; }
+.gc-card[data-design="thanks"] { background: #3d3220; }
+.gc-card[data-design="wedding"] { background: #233056; }
 .gc-card .gc-amount {
   display: inline-block;
   animation: gc-pop var(--dur-3) var(--ease);
@@ -164,7 +164,7 @@
   height: 100%;
   width: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--plus-gold), #fb923c);
+  background: var(--plus-gold);
   transform-origin: left;
   transform: scaleX(var(--p, 0));
   transition: transform 0.8s var(--ease);

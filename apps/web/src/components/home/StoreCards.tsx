@@ -13,7 +13,7 @@ export function StoreCards() {
   const list = MARKET_IDS.filter((m) => enabled[m]);
   return (
     <section className="mt-8 px-4 sm:px-0" aria-labelledby="stores">
-      <h2 id="stores" className="text-lg font-extrabold tracking-tight sm:text-xl">
+      <h2 id="stores" className="text-lg font-semibold tracking-[-0.01em] sm:text-xl">
         {t("home.whereShop")}
       </h2>
       <p className="text-sm text-ink-2">{t("home.whereShopNote")}</p>
@@ -25,15 +25,15 @@ export function StoreCards() {
               key={m}
               href={`/store/${m}`}
               data-store={m}
-              className="sn rise group relative flex w-[78vw] max-w-[320px] shrink-0 flex-col overflow-hidden rounded-3xl border border-line bg-surface p-4 sm:w-auto sm:max-w-none sm:p-5 shadow-[var(--shadow-1)] transition hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--accent)_45%,var(--line))] hover:shadow-[var(--shadow-2)]"
-              style={{ ["--i" as string]: i, backgroundImage: "radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--sn-ring) 10%, transparent), transparent 60%)" }}
+              className="rise group relative flex w-[78vw] max-w-[320px] shrink-0 flex-col overflow-hidden rounded-[12px] border border-line bg-surface p-5 transition-colors sm:w-auto sm:max-w-none hover:border-line-2"
+              style={{ ["--i" as string]: i }}
             >
               <h3>
-                <StoreName mode={m} variant="hero" source />
+                <StoreName mode={m} variant="hero" source size="text-[22px]" />
               </h3>
               <p className="mt-2 line-clamp-2 text-sm text-ink-2">{s.tagline}</p>
-              <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-[color:var(--sn-a)]">
-                {t("home.enterStore")} <Icon name="arrow" size={16} className="transition-transform group-hover:translate-x-1" />
+              <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-medium text-ink group-hover:underline group-hover:underline-offset-4">
+                {t("home.enterStore")} <Icon name="arrow" size={15} className="transition-transform group-hover:translate-x-0.5" />
               </span>
             </Link>
           );

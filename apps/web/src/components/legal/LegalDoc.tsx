@@ -43,7 +43,7 @@ export async function LegalDoc({
             aria-current={d.href === current ? "page" : undefined}
             className={
               "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold transition-colors " +
-              (d.href === current ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-ink")
+              (d.href === current ? "bg-primary text-on-primary shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-ink")
             }
           >
             {t(d.label)}

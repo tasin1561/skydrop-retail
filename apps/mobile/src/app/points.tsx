@@ -8,7 +8,7 @@ import { api, isDemo } from "@/api/client";
 import type { PointsResponse } from "@/api/types";
 import { useStore } from "@/state/store";
 import { POINTS, pointsValueBdt } from "@/lib/points";
-import { BRAND, useTheme } from "@/theme";
+import { PANEL, useTheme } from "@/theme";
 import { Card, Divider, Empty, IconChip, Progress, Skeleton, T } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useT } from "@/i18n";
@@ -80,7 +80,7 @@ export default function Points() {
         />
       }
     >
-      <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={[PANEL, PANEL]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={styles.blob} />
         <T v="small" style={{ color: "rgba(255,255,255,0.85)", fontWeight: "700" }}>{t("acc.points")}</T>
         {data ? (

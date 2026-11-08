@@ -3,35 +3,47 @@
 
 /* ---------- Skydrop Retail tokens ---------- */
 :root {
-  /* Midnight Luxe: warm off-white, near-black ink, electric violet. */
-  --bg: #f7f7f4;
+  /* Corporate neutral: light grey page, white surfaces, near-black ink, one deep navy accent.
+     Colour carries meaning only (savings / errors); the store NAMES are the sole brand colours. */
+  --bg: #f6f6f4;
   --surface: #ffffff;
-  --surface-2: #f0efe9;
-  --ink: #0b0b0f;
-  --ink-2: #55555f;
-  --ink-3: #9a9aa3;
-  --line: #e7e5de;
-  --good: #0e9f6e;
-  --warn: #d97706;
-  --bad: #e5363d;
-  --brand: #111114; /* Skydrop Retail ink */
-  --brand-2: #ff4d2e; /* Skydrop signal coral */
+  --surface-2: #f4f4f2; /* image wells, quiet fills */
+  --surface-3: #ececea; /* hover on quiet fills */
+  --ink: #111111;
+  --ink-2: #4b4b52; /* 8.1:1 on --bg */
+  --ink-3: #6b6b73; /* 5.0:1 on --bg: secondary text stays AA */
+  --line: #e3e3df;
+  --line-2: #cfcfca; /* stronger hairline: outline buttons, inputs */
+  --good: #1a7f4b; /* savings, in stock (text only) */
+  --warn: #8a5a00;
+  --bad: #b42318;
+  --star: #b7791f; /* one muted amber for ratings */
+  --brand: #111111;
+  --brand-2: #111111; /* retired coral: resolves to ink */
 
-  /* Store-mode accent (overridden per store) */
-  --accent: #5b3df5;
-  --accent-2: #a78bfa;
+  /* The one accent: deep navy. Focus rings, link hover, selected states. Never per store. */
+  --accent: #233056;
+  --accent-2: #8a94ad;
   --accent-ink: #ffffff;
-  --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
-  --hero-a: #0b0b0f;
-  --hero-b: #5b3df5;
+  /* "soft" fills are neutral grey now (no tinted chips); the navy stays for rings and text */
+  --accent-soft: color-mix(in srgb, var(--ink) 5%, transparent);
 
-  /* Crisp, corporate geometry: 8 / 12 / 16 radii, hairline rings instead of glows. */
+  /* Primary action: solid ink (inverts in dark mode). */
+  --primary: #111111;
+  --primary-hover: #2a2a2e;
+  --on-primary: #ffffff;
+
+  /* Kept for older dark panels (account / wallet cards): a flat neutral, no gradient stops. */
+  --hero-a: #18181b;
+  --hero-b: #18181b;
+
+  /* Crisp geometry: 8px controls, 10-12px cards; hairline borders instead of shadows. */
   --radius-sm: 8px;
   --radius: 12px;
-  --radius-lg: 16px;
-  --shadow-1: 0 0 0 1px var(--line), 0 1px 2px rgb(16 16 24 / 0.04);
-  --shadow-2: 0 0 0 1px var(--line), 0 2px 4px rgb(16 16 24 / 0.04), 0 10px 24px -8px rgb(16 16 24 / 0.12);
-  --glow: 0 1px 2px rgb(16 16 24 / 0.14);
+  --radius-lg: 12px;
+  --shadow-1: 0 0 0 1px var(--line);
+  --shadow-2: 0 0 0 1px var(--line), 0 8px 24px -12px rgb(17 17 17 / 0.14);
+  --glow: none;
 
   /* Motion: one curve, three durations. --ease-in-out and --spring are aliases kept so older
      declarations resolve to the same calm curve (no overshoot anywhere). */
@@ -46,67 +58,89 @@
 }
 
 [data-theme="dark"] {
-  --bg: #09090c;
-  --surface: #131318;
-  --surface-2: #1b1b22;
-  --ink: #f4f4f6;
-  --ink-2: #a8a8b3;
-  --ink-3: #6b6b78;
-  --line: #26262f;
-  --brand: #f4f4f6;
-  --accent: #7c6cff;
-  --accent-2: #b4a7ff;
-  --hero-a: #16132b;
-  --hero-b: #5b3df5;
-  --shadow-1: 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-2: 0 0 0 1px var(--line), 0 10px 28px -8px rgb(0 0 0 / 0.6);
-  --glow: 0 1px 2px rgb(0 0 0 / 0.5);
+  --bg: #0e0e10;
+  --surface: #16161a;
+  --surface-2: #1d1d22;
+  --surface-3: #26262c;
+  --ink: #f2f2f3;
+  --ink-2: #b4b4bc;
+  --ink-3: #8c8c96; /* 5.9:1 on --bg */
+  --line: #2a2a31;
+  --line-2: #3a3a42;
+  --good: #4cc38a;
+  --warn: #e0a84a;
+  --bad: #f07a70;
+  --star: #d9a441;
+  --brand: #f2f2f3;
+  --brand-2: #f2f2f3;
+  --accent: #a9b6d9; /* the navy, lifted so rings and links read on near-black */
+  --accent-2: #6f7a96;
+  --accent-ink: #0e0e10;
+  --accent-soft: color-mix(in srgb, var(--ink) 7%, transparent);
+  --primary: #f2f2f3;
+  --primary-hover: #ffffff;
+  --on-primary: #0e0e10;
+  --hero-a: #1d1d22;
+  --hero-b: #1d1d22;
+  --shadow-1: 0 0 0 1px var(--line);
+  --shadow-2: 0 0 0 1px var(--line), 0 10px 28px -10px rgb(0 0 0 / 0.6);
+  --glow: none;
 }
 
-[data-store="amazon"] {
-  --accent: #5b3df5;
-  --accent-2: #a78bfa;
-  --hero-a: #0b0b0f;
-  --hero-b: #5b3df5;
-}
-[data-store="flipkart"] {
-  --accent: #e11d74;
-  --accent-2: #fb7185;
-  --hero-a: #1a0b14;
-  --hero-b: #e11d74;
-}
-[data-store="bigbasket"] {
-  --accent: #0e9f6e;
-  --accent-2: #6ee7b7;
-  --hero-a: #06281e;
-  --hero-b: #0e9f6e;
-}
-
-[data-theme="dark"][data-store="amazon"], [data-theme="dark"] [data-store="amazon"] { --accent: #7c6cff; }
-[data-theme="dark"][data-store="flipkart"], [data-theme="dark"] [data-store="flipkart"] { --accent: #f0468f; }
-[data-theme="dark"][data-store="bigbasket"], [data-theme="dark"] [data-store="bigbasket"] { --accent: #22c08a; }
+/* Store pages use the same neutral system: the only per-store colour is a thin rule (--store-rule),
+   matching the store-name colours in components/store/storename.css. */
+[data-store="all"] { --store-rule: transparent; }
+[data-store="amazon"] { --store-rule: #ff9900; }
+[data-store="flipkart"] { --store-rule: #2874f0; }
+[data-store="bigbasket"] { --store-rule: #84c225; }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-line: var(--line);
+  --color-line-2: var(--line-2);
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
   --color-brand: var(--brand);
   --color-brand-2: var(--brand-2);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
-  /* tighter Tailwind radius scale: rounded-xl 10px, -2xl 12px, -3xl 16px (pills stay rounded-full) */
+  --color-star: var(--star);
+  /* Calm palette overrides for stray Tailwind hues: ratings amber, savings green, errors red. */
+  --color-amber-400: var(--star);
+  --color-amber-500: var(--star);
+  --color-rose-500: var(--bad);
+  --color-red-500: var(--bad);
+  --color-emerald-500: var(--good);
+  --color-emerald-600: var(--good);
+  /* tighter Tailwind radius scale: rounded-xl 10px, -2xl 12px, -3xl 12px (pills stay rounded-full) */
   --radius-xl: 0.625rem;
   --radius-2xl: 0.75rem;
-  --radius-3xl: 1rem;
-  /* Bangla glyphs fall through to Noto Sans Bengali (next/font): Plus Jakarta Sans has no Bengali. */
-  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", var(--font-bengali), "Noto Sans Bengali", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-3xl: 0.75rem;
+  /* Calmer type: 400 body, 500 UI, 600 headings. Heavier utilities collapse to 600. */
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
+  /* Smaller display sizes: page H1 lands at 28-32px. */
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 2rem;
+  --text-4xl--line-height: 1.15;
+  --text-5xl: 2.25rem;
+  --text-5xl--line-height: 1.1;
+  --text-6xl: 2.5rem;
+  --text-6xl--line-height: 1.1;
+  /* Bangla glyphs fall through to Noto Sans Bengali (next/font): Inter has no Bengali. */
+  --font-sans: var(--font-inter), "Inter", var(--font-bengali), "Noto Sans Bengali", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 html {
@@ -117,7 +151,11 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* Inter: straight-sided 1/l and a single-storey-free, calm figure set */
+  font-feature-settings: "cv11", "ss03";
   overflow-x: hidden;
 }
 * {
@@ -136,20 +174,29 @@ body {
   border-radius: var(--radius);
   box-shadow: var(--shadow-1);
 }
+/* Icons are monochrome grey line icons: no tinted squares. (Utility colour classes on a chip
+   are ignored on purpose so every chip reads the same.) */
 .chip-icon {
   display: grid;
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
+  flex: none;
   border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  color: var(--accent);
-  transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+  background: transparent !important;
+  color: var(--ink-2) !important;
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
 .is-active .chip-icon,
-.chip-icon.is-active {
-  background: var(--accent);
-  color: var(--accent-ink);
+.chip-icon.is-active,
+.group:hover .chip-icon {
+  color: var(--ink) !important;
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+/* prices and counters line up */
+.tabular-nums, .price, [data-price] {
+  font-variant-numeric: tabular-nums;
 }
 
 /* buttons: crisp 10px corners, solid fills, quiet hover/press */
@@ -163,8 +210,9 @@ body {
   gap: 0.5rem;
   min-height: 44px;
   padding: 0 1.25rem;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
   transition:
     transform var(--dur-1) var(--ease),
     background-color var(--dur-2) var(--ease),
@@ -179,12 +227,11 @@ body {
   pointer-events: none;
 }
 .btn-primary {
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: var(--glow);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--accent) 88%, black);
+  background: var(--primary-hover);
 }
 .btn .arrow {
   transition: transform var(--dur-2) var(--ease);
@@ -192,21 +239,25 @@ body {
 .btn:hover .arrow {
   transform: translateX(2px);
 }
-.btn-ghost {
-  background: var(--surface-2);
+/* secondary: white with a 1px grey border */
+.btn-ghost,
+.btn-outline {
+  background: var(--surface);
   color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-2);
 }
-.btn-ghost:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
+.btn-ghost:hover,
+.btn-outline:hover {
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--ink-3);
 }
+/* retired coral: the order button is the same solid ink primary */
 .btn-coral {
-  background: var(--brand-2);
-  color: #fff;
-  box-shadow: var(--glow);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 .btn-coral:hover {
-  background: color-mix(in srgb, var(--brand-2) 90%, black);
+  background: var(--primary-hover);
 }
 
 /* floating-label field */
@@ -219,9 +270,9 @@ body {
   width: 100%;
   min-height: 52px;
   padding: 1.25rem 0.9rem 0.45rem 2.9rem;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-2);
   color: var(--ink);
   outline: none;
   transition: border-color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
@@ -253,7 +304,7 @@ body {
 .field textarea:not(:placeholder-shown) + label,
 .field select + label {
   transform: translateY(-0.6rem) scale(0.78);
-  color: var(--accent);
+  color: var(--ink-2);
 }
 .field .field-icon {
   position: absolute;
@@ -262,7 +313,7 @@ body {
   color: var(--ink-3);
 }
 .field input:focus ~ .field-icon {
-  color: var(--accent);
+  color: var(--ink);
 }
 .field.is-valid input,
 .field.is-valid select,
@@ -660,4 +711,18 @@ html.lang-fade body {
 @media (prefers-reduced-motion: reduce) {
   .lang-switch-pill, body { transition: none; }
   html.lang-fade body { opacity: 1; }
+}
+
+/* ---------- Neutral image wells ---------- */
+/* Product photos (mostly shot on white) sit in a light grey well: multiply drops their white box so every
+   tile reads the same calm grey. Dark mode keeps photos as they are on a slightly lifted well. */
+.img-well img,
+.mo-media img {
+  mix-blend-mode: multiply;
+}
+/* Dark mode: photo wells stay a soft light grey (a white product shot can't sit on near-black without a
+   hard white box), so every photo tile reads as the same calm panel. Icon placeholders stay dark. */
+[data-theme="dark"] .img-well:has(img),
+[data-theme="dark"] .mo-media:has(img) {
+  background-color: #dcdcd8;
 }

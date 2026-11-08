@@ -102,7 +102,7 @@ export function AccountDashboard() {
             className="card rise group flex flex-col gap-2 p-3 transition-transform hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)] sm:p-4"
             style={{ ["--i" as string]: i + 1 }}
           >
-            <span className="chip-icon transition group-hover:bg-accent group-hover:text-white">
+            <span className="chip-icon transition">
               <Icon name={s.icon} size={18} />
             </span>
             <span className="text-2xl font-extrabold tabular-nums tracking-tight">{digits(String(s.value).padStart(2, "0"))}</span>

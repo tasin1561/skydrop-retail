@@ -209,7 +209,7 @@ export function BuyBox({
             <p className="truncate text-[11px] text-ink-2">
               {info.discount > 0 ? (
                 <>
-                  <span className="line-through">{bdt(info.mrpBdt)}</span> <span className="font-bold text-good">{t("card.off", { pct: info.discount })}</span>
+                  <span className="line-through">{bdt(info.mrpBdt)}</span> <span className="font-medium text-good">{t("card.off", { pct: info.discount })}</span>
                 </>
               ) : (
                 variantLabel ?? t("card.from", { source: info.source })
@@ -249,7 +249,7 @@ function AddButton({
       disabled={disabled}
       aria-busy={phase === "busy"}
       aria-label={t("buy.addToCart")}
-      className={"btn btn-ghost !bg-[var(--accent-soft)] font-bold !text-accent hover:!bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] " + (className ?? "")}
+      className={"btn btn-outline " + (className ?? "")}
     >
       <span className="roll" aria-hidden="true">
         <span data-on={phase === "idle"} data-gone={phase !== "idle"} className="inline-flex items-center gap-1.5">

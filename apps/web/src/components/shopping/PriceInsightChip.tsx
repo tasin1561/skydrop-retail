@@ -23,7 +23,7 @@ export function PriceInsightChip({ p }: { p: Product }) {
     <span
       className={
         "inline-flex w-fit items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold " +
-        (lowest ? "bg-[color-mix(in_srgb,var(--good)_14%,transparent)] text-good" : "bg-[var(--accent-soft)] text-accent")
+        (lowest ? "text-good" : "text-ink-2")
       }
     >
       <Icon name={lowest ? "verified" : "tag"} size={11} stroke={2.4} />

@@ -137,7 +137,7 @@ export default function GroupScreen() {
         }
       >
         <Card pad={0} style={{ overflow: "hidden" }}>
-          <LinearGradient colors={[a.heroA ?? "#0b0b0f", a.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, gap: 8 }}>
+          <LinearGradient colors={[a.heroA, a.heroA]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, gap: 8 }}>
             <View style={styles.badge}>
               <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
                 {t("grp.groupBuyStore", { store: "\u0000" }).split("\u0000")[0]}

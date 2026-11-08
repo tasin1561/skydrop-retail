@@ -49,34 +49,34 @@ export function DealOfTheDay({ items, now }: { items: Product[]; now: number }) 
         <Link
           href={`/p/${p.id}`}
           prefetch={false}
-          className="relative mx-auto grid aspect-square w-40 place-items-center rounded-[10px] bg-white p-4 ring-1 ring-line sm:w-full"
+          className="img-well relative mx-auto grid aspect-square w-40 place-items-center rounded-[10px] bg-surface-2 p-4 sm:w-full"
           tabIndex={-1}
           aria-hidden="true"
         >
           <ProductImage p={p} className="h-full w-full" />
-          <span className="absolute left-2 top-2 grid place-items-center rounded bg-bad px-1.5 py-1 text-center text-[12px] font-semibold leading-none tabular-nums text-white">
+          <span className="absolute left-2 top-2 grid place-items-center rounded-[4px] bg-ink px-1.5 py-1 text-center text-[12px] font-medium leading-none tabular-nums text-surface">
             -{digits(d)}%
           </span>
         </Link>
         <div className="relative min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
-            <Icon name="bolt" size={13} stroke={2.4} /> {t("home.dealOfDay")}
+          <p className="text-xs font-medium uppercase tracking-[0.06em] text-ink-3">
+            {t("home.dealOfDay")}
           </p>
-          <h2 id="dd-h" className="mt-2 line-clamp-2 text-lg font-bold leading-snug tracking-tight sm:text-xl">
+          <h2 id="dd-h" className="mt-1.5 line-clamp-2 text-lg font-semibold leading-snug tracking-[-0.01em] sm:text-xl">
             {p.title}
           </h2>
           <p className="mt-1 text-xs text-ink-2">
             {t("dd.from", { source: STORES[p.market].source })}{deal ? ` · ${deal.label}` : ""}
           </p>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-2 tabular-nums">
-            <span className="text-2xl font-bold tracking-tight">{bdt(priceBdt(p))}</span>
+            <span className="text-2xl font-semibold tracking-tight">{bdt(priceBdt(p))}</span>
             <span className="text-sm text-ink-3 line-through">{bdt(mrpBdt(p))}</span>
-            <span className="text-sm font-semibold text-good">{t("dd.save", { amount: bdt(mrpBdt(p) - priceBdt(p)) })}</span>
+            <span className="text-sm font-medium text-good">{t("dd.save", { amount: bdt(mrpBdt(p) - priceBdt(p)) })}</span>
           </div>
           <div className="mt-4 flex flex-wrap items-end justify-between gap-4 sm:justify-start sm:gap-8">
             <FlipCountdown to={to} label={ownEnd ? t("dd.storeEnds") : t("dd.nextPick")} onEnd={onEnd} />
             <Link href={`/p/${p.id}`} prefetch={false} className="btn btn-primary px-5">
-              {t("dd.see")} <Icon name="arrow" size={18} className="arrow" />
+              {t("dd.see")} <Icon name="arrow" size={16} className="arrow" />
             </Link>
           </div>
         </div>

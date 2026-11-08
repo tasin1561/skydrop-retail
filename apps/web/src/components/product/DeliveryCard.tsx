@@ -48,7 +48,7 @@ export async function DeliveryCard({ source, kolkata, weightKg }: { source: stri
             <span
               className={
                 "relative z-[1] grid h-10 w-10 place-items-center rounded-[10px] shadow-[var(--shadow-1)] " +
-                (i === 2 ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-accent")
+                (i === 2 ? "bg-primary text-on-primary" : "bg-surface text-ink-2")
               }
             >
               <Icon name={s.icon} size={18} />
@@ -108,13 +108,8 @@ export async function StockLine({ stock, demo }: { stock?: string; demo?: boolea
   }
   const color = { good: "var(--good)", warn: "var(--warn)", bad: "var(--bad)", info: "var(--ink-2)" }[tone];
   return (
-    <p className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color }}>
-      <span
-        className="grid h-6 w-6 place-items-center rounded-full"
-        style={{ background: `color-mix(in srgb, ${color} 14%, transparent)` }}
-      >
-        <Icon name={icon} size={14} stroke={2.6} />
-      </span>
+    <p className="inline-flex items-center gap-1.5 text-sm font-medium" style={{ color }}>
+      <Icon name={icon} size={15} stroke={2.2} />
       {word}
       {tone === "good" && <span className="font-normal text-ink-2">{t("stock.atStore")}</span>}
     </p>

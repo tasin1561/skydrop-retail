@@ -201,7 +201,7 @@ export function CheckoutMoney({
 : t("wallet.balance", { amount: bdt(balance) })}
             </span>
           </span>
-          <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (useWallet ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
+          <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (useWallet ? "bg-primary text-on-primary" : "bg-surface-2 text-ink-2")}>
             {useWallet ? t("f.on") : t("f.off")}
           </span>
         </label>

@@ -31,7 +31,7 @@ export function MobileNav() {
       <div className="relative mx-auto grid max-w-md grid-cols-5">
         <span
           aria-hidden
-          className="absolute top-0 h-0.5 w-8 rounded-full bg-accent transition-[transform,opacity] duration-200"
+          className="absolute top-0 h-0.5 w-8 rounded-full bg-ink transition-[transform,opacity] duration-200"
           style={{
             // active-tab indicator: travels on transform only; one cell is a fifth of the (max 28rem) bar
             left: "calc(10% - 16px)",
@@ -47,26 +47,26 @@ export function MobileNav() {
               key={it.href}
               href={it.href}
               aria-current={on ? "page" : undefined}
-              className="relative flex h-16 flex-col items-center justify-end gap-0.5 pb-2 text-[11px] font-semibold"
+              className="relative flex h-16 flex-col items-center justify-end gap-0.5 pb-2 text-[11px] font-medium"
             >
               <span
                 data-cart-target={it.href === "/cart" ? "" : undefined}
                 className={
                   "relative grid h-7 w-7 place-items-center transition-colors duration-200 " +
-                  (on ? "text-accent" : "text-ink-3")
+                  (on ? "text-ink" : "text-ink-3")
                 }
               >
                 <Icon name={it.icon} size={22} stroke={on ? 2.2 : 1.8} />
                 {it.href === "/cart" && cartCount > 0 && (
                   <span
                     key={cartCount}
-                    className="mo-badge absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand-2 px-1 text-[10px] text-white"
+                    className="mo-badge absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-on-primary"
                   >
                     {digits(cartCount)}
                   </span>
                 )}
               </span>
-              <span className={on ? "text-accent" : "text-ink-3"}>{t(it.label)}</span>
+              <span className={on ? "text-ink" : "text-ink-3"}>{t(it.label)}</span>
             </Link>
           );
         })}

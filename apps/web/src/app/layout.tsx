@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
-import { Noto_Sans_Bengali, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/state/store";
 import { FeaturesProvider } from "@/components/features/FeaturesProvider";
@@ -26,9 +26,10 @@ import { RouteProgress } from "@/components/motion/RouteProgress";
 import { PageTransition } from "@/components/motion/PageTransition";
 
 // Self-hosted at build time (no runtime request to Google), swapped in without layout shift.
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-jakarta" });
-// Bangla glyphs (Plus Jakarta Sans has none): next in the font stack, so Latin keeps Jakarta. Not preloaded: only bn pages use it.
-const bengali = Noto_Sans_Bengali({ subsets: ["bengali"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-bengali", preload: false });
+// Inter as a variable font (all weights in one file); the UI uses 400 / 500 / 600 only.
+const inter = Inter({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-inter" });
+// Bangla glyphs (Inter has none): next in the font stack, so Latin keeps Inter. Not preloaded: only bn pages use it.
+const bengali = Noto_Sans_Bengali({ subsets: ["bengali"], weight: ["400", "500", "600"], display: "swap", variable: "--font-bengali", preload: false });
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getT();
@@ -43,8 +44,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f7f4" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090c" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f6f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e0e10" },
   ],
 };
 
@@ -53,11 +54,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // returning shoppers already chose a store: the first-visit picker is not even rendered
   const storePicked = jar.has(STORE_PICKED_COOKIE);
   return (
-    <html lang={lang} data-store="all" className={jakarta.variable + " " + bengali.variable} suppressHydrationWarning>
+    <html lang={lang} data-store="all" className={inter.variable + " " + bengali.variable} suppressHydrationWarning>
       <body className="min-h-dvh">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-on-primary"
         >
           {t("a11y.skip")}
         </a>

@@ -37,9 +37,9 @@ export function SupportButton() {
   if (!on || path.startsWith("/checkout") || path.startsWith("/payments")) return null;
 
   const options = [
-    SUPPORT.whatsappHref && { href: SUPPORT.whatsappHref, label: "WhatsApp", bg: "#25d366" },
-    SUPPORT.messengerHref && { href: SUPPORT.messengerHref, label: "Messenger", bg: "#0084ff" },
-  ].filter(Boolean) as { href: string; label: string; bg: string }[];
+    SUPPORT.whatsappHref && { href: SUPPORT.whatsappHref, label: "WhatsApp" },
+    SUPPORT.messengerHref && { href: SUPPORT.messengerHref, label: "Messenger" },
+  ].filter(Boolean) as { href: string; label: string }[];
 
   return (
     <div ref={wrap} className="sc-wrap" data-open={open} data-lift={path.startsWith("/p/") || path === "/cart"}>
@@ -55,20 +55,20 @@ export function SupportButton() {
           aria-hidden={!open}
           onClick={() => setOpen(false)}
         >
-          <span className="sc-dot" style={{ background: o.bg }}>
+          <span className="sc-dot">
             <Icon name="phone" size={16} />
           </span>
           {t("sup.chatOn", { name: o.label })}
         </a>
       ))}
       <Link href="/contact" className="sc-opt" style={{ ["--k" as string]: 0 }} tabIndex={open ? 0 : -1} aria-hidden={!open} onClick={() => setOpen(false)}>
-        <span className="sc-dot bg-accent">
+        <span className="sc-dot">
           <Icon name="help" size={16} />
         </span>
         {t("sup.help")}
       </Link>
       <button type="button" className="sc-main" aria-expanded={open} aria-label={open ? t("sup.close") : t("sup.chat")} onClick={() => setOpen((o) => !o)}>
-        <svg className="sc-ic sc-ic-chat" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <svg className="sc-ic sc-ic-chat" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d={CHAT_PATH} />
         </svg>
         <span className="sc-ic sc-ic-x" aria-hidden>

@@ -57,7 +57,7 @@ export function QuickAdd({ p }: { p: Product }) {
           timer.current = setTimeout(land, Math.max(ms, 0) + 200);
         }}
         aria-busy={busy}
-        className="btn btn-primary mt-2 min-h-11 w-full rounded-xl text-sm"
+        className="btn btn-outline mt-2 min-h-11 w-full text-sm"
         aria-label={t("qa.addTo", { title: p.title })}
       >
         <span className="roll" aria-hidden="true">
@@ -71,7 +71,7 @@ export function QuickAdd({ p }: { p: Product }) {
       </button>
     );
   return (
-    <div className="pop mt-2 flex min-h-11 items-center justify-between rounded-xl bg-accent text-white shadow-[var(--glow)]" onClick={(e) => e.preventDefault()}>
+    <div className="pop mt-2 flex min-h-11 items-center justify-between rounded-[8px] bg-primary text-on-primary" onClick={(e) => e.preventDefault()}>
       <button
         type="button"
         className="grid h-11 w-11 place-items-center rounded-xl transition-transform active:scale-[0.98]"
@@ -80,7 +80,7 @@ export function QuickAdd({ p }: { p: Product }) {
       >
         <Icon name={line.qty <= 1 ? "trash" : "minus"} size={16} stroke={2.4} />
       </button>
-      <span key={line.qty} className="pop text-sm font-extrabold tabular-nums" aria-live="polite">
+      <span key={line.qty} className="pop text-sm font-medium tabular-nums" aria-live="polite">
         {t("qa.inBasket", { count: line.qty })}
       </span>
       <button

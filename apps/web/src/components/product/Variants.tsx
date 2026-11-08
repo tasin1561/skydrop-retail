@@ -164,7 +164,7 @@ export function VariantGroup({
                       </span>
                     )}
                     {on && (
-                      <span className="pop absolute right-0.5 top-0.5 grid h-4 w-4 place-items-center rounded-full bg-accent text-white shadow">
+                      <span className="pop absolute right-0.5 top-0.5 grid h-4 w-4 place-items-center rounded-full bg-primary text-on-primary shadow">
                         <Icon name="check" size={10} stroke={3} />
                       </span>
                     )}

@@ -9,7 +9,7 @@ import { useStore } from "@/state/store";
 import { useFeature } from "@/lib/features";
 import { demoInviteCode, WEB_URL } from "@/lib/share";
 import { haptic } from "@/lib/haptics";
-import { BRAND, useTheme } from "@/theme";
+import { PANEL, useTheme } from "@/theme";
 import { Button, Card, Empty, IconChip, Progress, Skeleton, T } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useT } from "@/i18n";
@@ -84,7 +84,7 @@ export default function InviteScreen() {
       <T v="small" tone="ink2">{t("iv.sub")}</T>
       {isDemo() && <T v="tiny" tone="ink3">{t("iv.demo")}</T>}
       <Animated.View entering={FadeInDown.duration(260)}>
-        <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+        <LinearGradient colors={[PANEL, PANEL]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
           <T v="small" style={{ color: "rgba(255,255,255,0.88)" }}>{t("iv.give", { theirs: friendPoints, mine: inviterPoints })}</T>
           <T v="label" style={{ color: "rgba(255,255,255,0.75)", marginTop: 6 }}>{t("iv.code")}</T>
           <T v="h1" tone="white" selectable style={{ letterSpacing: 4, fontSize: 30 }}>{data.code}</T>

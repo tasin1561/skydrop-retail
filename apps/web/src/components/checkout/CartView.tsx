@@ -226,7 +226,7 @@ function StoreGroup({
           return (
             <li key={k} data-leaving={leaving.includes(k)} className="mo-collapse co-row" style={{ animationDelay: `${i * 40}ms` }}>
               <div className="flex gap-3 px-4 py-3">
-              <Link href={`/p/${item.productId}`} className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white p-1.5 shadow-[var(--shadow-1)] sm:h-24 sm:w-24" tabIndex={-1} aria-hidden="true">
+              <Link href={`/p/${item.productId}`} className="h-20 w-20 shrink-0 overflow-hidden rounded-[10px] img-well bg-surface-2 p-1.5 sm:h-24 sm:w-24" tabIndex={-1} aria-hidden="true">
                 <ProductImage p={item} className="h-full w-full rounded-xl" />
               </Link>
               <div className="min-w-0 flex-1">

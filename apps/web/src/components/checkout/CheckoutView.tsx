@@ -427,7 +427,7 @@ export function CheckoutView() {
                       {tr("co.pointsSave", { amount: bdt(redeemable.valueBdt), count: pointsBalance })}
                     </span>
                   </span>
-                  <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (usePoints ? "bg-accent text-white" : "bg-surface-2 text-ink-2")}>
+                  <span className={"rounded-full px-2.5 py-1 text-[11px] font-extrabold " + (usePoints ? "bg-primary text-on-primary" : "bg-surface-2 text-ink-2")}>
                     {usePoints ? tr("f.on") : tr("f.off")}
                   </span>
                 </label>
@@ -562,7 +562,7 @@ function Review({
           <ul className="divide-y divide-line/60">
             {g.items.map((i) => (
               <li key={i.productId + (i.variant ?? "")} className="flex items-center gap-3 px-4 py-2.5">
-                <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl img-well bg-surface-2 p-1">
                   <ProductImage p={i} className="h-full w-full" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -606,7 +606,7 @@ function Review({
 
       <label className={"co-option items-center " + (terms ? "is-active" : "")}>
         <input type="checkbox" className="sr-only" checked={terms} disabled={lock} onChange={(e) => setTerms(e.target.checked)} />
-        <span className={"grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors " + (terms ? "bg-accent text-white" : "bg-surface-2 text-transparent")}>
+        <span className={"grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors " + (terms ? "bg-primary text-on-primary" : "bg-surface-2 text-transparent")}>
           {terms && (
             <svg viewBox="0 0 24 24" width="16" height="16" className="draw-check" aria-hidden>
               <path d="M5 12l5 5 9-11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />

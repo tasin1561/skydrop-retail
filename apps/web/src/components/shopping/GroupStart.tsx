@@ -112,7 +112,7 @@ export function GroupStart({ initialMarket }: { initialMarket?: MarketId }) {
           <ul className="mt-3 flex flex-col gap-2">
             {items.map((i) => (
               <li key={i.productId + (i.variant ?? "")} className="flex items-center gap-3 rounded-2xl bg-surface-2/70 p-2 pr-3">
-                <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl img-well bg-surface-2 p-1">
                   <ProductImage p={i} className="h-full w-full" />
                 </span>
                 <span className="line-clamp-2 min-w-0 flex-1 text-[13px]">{i.title}</span>

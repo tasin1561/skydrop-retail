@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const TONE = { success: "var(--good)", info: "var(--accent)", error: "var(--bad)" };
+const TONE = { success: "var(--good)", info: "var(--ink-2)", error: "var(--bad)" };
 const ICON = { success: "check", info: "info", error: "x" };
 
 /**
@@ -93,7 +93,7 @@ function ToastItem({ t, onGone }: { t: Toast; onGone: (id: number) => void }) {
       ref={ref}
       role={t.kind === "error" ? "alert" : "status"}
       className="mo-toast toast-in pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl bg-surface p-3 pr-11 ring-1 ring-line"
-      style={{ boxShadow: `var(--shadow-2), 0 12px 32px -6px color-mix(in srgb, ${tone} 35%, transparent)` }}
+      style={{ boxShadow: "var(--shadow-2)" }}
       onMouseEnter={pause}
       onMouseLeave={resume}
       onFocus={pause}
@@ -140,8 +140,9 @@ function ToastItem({ t, onGone }: { t: Toast; onGone: (id: number) => void }) {
     >
       <div className="flex items-start gap-3">
         <span
-          className="pop grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white"
-          style={{ background: tone }}
+          className="pop grid h-9 w-9 shrink-0 place-items-center rounded-full"
+          // quiet badge: hairline ring, the semantic colour only on the icon itself
+          style={{ color: tone, boxShadow: "inset 0 0 0 1px var(--line-2)" }}
         >
           <Icon name={t.icon ?? ICON[t.kind]} size={18} stroke={2.4} fill={t.icon === "heart" ? "currentColor" : "none"} />
         </span>
@@ -178,7 +179,7 @@ function ToastItem({ t, onGone }: { t: Toast; onGone: (id: number) => void }) {
       >
         <Icon name="x" size={16} />
       </button>
-      <span className="toast-bar absolute bottom-0 left-0 h-[3px] w-full opacity-80" style={{ background: tone, animationDuration: `${LIFE}ms` }} />
+      <span className="toast-bar absolute bottom-0 left-0 h-[2px] w-full bg-line-2" style={{ animationDuration: `${LIFE}ms` }} />
     </div>
   );
 }

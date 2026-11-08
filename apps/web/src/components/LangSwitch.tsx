@@ -20,11 +20,36 @@ export function LangSwitch({ className = "", size = "md" }: { className?: string
   const { t } = useT();
   if (!on) return null;
   const idx = OPTIONS.findIndex((o) => o.id === lang);
+  if (size === "sm")
+    // compact header form: "EN | বাংলা" as small text, the active language in ink
+    return (
+      <div role="group" aria-label={t("lang.label")} className={"lang-switch shrink-0 items-center text-[13px] " + className}>
+        <div className="flex items-center">
+          {OPTIONS.map((o, i) => (
+            <span key={o.id} className="flex items-center">
+              {i > 0 && <span aria-hidden className="h-3.5 w-px bg-line-2" />}
+              <button
+                type="button"
+                lang={o.id}
+                aria-pressed={lang === o.id}
+                onClick={() => setLang(o.id)}
+                className={
+                  "min-h-11 px-2 transition-colors duration-200 " +
+                  (lang === o.id ? "font-medium text-ink" : "text-ink-3 hover:text-ink-2")
+                }
+              >
+                {o.label}
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+    );
   return (
     <div
       role="group"
       aria-label={t("lang.label")}
-      className={"lang-switch relative grid shrink-0 grid-cols-2 rounded-full bg-surface-2 p-1 " + (size === "sm" ? "w-[7.5rem] " : "w-[8.5rem] ") + className}
+      className={"lang-switch relative grid shrink-0 grid-cols-2 rounded-full bg-surface-2 p-1 " + "w-[8.5rem] " + className}
     >
       <span
         aria-hidden
@@ -39,7 +64,7 @@ export function LangSwitch({ className = "", size = "md" }: { className?: string
           aria-pressed={lang === o.id}
           onClick={() => setLang(o.id)}
           className={
-            "relative z-10 min-h-11 rounded-full px-2 text-[13px] font-bold transition-colors duration-200 " +
+            "relative z-10 min-h-11 rounded-full px-2 text-[13px] font-medium transition-colors duration-200 " +
             (lang === o.id ? "text-ink" : "text-ink-3 hover:text-ink-2")
           }
         >
