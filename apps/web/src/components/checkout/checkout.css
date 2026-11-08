@@ -115,6 +115,57 @@
 .co-cloud {
   animation: none; /* decorative loop retired */
 }
+/* ---------- checkout stepper (styles had gone missing in an earlier change) ---------- */
+.co-steps {
+  position: relative;
+}
+.co-steps-line,
+.co-steps-fill {
+  position: absolute;
+  top: 17px;
+  height: 2px;
+  border-radius: 2px;
+}
+.co-steps-line {
+  background: var(--line);
+}
+.co-steps-fill {
+  background: var(--accent);
+  transform-origin: left;
+  transition: transform var(--dur-3) var(--ease);
+}
+.co-step-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
+}
+/* the 36px dot sits inside a 44px hit area */
+.co-step-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.co-step[data-state="current"] .co-step-dot {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: none;
+}
+.co-step[data-state="done"] .co-step-dot {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
 /* compact mobile progress pill */
 .co-pill-fill {
   position: absolute;
