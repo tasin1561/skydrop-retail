@@ -49,7 +49,7 @@ export function FaqSearch({ faqs }: { faqs: Faq[] }) {
             onClick={() => setTopic(t)}
             className={
               "min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors " +
-              (topic === t ? "bg-primary text-on-primary" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-ink")
+              (topic === t ? "bg-accent text-white" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-ink")
             }
           >
             {t === "All" ? tr("common.all") : t}

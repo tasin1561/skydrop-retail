@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { Image } from "expo-image";
-import { radius, useAccent, useTheme, withAlpha } from "@/theme";
+import { radius, shadow, useAccent, useTheme, withAlpha } from "@/theme";
 import { Icon } from "./Icon";
 import type { StoreMode } from "@/lib/types";
 import { useLang, useT } from "@/i18n";
@@ -26,13 +26,13 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 // ---------- text ----------
 type Variant = "h1" | "h2" | "h3" | "body" | "small" | "tiny" | "label";
 const SIZES: Record<Variant, TextStyle> = {
-  h1: { fontSize: 24, lineHeight: 30, fontWeight: "600", letterSpacing: -0.4 },
-  h2: { fontSize: 19, lineHeight: 25, fontWeight: "600", letterSpacing: -0.2 },
-  h3: { fontSize: 15, lineHeight: 21, fontWeight: "600" },
+  h1: { fontSize: 26, lineHeight: 32, fontWeight: "800", letterSpacing: -0.4 },
+  h2: { fontSize: 20, lineHeight: 26, fontWeight: "800", letterSpacing: -0.2 },
+  h3: { fontSize: 16, lineHeight: 22, fontWeight: "700" },
   body: { fontSize: 15, lineHeight: 21 },
   small: { fontSize: 13, lineHeight: 18 },
   tiny: { fontSize: 11, lineHeight: 14 },
-  label: { fontSize: 12, lineHeight: 16, fontWeight: "500", letterSpacing: 0.4, textTransform: "uppercase" },
+  label: { fontSize: 12, lineHeight: 16, fontWeight: "700", letterSpacing: 0.4, textTransform: "uppercase" },
 };
 
 export function T({
@@ -104,11 +104,9 @@ export function Button({
 }) {
   const { c } = useTheme();
   const a = useAccent(mode);
-  void a; // store mode no longer recolours buttons
-  // primary (and the retired coral) = solid ink; soft = quiet grey; ghost = white with a 1px grey border
-  const solid = kind === "primary" || kind === "coral";
-  const bg = solid ? c.primary : kind === "soft" ? c.surface2 : kind === "danger" ? withAlpha(c.bad, 0.08) : c.surface;
-  const fg = solid ? c.onPrimary : kind === "danger" ? c.bad : c.ink;
+  const bg =
+    kind === "primary" ? a.accent : kind === "coral" ? c.coral : kind === "soft" ? a.soft : kind === "danger" ? withAlpha(c.bad, 0.12) : "transparent";
+  const fg = kind === "primary" || kind === "coral" ? "#fff" : kind === "danger" ? c.bad : kind === "soft" ? a.ink : c.ink;
   return (
     <Tap
       onPress={onPress}
@@ -118,12 +116,12 @@ export function Button({
       style={[
         styles.btn,
         { backgroundColor: bg, opacity: disabled ? 0.5 : 1 },
-        kind === "ghost" && { borderWidth: 1, borderColor: c.line2 },
+        kind === "ghost" && { borderWidth: 1, borderColor: c.line },
         style,
       ]}
     >
       {busy ? <ActivityIndicator color={fg} size="small" /> : icon ? <Icon name={icon} size={18} color={fg} /> : null}
-      <T v="h3" style={{ color: fg, fontSize: 15, fontWeight: "500" }} numberOfLines={1}>
+      <T v="h3" style={{ color: fg, fontSize: 15 }} numberOfLines={1}>
         {label}
       </T>
       {right}
@@ -161,13 +159,13 @@ export function IconButton({
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: bg ?? c.surface,
-        ...(bg ? {} : { borderWidth: StyleSheet.hairlineWidth, borderColor: c.line2 }),
+        ...(bg ? {} : shadow(c)),
       }}
     >
       <Icon name={icon} size={size * 0.45} color={tint ?? c.ink} />
       {!!badge && (
-        <View style={[styles.badge, { backgroundColor: c.primary, borderColor: c.surface }]}>
-          <T v="tiny" style={{ fontWeight: "600", color: c.onPrimary }}>
+        <View style={[styles.badge, { backgroundColor: c.coral, borderColor: c.surface }]}>
+          <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
             {badge > 9 ? "9+" : badge}
           </T>
         </View>
@@ -179,17 +177,14 @@ export function IconButton({
 // ---------- surfaces ----------
 export function Card({ children, style, pad = 16 }: { children: ReactNode; style?: StyleProp<ViewStyle>; pad?: number }) {
   const { c } = useTheme();
-  return <View style={[{ backgroundColor: c.surface, borderRadius: radius.lg, padding: pad, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: c.surface, borderRadius: radius.lg, padding: pad }, shadow(c), style]}>{children}</View>;
 }
 
-/** Monochrome line icon in a hairline square: no tinted fills. A semantic colour (good/bad/warn) tints the icon only. */
 export function IconChip({ icon, mode = "all", size = 36, color }: { icon: string; mode?: StoreMode; size?: number; color?: string }) {
-  const { c } = useTheme();
-  void mode;
-  const semantic = color === c.good || color === c.bad || color === c.warn;
+  const a = useAccent(mode);
   return (
-    <View style={{ width: size, height: size, borderRadius: Math.min(10, size * 0.25), borderWidth: StyleSheet.hairlineWidth, borderColor: c.line2, alignItems: "center", justifyContent: "center" }}>
-      <Icon name={icon} size={size * 0.46} color={semantic ? color : c.ink2} />
+    <View style={{ width: size, height: size, borderRadius: size * 0.32, backgroundColor: color ? withAlpha(color, 0.12) : a.soft, alignItems: "center", justifyContent: "center" }}>
+      <Icon name={icon} size={size * 0.48} color={color ?? a.ink} />
     </View>
   );
 }
@@ -199,7 +194,7 @@ export function Pill({ text, color, bg, icon }: { text: string; color?: string; 
   return (
     <View style={[styles.pill, { backgroundColor: bg ?? c.surface2 }]}>
       {icon && <Icon name={icon} size={12} color={color ?? c.ink2} />}
-      <T v="tiny" style={{ color: color ?? c.ink2, fontWeight: "500" }}>
+      <T v="tiny" style={{ color: color ?? c.ink2, fontWeight: "700" }}>
         {text}
       </T>
     </View>
@@ -220,8 +215,8 @@ export function SectionTitle({ title, action, onAction }: { title: string; actio
       </T>
       {action && (
         <Pressable onPress={onAction} hitSlop={12} accessibilityRole="button" accessibilityLabel={action} style={{ minHeight: 44, justifyContent: "center" }}>
-          <T v="small" style={{ color: c.ink2, fontWeight: "500" }}>
-            {action} →
+          <T v="small" style={{ color: c.brand, fontWeight: "700" }}>
+            {action}
           </T>
         </Pressable>
       )}
@@ -260,13 +255,17 @@ export function ProductImage({
 }) {
   const { c } = useTheme();
   if (!uri) {
-    // neutral image well with a grey line icon (no per-product pastel tint)
+    const hue = placeholder?.hue ?? 210;
     return (
       <View
         accessibilityLabel={label}
-        style={[{ alignItems: "center", justifyContent: "center", backgroundColor: c.surface2 }, size ? { width: size, height: size } : null, style]}
+        style={[
+          { alignItems: "center", justifyContent: "center", backgroundColor: c.dark ? `hsl(${hue}, 35%, 22%)` : `hsl(${hue}, 70%, 94%)` },
+          size ? { width: size, height: size } : null,
+          style,
+        ]}
       >
-        <Icon name={placeholder?.icon ?? "package"} size={size ? size * 0.38 : 40} color={c.ink3} />
+        <Icon name={placeholder?.icon ?? "package"} size={size ? size * 0.38 : 40} color={c.dark ? `hsl(${hue}, 70%, 75%)` : `hsl(${hue}, 55%, 42%)`} />
       </View>
     );
   }
@@ -291,8 +290,8 @@ export function Stars({ rating, count, size = 12 }: { rating: number; count?: nu
   const { t, digits, num } = useT();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }} accessibilityLabel={t("m.rated", { rating: digits(rating) }) + (count ? ", " + t("m.reviewsN", { count }) : "")}>
-      <Icon name="star" size={size} color={c.star} />
-      <T v="tiny" style={{ fontWeight: "500", color: c.ink2 }}>
+      <Icon name="star" size={size} color="#f59e0b" />
+      <T v="tiny" style={{ fontWeight: "700", color: c.ink }}>
         {digits(rating.toFixed(1))}
       </T>
       {count !== undefined && (

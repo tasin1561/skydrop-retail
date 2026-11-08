@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import Animated from "react-native-reanimated";
 import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
-import { radius, useTheme } from "@/theme";
+import { STORE_TEXT, radius, useTheme, withAlpha } from "@/theme";
 import { Card, IconChip, Skeleton, T, Tap } from "@/components/ui";
 import { CategoryRows, useCategoryTree } from "@/components/CategoryRows";
 import { Icon } from "@/components/Icon";
@@ -53,10 +53,11 @@ export default function Categories() {
 
       {markets.map((m) => {
         const s = storeText(m, t);
+        const a = STORE_TEXT[m][c.dark ? "dark" : "light"];
         return (
           <View key={m} style={{ gap: 8 }}>
             <Tap onPress={() => router.push(`/store/${m}`)} accessibilityLabel={t("m.openStore", { name: s.name, source: s.source })}>
-              <View style={[styles.banner, { backgroundColor: c.surface, borderColor: c.line }]}>
+              <View style={[styles.banner, { backgroundColor: withAlpha(a.ring, c.dark ? 0.12 : 0.07), borderColor: withAlpha(a.ring, 0.35) }]}>
                 <View style={{ flex: 1 }}>
                   <StoreName mode={m} size={20} variant="plain" style={{ alignSelf: "flex-start" }} />
                   <T v="tiny" tone="ink2">

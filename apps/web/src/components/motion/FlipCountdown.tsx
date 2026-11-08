@@ -44,7 +44,7 @@ export function FlipCountdown({ to, label, onEnd }: { to: number; label: string;
   ];
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs text-ink-3">{label}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-ink-2">{label}</span>
       <div className="dd-digits" role="timer" aria-live="off" aria-label={ms === null ? label : t("cd.aria", { label, h, m })}>
         {cells.map(([v, unit], i) => (
           <span key={unit} className="contents">

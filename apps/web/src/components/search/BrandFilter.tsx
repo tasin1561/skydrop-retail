@@ -101,7 +101,7 @@ export function BrandFilter({
                   aria-hidden="true"
                   className={
                     "grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] border-2 transition-colors duration-[var(--dur-1)] ease-[var(--ease)] peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-1 " +
-                    (on ? "border-primary bg-primary text-on-primary" : "border-line bg-surface")
+                    (on ? "border-accent bg-accent text-white" : "border-line bg-surface")
                   }
                 >
                   {on && <Icon name="check" size={11} stroke={3} />}

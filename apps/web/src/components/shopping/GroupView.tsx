@@ -158,7 +158,7 @@ export function GroupView({ code }: { code: string }) {
         <ul className="mt-3 flex flex-col gap-2">
           {g.members.map((m, i) => (
             <li key={i} className="sh-member flex min-h-[52px] items-center gap-3 rounded-2xl bg-surface-2/70 px-3 py-2" style={{ ["--i" as string]: i }}>
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-sm font-extrabold text-on-primary">{m.name.slice(0, 1).toUpperCase()}</span>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-extrabold text-white">{m.name.slice(0, 1).toUpperCase()}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold">
                   {/* demo groups name a signed-out shopper "You": show it in the page language, without "You (you)" */}

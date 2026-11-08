@@ -92,7 +92,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
     <form
       ref={formRef}
       role="search"
-      className="relative flex w-full items-stretch rounded-[8px] bg-surface ring-1 ring-line-2 transition-shadow duration-200 focus-within:shadow-[0_0_0_3px_var(--accent-soft)] focus-within:ring-accent"
+      className="relative flex w-full items-stretch rounded-2xl bg-surface shadow-[var(--shadow-1)] ring-1 ring-line transition-shadow duration-200 focus-within:shadow-[0_0_0_3px_var(--accent-soft)] focus-within:ring-2 focus-within:ring-accent"
       onSubmit={(e) => {
         e.preventDefault();
         if (active >= 0 && items[active]) {
@@ -108,7 +108,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         <select
           value={store}
           onChange={(e) => setStore(e.target.value as StoreMode)}
-          className="h-full max-w-[96px] cursor-pointer appearance-none truncate bg-transparent py-2 pl-3 pr-7 text-xs font-medium text-ink-2 outline-none sm:max-w-[150px] sm:text-sm md:max-w-[112px] xl:max-w-none"
+          className="h-full max-w-[96px] cursor-pointer appearance-none truncate bg-transparent py-2 pl-3 pr-7 text-xs font-semibold text-ink outline-none sm:max-w-[150px] sm:text-sm md:max-w-[112px] xl:max-w-none"
         >
           {modes.map((m) => (
             <option key={m} value={m}>
@@ -164,7 +164,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         enterKeyHint="search"
       />
       </span>
-      <button type="submit" className="btn btn-primary m-1 min-h-0 rounded-[6px] px-3 sm:px-4" aria-label={t("search.submit")}>
+      <button type="submit" className="btn btn-primary m-1 min-h-0 rounded-xl px-3 sm:px-4" aria-label={t("search.submit")}>
         <Icon name="search" size={18} stroke={2.2} />
       </button>
 
@@ -172,7 +172,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         <ul
           id={listId}
           role="listbox"
-          className="sb-pop absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-[10px] bg-surface p-1.5 shadow-[var(--shadow-2)]"
+          className="sb-pop absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl bg-surface p-1.5 shadow-[var(--shadow-2)] ring-1 ring-line"
         >
           {items.map((s, i) => (
             <li key={s.id} id={`${listId}-${i}`} role="option" aria-selected={i === active} style={{ ["--i" as string]: i }}>

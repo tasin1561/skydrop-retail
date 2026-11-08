@@ -54,7 +54,7 @@ async function sendToken(): Promise<string | null> {
       name: "Order updates",
       importance: 6, // AndroidImportance.HIGH (heads-up banner)
       vibrationPattern: [0, 200, 120, 200],
-      lightColor: "#233056",
+      lightColor: "#5b3df5",
     });
   }
   const id = projectId();

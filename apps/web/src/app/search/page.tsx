@@ -147,7 +147,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                     aria-current={n === page ? "page" : undefined}
                     className={
                       "grid h-11 min-w-11 place-items-center rounded-full px-3 text-sm font-bold transition " +
-                      (n === page ? "bg-primary text-on-primary shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-accent")
+                      (n === page ? "bg-accent text-white shadow-[var(--glow)]" : "bg-surface text-ink-2 shadow-[var(--shadow-1)] hover:text-accent")
                     }
                   >
                     {digits(String(n).padStart(2, "0"))}

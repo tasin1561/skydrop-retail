@@ -35,7 +35,7 @@ export function NotificationsPage() {
         <div className="flex flex-col items-center py-12 text-center">
           <Icon name="bell" size={32} className="text-ink-3" />
           <p className="mt-3 font-bold">{t("nt.signIn")}</p>
-          <Link href="/login?next=/notifications" className="mt-4 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary">{t("nav.signIn")}</Link>
+          <Link href="/login?next=/notifications" className="mt-4 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white">{t("nav.signIn")}</Link>
         </div>
       </Shell>
     );

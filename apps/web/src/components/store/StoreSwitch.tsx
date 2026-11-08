@@ -93,7 +93,7 @@ function radioKeys(e: KeyboardEvent<HTMLElement>, modes: StoreMode[], current: S
   pick(modes[next]);
 }
 
-/** Desktop/tablet: "Shopping at:" + text-only tabs; the selected one carries a neutral ink underline. */
+/** Desktop/tablet: "Shopping at:" + segmented control with a sliding indicator in the active store's accent. */
 function StoreSegmented() {
   const mode = useCurrentMode();
   const modes = useEnabledModes();
@@ -118,7 +118,7 @@ function StoreSegmented() {
 
   return (
     <div className="hidden items-center gap-3 md:flex">
-      <span id={labelId} className="shrink-0 text-[13px] text-ink-3">
+      <span id={labelId} className="shrink-0 text-sm font-semibold text-ink-2">
         {t("header.shoppingAt")}
       </span>
       <div
@@ -126,12 +126,13 @@ function StoreSegmented() {
         role="radiogroup"
         aria-labelledby={labelId}
         onKeyDown={(e) => radioKeys(e, modes, shown, pick)}
-        className="relative flex min-w-0 items-center gap-1"
+        className="relative flex min-w-0 items-center gap-0.5 rounded-full bg-surface-2 p-1 ring-1 ring-line/60"
       >
         <span
           aria-hidden
-          className="seg-ind absolute -bottom-px left-0 h-[2px] w-[100px] origin-left bg-ink"
-          style={{ transform: `translateX(${pill.x}px) scaleX(${pill.w / 100})`, opacity: pill.ok ? 1 : 0 }}
+          data-store={shown}
+          className="sn seg-ind absolute bottom-1 left-0 top-1 w-[100px] origin-left rounded-full shadow-[0_1px_2px_rgb(0_0_0/0.12)]"
+          style={{ transform: `translateX(${pill.x}px) scaleX(${pill.w / 100})`, opacity: pill.ok ? 1 : 0, background: "var(--sn-fill)" }}
         />
         {modes.map((m) => {
           const on = m === shown;
@@ -146,15 +147,12 @@ function StoreSegmented() {
               data-mode={m}
               data-store={m}
               onClick={() => !on && pick(m)}
-              className={
-                "sn relative z-10 inline-flex min-h-9 shrink-0 items-center whitespace-nowrap px-2.5 text-[13px] transition-opacity focus-visible:outline-offset-1 " +
-                (on ? "" : "opacity-75 hover:opacity-100")
-              }
-              // until the indicator is measured (server HTML) the checked option draws its own underline
-              style={on && !pill.ok ? { boxShadow: "inset 0 -2px 0 var(--ink)" } : undefined}
+              className="sn relative z-10 inline-flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-sm focus-visible:outline-offset-1"
+              // until the indicator is measured (server HTML) the checked option paints its own fill
+              style={on && !pill.ok ? { background: "var(--sn-fill)" } : undefined}
             >
-              <StoreName mode={m} variant="pill" bare name={m === "all" ? t("search.allStores") : s.name} />
-              {m !== "all" && <span className="ml-1.5 hidden text-xs text-ink-3 lg:inline">· {s.source}</span>}
+              <StoreName mode={m} variant="pill" fill={on} bare name={m === "all" ? t("search.allStores") : s.name} />
+              {m !== "all" && <span className={"ml-1.5 hidden text-xs font-medium lg:inline " + (on ? "text-white/85" : "text-ink-2")}>· {s.source}</span>}
             </button>
           );
         })}
@@ -178,9 +176,9 @@ function StoreSwitchButton() {
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="flex min-h-11 max-w-full items-center gap-2 rounded-[8px] py-1.5 pr-2 text-sm transition-colors duration-200 active:bg-surface-2 md:hidden"
+        className="flex min-h-11 max-w-full items-center gap-2 rounded-full bg-surface-2 py-1.5 pl-3 pr-2.5 text-sm ring-1 ring-line/60 transition-colors duration-200 active:bg-line/40 md:hidden"
       >
-        <span className="shrink-0 text-ink-3">{t("header.shoppingAt")}</span>
+        <span className="shrink-0 font-medium text-ink-2">{t("header.shoppingAt")}</span>
         <StoreName mode={shown} variant="pill" name={shown === "all" ? t("search.allStores") : s.name} className="min-w-0 truncate" />
         <Icon name="chevron" size={16} className="shrink-0 text-ink-3" />
       </button>
@@ -202,7 +200,7 @@ function StoreSheet({ onClose, current, modes }: { onClose: () => void; current:
   return (
     <ModalShell labelledBy={titleId} onEscape={close} onBackdrop={close} closing={closing} initialFocus={checked} width="sm:max-w-md">
       <div className="flex items-center gap-2 border-b border-line py-2 pl-5 pr-2">
-        <h2 id={titleId} className="min-w-0 flex-1 text-base font-semibold">
+        <h2 id={titleId} className="min-w-0 flex-1 text-base font-extrabold">
           {t("header.chooseStore")}
         </h2>
         <button type="button" onClick={close} aria-label={t("common.close")} className="grid h-11 w-11 place-items-center rounded-full text-ink-2 hover:bg-surface-2">
@@ -238,7 +236,7 @@ function StoreSheet({ onClose, current, modes }: { onClose: () => void; current:
               data-mode={m}
               data-store={m}
               onClick={() => choose(m)}
-              className="sp-card flex min-h-[64px] w-full items-center gap-3 rounded-[10px] border border-line bg-surface px-3 py-2.5 text-left"
+              className="sp-card flex min-h-[64px] w-full items-center gap-3 rounded-[14px] border border-line bg-surface px-3 py-2.5 text-left"
             >
               <span className="min-w-0 flex-1 pl-1">
                 <span className="flex flex-wrap items-baseline gap-x-2">
@@ -249,7 +247,9 @@ function StoreSheet({ onClose, current, modes }: { onClose: () => void; current:
               </span>
               <span
                 aria-hidden
-                className={"grid h-6 w-6 shrink-0 place-items-center rounded-full " + (on ? "bg-primary text-on-primary" : "ring-1 ring-line-2")}
+                data-store={m}
+                className={"sn grid h-6 w-6 shrink-0 place-items-center rounded-full text-white " + (on ? "" : "ring-1 ring-line")}
+                style={on ? { background: "var(--sn-fill)" } : undefined}
               >
                 {on && <Icon name="check" size={14} stroke={2.6} />}
               </span>

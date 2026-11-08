@@ -9,7 +9,7 @@ import { ApiError, isDemo } from "@/api/client";
 import { moneyApi, RETURN_PLUS, type PlusMembership, type PlusPeriod, type PlusPlan, type PlusSavings } from "@/api/money";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/lib/features";
-import { PANEL, useTheme } from "@/theme";
+import { useTheme } from "@/theme";
 import { Button, Card, Empty, Pill, Skeleton, T, Tap } from "@/components/ui";
 import { Icon } from "@/components/Icon";
 import { useT } from "@/i18n";
@@ -74,9 +74,9 @@ export default function PlusScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32, gap: 14 }}>
-      <LinearGradient colors={[PANEL, PANEL]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <Pill text="SKYDROP PLUS" icon="star" color="#c9a24a" bg="rgba(255,255,255,0.08)" />
-        <T style={{ color: "#fff8e1", fontSize: 28, lineHeight: 34, fontWeight: "600" }}>{t("m.plusHero")}</T>
+      <LinearGradient colors={["#0b0b0f", "#2a1d8f"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+        <Pill text="SKYDROP PLUS" icon="star" color="#f5c451" bg="rgba(255,255,255,0.08)" />
+        <T style={{ color: "#fff8e1", fontSize: 28, lineHeight: 34, fontWeight: "900" }}>{t("m.plusHero")}</T>
         {current ? (
           <T v="small" style={{ color: "rgba(255,255,255,0.8)" }}>
             {t("pl.youreOn", { plan: current.plan?.name ?? "" })}
@@ -84,7 +84,7 @@ export default function PlusScreen() {
           </T>
         ) : null}
         {current && me && me.savings.totalBdt > 0 ? (
-          <T style={{ color: "#c9a24a", fontWeight: "800" }}>
+          <T style={{ color: "#f5c451", fontWeight: "800" }}>
             {t("pl.savedYou")} {bdt(me.savings.totalBdt)}
           </T>
         ) : null}
@@ -113,7 +113,7 @@ export default function PlusScreen() {
           .filter((p) => p.period === period)
           .map((p, i) => (
             <Animated.View key={p.id} entering={listEnter(i)}>
-              <Card style={[{ gap: 8 }, p.highlight && { borderWidth: 2, borderColor: c.ink }]}>
+              <Card style={[{ gap: 8 }, p.highlight && { borderWidth: 2, borderColor: "#f5c451" }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <T v="h3">{p.name}</T>
                   {p.highlight && <Pill text={t("m.popular")} color="#b45309" />}

@@ -57,9 +57,6 @@ export const en = {
   "footer.shipping": "Shipping",
   "footer.contactShort": "Contact",
   "footer.disclaimer": "Independent reseller; product names and brands belong to their owners. Products are purchased from the named Indian store on your behalf.",
-  "footer.company": "Company",
-  "footer.independent": "Skydrop Retail is independent and not affiliated with Amazon, Flipkart or BigBasket.",
-  "footer.weAccept": "We accept",
   // search & categories
   "search.storeToSearch": "Store to search",
   "search.allStores": "All stores",

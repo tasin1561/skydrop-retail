@@ -77,7 +77,7 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2">
       {earn > 0 && (
-        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-[8px] border border-line-2 px-3 text-xs font-medium text-ink-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] px-3 py-1.5 text-xs font-bold text-accent">
           <Icon name="spark" size={14} stroke={2} /> {t("px.earn", { count: earn })}
         </span>
       )}
@@ -87,8 +87,8 @@ export function ProductExtras({ id, priceBdt, inStock }: { id: string; priceBdt:
         disabled={busy}
         aria-pressed={watching}
         className={
-          "inline-flex min-h-9 items-center gap-1.5 rounded-[8px] border px-3 text-xs font-medium transition " +
-          (watching ? "border-primary bg-primary text-on-primary" : "border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink")
+          "inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold transition " +
+          (watching ? "bg-accent text-white" : "bg-surface-2 text-ink-2 hover:text-accent")
         }
       >
         <Icon name={watching ? "check" : "clock"} size={14} stroke={2} />

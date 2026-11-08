@@ -20,10 +20,12 @@ export async function PromoStrip({ store = "all" }: { store?: StoreMode }) {
   return (
     <section className={"no-scrollbar mt-6 flex gap-3 overflow-x-auto px-4 sm:grid sm:px-0 " + COLS[items.length]}>
       {items.map((it, i) => (
-        <div key={it.key} className="card rise flex min-w-[220px] items-center gap-3 px-4 py-3.5 sm:min-w-0" style={{ ["--i" as string]: i }}>
-          <Icon name={it.icon} size={20} className="shrink-0 text-ink-3" />
+        <div key={it.key} className="card rise flex min-w-[220px] items-center gap-3 p-3 sm:min-w-0" style={{ ["--i" as string]: i }}>
+          <span className="chip-icon shrink-0">
+            <Icon name={it.icon} size={18} />
+          </span>
           <div className="min-w-0">
-            <p className="text-sm font-medium">{it.title}</p>
+            <p className="text-sm font-bold">{it.title}</p>
             <p className="text-xs text-ink-2">{it.text}</p>
           </div>
         </div>

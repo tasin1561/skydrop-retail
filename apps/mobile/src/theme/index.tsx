@@ -4,84 +4,76 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SystemUI from "expo-system-ui";
 import type { StoreMode } from "@/lib/types";
 
-// Brand tokens mirror apps/web/src/app/globals.css (corporate neutral). Near-black ink, white surfaces on a light
-// grey page, ONE deep navy accent (BRAND) for focus, links and selected states. Primary actions are solid ink
-// (c.primary / c.onPrimary, inverted in dark mode). CORAL is retired: it resolves to ink so old call sites stay calm.
-export const BRAND = "#233056";
-export const BRAND_2 = "#8a94ad";
-export const BRAND_INK = "#111111";
-export const CORAL = "#111111";
-/** Flat neutral for the few dark panels (wallet, points, account header): no gradients. */
-export const PANEL = "#18181b";
+// Brand tokens mirror apps/web/src/app/globals.css ("Midnight Luxe").
+// BRAND is the primary interactive colour (electric violet); BRAND_INK is the
+// near-black brand ink; CORAL is the signal colour (discount badges, parcel, highlights).
+export const BRAND = "#5b3df5";
+export const BRAND_2 = "#a78bfa";
+export const BRAND_INK = "#111114";
+export const CORAL = "#ff4d2e";
 
 type Accent = { accent: string; accent2: string; accentDark: string; heroA: string; heroB: string; heroADark: string };
 
-// Store modes no longer recolour the app: every store uses the same neutral system and navy accent.
-const NEUTRAL: Accent = { accent: BRAND, accent2: BRAND_2, accentDark: "#34477a", heroA: PANEL, heroB: PANEL, heroADark: "#1d1d22" };
-export const ACCENTS: Record<StoreMode, Accent> = { all: NEUTRAL, amazon: NEUTRAL, flipkart: NEUTRAL, bigbasket: NEUTRAL };
+export const ACCENTS: Record<StoreMode, Accent> = {
+  all: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
+  amazon: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
+  flipkart: { accent: "#e11d74", accent2: "#fb7185", accentDark: "#f0468f", heroA: "#1a0b14", heroB: "#e11d74", heroADark: "#1a0b14" },
+  bigbasket: { accent: "#0e9f6e", accent2: "#6ee7b7", accentDark: "#22c08a", heroA: "#06281e", heroB: "#0e9f6e", heroADark: "#06281e" },
+};
 
 /**
- * Store-name text tokens (StoreName): the providers' brand colours (owner's decision), the ONLY colour accents in
- * the chrome. "All stores" is plain ink. `fill` is the neutral selected fill (white text). Mirrors the .sn tokens in
- * apps/web/src/components/store/storename.css. Names as text only, never logos.
+ * Store-name text tokens (StoreName): text-safe shades of each store's own accent. Both gradient stops pass
+ * WCAG AA (4.5:1) on surface, bg, surface2 and the pill tint; `fill` is the selected fill (white text >= 5.3:1).
+ * Mirrors the .sn tokens in apps/web/src/components/store/storename.css. No third-party colours.
  */
 export type StoreTextTokens = { a: string; b: string; ring: string };
-const FILL: [string, string] = ["#111111", "#111111"];
 export const STORE_TEXT: Record<StoreMode, { light: StoreTextTokens; dark: StoreTextTokens; fill: [string, string] }> = {
-  all: { light: { a: "#111111", b: "#111111", ring: "#cfcfca" }, dark: { a: "#f2f2f3", b: "#f2f2f3", ring: "#3a3a42" }, fill: FILL },
+  all: { light: { a: "#5b3df5", b: "#c0301a", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#ff7a5c", ring: "#7c6cff" }, fill: ["#5b3df5", "#c0301a"] },
   // Store names in each provider's brand colours (owner's decision): Amazon ink + orange, Flipkart blue + yellow, BigBasket green.
-  amazon: { light: { a: "#232f3e", b: "#c45500", ring: "#ff9900" }, dark: { a: "#ff9900", b: "#ffb84d", ring: "#ff9900" }, fill: FILL },
-  flipkart: { light: { a: "#2874f0", b: "#1a56c4", ring: "#2874f0" }, dark: { a: "#5b9bff", b: "#ffe11b", ring: "#2874f0" }, fill: FILL },
-  bigbasket: { light: { a: "#4e8a16", b: "#5f9e1c", ring: "#84c225" }, dark: { a: "#9bd43a", b: "#c6e86e", ring: "#84c225" }, fill: FILL },
+  amazon: { light: { a: "#232f3e", b: "#c45500", ring: "#ff9900" }, dark: { a: "#ff9900", b: "#ffb84d", ring: "#ff9900" }, fill: ["#232f3e", "#232f3e"] },
+  flipkart: { light: { a: "#2874f0", b: "#1a56c4", ring: "#2874f0" }, dark: { a: "#5b9bff", b: "#ffe11b", ring: "#2874f0" }, fill: ["#2874f0", "#2874f0"] },
+  bigbasket: { light: { a: "#4e8a16", b: "#5f9e1c", ring: "#84c225" }, dark: { a: "#9bd43a", b: "#c6e86e", ring: "#84c225" }, fill: ["#4e8a16", "#4e8a16"] },
 };
 
 const light = {
   dark: false,
-  bg: "#f6f6f4",
+  bg: "#f7f7f4",
   surface: "#ffffff",
-  surface2: "#f4f4f2", // image wells, quiet fills
-  ink: "#111111",
-  ink2: "#4b4b52",
-  ink3: "#6b6b73", // 4.9:1 on bg: secondary text stays AA
-  line: "#e3e3df",
-  line2: "#cfcfca", // outline buttons, inputs
-  good: "#1a7f4b",
-  warn: "#8a5a00",
-  bad: "#b42318",
-  star: "#b7791f",
-  brand: BRAND, // navy accent: links, focus, selected
+  surface2: "#f0efe9",
+  ink: "#0b0b0f",
+  ink2: "#55555f",
+  ink3: "#9a9aa3",
+  line: "#e7e5de",
+  good: "#0e9f6e",
+  warn: "#d97706",
+  bad: "#e5363d",
+  brand: BRAND,
   brandInk: BRAND_INK,
   coral: CORAL,
-  primary: "#111111",
-  onPrimary: "#ffffff",
-  shadow: "#000000",
-  skeleton: "#ececea",
-  overlay: "rgba(17,17,17,0.45)",
+  shadow: "#14103c",
+  skeleton: "#ebe9e2",
+  overlay: "rgba(11,11,15,0.45)",
 };
 
 export type Palette = typeof light;
 
 const dark: Palette = {
   dark: true,
-  bg: "#0e0e10",
-  surface: "#16161a",
-  surface2: "#1d1d22",
-  ink: "#f2f2f3",
-  ink2: "#b4b4bc",
-  ink3: "#8c8c96",
-  line: "#2a2a31",
-  line2: "#3a3a42",
-  good: "#4cc38a",
-  warn: "#e0a84a",
-  bad: "#f07a70",
-  star: "#d9a441",
-  brand: "#a9b6d9",
-  brandInk: "#f2f2f3",
-  coral: "#2c2c33", // retired coral: a dark neutral that keeps white badge text readable
-  primary: "#f2f2f3",
-  onPrimary: "#0e0e10",
+  bg: "#09090c",
+  surface: "#131318",
+  surface2: "#1b1b22",
+  ink: "#f4f4f6",
+  ink2: "#a8a8b3",
+  ink3: "#6b6b78",
+  line: "#26262f",
+  good: "#22c08a",
+  warn: "#f59e0b",
+  bad: "#f87171",
+  brand: "#7c6cff",
+  brandInk: "#f4f4f6",
+  coral: CORAL,
   shadow: "#000000",
-  skeleton: "#1f1f25",
+  skeleton: "#1f1f27",
   overlay: "rgba(0,0,0,0.6)",
 };
 
@@ -132,9 +124,8 @@ export function useAccent(mode: StoreMode = "all") {
     ...a,
     accent,
     heroA: c.dark ? a.heroADark : a.heroA,
-    // "soft" fills are neutral grey (no tinted chips); accent text is the navy (lifted in dark mode)
-    soft: withAlpha(c.ink, c.dark ? 0.08 : 0.05),
-    ink: c.brand,
+    soft: withAlpha(accent, c.dark ? 0.16 : 0.11),
+    ink: c.dark ? a.accent2 : a.accent,
   };
 }
 
@@ -144,20 +135,22 @@ export function withAlpha(hex: string, alpha: number) {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
-export const radius = { sm: 8, md: 10, lg: 12, pill: 999 }; // 8px controls, 10-12px cards
+export const radius = { sm: 12, md: 16, lg: 20, pill: 999 }; // lg = 20px card radius (Midnight Luxe)
 
-/** Minimal elevation: hairlines carry structure, shadows are barely there (sheets and popovers use level 2). */
+/** Soft card shadow that works on both platforms. */
 export function shadow(c: Palette, level: 1 | 2 = 1) {
   return Platform.select({
     ios: {
       shadowColor: c.shadow,
-      shadowOpacity: c.dark ? 0.35 : level === 1 ? 0.03 : 0.08,
-      shadowRadius: level === 1 ? 2 : 16,
-      shadowOffset: { width: 0, height: level === 1 ? 1 : 6 },
+      shadowOpacity: c.dark ? 0.4 : level === 1 ? 0.06 : 0.1,
+      shadowRadius: level === 1 ? 8 : 18,
+      shadowOffset: { width: 0, height: level === 1 ? 2 : 8 },
     },
-    android: { elevation: level === 1 ? 0 : 4, shadowColor: c.shadow },
+    android: { elevation: level === 1 ? 2 : 6, shadowColor: c.shadow },
     default: {
-      boxShadow: level === 1 ? `0 0 0 1px ${c.line}` : c.dark ? `0 0 0 1px ${c.line}, 0 10px 28px rgba(0,0,0,.6)` : `0 0 0 1px ${c.line}, 0 8px 24px rgba(17,17,17,.12)`,
+      boxShadow: c.dark
+        ? level === 1 ? "0 1px 2px rgba(0,0,0,.5)" : "0 10px 36px rgba(0,0,0,.55)"
+        : level === 1 ? "0 1px 1px rgba(0,0,0,.04), 0 6px 20px rgba(20,16,60,.06)" : "0 2px 6px rgba(20,16,60,.06), 0 18px 44px rgba(20,16,60,.12)",
     },
   }) as object;
 }

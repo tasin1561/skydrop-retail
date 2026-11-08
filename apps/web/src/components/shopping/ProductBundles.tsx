@@ -34,7 +34,7 @@ export async function BundleCard({ b }: { b: Bundle }) {
       {b.items && b.items.length > 0 && (
         <div className="flex -space-x-3">
           {b.items.slice(0, 4).map(({ product }) => (
-            <span key={product.id} className="h-14 w-14 overflow-hidden rounded-xl img-well bg-surface-2 p-1 shadow-[var(--shadow-1)] ring-2 ring-[var(--surface)]">
+            <span key={product.id} className="h-14 w-14 overflow-hidden rounded-xl bg-white p-1 shadow-[var(--shadow-1)] ring-2 ring-[var(--surface)]">
               <ProductImage p={product} className="h-full w-full" />
             </span>
           ))}

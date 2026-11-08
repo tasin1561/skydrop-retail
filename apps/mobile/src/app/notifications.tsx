@@ -7,7 +7,7 @@ import { Empty, IconChip, Skeleton, T, Tap } from "@/components/ui";
 import { haptic } from "@/lib/haptics";
 import { CHIP, timeAgo, useNotifications } from "@/lib/notifications";
 import { openFromNotification } from "@/lib/push";
-import { radius, useTheme } from "@/theme";
+import { radius, useTheme, withAlpha } from "@/theme";
 import { useStore } from "@/state/store";
 import type { AppNotification } from "@/api/messaging";
 import { useT } from "@/i18n";
@@ -116,7 +116,7 @@ function Row({ n, index, onRead, onRemove }: { n: AppNotification; index: number
         accessibilityLabel={`${n.read ? "" : t("m.unreadPrefix")}${n.title}. ${n.body ?? ""}. ${t("m.longPressDelete")}`}
         accessibilityActions={[{ name: "delete", label: t("nt.deleteN") }]}
         onAccessibilityAction={(e) => e.nativeEvent.actionName === "delete" && onRemove(n.id)}
-        style={[styles.row, { backgroundColor: n.read ? c.surface : c.surface2, borderColor: c.line }]}
+        style={[styles.row, { backgroundColor: n.read ? c.surface : withAlpha(c.brand, c.dark ? 0.14 : 0.06), borderColor: c.line }]}
       >
         <IconChip icon={icon} color={color} size={40} />
         <View style={{ flex: 1, minWidth: 0 }}>

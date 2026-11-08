@@ -10,30 +10,30 @@ import { useT } from "@/i18n/client";
 
 // Icon chip per notification type: [icon, color]
 const CHIP: Record<string, [string, string]> = {
-  order_placed: ["receipt", "var(--ink-2)"],
+  order_placed: ["receipt", "var(--accent)"],
   payment_received: ["wallet", "var(--good)"],
   payment_failed: ["card", "var(--bad)"],
-  payment_pending: ["clock", "var(--ink-2)"],
-  order_verified: ["shield", "var(--ink-2)"],
-  order_purchased: ["bag", "var(--ink-2)"],
-  order_india_hub: ["package", "var(--ink-2)"],
-  order_in_transit: ["plane", "var(--ink-2)"],
-  order_dhaka_hub: ["pin", "var(--ink-2)"],
-  order_out_for_delivery: ["truck", "var(--ink-2)"],
+  payment_pending: ["clock", "#d97706"],
+  order_verified: ["shield", "var(--accent)"],
+  order_purchased: ["bag", "var(--accent)"],
+  order_india_hub: ["package", "#0891b2"],
+  order_in_transit: ["plane", "#0891b2"],
+  order_dhaka_hub: ["pin", "#0891b2"],
+  order_out_for_delivery: ["truck", "#d97706"],
   order_delivered: ["check", "var(--good)"],
   order_cancelled: ["x", "var(--bad)"],
-  review_request: ["star", "var(--ink-2)"],
-  points_expiring: ["tag", "var(--ink-2)"],
+  review_request: ["star", "#eab308"],
+  points_expiring: ["tag", "#9333ea"],
   price_drop: ["tag", "var(--good)"],
-  back_in_stock: ["bolt", "var(--ink-2)"],
-  cart_reminder_1h: ["cart", "var(--ink-2)"],
-  welcome: ["spark", "var(--ink-2)"],
-  broadcast: ["megaphone", "var(--ink-2)"],
+  back_in_stock: ["bolt", "var(--accent)"],
+  cart_reminder_1h: ["cart", "#9333ea"],
+  welcome: ["spark", "var(--accent)"],
+  broadcast: ["megaphone", "#9333ea"],
   custom: ["info", "var(--ink-2)"],
 };
 
 export function chipFor(n: Pick<AppNotification, "type" | "icon">): [string, string] {
-  return CHIP[n.type] ?? [n.icon ?? "info", "var(--ink-2)"];
+  return CHIP[n.type] ?? [n.icon ?? "info", "var(--accent)"];
 }
 
 type Props = {

@@ -57,7 +57,7 @@ export default function BundleScreen() {
       <Stack.Screen options={{ title: b.title }} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120, gap: 12 }}>
         <Card pad={0} style={{ overflow: "hidden" }}>
-          <LinearGradient colors={[a.heroA, a.heroA]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, gap: 8 }}>
+          <LinearGradient colors={[a.heroA ?? "#0b0b0f", a.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, gap: 8 }}>
             <View style={styles.badge}>
               <Icon name="package" size={13} color="#fff" />
               <T v="tiny" tone="white" style={{ fontWeight: "800" }}>{t("bundle.badge", { count: b.count })}</T>

@@ -47,7 +47,7 @@ export type StoreNameProps = {
   className?: string;
 };
 
-/** A store's name as text in its brand colours: the only way stores are identified (no logos or icons). */
+/** A store's name as text in its own gradient: the only way stores are identified (no logos or icons). */
 export function StoreName({ mode, variant = "plain", name, source, fill, bare, tone, size, className = "" }: StoreNameProps) {
   const { t } = useT();
   const ref = useRef<HTMLSpanElement>(null);
@@ -55,9 +55,9 @@ export function StoreName({ mode, variant = "plain", name, source, fill, bare, t
   const s = storeText(mode, t);
   const label = name ?? s.name;
   const src = typeof source === "string" ? source : source && isMarket(mode) ? s.source : null;
-  const muted = fill ? "opacity-80" : tone === "dark" ? "text-white/75" : "text-ink-3";
-  const weight = variant === "hero" ? "font-semibold leading-[1.15] tracking-[-0.01em]" : "font-semibold";
-  const fontSize = size ?? (variant === "hero" ? "text-2xl sm:text-[28px]" : variant === "pill" ? "text-sm" : "");
+  const muted = fill ? "text-white/85" : tone === "dark" ? "text-white/75" : "text-ink-2";
+  const weight = variant === "hero" ? "font-extrabold leading-[1.1] tracking-tight" : "font-bold";
+  const fontSize = size ?? (variant === "hero" ? "text-[26px] sm:text-3xl" : variant === "pill" ? "text-sm" : "");
   return (
     <span
       ref={ref}
@@ -70,7 +70,7 @@ export function StoreName({ mode, variant = "plain", name, source, fill, bare, t
       <span className="sn-g">{label}</span>
       {src &&
         (variant === "hero" ? (
-          <span className={"mt-1 block text-sm font-normal tracking-normal " + muted}>{t("home.sourcedFrom", { source: src })}</span>
+          <span className={"mt-1 block text-sm font-semibold tracking-normal " + muted}>{t("home.sourcedFrom", { source: src })}</span>
         ) : (
           <span className={(variant === "pill" ? "" : "ml-1.5 ") + "whitespace-nowrap text-[0.8em] font-medium " + muted}>
             <span aria-hidden>· </span>

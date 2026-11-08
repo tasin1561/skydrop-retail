@@ -75,11 +75,11 @@ export async function ProductDetail({
   const badges = (
     <>
       {discountPct(p) >= 10 && (
-        <span className="rounded-[4px] bg-ink px-1.5 py-0.5 text-[12px] font-medium tabular-nums text-surface">-{digits(discountPct(p))}%</span>
+        <span className="rounded-full bg-brand-2 px-2.5 py-1 text-[11px] font-bold text-white shadow-[var(--glow)]">-{digits(discountPct(p))}%</span>
       )}
       {p.bestSeller && (
-        <span className="inline-flex items-center gap-1 rounded-[4px] border border-line-2 bg-surface px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink-2">
-           {t("card.bestSeller")}
+        <span className="inline-flex items-center gap-1 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink shadow-[var(--shadow-1)] backdrop-blur">
+          <Icon name="spark" size={12} className="text-accent" /> {t("card.bestSeller")}
         </span>
       )}
     </>
@@ -154,7 +154,7 @@ export async function ProductDetail({
                   </span>
                 )}
               </div>
-              {p.brand && <p className="mt-2 text-sm font-medium text-ink underline decoration-line-2 underline-offset-4">{p.brand}</p>}
+              {p.brand && <p className="mt-2 text-sm font-semibold text-accent">{p.brand}</p>}
             </div>
             <div className="flex shrink-0 gap-2">
               <ShareButton title={p.title} path={`/p/${encodeURIComponent(p.id)}`} qr />
@@ -242,7 +242,7 @@ export async function ProductDetail({
                   const m = b.match(/^\s*\[([^\]]+)\]\s*:?\s*([\s\S]*)$/) ?? b.match(/^([^:]{3,60}):\s+([\s\S]*)$/);
                   return (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed text-ink-2">
-                      <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center text-ink-3">
+                      <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-accent">
                         <Icon name="check" size={12} stroke={2.8} />
                       </span>
                       <span>

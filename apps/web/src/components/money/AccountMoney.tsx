@@ -66,7 +66,7 @@ export function AccountMoney() {
     <section aria-label={t("am.aria")} className="mt-4 grid gap-3 sm:grid-cols-2">
       {walletOn && (
         <Link href="/account/wallet" className="card rise group flex items-center gap-3 p-4 transition-transform hover:-translate-y-0.5" style={{ ["--i" as string]: 4 }}>
-          <span className="chip-icon transition">
+          <span className="chip-icon transition group-hover:bg-accent group-hover:text-white">
             <Icon name="wallet" size={18} />
           </span>
           <span className="min-w-0 flex-1">

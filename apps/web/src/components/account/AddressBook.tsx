@@ -120,7 +120,7 @@ export function AddressBook() {
         className="group mt-4 flex min-h-16 w-full items-center gap-3 rounded-[12px] p-4 text-left transition hover:-translate-y-0.5"
         style={{ background: "color-mix(in srgb, var(--accent) 6%, var(--surface))", boxShadow: "inset 0 0 0 1.5px var(--accent-soft)" }}
       >
-        <span className="chip-icon transition">
+        <span className="chip-icon transition group-hover:bg-accent group-hover:text-white">
           <Icon name="plus" size={18} />
         </span>
         <span className="flex-1">

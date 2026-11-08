@@ -41,7 +41,7 @@ function Wishlist() {
       <g className="ea-beat" >
         <path
           d="M80 54c-14-9-24-17-24-28 0-7 5-12 11-12 5 0 10 3 13 8 3-5 8-8 13-8 6 0 11 5 11 12 0 11-10 19-24 28z"
-          fill="var(--ink-3)"
+          fill="rgb(244 63 94)"
         />
         <path d="M66 22c2-3 5-4 8-3" stroke="#fff" strokeOpacity=".7" strokeWidth="3" strokeLinecap="round" fill="none" />
       </g>

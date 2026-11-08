@@ -58,9 +58,6 @@ export const bn: Messages = {
   "footer.shipping": "শিপিং",
   "footer.contactShort": "যোগাযোগ",
   "footer.disclaimer": "স্বাধীন রিসেলার; পণ্যের নাম ও ব্র্যান্ড তাদের নিজ নিজ মালিকের। উল্লেখিত ইন্ডিয়ান স্টোর থেকে আপনার হয়ে পণ্য কেনা হয়।",
-  "footer.company": "প্রতিষ্ঠান",
-  "footer.independent": "Skydrop Retail একটি স্বাধীন প্রতিষ্ঠান; Amazon, Flipkart বা BigBasket-এর সাথে এর কোনো সম্পর্ক নেই।",
-  "footer.weAccept": "পেমেন্ট মাধ্যম",
   // search & categories
   "search.storeToSearch": "কোন স্টোরে খুঁজবেন",
   "search.allStores": "সব স্টোর",

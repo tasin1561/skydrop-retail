@@ -115,7 +115,7 @@ export function Gallery({
           <div
             ref={railRef}
             onScroll={onScroll}
-            className="img-well no-scrollbar snap-x-rail flex overflow-x-auto bg-surface-2 lg:hidden"
+            className="no-scrollbar snap-x-rail flex overflow-x-auto bg-white lg:hidden"
             aria-roledescription="carousel"
             aria-label={t("gal.photos")}
           >
@@ -150,7 +150,7 @@ export function Gallery({
           </div>
 
           {/* desktop: main image */}
-          <div className="img-well relative hidden aspect-square overflow-hidden rounded-[12px] bg-surface-2 lg:block">
+          <div className="relative hidden aspect-square overflow-hidden rounded-[12px] bg-white shadow-[var(--shadow-1)] lg:block">
             <button
               type="button"
               onClick={(e) => open(idx, current?.kind === "video", e.currentTarget)}

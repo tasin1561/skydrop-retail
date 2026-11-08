@@ -32,9 +32,9 @@ export function WishButton({ id, small }: { id: string; small?: boolean }) {
         });
       }}
       className={
-        "heart relative grid place-items-center rounded-full bg-surface/90 backdrop-blur transition hover:bg-surface active:scale-[0.98] " +
+        "heart relative grid place-items-center rounded-full bg-surface/90 shadow-[var(--shadow-1)] backdrop-blur transition hover:bg-surface active:scale-[0.98] " +
         (small ? "h-9 w-9 after:absolute after:-inset-1 after:content-['']" : "h-11 w-11") +
-        (on ? " text-ink" : " text-ink-3")
+        (on ? " text-rose-500" : " text-ink-2")
       }
     >
       <span key={burst} className={burst && on ? "pop inline-grid" : "inline-grid"}>

@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useStore } from "@/state/store";
-import { useTheme, PANEL, type ThemePref } from "@/theme";
+import { useTheme, BRAND, type ThemePref } from "@/theme";
 import { prettyPhone } from "@/lib/phone";
 import { haptic } from "@/lib/haptics";
 import { Button, Card, Divider, IconChip, Pill, T, Tap } from "@/components/ui";
@@ -58,9 +58,9 @@ export default function Account() {
     <ScrollView style={{ flex: 1, backgroundColor: c.bg }} contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: 32, gap: 14 }}>
       <T v="h1" accessibilityRole="header">{t("acc.account")}</T>
 
-      <LinearGradient colors={[PANEL, PANEL]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <View style={styles.avatar}>
-          <Icon name="user" size={26} color={PANEL} />
+          <Icon name="user" size={26} color={BRAND} />
         </View>
         <View style={{ flex: 1 }}>
           {user ? (

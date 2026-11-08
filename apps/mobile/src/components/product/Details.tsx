@@ -229,7 +229,7 @@ export function Reviews({ p }: { p: Product }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
             <View style={{ flexDirection: "row" }}>
               {Array.from({ length: 5 }, (_, s) => (
-                <Icon key={s} name="star" size={12} color={s < Math.round(r.rating) ? c.star : c.line} />
+                <Icon key={s} name="star" size={12} color={s < Math.round(r.rating) ? "#f59e0b" : c.line} />
               ))}
             </View>
             <T v="small" style={{ fontWeight: "800", flex: 1 }} numberOfLines={1}>

@@ -3,11 +3,11 @@ import { getProduct } from "@/lib/data";
 import { STORES } from "@/lib/markets";
 import { priceBdt } from "@/lib/pricing";
 
-// Store name as text in the provider's brand colour (same light-mode stops as StoreName); the chip itself is neutral.
+// Store chip in our own per-store gradient (same text-safe stops as StoreName); no third-party colours.
 const OG_FILL: Record<string, string> = {
-  amazon: "#232f3e",
-  flipkart: "#2874f0",
-  bigbasket: "#4e8a16",
+  amazon: "linear-gradient(100deg, #5b3df5, #9426c4)",
+  flipkart: "linear-gradient(100deg, #c8185f, #b8361a)",
+  bigbasket: "linear-gradient(100deg, #0a7a55, #0b7287)",
 };
 
 // Per-product social card: product image, title, BDT price, origin store chip and Skydrop Retail branding.
@@ -45,11 +45,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const p = await getProduct(decodeURIComponent(id));
   const brand = (
     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: "#111111", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 600 }}>
+      <div style={{ width: 46, height: 46, borderRadius: 14, background: "#ff4d2e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 800 }}>
         S
       </div>
-      <div style={{ display: "flex", fontSize: 30, fontWeight: 600, color: "#111111" }}>
-        Skydrop<span style={{ color: "#4b4b52", fontWeight: 400, marginLeft: 8 }}>Retail</span>
+      <div style={{ display: "flex", fontSize: 30, fontWeight: 800, color: "#0b0b0f" }}>
+        Skydrop<span style={{ color: "#ff4d2e", marginLeft: 8 }}>Retail</span>
       </div>
     </div>
   );
@@ -57,9 +57,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   if (!p) {
     return new ImageResponse(
       (
-        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#f6f6f4", gap: 24 }}>
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#f7f7f4", gap: 24 }}>
           {brand}
-          <div style={{ fontSize: 56, fontWeight: 600, color: "#111111" }}>Shop Indian stores from Bangladesh</div>
+          <div style={{ fontSize: 56, fontWeight: 800, color: "#0b0b0f" }}>Shop Indian stores from Bangladesh</div>
         </div>
       ),
       size,
@@ -70,16 +70,17 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const store = STORES[p.market];
   const price = priceBdt(p);
   const title = p.title.length > 110 ? p.title.slice(0, 107).trimEnd() + "..." : p.title;
+  const hue = p.placeholder?.hue ?? 210;
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "#f6f6f4", padding: 48, gap: 48 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(135deg, #f7f7f4 0%, #ece8fe 100%)", padding: 48, gap: 48 }}>
         <div
           style={{
             width: 534,
             height: 534,
             borderRadius: 36,
-            background: img ? "#ffffff" : "#f4f4f2",
+            background: img ? "#ffffff" : `hsl(${hue} 70% 92%)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -91,26 +92,26 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             // eslint-disable-next-line jsx-a11y/alt-text
             <img src={img} width={470} height={470} style={{ objectFit: "contain" }} />
           ) : (
-            <div style={{ fontSize: 160, color: "#6b6b73", fontWeight: 600 }}>{(p.brand || p.title).slice(0, 1).toUpperCase()}</div>
+            <div style={{ fontSize: 160, color: `hsl(${hue} 60% 45%)`, fontWeight: 800 }}>{(p.brand || p.title).slice(0, 1).toUpperCase()}</div>
           )}
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", paddingTop: 8, paddingBottom: 8 }}>
           {brand}
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 18px", borderRadius: 8, background: "#ffffff", border: "1px solid #cfcfca", color: OG_FILL[p.market], fontSize: 22, fontWeight: 600 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 18px", borderRadius: 999, background: OG_FILL[p.market], color: "#fff", fontSize: 22, fontWeight: 700 }}>
                 {store.name} · from {store.source}
               </div>
             </div>
-            <div style={{ fontSize: title.length > 70 ? 38 : 46, fontWeight: 600, color: "#111111", lineHeight: 1.15 }}>{title}</div>
-            {p.brand ? <div style={{ fontSize: 24, color: "#4b4b52", fontWeight: 600 }}>{p.brand}</div> : null}
+            <div style={{ fontSize: title.length > 70 ? 38 : 46, fontWeight: 800, color: "#0b0b0f", lineHeight: 1.15 }}>{title}</div>
+            {p.brand ? <div style={{ fontSize: 24, color: "#55555f", fontWeight: 600 }}>{p.brand}</div> : null}
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 22, color: "#4b4b52", fontWeight: 600 }}>Delivered to Bangladesh</div>
-              <div style={{ fontSize: 64, fontWeight: 600, color: "#111111" }}>{bdt(price)}</div>
+              <div style={{ fontSize: 22, color: "#55555f", fontWeight: 600 }}>Delivered to Bangladesh</div>
+              <div style={{ fontSize: 64, fontWeight: 800, color: "#5b3df5" }}>{bdt(price)}</div>
             </div>
-            <div style={{ display: "flex", fontSize: 20, color: "#4b4b52", fontWeight: 600 }}>Price verified at checkout</div>
+            <div style={{ display: "flex", fontSize: 20, color: "#55555f", fontWeight: 600 }}>Price verified at checkout</div>
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Text as RNText, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-import { STORE_TEXT, useTheme } from "@/theme";
+import { STORE_TEXT, useTheme, withAlpha } from "@/theme";
 import { isMarket, storeText } from "@/lib/markets";
 import type { StoreMode } from "@/lib/types";
 import { useT } from "@/i18n";
@@ -65,7 +65,7 @@ type Props = {
   textStyle?: StyleProp<TextStyle>;
 };
 
-const SIZE = { plain: 15, pill: 13, hero: 22 };
+const SIZE = { plain: 15, pill: 13, hero: 26 };
 
 /** A store's name as its own highlighted, gradient text. The only way a store is identified in the app. */
 export function StoreName({ mode, variant = "plain", name, source, fill, tone, size, style, textStyle }: Props) {
@@ -80,10 +80,10 @@ export function StoreName({ mode, variant = "plain", name, source, fill, tone, s
   const text: TextStyle = {
     fontSize: fs,
     lineHeight: Math.round(fs * 1.25),
-    fontWeight: "600",
-    letterSpacing: variant === "hero" ? -0.3 : 0,
+    fontWeight: variant === "hero" ? "800" : "700",
+    letterSpacing: variant === "hero" ? -0.4 : 0,
   };
-  const muted = fill ? "rgba(255,255,255,0.8)" : tone === "dark" ? "rgba(255,255,255,0.75)" : c.ink3;
+  const muted = fill ? "rgba(255,255,255,0.85)" : tone === "dark" ? "rgba(255,255,255,0.75)" : c.ink2;
 
   // ---- the shine: a band clipped to the text box, its contents counter-translated so the glyphs line up
   const [w, setW] = useState(0);
@@ -96,7 +96,7 @@ export function StoreName({ mode, variant = "plain", name, source, fill, tone, s
   }, [w, band, reduce, fill, x]);
   const bandStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   const innerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: -x.value }] }));
-  const shine = fill ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.55)"; // subtle one-time sweep
+  const shine = fill ? "#ffe3d6" : "rgba(255,255,255,0.85)";
 
   const nameNode = (
     <View
@@ -128,7 +128,7 @@ export function StoreName({ mode, variant = "plain", name, source, fill, tone, s
       <View style={style}>
         {nameNode}
         {src && (
-          <T v="small" style={{ color: muted, fontWeight: "400", marginTop: 2 }}>
+          <T v="small" style={{ color: muted, fontWeight: "600", marginTop: 2 }}>
             {t("home.sourcedFrom", { source: src })}
           </T>
         )}
@@ -155,8 +155,7 @@ export function StoreName({ mode, variant = "plain", name, source, fill, tone, s
           {inner}
         </LinearGradient>
       );
-    // unselected: plain text, no tinted pill behind the name
-    return <View style={[box, { paddingHorizontal: 0 }, style]}>{inner}</View>;
+    return <View style={[box, { backgroundColor: withAlpha(k.ring, 0.11), borderWidth: 1, borderColor: withAlpha(k.ring, 0.55) }, style]}>{inner}</View>;
   }
   return <View style={[{ flexDirection: "row", alignItems: "center", flexShrink: 1 }, style]}>{inner}</View>;
 }

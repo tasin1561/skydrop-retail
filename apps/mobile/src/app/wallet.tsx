@@ -8,7 +8,7 @@ import { ApiError, isDemo } from "@/api/client";
 import { formatGiftCode, moneyApi, type Wallet } from "@/api/money";
 import { useStore } from "@/state/store";
 import { useFeature } from "@/lib/features";
-import { PANEL, useTheme } from "@/theme";
+import { BRAND, useTheme } from "@/theme";
 import { Button, Card, Divider, Empty, IconChip, Skeleton, T } from "@/components/ui";
 import { useT } from "@/i18n";
 import { hasKey, type MsgKey } from "@/i18n";
@@ -84,7 +84,7 @@ export default function WalletScreen() {
         />
       }
     >
-      <LinearGradient colors={[PANEL, PANEL]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+      <LinearGradient colors={["#0b0b0f", BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
         <T v="small" style={{ color: "rgba(255,255,255,0.85)", fontWeight: "700" }}>{t("wallet.name")}</T>
         {w ? (
           <T style={{ color: "#fff", fontSize: 42, lineHeight: 48, fontWeight: "900", fontVariant: ["tabular-nums"] }}>{bdt(w.balanceBdt)}</T>

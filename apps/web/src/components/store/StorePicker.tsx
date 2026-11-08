@@ -98,7 +98,7 @@ function PickerDialog({ modes, onDone }: { modes: StoreMode[]; onDone: () => voi
       <div className="overflow-y-auto overscroll-contain">
         <div className="flex items-start gap-3 px-5 pb-1 pt-5 sm:px-7 sm:pt-7">
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="text-xl font-semibold tracking-[-0.01em] sm:text-2xl">
+            <h2 id={titleId} className="text-xl font-extrabold tracking-tight sm:text-2xl">
               {t("picker.title")}
             </h2>
             <p id={leadId} className="mt-1 text-sm text-ink-2">
@@ -125,14 +125,14 @@ function PickerDialog({ modes, onDone }: { modes: StoreMode[]; onDone: () => voi
                   type="button"
                   data-store={m}
                   onClick={() => choose(m, "card")}
-                  className="sp-card group relative flex h-full w-full items-center gap-3 overflow-hidden rounded-[12px] border border-line bg-surface p-3.5 text-left sm:flex-col sm:items-start sm:gap-0 sm:p-4"
+                  className="sp-card group relative flex h-full w-full items-center gap-3 overflow-hidden rounded-[14px] border border-line bg-surface p-3.5 text-left sm:flex-col sm:items-start sm:gap-0 sm:p-4"
                 >
-                  <span aria-hidden className="absolute inset-y-0 left-0 w-[2px] bg-accent sm:inset-x-0 sm:bottom-auto sm:top-0 sm:h-[2px] sm:w-auto" />
+                  <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent sm:inset-x-0 sm:bottom-auto sm:top-0 sm:h-1 sm:w-auto" />
                   <span className="min-w-0 flex-1 pl-1 sm:w-full sm:pl-0 sm:pt-1">
-                    <StoreName mode={m} variant="hero" source size="text-[20px] sm:text-[22px]" />
+                    <StoreName mode={m} variant="hero" source size="text-[22px] sm:text-[26px]" />
                     <span className="mt-2 block text-xs leading-snug text-ink-2">{s.categories.slice(0, 3).map((c) => c.label).join(" · ")}</span>
                   </span>
-                  <Icon name="arrow" size={18} className="shrink-0 text-ink-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-ink sm:hidden" />
+                  <Icon name="arrow" size={18} className="shrink-0 text-ink-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-accent sm:hidden" />
                 </button>
               </li>
             );
@@ -144,7 +144,7 @@ function PickerDialog({ modes, onDone }: { modes: StoreMode[]; onDone: () => voi
             type="button"
             data-store="all"
             onClick={() => choose("all", "browse_all")}
-            className="sp-card flex min-h-[52px] w-full items-center gap-3 rounded-[12px] border border-line bg-surface px-3.5 py-2.5 text-left"
+            className="sp-card flex min-h-[52px] w-full items-center gap-3 rounded-[14px] border border-dashed border-line bg-surface-2/60 px-3.5 py-2.5 text-left"
           >
             <span className="min-w-0 flex-1">
               <StoreName mode="all" name={t("picker.browseAll")} size="text-[15px]" className="block" />

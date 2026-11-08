@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { api } from "@/api/client";
 import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
-import { radius, useTheme } from "@/theme";
+import { STORE_TEXT, radius, useTheme, withAlpha } from "@/theme";
 import { StoreSwitcher } from "@/components/StoreSwitcher";
 import { CategoryChips, HowItWorks, Rail, SearchBar, StoreHero, useAsync } from "@/components/Shop";
 import { IconButton, Pill, T, Tap } from "@/components/ui";
@@ -132,10 +132,11 @@ export default function Home() {
 function StoreTile({ m }: { m: MarketId }) {
   const { t } = useT();
   const { c } = useTheme();
+  const a = STORE_TEXT[m][c.dark ? "dark" : "light"];
   const s = STORES[m];
   return (
     <Tap style={{ flex: 1 }} onPress={() => router.push(`/store/${m}`)} accessibilityLabel={t("m.storeTileA11y", { name: s.name, source: s.source })}>
-      <View style={[styles.tile, { backgroundColor: c.surface, borderColor: c.line }]}>
+      <View style={[styles.tile, { backgroundColor: withAlpha(a.ring, c.dark ? 0.12 : 0.07), borderColor: withAlpha(a.ring, 0.35) }]}>
         <StoreName mode={m} size={17} />
         <T v="tiny" tone="ink2" style={{ marginTop: 4 }} numberOfLines={1}>
           {s.source}

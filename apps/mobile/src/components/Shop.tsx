@@ -1,55 +1,60 @@
 // Home / store building blocks: hero, category chips, product rail, how-it-works.
 import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated from "react-native-reanimated";
 import { router } from "expo-router";
 import type { Product, StoreMode } from "@/lib/types";
 import { STORES , storeText } from "@/lib/markets";
-import { radius, useTheme } from "@/theme";
+import { ACCENTS, radius, useAccent, useTheme } from "@/theme";
 import { Icon } from "./Icon";
 import { ProductCard, ProductCardSkeleton } from "./ProductCard";
-import { Card, SectionTitle, T, Tap } from "./ui";
+import { Card, IconChip, SectionTitle, T, Tap } from "./ui";
 import { haptic } from "@/lib/haptics";
 import { useT } from "@/i18n";
 import type { MsgKey } from "@/i18n";
 import { enterFade, listEnter } from "@/lib/motion";
 import { StoreName } from "./StoreName";
 
-/** Calm, light hero card: eyebrow, headline, one line of value, a solid ink search action. No gradient. */
 export function StoreHero({ mode }: { mode: StoreMode }) {
   const { t } = useT();
-  const { c } = useTheme();
   const s = storeText(mode, t);
+  const a = ACCENTS[mode];
 
   return (
     <Animated.View key={mode} entering={enterFade} style={{ marginHorizontal: 16 }}>
-      <View style={[styles.hero, { backgroundColor: c.surface, borderColor: c.line }]}>
-        <View style={{ gap: 8 }}>
-          {mode === "all" ? (
-            <T v="tiny" tone="ink3">
-              Skydrop Retail
-            </T>
-          ) : (
-            <StoreName mode={mode} size={13} source />
-          )}
-          <T v="h2" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.3 }}>
+      <LinearGradient colors={[a.heroA, a.heroA, a.heroB]} locations={[0, 0.6, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+        <View style={{ flex: 1, gap: 8 }}>
+          <View style={styles.heroTag}>
+            {mode === "all" ? (
+              <T v="tiny" tone="white" style={{ fontWeight: "800" }}>
+                {t("m.allStoresCaps")}
+              </T>
+            ) : (
+              <StoreName mode={mode} tone="dark" size={13} source />
+            )}
+          </View>
+          <T v="h2" tone="white" style={{ fontSize: 21, lineHeight: 26 }}>
             {s.heroTitle}
           </T>
-          <T v="small" tone="ink2">
+          <T v="small" style={{ color: "rgba(255,255,255,0.88)" }}>
             {s.heroText}
           </T>
           <Tap
             onPress={() => router.push({ pathname: "/search", params: { store: mode } })}
             accessibilityLabel={t("m.searchIn", { name: s.name })}
-            style={[styles.heroBtn, { backgroundColor: c.primary }]}
+            style={styles.heroBtn}
           >
-            <Icon name="search" size={16} color={c.onPrimary} />
-            <T v="small" style={{ color: c.onPrimary, fontWeight: "500" }}>
+            <Icon name="search" size={16} color={a.accent} />
+            <T v="small" style={{ color: a.accent, fontWeight: "800" }}>
               {mode === "all" ? t("m.searchAllStores") : t("m.searchIn", { name: s.name })}
             </T>
           </Tap>
         </View>
-      </View>
+        <Animated.View style={styles.heroArt} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <Icon name="package" size={44} color="#fff" />
+        </Animated.View>
+      </LinearGradient>
     </Animated.View>
   );
 }
@@ -57,6 +62,7 @@ export function StoreHero({ mode }: { mode: StoreMode }) {
 export function CategoryChips({ mode, onPick }: { mode: StoreMode; onPick?: (slug: string) => void }) {
   const { t } = useT();
   const { c } = useTheme();
+  const a = useAccent(mode);
   return (
     <FlatList
       horizontal
@@ -75,8 +81,10 @@ export function CategoryChips({ mode, onPick }: { mode: StoreMode; onPick?: (slu
             accessibilityLabel={t("m.catIn", { cat: item.label, store: STORES[mode].name })}
             style={[styles.chip, { backgroundColor: c.surface, borderColor: c.line }]}
           >
-            <Icon name={item.icon} size={16} color={c.ink2} />
-            <T v="small" style={{ fontWeight: "500" }}>
+            <View style={[styles.chipIcon, { backgroundColor: a.soft }]}>
+              <Icon name={item.icon} size={15} color={a.ink} />
+            </View>
+            <T v="small" style={{ fontWeight: "700" }}>
               {item.label}
             </T>
           </Tap>
@@ -136,26 +144,21 @@ const STEPS: { icon: string; title: MsgKey; text: MsgKey }[] = [
 export function HowItWorks({ mode }: { mode: StoreMode }) {
   const { t, digits } = useT();
   const { c } = useTheme();
-  void mode;
+  const a = useAccent(mode);
   return (
     <View style={{ marginTop: 28, paddingHorizontal: 16 }}>
       <T v="h2" accessibilityRole="header" style={{ marginBottom: 10 }}>{t("footer.howItWorks")}</T>
       <Card pad={14} style={{ gap: 2 }}>
         {STEPS.map((s, i) => (
           <View key={s.title} style={{ flexDirection: "row", gap: 12 }}>
-            <View style={{ alignItems: "center", width: 28 }}>
-              <T v="small" tone="ink3" style={{ fontWeight: "500", fontVariant: ["tabular-nums"] }}>
-                {digits(String(i + 1).padStart(2, "0"))}
-              </T>
-              {i < STEPS.length - 1 && <View style={{ width: StyleSheet.hairlineWidth, flex: 1, minHeight: 14, backgroundColor: c.line2, marginVertical: 4 }} />}
+            <View style={{ alignItems: "center" }}>
+              <IconChip icon={s.icon} mode={mode} size={38} />
+              {i < STEPS.length - 1 && <View style={{ width: 2, flex: 1, minHeight: 14, backgroundColor: a.soft, marginVertical: 4 }} />}
             </View>
             <View style={{ flex: 1, paddingBottom: 12 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Icon name={s.icon} size={15} color={c.ink3} />
-                <T v="h3" style={{ fontSize: 15 }}>
-                  {t(s.title)}
-                </T>
-              </View>
+              <T v="h3" style={{ fontSize: 15 }}>
+                {digits(i + 1)}. {t(s.title)}
+              </T>
               <T v="small" tone="ink2">
                 {t(s.text)}
               </T>
@@ -209,8 +212,11 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: radius.lg, padding: 20, overflow: "hidden", borderWidth: StyleSheet.hairlineWidth },
-  heroBtn: { marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", paddingHorizontal: 16, minHeight: 44, borderRadius: radius.sm },
-  chip: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, minHeight: 44, borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth },
+  hero: { borderRadius: radius.lg, padding: 18, flexDirection: "row", overflow: "hidden", minHeight: 190 },
+  heroTag: { flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start", backgroundColor: "rgba(255,255,255,0.18)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
+  heroBtn: { marginTop: 6, flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", backgroundColor: "#fff", paddingHorizontal: 14, minHeight: 44, borderRadius: 999 },
+  heroArt: { width: 76, height: 76, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", alignSelf: "center", marginLeft: 8 },
+  chip: { flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 6, paddingRight: 14, minHeight: 48, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
+  chipIcon: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
   search: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 16, paddingHorizontal: 14, minHeight: 50, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
 });

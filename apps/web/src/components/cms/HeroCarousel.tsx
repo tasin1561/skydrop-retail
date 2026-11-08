@@ -194,7 +194,7 @@ function Slide({ b, i, n, active }: { b: Banner; i: number; n: number; active: b
           )}
         </div>
         {b.image && !cover && (
-          <div className="hc-shot hidden h-36 w-36 shrink-0 place-items-center rounded-[16px] img-well bg-surface-2 p-3 min-[420px]:grid sm:h-48 sm:w-48">
+          <div className="hc-shot hidden h-36 w-36 shrink-0 place-items-center rounded-[16px] bg-white p-3 shadow-[var(--shadow-2)] min-[420px]:grid sm:h-48 sm:w-48">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={b.image} alt="" className="h-full w-full object-contain" loading="lazy" decoding="async" />
           </div>

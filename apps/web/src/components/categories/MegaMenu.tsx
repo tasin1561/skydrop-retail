@@ -124,7 +124,7 @@ export function MegaMenu() {
             show(true);
           }
         }}
-        className="inline-flex h-11 items-center gap-2 rounded-[8px] px-3 text-sm font-medium text-ink transition-colors hover:bg-surface-2 active:scale-[0.98]"
+        className="inline-flex h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold text-ink transition-transform active:scale-[0.98]"
       >
         <Icon name="grid" size={18} />
         <span className="hidden 2xl:inline">{t("cat.allCategories")}</span>
