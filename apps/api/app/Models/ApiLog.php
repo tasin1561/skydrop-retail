@@ -11,4 +11,9 @@ class ApiLog extends Model
     public const UPDATED_AT = null;
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return ['success' => 'boolean', 'is_retry' => 'boolean'];
+    }
 }

@@ -67,7 +67,7 @@ class SeedCategory extends Command
 
                         return self::SUCCESS;
                     }
-                    $catalog->queueSearch($store, $q, $page, 'relevance', ProductCategoryObserver::HINT.$leaf['id']);
+                    $catalog->queueSearch($store, $q, $page, 'relevance', ProductCategoryObserver::HINT.$leaf['id'], 'import');
                     $queued++;
                 }
             }

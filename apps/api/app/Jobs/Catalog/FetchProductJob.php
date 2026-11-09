@@ -4,6 +4,7 @@ namespace App\Jobs\Catalog;
 
 use App\Services\Catalog\CatalogService;
 use App\Services\Catalog\JobTracker;
+use App\Sources\Support\UsageContext;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -17,9 +18,17 @@ class FetchProductJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct(public string $productId, public ?string $fetchJobId = null, public bool $withVariants = true) {}
+    /** @param  ?string  $usagePurpose  UsageContext purpose (refresh, watch, paste-link); null = product page */
+    public function __construct(public string $productId, public ?string $fetchJobId = null, public bool $withVariants = true,
+        public ?string $usagePurpose = null) {}
 
     public function handle(CatalogService $catalog, JobTracker $jobs): void
+    {
+        // A queue retry of this job is a retried live call.
+        UsageContext::run($this->usagePurpose, $this->attempts() > 1, fn () => $this->fetch($catalog, $jobs));
+    }
+
+    private function fetch(CatalogService $catalog, JobTracker $jobs): void
     {
         $jobs->running($this->fetchJobId);
         try {

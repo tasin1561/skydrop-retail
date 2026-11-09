@@ -14,6 +14,7 @@ use App\Services\PricingService;
 use App\Sources\Exceptions\ProductGoneException;
 use App\Sources\Support\ApiLogger;
 use App\Sources\Support\SourceProduct;
+use App\Sources\Support\UsageContext;
 use App\Support\Features;
 use App\Support\Limits;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -99,10 +100,10 @@ class CatalogService
         return ['status' => $status] + ($jobId ? ['jobId' => $jobId] : []) + $res;
     }
 
-    public function queueSearch(string $market, string $q, int $page, string $sort, ?string $category = null): string
+    public function queueSearch(string $market, string $q, int $page, string $sort, ?string $category = null, ?string $usagePurpose = null): string
     {
         return $this->jobs->dispatch('search', $this->searchKey($market, $q, $page, $sort),
-            fn (string $jid) => new FetchSearchJob($market, $q, $page, $sort, $category, $jid));
+            fn (string $jid) => new FetchSearchJob($market, $q, $page, $sort, $category, $jid, $usagePurpose));
     }
 
     /** Fetch one store result page, upsert every listing (free refresh) and cache the id list. */
@@ -192,9 +193,10 @@ class CatalogService
         return $p->details_fetched_at->gt(now()->subMinutes($ttl));
     }
 
-    public function queueProduct(string $id): string
+    /** @param  ?string  $usagePurpose  UsageContext purpose for the live call (e.g. paste-link); null = product page */
+    public function queueProduct(string $id, ?string $usagePurpose = null): string
     {
-        return $this->jobs->dispatch('product', "product:$id", fn (string $jid) => new FetchProductJob($id, $jid));
+        return $this->jobs->dispatch('product', "product:$id", fn (string $jid) => new FetchProductJob($id, $jid, true, $usagePurpose));
     }
 
     /** Always calls a provider (no cache): used by jobs, admin refresh and the debug command. */
@@ -329,6 +331,11 @@ class CatalogService
 
     public function seedBestsellers(string $market): int
     {
+        return UsageContext::run('import', false, fn () => $this->seedBestsellersNow($market));
+    }
+
+    private function seedBestsellersNow(string $market): int
+    {
         if (! $this->isLive($market)) {
             return 0;
         }
@@ -350,6 +357,11 @@ class CatalogService
 
     /** Pull the store's deals page and fetch details (with offers) for the top deals, within budget. */
     public function ingestDeals(string $market): int
+    {
+        return UsageContext::run('import', false, fn () => $this->ingestDealsNow($market));
+    }
+
+    private function ingestDealsNow(string $market): int
     {
         if (! $this->isLive($market) || ! app(BudgetGuard::class)->allowsBackground()) {
             return 0;

@@ -58,7 +58,7 @@ class DefaultRoles
                 'permissions' => [
                     'payments.*', 'orders.viewAny', 'orders.view', 'orders.export', 'orders.refund', 'refunds*', 'payouts*',
                     'affiliate-payouts.*', 'affiliate-commissions.*', 'finance*', 'page.finance*', 'page.*report*', 'page.*profit*',
-                    'page.*accounting*', 'reports.*', 'wallet*', 'fx-rates.viewAny', 'fx-rates.view', 'widget.*', 'actions.manage',
+                    'page.*accounting*', 'page.data-usage', 'reports.*', 'wallet*', 'fx-rates.viewAny', 'fx-rates.view', 'widget.*', 'actions.manage',
                     '!page.*security*', '!security*',
                 ],
             ],

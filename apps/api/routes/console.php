@@ -19,6 +19,7 @@ use App\Jobs\Shopping\MatchProducts;
 use App\Jobs\Shopping\ProcessPreorders;
 use App\Models\Marketplace;
 use App\Services\Catalog\BudgetGuard;
+use App\Services\Catalog\DataUsage;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -35,6 +36,8 @@ Schedule::job(new CheckProductWatches)->hourly()->name('commerce:check-watches')
 Schedule::job(new CleanupJob)->dailyAt('03:10')->name('catalog:cleanup')->onOneServer();
 Schedule::job(new UpdateFxRateJob)->everySixHours()->name('catalog:fx')->onOneServer();
 Schedule::call(fn () => app(BudgetGuard::class)->check())->hourly()->name('catalog:budget')->onOneServer();
+// Product data plan: one admin alert per billing cycle at the alert percent and again at 100% (System → Limits).
+Schedule::call(fn () => app(DataUsage::class)->checkAlerts())->everyFifteenMinutes()->name('catalog:data-usage-alerts')->onOneServer();
 Schedule::call(function () {
     // Only marketplaces with live_fetch reach a provider; the jobs re-check this when they run.
     foreach (Marketplace::query()->where('enabled', true)->where('live_fetch', true)->pluck('id') as $market) {

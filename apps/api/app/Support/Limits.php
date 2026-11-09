@@ -55,6 +55,16 @@ class Limits
         'catalog.resolves_per_min' => ['Paste-link resolves per IP per minute', 'Catalog & data spend', 'config:security.limits.resolve_ip', 'requests', 1, 200,
             'POST /products/resolve (paste any link), per shopper IP.'],
 
+        // ---- Product data plan (one shared monthly pool; see System → Product data usage)
+        'data.capacity_amazon_calls' => ['Monthly plan: Amazon India calls', 'Product data plan', 220000, 'calls', 0, 100000000,
+            'Successful Amazon India product-data calls the monthly plan covers when used for Amazon only. Amazon and Flipkart share one pool: 1 Flipkart call uses (Amazon calls ÷ Flipkart calls) of it. Failed calls never count. 0 = no plan.'],
+        'data.capacity_flipkart_calls' => ['Monthly plan: Flipkart calls', 'Product data plan', 68000, 'calls', 0, 100000000,
+            'Successful Flipkart calls the same plan covers when used for Flipkart only.'],
+        'data.capacity_alert_percent' => ['Plan usage alert at', 'Product data plan', 80, '%', 1, 100,
+            'Admins get one alert per billing cycle when usage passes this, and one more at 100%.'],
+        'data.cycle_start_day' => ['Billing cycle starts on day', 'Product data plan', 1, 'day of month', 1, 28,
+            'The plan resets on this day each month (Bangladesh time).'],
+
         // ---- Orders
         'orders.max_items' => ['Max items per cart', 'Orders', 50, 'lines', 1, 200, 'Distinct products in one quote / order.'],
         'orders.max_qty' => ['Max quantity per item', 'Orders', 20, 'pcs', 1, 99, 'Quantity of one product in one order.'],

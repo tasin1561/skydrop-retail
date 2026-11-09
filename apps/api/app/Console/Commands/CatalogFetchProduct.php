@@ -6,6 +6,7 @@ use App\Http\Resources\ProductResource;
 use App\Services\Catalog\CatalogService;
 use App\Services\Catalog\MarketResolver;
 use App\Services\Catalog\ProviderChain;
+use App\Sources\Support\UsageContext;
 use Illuminate\Console\Command;
 
 /** Debug: fetch one product through the provider chain now (ignores live_fetch and cache) and print it. */
@@ -26,7 +27,7 @@ class CatalogFetchProduct extends Command
         }
         $t = microtime(true);
         if ($this->option('dry')) {
-            $sp = $chain->product($market, $id, 'browse');
+            $sp = UsageContext::run('refresh', false, fn () => $chain->product($market, $id, 'browse'));
             if (! $sp) {
                 $this->error('All providers failed (see api_logs / provider_health).');
 
@@ -34,7 +35,7 @@ class CatalogFetchProduct extends Command
             }
             $this->line(json_encode(['provider' => $sp->provider, 'pincodeVerified' => $sp->pincodeVerified] + $sp->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         } else {
-            $p = $catalog->refreshProduct($id, interactive: true);
+            $p = UsageContext::run('refresh', false, fn () => $catalog->refreshProduct($id, interactive: true));
             if (! $p) {
                 $this->error('All providers failed (see api_logs / provider_health).');
 

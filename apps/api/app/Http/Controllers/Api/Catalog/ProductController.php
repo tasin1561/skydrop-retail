@@ -106,6 +106,6 @@ class ProductController extends CatalogController
             $fail('This store is not connected for live products yet. Please try again later.');
         }
 
-        return response()->json(['status' => 'pending', 'jobId' => $catalog->queueProduct($id), 'productId' => $id, 'market' => $found['market']], 202);
+        return response()->json(['status' => 'pending', 'jobId' => $catalog->queueProduct($id, 'paste-link'), 'productId' => $id, 'market' => $found['market']], 202);
     }
 }

@@ -232,7 +232,7 @@ class Ops
         if (! class_exists(self::FETCH_JOB)) {
             return false;
         }
-        dispatch(new (self::FETCH_JOB)($productId));
+        dispatch(new (self::FETCH_JOB)($productId, null, true, 'refresh')); // logged as a staff refresh on Product data usage
 
         return true;
     }

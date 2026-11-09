@@ -56,7 +56,7 @@ class PriceAlertService
         $ids = $this->pendingItems()->pluck('product_id')->unique()->values();
         foreach ($ids as $id) {
             if ($refresh && class_exists(self::FETCH_JOB)) {
-                Bus::chain([new (self::FETCH_JOB)($id, null, false), new CheckSourcePriceJob($id)])->dispatch();
+                Bus::chain([new (self::FETCH_JOB)($id, null, false, 'watch'), new CheckSourcePriceJob($id)])->dispatch();
             } else {
                 $this->checkProduct($id);
             }

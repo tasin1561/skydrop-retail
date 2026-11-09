@@ -4,6 +4,7 @@ namespace App\Jobs\Catalog;
 
 use App\Services\Catalog\CatalogService;
 use App\Services\Catalog\JobTracker;
+use App\Sources\Support\UsageContext;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -24,9 +25,15 @@ class FetchSearchJob implements ShouldQueue
         public string $sort = 'relevance',
         public ?string $category = null,
         public ?string $fetchJobId = null,
+        public ?string $usagePurpose = null,
     ) {}
 
     public function handle(CatalogService $catalog, JobTracker $jobs): void
+    {
+        UsageContext::run($this->usagePurpose, $this->attempts() > 1, fn () => $this->fetch($catalog, $jobs));
+    }
+
+    private function fetch(CatalogService $catalog, JobTracker $jobs): void
     {
         $jobs->running($this->fetchJobId);
         try {

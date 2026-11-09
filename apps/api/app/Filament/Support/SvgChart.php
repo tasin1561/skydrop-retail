@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
 
 /** Dependency-free inline SVG charts for report pages (light/dark friendly: uses currentColor for text). */
@@ -82,6 +83,86 @@ class SvgChart
         $svg .= '<polyline fill="none" stroke="'.self::MUTED.'" stroke-width="2" points="'.implode(' ', $points).'"><title>Revenue</title></polyline>';
 
         return new HtmlString($svg.'</svg>');
+    }
+
+    /**
+     * Product data usage per day: successful Amazon (bottom) and Flipkart (top) calls stacked, failed calls as a line.
+     *
+     * @param  array<string, array{amazon: int, flipkart: int, failed: int}>  $days  Y-m-d => counts
+     * @param  ?string  $until  last day with data (Y-m-d); the failed line stops there
+     */
+    public static function usageDaily(array $days, ?string $until = null): HtmlString
+    {
+        if (! $days || ! array_filter($days, fn ($d) => $d['amazon'] + $d['flipkart'] + $d['failed'] > 0)) {
+            return new HtmlString('<p style="opacity:.6;font-size:.85rem">No product data calls in this cycle yet.</p>');
+        }
+        $w = 760;
+        $h = 220;
+        $left = 44;
+        $right = 12;
+        $top = 12;
+        $bottom = 26;
+        $n = count($days);
+        $max = max(1, max(array_map(fn ($d) => max($d['amazon'] + $d['flipkart'], $d['failed']), $days)));
+        $max = max(4, self::niceMax($max));
+        $plotH = $h - $top - $bottom;
+        $slot = ($w - $left - $right) / $n;
+        $bw = max(2, $slot * 0.72);
+        $y = fn (float $v) => round($top + $plotH - $v / $max * $plotH, 1);
+
+        $svg = '<svg role="img" aria-label="Product data calls per day" viewBox="0 0 '.$w.' '.$h.'" width="100%" style="font-size:10px;color:inherit">';
+        foreach ([0, 0.5, 1] as $f) {
+            $gy = $y($max * $f);
+            $svg .= '<line x1="'.$left.'" x2="'.($w - $right).'" y1="'.$gy.'" y2="'.$gy.'" stroke="'.self::MUTED.'" stroke-width="'.($f === 0 ? 1 : 0.5).'"/>';
+            $svg .= '<text x="'.($left - 6).'" y="'.($gy + 3).'" text-anchor="end" fill="currentColor" opacity=".7">'.e(self::short($max * $f)).'</text>';
+        }
+        $i = 0;
+        $points = [];
+        foreach ($days as $day => $d) {
+            $x = $left + $i * $slot + ($slot - $bw) / 2;
+            $label = Carbon::parse($day)->format('j M');
+            $tip = e($label.': Amazon India '.number_format($d['amazon']).', Flipkart '.number_format($d['flipkart']).', failed '.number_format($d['failed']));
+            $ya = $y($d['amazon']);
+            $yf = $y($d['amazon'] + $d['flipkart']);
+            if ($d['amazon'] > 0) {
+                $svg .= '<rect x="'.round($x, 1).'" y="'.$ya.'" width="'.round($bw, 1).'" height="'.round($top + $plotH - $ya, 1).'" fill="'.self::AMAZON.'"><title>'.$tip.'</title></rect>';
+            }
+            if ($d['flipkart'] > 0) {
+                $svg .= '<rect x="'.round($x, 1).'" y="'.$yf.'" width="'.round($bw, 1).'" height="'.round($ya - $yf, 1).'" fill="'.self::FLIPKART.'"><title>'.$tip.'</title></rect>';
+            }
+            if ($until === null || $day <= $until) {
+                $points[] = round($x + $bw / 2, 1).','.$y($d['failed']);
+            }
+            if ($n <= 16 || $i % (int) ceil($n / 10) === 0) {
+                $svg .= '<text x="'.round($x + $bw / 2, 1).'" y="'.($h - 8).'" text-anchor="middle" fill="currentColor" opacity=".7">'.e($label).'</text>';
+            }
+            $i++;
+        }
+        $svg .= '<polyline fill="none" stroke="'.self::NEG.'" stroke-width="2" stroke-linejoin="round" points="'.implode(' ', $points).'"><title>Failed calls (not billed)</title></polyline>';
+
+        return new HtmlString($svg.'</svg>');
+    }
+
+    private const AMAZON = '#5b3df5';
+
+    private const FLIPKART = '#0ea5e9';
+
+    /** @return array<string, string> series => colour, for the legend */
+    public static function usageColours(): array
+    {
+        return ['amazon' => self::AMAZON, 'flipkart' => self::FLIPKART, 'failed' => self::NEG];
+    }
+
+    private static function niceMax(float $v): float
+    {
+        $mag = 10 ** floor(log10(max(1, $v)));
+        foreach ([1, 2, 2.5, 5, 10] as $m) {
+            if ($v <= $m * $mag) {
+                return $m * $mag;
+            }
+        }
+
+        return 10 * $mag;
     }
 
     public static function short(float $v): string

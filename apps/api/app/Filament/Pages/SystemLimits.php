@@ -14,6 +14,7 @@ use App\Models\WishlistItem;
 use App\Services\Assistant\AssistantSettings;
 use App\Services\Audit\ActivityLogger;
 use App\Services\Catalog\BudgetGuard;
+use App\Services\Catalog\DataUsage;
 use App\Support\Limits;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -178,6 +179,12 @@ class SystemLimits extends Page
 
             return 'Today: '.($rows->isEmpty() ? '0' : $rows->map(fn ($n, $m) => "$m $n")->implode(' · '));
         });
+        $try('data.capacity_amazon_calls', function () {
+            $r = app(DataUsage::class)->report();
+
+            return sprintf('This cycle: %s%% used (%s Amazon-call units)', number_format($r['pct'], 1), number_format($r['used_units']));
+        });
+        $try('data.cycle_start_day', fn () => 'Current cycle: '.app(DataUsage::class)->cycle()['label']);
         $try('orders.max_per_day', function () use ($today) {
             $q = Order::query()->where('kind', 'goods')->where('created_at', '>=', $today);
             $top = (clone $q)->selectRaw('user_id, count(*) as n')->groupBy('user_id')->orderByDesc('n')->value('n');

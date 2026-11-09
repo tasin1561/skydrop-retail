@@ -90,8 +90,8 @@ class OxylabsClient
         $handler = new CurlMultiHandler;
         $start = microtime(true);
         $deadline = $start + (int) config('retail.oxylabs.timeout', 25) + $hedgeAfter;
-        /** @var array<int, array{promise: PromiseInterface, t: float}> $inflight */
-        $inflight = [['promise' => $this->async($handler, $payload), 't' => $start]];
+        /** @var array<int, array{promise: PromiseInterface, t: float, retry: bool}> $inflight */
+        $inflight = [['promise' => $this->async($handler, $payload), 't' => $start, 'retry' => false]];
         $fired = 1;
         $lastError = null;
 
@@ -109,13 +109,16 @@ class OxylabsClient
                 }
                 try {
                     if (! $result instanceof Response) {
+                        // No answer at all (connection error): still one live call, logged as failed.
+                        UsageContext::run(null, $req['retry'], fn () => $this->logFailure($payload, $type, $market, $key, $req['t'], $result instanceof Throwable ? $result : null));
                         throw new SourceException('Oxylabs request failed: '.($result instanceof Throwable ? $result->getMessage() : 'no response'));
                     }
-                    $winner = $this->interpret($result, $payload, $type, $market, $key, $req['t']);
+                    // The second request (hedge duplicate or retry after a fast failure) is logged as a retry.
+                    $winner = UsageContext::run(null, $req['retry'], fn () => $this->interpret($result, $payload, $type, $market, $key, $req['t']));
                     // The losing duplicate is still billed by Oxylabs when it completes: count it.
                     foreach ($inflight as $loser) {
                         $this->logger->log('oxylabs', $type, $market, $key, 499, (int) ((microtime(true) - $loser['t']) * 1000),
-                            $this->rendered($payload), ApiLogger::oxylabsCost($market, $this->rendered($payload)), 'hedge duplicate abandoned');
+                            $this->rendered($payload), ApiLogger::oxylabsCost($market, $this->rendered($payload)), 'hedge duplicate abandoned', true);
                     }
 
                     return $winner;
@@ -127,12 +130,12 @@ class OxylabsClient
             }
             $now = microtime(true);
             if ($fired === 1 && $now - $start >= $hedgeAfter) {
-                $inflight[] = ['promise' => $this->async($handler, $payload), 't' => $now];
+                $inflight[] = ['promise' => $this->async($handler, $payload), 't' => $now, 'retry' => true];
                 $fired++;
             }
             if ($inflight === [] && ($fired > 1 || $lastError)) {
                 if ($fired === 1) { // first failed fast: fire the duplicate as a retry
-                    $inflight[] = ['promise' => $this->async($handler, $payload), 't' => $now];
+                    $inflight[] = ['promise' => $this->async($handler, $payload), 't' => $now, 'retry' => true];
                     $fired++;
 
                     continue;
