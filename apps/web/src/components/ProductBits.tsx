@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { MarketId, Product } from "@/lib/types";
-import { STORES } from "@/lib/markets";
+import { DELIVERY_DAYS, STORES } from "@/lib/markets";
 import { discountPct, mrpBdt, priceBdt } from "@/lib/pricing";
 import { useT } from "@/i18n/client";
 import { Icon } from "./Icon";
@@ -12,6 +12,7 @@ import { headlineDeal } from "./offers/offerMeta";
 import { CardNotices } from "./cms/CardNotices";
 import { PriceInsightChip } from "./shopping/PriceInsightChip";
 import { FxImg, HoverImage } from "./motion/FxImg";
+import { StoreName } from "./store/StoreName";
 
 export function ProductImage({
   p,
@@ -96,63 +97,63 @@ export function PriceLine({ p, big }: { p: Product; big?: boolean }) {
   );
 }
 
-/** Amazon cards lead with a couple of short specs when the listing carries them. */
-function keySpecs(p: Product): string[] {
-  const out: string[] = [];
-  for (const [k, v] of Object.entries(p.specs ?? {})) {
-    if (!v || v.length > 22 || /brand|manufacturer|asin|model|rank|review|date|country|weight|dimension/i.test(k)) continue;
-    out.push(v);
-    if (out.length === 2) break;
-  }
-  return out;
+/** "20K+ bought in past month" (Amazon) → "20K+". */
+function boughtCount(p: Product): string | null {
+  const m = p.market === "amazon" ? /^([\d.,]+[kKmM]?\+?)/.exec((p.salesVolume ?? "").trim()) : null;
+  return m ? m[1].toUpperCase() : null;
 }
 
+/**
+ * Product card, built for a phone first: big photo, store badge on it, a two-line title, the taka price with what it
+ * was, one line of rating and sales, one line of India → Bangladesh delivery days. Nothing else competes for the eye.
+ */
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const offerCount = p.offers?.length ?? 0;
-  const { t, digits, inr } = useT();
-  const deal = headlineDeal(p, t);
-  // Each store mode has its own card personality: dense deals (Amazon), editorial fashion (Flipkart, Myntra).
+  const { t, digits, inr, bdt } = useT();
+  const found = headlineDeal(p, t);
+  // A deal tag that only repeats the discount ("80% OFF", "Rs. 2023 OFF") adds noise next to the price: keep timed
+  // deals and other kinds (lightning deal, special price, combo).
+  const deal = found && (found.endsAt || !/(\d+\s*%|(rs\.?|₹)\s*[\d,]+)\s*off/i.test(found.label)) ? found : null;
   const fashion = p.market === "flipkart" || p.market === "myntra";
-  const sizes = fashion ? (p.variants ?? []).map((v) => v.label).filter(Boolean).slice(0, 4) : [];
-  const specs = !fashion ? keySpecs(p) : [];
+  const sizes = fashion ? (p.variants ?? []).map((v) => v.dimensions?.Size ?? v.label).filter(Boolean) : [];
+  const shownSizes = Array.from(new Set(sizes)).slice(0, 4);
+  const off = discountPct(p);
+  const bought = boughtCount(p);
+  const [dMin, dMax] = DELIVERY_DAYS[p.market] ?? [7, 12];
   return (
     <article
       data-store={p.market}
       data-i={i}
-      className="mo-press group relative flex flex-col overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
+      className="mo-press group relative flex flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
     >
       <Link href={`/p/${p.id}`} className="flex flex-1 flex-col" prefetch={false}>
-        <div className={"mo-media overflow-hidden bg-white " + (fashion ? "aspect-[4/5] p-2" : "aspect-square p-3")}>
-          <ProductImage p={p} className="h-full w-full" />
+        <div className={"mo-media relative overflow-hidden bg-white " + (fashion ? "aspect-[4/5]" : "aspect-square p-3")}>
+          <ProductImage p={p} className={"h-full w-full " + (fashion ? "object-cover" : "")} />
           {p.images?.[1] && p.images[1] !== p.image && <HoverImage src={p.images[1]} />}
-          {discountPct(p) >= 10 && (
-            <span className="absolute left-2 top-2 rounded bg-bad px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-white">
-              -{digits(discountPct(p))}%
+          {off >= 5 && (
+            <span className="absolute left-2 top-2 rounded-md bg-bad px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-white shadow-sm">
+              -{digits(off)}%
             </span>
           )}
-          {p.bestSeller && !fashion && (
-            <span className="absolute bottom-2 left-2 rounded bg-ink px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bg">
+          <span className="absolute bottom-2 left-2 max-w-[80%] rounded-full bg-white">
+            <StoreName mode={p.market} variant="pill" tone="light" size="text-[11px] px-2 py-0.5" />
+          </span>
+          {p.bestSeller && (
+            <span className="absolute bottom-2 right-2 rounded-md bg-ink/85 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bg">
               {t("card.bestSeller")}
             </span>
           )}
         </div>
-        <div className="flex flex-1 flex-col gap-1.5 p-3">
-          <OriginTag market={p.market} compact />
-          {fashion && p.brand && <p className="text-[11px] font-semibold uppercase tracking-wide text-ink">{p.brand}</p>}
-          <h3 className={"line-clamp-2 leading-snug text-ink " + (fashion ? "text-[13px] font-normal" : "text-[13px] font-medium sm:text-sm")}>{p.title}</h3>
-          {specs.length > 0 && <p className="truncate text-[11px] text-ink-2">{specs.join(" · ")}</p>}
-          {sizes.length > 0 && (
-            <div className="flex flex-wrap gap-1" aria-label={t("card.sizes")}>
-              {sizes.map((s) => (
-                <span key={s} className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-2">
-                  {s}
-                </span>
-              ))}
+        <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3">
+          {fashion && p.brand && <p className="truncate text-[11px] font-bold uppercase tracking-wide text-ink-2">{p.brand}</p>}
+          <h3 className="line-clamp-2 min-h-[2.5em] text-[13px] leading-snug text-ink sm:text-sm">{p.title}</h3>
+          <div className="mt-0.5 tabular-nums">
+            <div className="flex flex-wrap items-baseline gap-x-1.5">
+              <span className="text-[17px] font-extrabold tracking-tight text-ink sm:text-lg">{bdt(priceBdt(p))}</span>
+              {off > 0 && <span className="text-[11px] text-ink-3 line-through">{bdt(mrpBdt(p))}</span>}
+              {off > 0 && <span className="text-[11px] font-bold text-good">{t("card.off", { pct: digits(off) })}</span>}
             </div>
-          )}
-          <Stars rating={p.rating} reviews={p.reviews} size={12} />
-          <CardNotices p={p} />
-          <PriceInsightChip p={p} />
+            {p.couponInr ? <p className="text-[11px] font-semibold text-good">{t("card.couponApplied", { amount: inr(p.couponInr) })}</p> : null}
+          </div>
           {deal && (
             <span className="inline-flex w-fit items-center gap-1 rounded bg-[color-mix(in_srgb,var(--bad)_10%,transparent)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bad">
               <Icon name="bolt" size={11} stroke={2.4} /> {deal.label}
@@ -164,24 +165,34 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
               )}
             </span>
           )}
-          <div className="mt-auto pt-1">
-            <PriceLine p={p} />
-            {p.couponInr ? (
-              <p className="mt-0.5 text-[11px] font-semibold text-good">{t("card.couponApplied", { amount: inr(p.couponInr) })}</p>
-            ) : offerCount > 0 ? (
-              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-ink-2">
-                <Icon name="tag" size={12} stroke={2.2} /> {t("card.offers", { count: offerCount })}
-              </p>
-            ) : null}
-            {p.market === "amazon" && p.salesVolume && (
-              <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-ink-2">
-                <Icon name="bolt" size={11} stroke={2.2} className="text-ink-3" /> {p.salesVolume}
-              </p>
-            )}
-            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-2">
-              <Icon name="truck" size={13} /> {t("card.delivery")}
+          {shownSizes.length > 1 && (
+            <p className="truncate text-[11px] text-ink-2" aria-label={t("card.sizes")}>
+              {shownSizes.join(" · ")}
             </p>
-          </div>
+          )}
+          <p className="flex items-center gap-1 text-[11px] text-ink-2">
+            {p.rating > 0 ? (
+              <span className="inline-flex items-center gap-0.5" aria-label={t("card.stars", { rating: digits(p.rating) })}>
+                <Icon name="star" size={12} stroke={1.4} fill="currentColor" className="text-amber-500" />
+                <span className="font-semibold text-ink">{digits(p.rating.toFixed(1))}</span>
+                {p.reviews ? <span>({digits(p.reviews >= 1000 ? (p.reviews / 1000).toFixed(1) + "k" : p.reviews)})</span> : null}
+              </span>
+            ) : (
+              <span className="font-semibold text-ink">{t("card.new")}</span>
+            )}
+            {bought && (
+              <>
+                <span aria-hidden className="text-ink-3">·</span>
+                <span className="truncate">{t("card.bought", { count: bought })}</span>
+              </>
+            )}
+          </p>
+          <CardNotices p={p} />
+          <PriceInsightChip p={p} />
+          <p className="mt-auto flex items-center gap-1 pt-0.5 text-[11px] font-medium text-ink-2">
+            <Icon name="truck" size={13} className="shrink-0" />
+            <span className="truncate">{t("card.eta", { min: digits(dMin), max: digits(dMax) })}</span>
+          </p>
         </div>
       </Link>
       <div className="absolute right-2 top-2">

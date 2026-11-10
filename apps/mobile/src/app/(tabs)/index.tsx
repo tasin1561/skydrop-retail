@@ -7,7 +7,8 @@ import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
 import { STORE_TEXT, radius, useTheme, withAlpha } from "@/theme";
 import { StoreSwitcher } from "@/components/StoreSwitcher";
-import { CategoryChips, HowItWorks, Rail, SearchBar, StoreHero, useAsync } from "@/components/Shop";
+import { HowItWorks, Rail, SearchBar, StoreHero, useAsync } from "@/components/Shop";
+import { CategoryTiles } from "@/components/home/CategoryTiles";
 import { IconButton, Pill, T, Tap } from "@/components/ui";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useNotifications } from "@/lib/notifications";
@@ -32,14 +33,35 @@ export default function Home() {
   const firstCat = STORES[mode].categories[0]?.slug;
   const catRail = useAsync(() => api.rail(mode, "popular", firstCat), [mode, firstCat]);
 
+  // "Trending for you": top-rated women's clothing, bags/footwear and makeup, mixed so no single kind fills the row.
+  const forYou = useAsync(async () => {
+    const paths = ["fashion/women/clothing", "fashion/women", "beauty-personal-care/makeup"];
+    const lists = await Promise.all(
+      paths.map((category) => api.search({ q: "", store: mode, category, sort: "rating" }).then((r) => r.items).catch(() => [])),
+    );
+    const seen = new Set<string>();
+    const out = [];
+    for (let i = 0; out.length < 12 && lists.some((l) => i < l.length); i++) {
+      for (const l of lists) {
+        const p = l[i];
+        if (p && !seen.has(p.id) && out.length < 12) {
+          seen.add(p.id);
+          out.push(p);
+        }
+      }
+    }
+    return out;
+  }, [mode]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    forYou.reload();
     popular.reload();
     deals.reload();
     catRail.reload();
     live.reload();
     setTimeout(() => setRefreshing(false), 700);
-  }, [popular, deals, catRail, live]);
+  }, [popular, deals, catRail, live, forYou]);
 
   const markets = enabled.filter((m): m is MarketId => m !== "all");
 
@@ -50,9 +72,9 @@ export default function Home() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.brand} colors={[c.brand]} />}
     >
       <View style={styles.top}>
-        <View style={{ flex: 1 }}>
-          <T v="label" tone="ink3">{t("m.tagline")}</T>
-          <T v="h1" accessibilityRole="header">
+        {/* One short line: the search box, store chips and category tiles get the first screen, not the header. */}
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T v="h2" accessibilityRole="header" numberOfLines={1} style={{ fontSize: 20 }} accessibilityHint={t("m.tagline")}>
             Skydrop Retail
           </T>
         </View>
@@ -75,11 +97,15 @@ export default function Home() {
       </View>
 
       <SearchBar mode={mode} />
-      <View style={{ height: 14 }} />
-      <StoreHero mode={mode} />
-      <View style={{ height: 16 }} />
-      <CategoryChips mode={mode} />
+      {/* Category-first: photo tiles for what she shops most, then picks for her, then everything else. */}
+      <CategoryTiles mode={mode} />
       <CouponPromo store={mode} style={{ paddingHorizontal: 16, marginTop: 14 }} />
+      <Rail
+        title={t("home.forYou")}
+        items={forYou.data ?? []}
+        loading={forYou.loading}
+        onMore={() => router.push({ pathname: "/category/[...path]", params: { path: ["fashion", "women"], store: mode } })}
+      />
 
       {mode === "all" && markets.length > 0 && (
         <View style={{ marginTop: 20, paddingHorizontal: 16, gap: 10 }}>
@@ -123,6 +149,8 @@ export default function Home() {
           loading={viewed.loading && !viewed.data}
         />
       )}
+      <View style={{ height: 24 }} />
+      <StoreHero mode={mode} />
       <HowItWorks mode={mode} />
     </ScrollView>
   );
@@ -147,6 +175,6 @@ function StoreTile({ m }: { m: MarketId }) {
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 14 },
+  top: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, marginBottom: 10 },
   tile: { borderRadius: radius.md, borderWidth: 1, padding: 12, minHeight: 76, justifyContent: "center" },
 });

@@ -1,5 +1,6 @@
 // Product matching for "Compare stores" (TypeScript port of App\Services\Shopping\ProductMatcher), used by the demo catalog.
 import type { Product } from "../types";
+import { DELIVERY_DAYS } from "@/lib/markets";
 
 const STOP = new Set(["with", "and", "for", "the", "pack", "of", "new", "latest", "edition", "black", "white", "blue", "red", "green", "grey", "gray", "silver", "gold", "pink"]);
 
@@ -90,7 +91,7 @@ export function compareProducts(a: Product, b: Product): { method: "model" | "ti
 }
 
 export function deliveryFor(p: Pick<Product, "market" | "prime">) {
-  const base = { amazon: [7, 12], flipkart: [8, 13], myntra: [8, 13] }[p.market] ?? [7, 12];
+  const base = DELIVERY_DAYS[p.market] ?? [7, 12];
   const fast = p.prime ? 1 : 0;
   return { min: base[0] - fast, max: base[1] - fast };
 }

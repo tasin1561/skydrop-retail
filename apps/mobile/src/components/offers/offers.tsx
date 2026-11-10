@@ -102,7 +102,9 @@ export function DealBadge({ p }: { p: Product }) {
   const { c } = useTheme();
   const { t } = useT();
   const deal = headlineDeal(p, t);
-  if (!deal) return null;
+  // A tag that only repeats the discount ("80% OFF", "Rs. 2023 OFF") is noise next to the price: keep timed deals and
+  // other kinds (lightning deal, special price, combo). Same rule as the web card.
+  if (!deal || (!deal.endsAt && /(\d+\s*%|(rs\.?|₹)\s*[\d,]+)\s*off/i.test(deal.label))) return null;
   return (
     <View style={[styles.deal, { backgroundColor: c.bad }]} accessibilityLabel={deal.label}>
       <Icon name="zap" size={10} color="#fff" />

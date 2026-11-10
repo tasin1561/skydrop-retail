@@ -203,20 +203,15 @@ export async function ProductDetail({
             <FlashNotice p={p} />
           </div>
 
+          {/* Phone first: stock, options and the buy buttons right under the price; offers, price breakdown and the
+              extras follow (they used to push the size picker three screens down). */}
           <div className="mt-3">
-            <PriceBreakdown p={p} source={source} />
-            <OffersSection p={p} />
-            <ProductExtras id={p.id} priceBdt={priceBdt(p)} inStock={!isUnavailableStock(p.stock)} />
-          </div>
-
-          <div className="mt-4">
             <StockLine stock={p.stock} demo={p.demo} />
           </div>
 
           <RestrictionNotice p={p} />
-          <SafeSection label={t("pd.assistant")} quiet><div className="mt-3"><AskAboutProduct productId={p.id} title={p.title} /></div></SafeSection>
 
-          <div className="mt-5">
+          <div className="mt-4">
             <BuyBox key={p.id} info={info} knownIds={knownIds} unavailableIds={unavailableIds} />
           </div>
           <ShoppingBuyExtras p={p} />
@@ -226,6 +221,14 @@ export async function ProductDetail({
               {t("pd.oos", { source })}
             </p>
           )}
+
+          <div className="mt-5">
+            <OffersSection p={p} />
+            <PriceBreakdown p={p} source={source} />
+            <ProductExtras id={p.id} priceBdt={priceBdt(p)} inStock={!isUnavailableStock(p.stock)} />
+          </div>
+
+          <SafeSection label={t("pd.assistant")} quiet><div className="mt-3"><AskAboutProduct productId={p.id} title={p.title} /></div></SafeSection>
 
           <ul className="mt-5 grid grid-cols-3 gap-2 text-center text-[11px] text-ink-2">
             {[

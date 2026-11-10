@@ -103,7 +103,8 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         } else go(q);
       }}
     >
-      <label className="relative flex shrink-0 items-center border-r border-line">
+      {/* phones search the store you are in (the store chips sit right below): the box keeps its full width */}
+      <label className="relative hidden shrink-0 items-center border-r border-line md:flex">
         <span className="sr-only">{t("search.storeToSearch")}</span>
         <select
           value={store}

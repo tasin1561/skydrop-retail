@@ -101,6 +101,9 @@ export function storeText(m: StoreMode, t: TFn): StoreInfo {
 export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "myntra"];
 export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "myntra"];
 
+/** Usual door-to-door days from each Indian store to Bangladesh (also used by the store-compare matcher). */
+export const DELIVERY_DAYS: Record<MarketId, [number, number]> = { amazon: [7, 12], flipkart: [8, 13], myntra: [8, 13] };
+
 export function isMarket(x: string): x is MarketId {
   return (MARKET_IDS as string[]).includes(x);
 }

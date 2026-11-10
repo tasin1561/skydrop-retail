@@ -8,11 +8,9 @@ import type { StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { useFeatures } from "@/components/features/FeaturesProvider";
 import { useT } from "@/i18n/client";
-import { Icon } from "../Icon";
 import { useCurrentMode } from "../StoreTheme";
 import { StoreName } from "./StoreName";
 import { startRouteProgress } from "../motion/RouteProgress";
-import { ModalShell, useClosing } from "./ModalShell";
 
 /** Store modes the shopper may pick: "all" plus every store that is on (marketplaces table AND the store.* feature). */
 export function useEnabledModes(): StoreMode[] {
@@ -161,103 +159,50 @@ function StoreSegmented() {
   );
 }
 
-/** Phone: "Shopping at: Amazon ▾" button that opens a bottom sheet with the choices. */
-function StoreSwitchButton() {
+/**
+ * Phone: one row of store chips (All · Amazon · Flipkart · Myntra), one tap to switch. Replaces a "Shopping at ▾"
+ * button + bottom sheet: two taps and a sheet were too slow for something shoppers do all the time.
+ */
+function StoreChips() {
   const mode = useCurrentMode();
   const modes = useEnabledModes();
-  const { t } = useT();
-  const [open, setOpen] = useState(false);
-  const shown = modes.includes(mode) ? mode : "all";
-  const s = storeText(shown, t);
-  return (
-    <>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-        className="flex min-h-11 max-w-full items-center gap-2 rounded-full bg-surface-2 py-1.5 pl-3 pr-2.5 text-sm ring-1 ring-line/60 transition-colors duration-200 active:bg-line/40 md:hidden"
-      >
-        <span className="shrink-0 font-medium text-ink-2">{t("header.shoppingAt")}</span>
-        <StoreName mode={shown} variant="pill" name={shown === "all" ? t("search.allStores") : s.name} className="min-w-0 truncate" />
-        <Icon name="chevron" size={16} className="shrink-0 text-ink-3" />
-      </button>
-      {open && <StoreSheet onClose={() => setOpen(false)} current={shown} modes={modes} />}
-    </>
-  );
-}
-
-function StoreSheet({ onClose, current, modes }: { onClose: () => void; current: StoreMode; modes: StoreMode[] }) {
-  const { t } = useT();
   const pick = useSwitchStore();
-  const titleId = useId();
-  const { closing, close } = useClosing(onClose);
-  const checked = useRef<HTMLButtonElement>(null);
-  const choose = (m: StoreMode) => {
-    if (m !== current) pick(m);
-    close();
-  };
+  const { t } = useT();
+  const shown = modes.includes(mode) ? mode : "all";
+  const row = useRef<HTMLDivElement>(null);
+  // keep the selected chip in view when the store changes (the row scrolls sideways on narrow phones)
+  useEffect(() => {
+    row.current?.querySelector<HTMLElement>('[aria-checked="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [shown]);
   return (
-    <ModalShell labelledBy={titleId} onEscape={close} onBackdrop={close} closing={closing} initialFocus={checked} width="sm:max-w-md">
-      <div className="flex items-center gap-2 border-b border-line py-2 pl-5 pr-2">
-        <h2 id={titleId} className="min-w-0 flex-1 text-base font-extrabold">
-          {t("header.chooseStore")}
-        </h2>
-        <button type="button" onClick={close} aria-label={t("common.close")} className="grid h-11 w-11 place-items-center rounded-full text-ink-2 hover:bg-surface-2">
-          <Icon name="x" size={20} />
-        </button>
-      </div>
-      <div
-        role="radiogroup"
-        aria-labelledby={titleId}
-        className="grid gap-2 overflow-y-auto overscroll-contain p-3"
-        onKeyDown={(e) => {
-          // arrows move focus here; Enter/Space chooses (choosing closes the sheet)
-          const i = modes.indexOf((document.activeElement as HTMLElement | null)?.dataset.mode as StoreMode);
-          let n = -1;
-          if (e.key === "ArrowDown" || e.key === "ArrowRight") n = (i + 1) % modes.length;
-          else if (e.key === "ArrowUp" || e.key === "ArrowLeft") n = (i - 1 + modes.length) % modes.length;
-          if (n < 0) return;
-          e.preventDefault();
-          e.currentTarget.querySelector<HTMLElement>(`[data-mode="${modes[n]}"]`)?.focus();
-        }}
-      >
-        {modes.map((m) => {
-          const on = m === current;
-          const s = storeText(m, t);
-          return (
-            <button
-              key={m}
-              ref={on ? checked : undefined}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              tabIndex={on ? 0 : -1}
-              data-mode={m}
-              data-store={m}
-              onClick={() => choose(m)}
-              className="sp-card flex min-h-[64px] w-full items-center gap-3 rounded-[14px] border border-line bg-surface px-3 py-2.5 text-left"
-            >
-              <span className="min-w-0 flex-1 pl-1">
-                <span className="flex flex-wrap items-baseline gap-x-2">
-                  <StoreName mode={m} name={m === "all" ? t("search.allStores") : s.name} size="text-[17px]" className="tracking-tight" />
-                  <span className="text-xs font-medium text-ink-2">{m === "all" ? s.source : t("picker.from", { source: s.source })}</span>
-                </span>
-                <span className="mt-0.5 block text-xs leading-snug text-ink-2">{s.tagline}</span>
-              </span>
-              <span
-                aria-hidden
-                data-store={m}
-                className={"sn grid h-6 w-6 shrink-0 place-items-center rounded-full text-white " + (on ? "" : "ring-1 ring-line")}
-                style={on ? { background: "var(--sn-fill)" } : undefined}
-              >
-                {on && <Icon name="check" size={14} stroke={2.6} />}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </ModalShell>
+    <div
+      ref={row}
+      role="radiogroup"
+      aria-label={t("header.shoppingAt")}
+      className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 md:hidden"
+    >
+      {modes.map((m) => {
+        const on = m === shown;
+        const s = storeText(m, t);
+        return (
+          <button
+            key={m}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            data-store={m}
+            onClick={() => !on && pick(m)}
+            className={
+              "sn inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full px-4 text-sm transition-[background-color,box-shadow] duration-200 active:scale-[0.97] " +
+              (on ? "shadow-[var(--shadow-1)]" : "bg-surface ring-1 ring-line")
+            }
+            style={on ? { background: "var(--sn-fill)" } : undefined}
+          >
+            <StoreName mode={m} variant="pill" fill={on} bare name={m === "all" ? t("search.allStores") : s.name} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -268,7 +213,7 @@ export function StoreSwitcher() {
   return (
     <>
       <StoreSegmented />
-      <StoreSwitchButton />
+      <StoreChips />
     </>
   );
 }

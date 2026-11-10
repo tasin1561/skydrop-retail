@@ -77,6 +77,9 @@ export const STORES: Record<StoreMode, StoreInfo> = {
   },
 };
 
+/** India → Bangladesh delivery window in days, per store (same as the web app). */
+export const DELIVERY_DAYS: Record<MarketId, [number, number]> = { amazon: [7, 12], flipkart: [8, 13], myntra: [8, 13] };
+
 export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "myntra"];
 export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "myntra"];
 

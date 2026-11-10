@@ -29,6 +29,8 @@ export function Gallery({
   hasVideosOnly?: boolean;
   badges?: React.ReactNode;
 }) {
+  // Fashion photos (Myntra) are tall portraits: a 4:5 frame without padding shows the outfit large on a phone.
+  const tall = market === "myntra";
   const [idx, setIdx] = useState(0);
   const { t, digits } = useT();
   const [view, setView] = useState<{ start: number; autoPlay: boolean } | null>(null);
@@ -120,7 +122,7 @@ export function Gallery({
             aria-label={t("gal.photos")}
           >
             {count === 0 && (
-              <button type="button" onClick={() => open(0)} className="aspect-square w-full shrink-0" aria-label={t("gal.openViewer")}>
+              <button type="button" onClick={() => open(0)} className={(tall ? "aspect-[4/5]" : "aspect-square") + " w-full shrink-0"} aria-label={t("gal.openViewer")}>
                 <ProductImage p={p} sizes="lg" className="h-full w-full" />
               </button>
             )}
@@ -130,7 +132,7 @@ export function Gallery({
                 type="button"
                 onClick={(e) => open(i, m.kind === "video", e.currentTarget)}
                 aria-label={m.kind === "video" ? t("gal.playN", { n: i + 1, count }) : t("gal.openN", { n: i + 1, count })}
-                className="group relative aspect-square w-full shrink-0 p-6"
+                className={"group relative w-full shrink-0 " + (tall ? "aspect-[4/5]" : "aspect-square p-4")}
               >
                 {m.kind === "image" ? (
                   // eslint-disable-next-line @next/next/no-img-element
