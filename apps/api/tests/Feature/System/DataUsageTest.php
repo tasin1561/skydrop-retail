@@ -68,7 +68,7 @@ class DataUsageTest extends TestCase
     public function test_limits_defaults(): void
     {
         $this->assertSame(220000, Limits::int('data.capacity_amazon_calls'));
-        $this->assertSame(68000, Limits::int('data.capacity_flipkart_calls'));
+        $this->assertSame(110000, Limits::int('data.capacity_flipkart_calls'));
         $this->assertSame(80, Limits::int('data.capacity_alert_percent'));
         $this->assertSame(1, Limits::int('data.cycle_start_day'));
         Limits::set('data.cycle_start_day', 31);
@@ -150,21 +150,21 @@ class DataUsageTest extends TestCase
     public function test_mixed_pool_math_in_amazon_units(): void
     {
         $this->logCall('amazon', true, times: 2200);
-        $this->logCall('flipkart', true, times: 680);
+        $this->logCall('flipkart', true, times: 1100);
         $this->logCall('bigbasket', true, times: 5); // outside the plan
 
         $r = app(DataUsage::class)->report();
-        // 680 Flipkart calls × (220000 / 68000) = 2,200 Amazon-call units.
+        // 1,100 Flipkart calls × (220000 / 110000) = 2,200 Amazon-call units.
         $this->assertEqualsWithDelta(4400.0, $r['used_units'], 1e-6);
         $this->assertEqualsWithDelta(2.0, $r['pct'], 1e-9);
         $this->assertSame(215600, $r['remaining_amazon']);
-        $this->assertSame((int) floor(215600 / (220000 / 68000)), $r['remaining_flipkart']); // 66,640
-        $this->assertSame(66640, $r['remaining_flipkart']);
+        $this->assertSame((int) floor(215600 / (220000 / 110000)), $r['remaining_flipkart']);
+        $this->assertSame(107800, $r['remaining_flipkart']);
         $this->assertSame(5, $r['ok']['other']);
 
         // 100% of either side alone fills the pool.
         $u = app(DataUsage::class);
-        $this->assertEqualsWithDelta(220000.0, $u->units(0, 68000), 1e-6);
+        $this->assertEqualsWithDelta(220000.0, $u->units(0, 110000), 1e-6);
         $this->assertEqualsWithDelta(220000.0, $u->units(220000, 0), 1e-6);
     }
 
@@ -307,7 +307,7 @@ class DataUsageTest extends TestCase
         $byStore = collect($rows)->keyBy(2);
         $this->assertSame([$at->toDateString(), 'Search results', 'Amazon India', 3, 2, 0, 3.0], $byStore['Amazon India']);
         $this->assertSame(1, $byStore['Flipkart'][5]);
-        $this->assertEqualsWithDelta(220000 / 68000, $byStore['Flipkart'][6], 0.01);
+        $this->assertEqualsWithDelta(220000 / 110000, $byStore['Flipkart'][6], 0.01);
 
         $this->as($this->staff('finance'));
         Livewire::test(DataUsagePage::class)->callAction('csv')->assertFileDownloaded();

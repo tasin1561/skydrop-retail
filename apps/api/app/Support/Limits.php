@@ -40,7 +40,7 @@ class Limits
             'Provider calls per marketplace per day (all providers, checkout verification excluded). 0 = unlimited.'],
         'catalog.max_concurrent_fetches' => ['Max concurrent live fetches', 'Catalog & data spend', 10, 'requests', 1, 50,
             'Parallel provider requests in one batch (variant siblings, deals).'],
-        'catalog.variant_max' => ['Variant fetches per product', 'Catalog & data spend', 60, 'products', 0, 500,
+        'catalog.variant_max' => ['Variant fetches per product', 'Catalog & data spend', 20, 'products', 0, 500,
             'Sibling variants fetched for one product page. Same value as Settings → Variants max.'],
         'catalog.search_pages' => ['Store pages per search', 'Catalog & data spend', 5, 'pages', 1, 20,
             'Store result pages (~48 items each) fetched live for one query; deeper pages show what is cached.'],
@@ -58,7 +58,7 @@ class Limits
         // ---- Product data plan (one shared monthly pool; see System → Product data usage)
         'data.capacity_amazon_calls' => ['Monthly plan: Amazon India calls', 'Product data plan', 220000, 'calls', 0, 100000000,
             'Successful Amazon India product-data calls the monthly plan covers when used for Amazon only. Amazon and Flipkart share one pool: 1 Flipkart call uses (Amazon calls ÷ Flipkart calls) of it. Failed calls never count. 0 = no plan.'],
-        'data.capacity_flipkart_calls' => ['Monthly plan: Flipkart calls', 'Product data plan', 68000, 'calls', 0, 100000000,
+        'data.capacity_flipkart_calls' => ['Monthly plan: Flipkart calls', 'Product data plan', 110000, 'calls', 0, 100000000,
             'Successful Flipkart calls the same plan covers when used for Flipkart only.'],
         'data.capacity_alert_percent' => ['Plan usage alert at', 'Product data plan', 80, '%', 1, 100,
             'Admins get one alert per billing cycle when usage passes this, and one more at 100%.'],

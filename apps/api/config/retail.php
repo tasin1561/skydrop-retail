@@ -69,7 +69,7 @@ return [
 
     'fx_feed_url' => env('FX_FEED_URL'), // optional JSON endpoint returning {"rate": <BDT per INR>}
 
-    'variants' => ['mode' => env('VARIANT_MODE', 'eager'), 'max' => (int) env('VARIANT_MAX', 60)],
+    'variants' => ['mode' => env('VARIANT_MODE', 'eager'), 'max' => (int) env('VARIANT_MAX', 20)],
     'prefetch_top' => (int) env('PREFETCH_TOP', 3),
 
     'pricing' => [

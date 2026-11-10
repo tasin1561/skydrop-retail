@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  *
  * The plan is ONE shared pool: data.capacity_amazon_calls Amazon India calls OR data.capacity_flipkart_calls Flipkart
  * calls, or a proportional mix. Usage is measured in Amazon-call units: 1 Flipkart call = amazon ÷ flipkart units
- * (220,000 ÷ 68,000 ≈ 3.235 by default). Only successful live retrieval calls count; failed calls and cache hits never
+ * (220,000 ÷ 110,000 = 2 by default). Only successful live retrieval calls count; failed calls and cache hits never
  * do. Retries are counted separately (a retry that succeeded is still one billable call). Other stores are shown but
  * are outside the plan. Billing cycles run from data.cycle_start_day to the same day next month, in Bangladesh time.
  */

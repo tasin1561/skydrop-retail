@@ -104,7 +104,7 @@ pages show the same value. Each field shows its unit, help, default, a reset but
 | | `catalog.oxylabs_daily_usd` | 10 USD (0 = off) | `BudgetGuard::dailyCapHit()` → browsing cache/fallback only, checkout verify still live |
 | | `catalog.store_daily_fetches` | 5000 calls (0 = off) | `BudgetGuard::allowsStore()` in `ProviderChain` (verify exempt) |
 | | `catalog.max_concurrent_fetches` | 10 | `OxylabsClient::pool`, sibling / deal batches |
-| | `catalog.variant_max` | 60 (setting `variants.max`) | `CatalogService::variantPlan` |
+| | `catalog.variant_max` | 20 (setting `variants.max`) | `CatalogService::variantPlan` |
 | | `catalog.search_pages` | 5 | `CatalogService::search` (store pages fetched per query) |
 | | `catalog.product_ttl_min_minutes` / `catalog.search_ttl_min_minutes` | 30 / 60 min | `CatalogService::isFresh`, search freshness |
 | | `catalog.searches_per_min` / `catalog.product_views_per_min` / `catalog.resolves_per_min` | config `security.limits.strict_ip` (40) / 40 / `resolve_ip` (10) | `CatalogThrottle` (per IP, separate buckets) |
