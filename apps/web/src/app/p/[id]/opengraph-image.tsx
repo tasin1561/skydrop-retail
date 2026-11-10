@@ -8,6 +8,7 @@ const OG_FILL: Record<string, string> = {
   amazon: "linear-gradient(100deg, #5b3df5, #9426c4)",
   flipkart: "linear-gradient(100deg, #c8185f, #b8361a)",
   bigbasket: "linear-gradient(100deg, #0a7a55, #0b7287)",
+  myntra: "linear-gradient(100deg, #c2410c, #b4235a)",
 };
 
 // Per-product social card: product image, title, BDT price, origin store chip and Skydrop Retail branding.

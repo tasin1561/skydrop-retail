@@ -285,7 +285,7 @@ class ProductMatcher
     /** Delivery estimate (days) per store; Prime/fast-dispatch listings arrive a day earlier. */
     public static function delivery(Product $p): array
     {
-        $base = ['amazon' => [7, 12], 'flipkart' => [8, 13], 'bigbasket' => [6, 10]][$p->market] ?? [7, 12];
+        $base = ['amazon' => [7, 12], 'flipkart' => [8, 13], 'bigbasket' => [6, 10], 'myntra' => [8, 13]][$p->market] ?? [7, 12];
         $fast = $p->prime ? 1 : 0;
 
         return ['min' => $base[0] - $fast, 'max' => $base[1] - $fast];

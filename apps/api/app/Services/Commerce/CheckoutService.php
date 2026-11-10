@@ -16,7 +16,7 @@ use App\Support\Features;
 // Cart lines, coupons and totals. Same maths as apps/web/src/components/checkout/cart-math.ts.
 class CheckoutService
 {
-    public const MARKETS = ['amazon', 'flipkart', 'bigbasket'];
+    public const MARKETS = ['amazon', 'flipkart', 'bigbasket', 'myntra'];
 
     public function __construct(private PricingService $pricing, private PointsService $points) {}
 
@@ -36,6 +36,8 @@ class CheckoutService
             throw new CommerceException('Some items are no longer in our catalog.', 422, ['errors' => ['items' => ['Unknown product: '.implode(', ', $missing)]], 'missing' => $missing]);
         }
 
+        $this->assertOptions($items, $products->all());
+
         $lines = array_map(function ($i) use ($products) {
             $p = $products[(string) $i['productId']];
 
@@ -51,6 +53,34 @@ class CheckoutService
 
         // CMS hook: flash-sale info + per-order limit (line 'flash'), shipping restrictions (line 'restriction').
         return app(RestrictionService::class)->annotate(app(FlashSaleService::class)->lines($lines));
+    }
+
+    /**
+     * Myntra sizes are options of one product (no listing of their own), so the size must come with the line: an
+     * item added without one (bundle, "bought together", assistant) or with a size that is sold out can't be bought.
+     *
+     * @param  array<int, array{productId: string, variant?: ?string}>  $items
+     * @param  array<string, Product>  $products
+     */
+    private function assertOptions(array $items, array $products): void
+    {
+        foreach ($items as $i) {
+            $p = $products[(string) $i['productId']] ?? null;
+            $options = $p && $p->market === 'myntra'
+                ? array_values(array_filter((array) ($p->details?->variants ?? []), fn ($v) => empty($v['id']) && ($v['label'] ?? '') !== ''))
+                : [];
+            if ($options === []) {
+                continue;
+            }
+            $picked = trim((string) ($i['variant'] ?? ''));
+            $match = collect($options)->first(fn ($v) => $v['label'] === $picked);
+            if (! $match) {
+                throw CommerceException::field('items', "Pick a size for \"{$p->title}\" on its product page.");
+            }
+            if (($match['in_stock'] ?? true) === false) {
+                throw CommerceException::field('items', "Size {$picked} of \"{$p->title}\" is sold out on Myntra. Pick another size.");
+            }
+        }
     }
 
     /** Looks up a code and checks it is active, in its schedule and has uses left (customer/store rules: see quote()). */

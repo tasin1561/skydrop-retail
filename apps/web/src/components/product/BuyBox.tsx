@@ -53,6 +53,9 @@ export function BuyBox({
   const groups = useMemo(() => groupVariants(info.variants), [info.variants]);
 
   const current = info.variants.find((v) => Object.entries(sel).every(([k, val]) => v.dimensions[k] === val));
+  // An option without its own listing (a Myntra size) that the store shows as sold out.
+  const optionGone = !!current && current.id === null && current.available === false;
+  const canBuy = info.available && !optionGone && !info.loadingOptions;
   const variantLabel = current?.label ?? (Object.values(sel).length ? Object.values(sel).join(" / ") : undefined);
 
   useEffect(() => {
@@ -101,7 +104,7 @@ export function BuyBox({
 
   function isUnavailable(key: string, value: string) {
     const list = info.variants.filter((v) => v.dimensions[key] === value);
-    return list.length > 0 && list.every((v) => v.id !== null && unavailable.has(v.id));
+    return list.length > 0 && list.every((v) => (v.id !== null && unavailable.has(v.id)) || (v.id === null && v.available === false));
   }
 
   function put() {
@@ -121,7 +124,7 @@ export function BuyBox({
   // Storytelling add: idle -> busy while a thumbnail arcs to the cart icon -> the cart really changes as it
   // lands (badge pops, icon bumps) -> label morphs to "Added". Busy shows at least 600ms so it never flickers.
   function onAdd(from: HTMLElement | null) {
-    if (add !== "idle" || !info.available) return;
+    if (add !== "idle" || !canBuy) return;
     setAdd("busy");
     const t0 = Date.now();
     let added = false;
@@ -145,7 +148,7 @@ export function BuyBox({
   }
 
   function onBuy() {
-    if (buy !== "idle" || !info.available) return;
+    if (buy !== "idle" || !canBuy) return;
     setBuy("busy");
     put();
     later(() => {
@@ -178,6 +181,13 @@ export function BuyBox({
         </section>
       )}
 
+      {info.loadingOptions && (
+        <p role="status" aria-live="polite" className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-xs font-semibold text-ink-2">
+          <Spinner />
+          {t("buy.loadingOptions", { source: info.source })}
+        </p>
+      )}
+
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-ink-2">{t("buy.qty")}</p>
@@ -192,8 +202,8 @@ export function BuyBox({
       </SafeSection>
 
       <div ref={actionsRef} className="grid grid-cols-2 gap-2.5">
-        <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!info.available} className="h-[52px] text-[15px]" />
-        <BuyButton phase={buy} onClick={onBuy} disabled={!info.available} className="h-[52px] text-[15px]" />
+        <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!canBuy} className="h-[52px] text-[15px]" />
+        <BuyButton phase={buy} onClick={onBuy} disabled={!canBuy} className="h-[52px] text-[15px]" />
       </div>
 
       {/* sticky mobile action bar, above the 64px bottom nav */}
@@ -216,8 +226,8 @@ export function BuyBox({
               )}
             </p>
           </div>
-          <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!info.available} compact className="h-11 px-4 text-sm" />
-          <BuyButton phase={buy} onClick={onBuy} disabled={!info.available} compact className="h-11 px-4 text-sm" />
+          <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!canBuy} compact className="h-11 px-4 text-sm" />
+          <BuyButton phase={buy} onClick={onBuy} disabled={!canBuy} compact className="h-11 px-4 text-sm" />
         </div>
       </div>
     </div>

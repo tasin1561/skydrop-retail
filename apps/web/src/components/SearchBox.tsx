@@ -19,6 +19,7 @@ const EXAMPLES: Record<StoreMode, MsgKey[]> = {
   amazon: ["search.ex.iphone", "search.ex.amazonLink", "search.ex.earbuds", "search.ex.cooker"],
   flipkart: ["search.ex.kurta", "search.ex.flipkartLink", "search.ex.sneakers", "search.ex.saree"],
   bigbasket: ["search.ex.rice", "search.ex.haldiram", "search.ex.chai", "search.ex.bigbasketLink"],
+  myntra: ["search.ex.kurta", "search.ex.myntraLink", "search.ex.sneakers", "search.ex.saree"],
 };
 
 /** Cycles placeholder examples every 2.8s while the field is idle, visible and the tab is shown. */

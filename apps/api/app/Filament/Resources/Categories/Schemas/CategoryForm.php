@@ -71,6 +71,10 @@ class CategoryForm
                             TextInput::make('sources.bigbasket.query')->label('Search query'),
                             TextInput::make('sources.bigbasket.slug')->label('Category slug (optional)'),
                         ]),
+                        Fieldset::make('Myntra (myntra.com)')->columns(1)->columnSpan(1)->schema([
+                            TextInput::make('sources.myntra.query')->label('Search query'),
+                            TextInput::make('sources.myntra.path')->label('Listing path (optional, e.g. men-tshirts)'),
+                        ]),
                     ]),
             ]);
     }

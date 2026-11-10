@@ -45,7 +45,7 @@ export default async function ShippingPage() {
           body: (
             <ol>
               <li>
-                <strong>Indian store → our Kolkata hub</strong> (usually 1–3 days). We buy your item from amazon.in, flipkart.com or bigbasket.com
+                <strong>Indian store → our Kolkata hub</strong> (usually 1–3 days). We buy your item from amazon.in, flipkart.com, bigbasket.com or myntra.com
                 and have it delivered to our hub in Kolkata, where we check it and pack it for the border.
               </li>
               <li>
@@ -185,7 +185,7 @@ function ShippingBn() {
           body: (
             <ol>
               <li>
-                <strong>ইন্ডিয়ান স্টোর → আমাদের কলকাতা হাব</strong> (সাধারণত ১–৩ দিন)। amazon.in, flipkart.com বা bigbasket.com থেকে আপনার পণ্য কিনে
+                <strong>ইন্ডিয়ান স্টোর → আমাদের কলকাতা হাব</strong> (সাধারণত ১–৩ দিন)। amazon.in, flipkart.com, bigbasket.com বা myntra.com থেকে আপনার পণ্য কিনে
                 কলকাতার হাবে আনাই, সেখানে যাচাই করে বর্ডারের জন্য প্যাক করি।
               </li>
               <li>

@@ -284,7 +284,7 @@ class AssistantService
         $words = array_values(array_filter(CatalogQuery::words(preg_replace('/[^\p{L}\p{N}\s-]/u', ' ', $message) ?? ''),
             fn ($w) => ! in_array($w, self::STOP, true) && ! is_numeric($w) && ! preg_match('/\p{Bengali}/u', $w)));
         $max = preg_match('/(\d[\d,]{2,})/', $message, $m) ? (int) str_replace(',', '', $m[1]) : null;
-        $store = in_array($store, ['amazon', 'flipkart', 'bigbasket'], true) ? $store : 'all';
+        $store = in_array($store, ['amazon', 'flipkart', 'bigbasket', 'myntra'], true) ? $store : 'all';
         $attempts = $words ? [implode(' ', $words)] : [];
         usort($words, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
         foreach (array_slice($words, 0, 3) as $w) {

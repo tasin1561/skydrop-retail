@@ -42,7 +42,7 @@ class AssistantController extends Controller
         $data = $request->validate([
             'conversationId' => ['nullable', 'uuid'],
             'message' => ['required', 'string', 'max:2000'],
-            'store' => ['nullable', 'in:all,amazon,flipkart,bigbasket'],
+            'store' => ['nullable', 'in:all,amazon,flipkart,bigbasket,myntra'],
             'locale' => ['nullable', 'in:en,bn'],
             'client' => ['nullable', 'in:web,mobile'],
             'context' => ['nullable', 'array'],

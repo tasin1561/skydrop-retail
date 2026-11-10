@@ -35,7 +35,7 @@ class ProductsTable
                     ->description(fn (Product $r) => $r->id.($r->brand ? ' · '.$r->brand : '')),
                 TextColumn::make('id')->label('Id')->searchable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('market')->badge()->sortable()
-                    ->formatStateUsing(fn ($state) => ['amazon' => 'Amazon', 'flipkart' => 'Flipkart', 'bigbasket' => 'BigBasket'][$state] ?? $state),
+                    ->formatStateUsing(fn ($state) => ['amazon' => 'Amazon', 'flipkart' => 'Flipkart', 'bigbasket' => 'BigBasket', 'myntra' => 'Myntra'][$state] ?? $state),
                 TextColumn::make('category')->sortable()->toggleable(),
                 TextColumn::make('price_inr')->label('Price ₹')->numeric()->sortable(),
                 TextColumn::make('price_bdt')->label('Price ৳')

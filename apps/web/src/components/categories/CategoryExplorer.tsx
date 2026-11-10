@@ -153,7 +153,7 @@ function StoreChips({ stores, compact }: { stores: MarketId[]; compact?: boolean
   const { t } = useT();
   return (
     <span className={"flex flex-wrap gap-1 " + (compact ? "shrink-0" : "mt-1.5")} aria-label={t("cat.soldBy", { stores: stores.map((s) => STORES[s].name).join(", ") })}>
-      {(["amazon", "flipkart", "bigbasket"] as MarketId[]).map((m) => (
+      {(["amazon", "flipkart", "myntra", "bigbasket"] as MarketId[]).map((m) => (
         <span key={m} className="cm-store" data-on={stores.includes(m)} aria-hidden="true" title={STORES[m].source}>
           {compact ? STORES[m].short : STORES[m].name}
         </span>

@@ -1,4 +1,4 @@
-export type MarketId = "amazon" | "flipkart" | "bigbasket";
+export type MarketId = "amazon" | "flipkart" | "bigbasket" | "myntra";
 export type StoreMode = MarketId | "all";
 
 export type Variant = {
@@ -7,6 +7,8 @@ export type Variant = {
   dimensions: Record<string, string>;
   swatch: string | null;
   selected: boolean;
+  /** From the API: false when the store shows this option as sold out (Myntra sizes have no id of their own). */
+  available?: boolean;
 };
 
 export type Review = {

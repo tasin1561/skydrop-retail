@@ -7,7 +7,7 @@ class CategoryGuesser
 {
     private const PATH = [
         'electronics' => '/electronic|computer|laptop|tablet|mobile|phone|camera|headphone|audio|video game|gaming|wearable|smart|television|\\btvs?\\b|home entertainment|monitor|projector|speaker/i',
-        'fashion' => '/cloth|fashion|shoe|footwear|jewel|watch|bag|luggage|apparel|eyewear/i',
+        'fashion' => '/cloth|fashion|shoe|footwear|jewel|watch|bag|luggage|apparel|eyewear|^accessories\b|topwear|bottomwear|innerwear|loungewear|sportswear|ethnic|saree|kurta/i',
         'beauty' => '/beauty|personal care|make.?up|skin|hair|fragrance|health/i',
         'grocery' => '/grocery|gourmet|food|beverage|snack|tea|coffee|staples|fruits|drinks/i',
         'home' => '/home|kitchen|furniture|garden|tool|appliance|household|cleaning|decor|baby|toy|pet|books?|stationery|sports|musical/i',
@@ -40,6 +40,10 @@ class CategoryGuesser
             }
         }
 
-        return $market === 'bigbasket' ? 'grocery' : ($market === 'flipkart' ? 'fashion' : 'electronics');
+        return match ($market) {
+            'bigbasket' => 'grocery',
+            'flipkart', 'myntra' => 'fashion',
+            default => 'electronics',
+        };
     }
 }

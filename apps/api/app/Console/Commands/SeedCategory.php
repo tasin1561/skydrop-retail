@@ -19,7 +19,7 @@ class SeedCategory extends Command
 {
     protected $signature = 'retail:seed-category
         {path : Tree path, e.g. mobiles-electronics/headphones-audio}
-        {--store= : amazon|flipkart|bigbasket (default: every live store that sells it)}
+        {--store= : amazon|flipkart|bigbasket|myntra (default: every live store that sells it)}
         {--pages= : Store result pages per query (default: ~200 products per subcategory)}
         {--dry-run : List the queries without dispatching}';
 

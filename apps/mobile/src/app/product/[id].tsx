@@ -160,8 +160,12 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
   const price = unitPrice(p);
   const mrp = unitMrp(p);
   const off = discountPct(p);
-  const available = !isUnavailableStock(p.stock);
   const current = variants.find((v) => Object.entries(sel).every(([k, val]) => v.dimensions[k] === val));
+  // An option without its own listing (a Myntra size) that the store shows as sold out.
+  const optionGone = !!current && current.id === null && current.available === false;
+  // Myntra item shown from search data while its page (with sizes) is still loading: wait before buying.
+  const loadingOptions = p.market === "myntra" && !p.detailed;
+  const available = !isUnavailableStock(p.stock) && !optionGone && !loadingOptions;
   const variantLabel = current?.label ?? (Object.values(sel).length ? Object.values(sel).join(" / ") : undefined);
   const wished = wish.includes(p.id);
   const deal = headlineDeal(p, t);
@@ -294,10 +298,16 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           )}
           <T v="tiny" tone="ink2">{t("m.dutyShip")}</T>
           <ProductExtras id={p.id} market={p.market} priceBdt={price} inStock={available} />
-          {!available && (
-            <T v="small" tone="bad" style={{ fontWeight: "700" }}>
-              {t("m.unavailOn", { source: store.source })}
+          {loadingOptions ? (
+            <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
+              {t("buy.loadingOptions", { source: store.source })}
             </T>
+          ) : (
+            !available && (
+              <T v="small" tone="bad" style={{ fontWeight: "700" }}>
+                {t("m.unavailOn", { source: store.source })}
+              </T>
+            )
           )}
         </Animated.View>
 
@@ -311,7 +321,10 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
                 group={g}
                 market={p.market}
                 selected={sel[g.key]}
-                isAvailable={(v) => comboExists(variants, sel, g.key, v)}
+                isAvailable={(v) =>
+                  comboExists(variants, sel, g.key, v) &&
+                  !variants.filter((x) => x.dimensions[g.key] === v).every((x) => x.id === null && x.available === false)
+                }
                 onPick={(v) => pick(g.key, v)}
               />
             ))}

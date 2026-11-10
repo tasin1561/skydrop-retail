@@ -14,7 +14,7 @@ use Throwable;
 /** Shared helpers for the catalog controllers. */
 abstract class CatalogController extends Controller
 {
-    protected const STORES = 'nullable|in:all,amazon,flipkart,bigbasket';
+    protected const STORES = 'nullable|in:all,amazon,flipkart,bigbasket,myntra';
 
     /** ?brand=a,b: one or more brands, comma-separated (validated as a string first; see brands()). */
     protected const BRAND = 'nullable|string|max:700';

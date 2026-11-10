@@ -1,7 +1,7 @@
 // Feature switches controlled from Admin → System → Features (GET /api/v1/features).
 // Server components: `await getFeatures()`; client components: `useFeature("affiliate")`.
 export type FeatureKey =
-  | "store.amazon" | "store.flipkart" | "store.bigbasket" | "paste_link" | "live_fetch" | "offers" | "price_history"
+  | "store.amazon" | "store.flipkart" | "store.bigbasket" | "store.myntra" | "paste_link" | "live_fetch" | "offers" | "price_history"
   | "compare_stores" | "bundles" | "group_orders" | "preorders" | "waitlist" | "product_requests" | "reviews"
   | "flash_sales" | "banners" | "restrictions" | "ai_assistant" | "bangla"
   | "pay.bkash" | "pay.nagad" | "pay.card" | "pay.advance50" | "pay.emi" | "coupons" | "points" | "wallet"

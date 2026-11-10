@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Banner extends Model
 {
-    public const STORES = ['all', 'amazon', 'flipkart', 'bigbasket'];
+    public const STORES = ['all', 'amazon', 'flipkart', 'bigbasket', 'myntra'];
 
     public const PLACEMENTS = ['hero' => 'Hero carousel', 'strip' => 'Promo strip', 'category' => 'Category tile'];
 

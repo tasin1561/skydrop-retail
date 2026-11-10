@@ -81,13 +81,13 @@ class ProductController extends CatalogController
         return response()->json(['ok' => true, 'pending' => $catalog->cancelVariants($id)]);
     }
 
-    /** POST /products/resolve {url}: paste any amazon.in / flipkart.com / bigbasket.com link. */
+    /** POST /products/resolve {url}: paste any amazon.in / flipkart.com / bigbasket.com / myntra.com link. */
     public function resolve(Request $request, UrlResolver $resolver, CatalogService $catalog): JsonResponse
     {
         $url = (string) $request->validate(['url' => 'required|string|max:2000'])['url'];
         $fail = fn (string $msg) => throw ValidationException::withMessages(['url' => [$msg]]);
         if (! $resolver->isSupportedHost($url)) {
-            $fail('Paste a product link from amazon.in, flipkart.com or bigbasket.com.');
+            $fail('Paste a product link from amazon.in, flipkart.com, bigbasket.com or myntra.com.');
         }
         $found = $resolver->resolve($url);
         if (! $found) {

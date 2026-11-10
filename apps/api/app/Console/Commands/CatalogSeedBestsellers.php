@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class CatalogSeedBestsellers extends Command
 {
-    protected $signature = 'retail:seed-bestsellers {market : amazon|flipkart|bigbasket}';
+    protected $signature = 'retail:seed-bestsellers {market : amazon|flipkart|bigbasket|myntra}';
 
     protected $description = 'Fetch bestseller pages for every active category of a live marketplace';
 

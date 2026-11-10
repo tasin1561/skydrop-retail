@@ -147,3 +147,18 @@ Permission `system.settings`.
 | `LOG_RETENTION_DAYS` | 14 | Default log retention. |
 | `APP_VERSION`, `APP_DEPLOYED_AT` | – | Shown on the App card (else the git short sha and the config-cache time). |
 | `ALERT_EMAIL`, `ALERT_TELEGRAM_BOT`, `ALERT_TELEGRAM_CHAT` | – | Alert channels. |
+
+## Myntra (myntra.com)
+
+Added Nov 2026, through the Oxylabs universal source (live-tested). Turn it on in Admin → Marketplaces (live data) once deployed;
+the migration `2026_11_10_000001_add_myntra_marketplace` adds the store (catalog only) and the Myntra search queries on 155 categories.
+
+- Listing pages (search, store categories, deals) are tried without rendering first (~2 s, $0.90 per 1,000). Myntra often answers
+  plain requests with a 483-byte "Site Maintenance" block page; the page is then fetched once more with rendering (10-30 s,
+  $1.40 per 1,000). Oxylabs bills the block page too.
+- Product pages are always rendered (plain fetches are refused) and retried once on a block page.
+- Oxylabs runs only ~3 rendered jobs at once per account ("Too many requests (Total Render Dynamic)"); Myntra uses 2 at a time.
+  Rendered jobs get `OXYLABS_RENDER_TIMEOUT` (default 60 s).
+- Sizes are options of the product page (no extra calls); other colours are separate Myntra styles and are fetched only when a
+  shopper taps one (no variant prefetch for Myntra). Checkout requires an in-stock size for Myntra items that have sizes.
+- Myntra calls are outside the Amazon/Flipkart data plan (System → Product data usage → "Other stores").

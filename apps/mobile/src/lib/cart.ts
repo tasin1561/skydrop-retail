@@ -46,7 +46,7 @@ export function couponFromApi(c: unknown): Coupon | null {
     value: num(o.value) ?? undefined,
     maxDiscountBdt: num(o.maxDiscountBdt),
     minSubtotalBdt: num(o.minSubtotalBdt),
-    store: o.store === "amazon" || o.store === "flipkart" || o.store === "bigbasket" ? o.store : "all",
+    store: o.store === "amazon" || o.store === "flipkart" || o.store === "bigbasket" || o.store === "myntra" ? o.store : "all",
     firstOrderOnly: o.firstOrderOnly === true,
     promoText: { en: str(promo.en), bn: str(promo.bn) },
     endsAt: str(o.endsAt),

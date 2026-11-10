@@ -75,7 +75,7 @@
     @foreach ($order->items as $item)
       <tr>
         <td>{{ $item->title }}@if ($item->variant)<br><span class="muted">{{ $item->variant }}</span>@endif</td>
-        <td>{{ ['amazon' => 'amazon.in', 'flipkart' => 'flipkart.com', 'bigbasket' => 'bigbasket.com'][$item->market] ?? $item->market }}</td>
+        <td>{{ ['amazon' => 'amazon.in', 'flipkart' => 'flipkart.com', 'bigbasket' => 'bigbasket.com', 'myntra' => 'myntra.com'][$item->market] ?? $item->market }}</td>
         <td class="num">{{ $item->qty }}</td>
         <td class="num">{{ $bdt($item->unit_bdt) }}</td>
         <td class="num">{{ $bdt($item->unit_bdt * $item->qty) }}</td>

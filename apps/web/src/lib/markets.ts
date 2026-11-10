@@ -75,6 +75,20 @@ export const STORES: Record<StoreMode, StoreInfo> = {
       { slug: "beauty", label: "Personal care", icon: "beauty" },
     ],
   },
+  myntra: {
+    id: "myntra",
+    name: "Myntra",
+    short: "Myntra",
+    source: "myntra.com",
+    tagline: "Fashion, footwear and beauty, sourced from myntra.com",
+    heroTitle: "India's favourite fashion store, now in Bangladesh",
+    heroText: "Clothing, shoes, bags and beauty from myntra.com, priced in taka with Skydrop delivery.",
+    categories: [
+      { slug: "fashion", label: "Fashion", icon: "shirt" },
+      { slug: "beauty", label: "Beauty", icon: "beauty" },
+      { slug: "home", label: "Home", icon: "home" },
+    ],
+  },
 };
 
 const CAT_KEYS: Record<string, MsgKey> = {
@@ -83,7 +97,7 @@ const CAT_KEYS: Record<string, MsgKey> = {
   "Staples & Snacks": "store.cat.staples", Household: "store.cat.household", "Personal care": "store.cat.personal",
 };
 
-/** STORES[m] in the shopper's language. Store names (Amazon, Flipkart, BigBasket) and source domains stay in English; shown as plain text, never logos. */
+/** STORES[m] in the shopper's language. Store names (Amazon, Flipkart, BigBasket, Myntra) and source domains stay in English; shown as plain text, never logos. */
 export function storeText(m: StoreMode, t: TFn): StoreInfo {
   const s = STORES[m];
   return {
@@ -98,8 +112,8 @@ export function storeText(m: StoreMode, t: TFn): StoreInfo {
   };
 }
 
-export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "bigbasket"];
-export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "bigbasket"];
+export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "myntra", "bigbasket"];
+export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "myntra", "bigbasket"];
 
 export function isMarket(x: string): x is MarketId {
   return (MARKET_IDS as string[]).includes(x);
@@ -114,4 +128,5 @@ export const DEFAULT_ENABLED: Record<MarketId, boolean> = {
   amazon: true,
   flipkart: true,
   bigbasket: true,
+  myntra: true,
 };

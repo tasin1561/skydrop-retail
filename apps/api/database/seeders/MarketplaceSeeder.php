@@ -14,6 +14,7 @@ class MarketplaceSeeder extends Seeder
             ['id' => 'amazon', 'name' => 'Amazon', 'source' => 'amazon.in'],
             ['id' => 'flipkart', 'name' => 'Flipkart', 'source' => 'flipkart.com'],
             ['id' => 'bigbasket', 'name' => 'BigBasket', 'source' => 'bigbasket.com'],
+            ['id' => 'myntra', 'name' => 'Myntra', 'source' => 'myntra.com'],
         ] as $m) {
             Marketplace::query()->updateOrCreate(['id' => $m['id']], $m + [
                 'enabled' => true, 'live_fetch' => false, 'pincode' => config('retail.pincode', '700001'),

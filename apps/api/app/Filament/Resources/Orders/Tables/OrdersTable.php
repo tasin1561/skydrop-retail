@@ -36,7 +36,7 @@ class OrdersTable
                     ->formatStateUsing(fn ($state) => Admin::ORDER_STATUS_LABELS[$state] ?? $state)
                     ->color(fn ($state) => Admin::ORDER_STATUS_COLORS[$state] ?? 'gray'),
                 TextColumn::make('markets')->label('Stores')->badge()->color('gray')
-                    ->state(fn (Order $r) => $r->items->pluck('market')->unique()->map(fn ($m) => ['amazon' => 'Mega', 'flipkart' => 'Style', 'bigbasket' => 'Daily'][$m] ?? $m)->values()->all()),
+                    ->state(fn (Order $r) => $r->items->pluck('market')->unique()->map(fn ($m) => ['amazon' => 'Mega', 'flipkart' => 'Style', 'bigbasket' => 'Daily', 'myntra' => 'Myntra'][$m] ?? $m)->values()->all()),
                 TextColumn::make('items_count')->label('Items')->state(fn (Order $r) => $r->items->sum('qty'))->alignEnd(),
                 TextColumn::make('total_bdt')->label('Total')->formatStateUsing(fn ($state) => Admin::bdt($state))->sortable()->alignEnd(),
                 TextColumn::make('payment_status')->label('Payment')->badge()

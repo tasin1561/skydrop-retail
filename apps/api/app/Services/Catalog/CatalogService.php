@@ -278,6 +278,11 @@ class CatalogService
      */
     public function variantPlan(Product $p): array
     {
+        // Myntra: sizes are on the product's own page, and every colour is a separate rendered page that Myntra often
+        // blocks on the first try. Colours load when the shopper taps one instead of being prefetched.
+        if ($p->market === 'myntra') {
+            return ['colours' => [], 'sizes' => []];
+        }
         // Skip siblings the store page already marks out of stock (Flipkart): nothing to buy, so no data call.
         $variants = collect($p->details?->variants ?? [])->filter(fn ($v) => ! empty($v['id']) && $v['id'] !== $p->id && ($v['in_stock'] ?? true) !== false);
         $colourDim = collect($p->details?->variants[0]['dimensions'] ?? [])->keys()

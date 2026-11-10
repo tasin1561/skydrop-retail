@@ -67,6 +67,7 @@ export async function ProductDetail({
     weightKg: weightKg(p),
     variants: p.variants ?? [],
     available: !isUnavailableStock(p.stock) && !isBlocked(p),
+    loadingOptions: p.market === "myntra" && !p.detailed,
   };
 
   const specs = Object.entries(p.specs ?? {}).filter(([k, v]) => v && !/customer reviews|best sellers rank/i.test(k));

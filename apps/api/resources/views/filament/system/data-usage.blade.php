@@ -94,7 +94,7 @@
             <div class="du-kpi"><span>Failed calls</span><b>{{ number_format($r['failed_total']) }}</b><small>not billed · Amazon {{ number_format($r['failed']['amazon']) }} · Flipkart {{ number_format($r['failed']['flipkart']) }}</small></div>
             <div class="du-kpi"><span>Retries</span><b>{{ number_format($r['retries']) }}</b><small>{{ number_format($r['retries_ok']) }} succeeded (counted above), {{ number_format($r['retries'] - $r['retries_ok']) }} failed</small></div>
             @if ($r['ok']['other'] > 0 || $r['failed']['other'] > 0)
-                <div class="du-kpi"><span>Other stores</span><b>{{ number_format($r['ok']['other']) }}</b><small>successful calls outside the plan (e.g. BigBasket)</small></div>
+                <div class="du-kpi"><span>Other stores</span><b>{{ number_format($r['ok']['other']) }}</b><small>successful calls outside the plan (BigBasket, Myntra)</small></div>
             @endif
         </div>
 

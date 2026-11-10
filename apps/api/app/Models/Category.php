@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Two kinds of rows share this table:
  *  - unified tree nodes (market = 'all'): the Skydrop Retail taxonomy, keyed by `path`, mapped to each store via `sources`;
- *  - legacy per-store seeding rows (market = amazon|flipkart|bigbasket) used by retail:seed-bestsellers.
+ *  - legacy per-store seeding rows (market = amazon|flipkart|bigbasket|myntra) used by retail:seed-bestsellers.
  *
  * For tree nodes, `path`, `depth` and `sort_key` are derived from the parent on every save, and a changed path or
  * order cascades to the children, so moving a node in the admin recomputes the whole subtree.
@@ -22,7 +22,7 @@ class Category extends Model
 
     public const PRICING_GROUPS = ['electronics', 'fashion', 'beauty', 'grocery', 'home'];
 
-    public const STORES = ['amazon', 'flipkart', 'bigbasket'];
+    public const STORES = ['amazon', 'flipkart', 'bigbasket', 'myntra'];
 
     protected $guarded = [];
 

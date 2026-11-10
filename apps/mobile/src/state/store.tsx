@@ -47,7 +47,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [demo, setDemo] = useState(true);
   const [mode, setModeState] = useState<StoreMode>("all");
-  const [enabled, setEnabled] = useState<StoreMode[]>(["all", "amazon", "flipkart", "bigbasket"]);
+  const [enabled, setEnabled] = useState<StoreMode[]>(["all", "amazon", "flipkart", "myntra", "bigbasket"]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [couponState, setCouponState] = useState<Coupon | null>(null);
   const [wish, setWish] = useState<string[]>([]);
@@ -74,7 +74,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           setCouponState(saved);
         }
         if (w[1]) setWish(JSON.parse(w[1]));
-        if (s[1] === "amazon" || s[1] === "flipkart" || s[1] === "bigbasket" || s[1] === "all") setModeState(s[1]);
+        if (s[1] === "amazon" || s[1] === "flipkart" || s[1] === "bigbasket" || s[1] === "myntra" || s[1] === "all") setModeState(s[1]);
       } catch {
         /* first run */
       }

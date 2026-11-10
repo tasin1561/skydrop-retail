@@ -41,7 +41,7 @@ class ProductRequestService
         return $req;
     }
 
-    /** Links a pasted amazon.in / Flipkart / BigBasket URL to the catalog (POST /products/resolve logic), when the catalog module offers it. */
+    /** Links a pasted amazon.in / Flipkart / BigBasket / Myntra URL to the catalog (POST /products/resolve logic), when the catalog module offers it. */
     private function resolve(ProductRequest $req): void
     {
         if (! class_exists(UrlResolver::class)) {

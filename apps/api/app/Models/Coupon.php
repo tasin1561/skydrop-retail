@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Coupon extends Model
 {
-    public const STORES = ['all', 'amazon', 'flipkart', 'bigbasket'];
+    public const STORES = ['all', 'amazon', 'flipkart', 'bigbasket', 'myntra'];
 
     protected $table = 'coupons';
 

@@ -113,8 +113,8 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const { t, digits, inr } = useT();
   const deal = headlineDeal(p, t);
   // Each store mode has its own card personality: dense deals (Amazon), editorial fashion
-  // (Flipkart), quick-add basket (BigBasket).
-  const fashion = p.market === "flipkart";
+  // (Flipkart, Myntra), quick-add basket (BigBasket).
+  const fashion = p.market === "flipkart" || p.market === "myntra";
   const grocery = p.market === "bigbasket";
   const sizes = fashion ? (p.variants ?? []).map((v) => v.label).filter(Boolean).slice(0, 4) : [];
   const specs = !fashion && !grocery ? keySpecs(p) : [];

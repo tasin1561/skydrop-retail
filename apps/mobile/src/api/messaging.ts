@@ -52,7 +52,7 @@ async function demoPage(): Promise<NotificationsPage> {
       }),
     );
   }
-  out.push({ id: 1, type: "welcome", title: "Welcome to Skydrop Retail", body: "Shop Amazon India, Flipkart and BigBasket in taka.",
+  out.push({ id: 1, type: "welcome", title: "Welcome to Skydrop Retail", body: "Shop Amazon India, Flipkart, BigBasket and Myntra in taka.",
     icon: "spark", link: "/", image: null, data: {}, read: false, createdAt: new Date(Date.now() - 3 * 86_400_000).toISOString() });
   const items = out.filter((n) => !m.removed.includes(n.id)).map((n) => ({ ...n, read: m.read.includes(n.id) }))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));

@@ -7,6 +7,7 @@ Shoppers in Bangladesh buy from Indian stores. The app names the source of every
 | --- | --- |
 | Amazon | amazon.in |
 | Flipkart | flipkart.com |
+| Myntra | myntra.com |
 | BigBasket | bigbasket.com |
 | All Stores | every enabled store |
 

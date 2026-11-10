@@ -13,7 +13,7 @@ class CouponController extends Controller
 {
     /**
      * Storefront promo coupons ("Show as promo" in Admin → Sales → Coupons): active, in schedule, uses left, open to everyone.
-     * store=amazon|flipkart|bigbasket returns that store's coupons plus all-store ones. Feature `coupons` off → [].
+     * store=amazon|flipkart|bigbasket|myntra returns that store's coupons plus all-store ones. Feature `coupons` off → [].
      */
     public function featured(Request $request): JsonResponse
     {

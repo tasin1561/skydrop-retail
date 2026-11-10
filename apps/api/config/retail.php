@@ -5,6 +5,7 @@ use App\Sources\OpenWebNinjaAmazonSource;
 use App\Sources\OxylabsAmazonSource;
 use App\Sources\OxylabsBigBasketSource;
 use App\Sources\OxylabsFlipkartSource;
+use App\Sources\OxylabsMyntraSource;
 
 // Skydrop Retail settings. Values marked "admin" can be overridden at runtime from the admin panel (settings table).
 return [
@@ -16,6 +17,7 @@ return [
         'username' => env('OXYLABS_USERNAME'),    // or basic auth
         'password' => env('OXYLABS_PASSWORD'),
         'timeout' => (int) env('OXYLABS_TIMEOUT', 25),
+        'render_timeout' => (int) env('OXYLABS_RENDER_TIMEOUT', 60), // rendered jobs (BigBasket, Myntra)
         'hedge_after' => (int) env('OXYLABS_HEDGE_AFTER', 8), // seconds; 0 = off (admin)
         // USD per 1,000 results (Basic plan)
         'rates' => ['amazon' => 0.45, 'other' => 0.90, 'other_js' => 1.40],
@@ -57,6 +59,15 @@ return [
                 'https://www.flipkart.com/audio-video/headphones-earphones/pr?sid=0pm,fcn&p[]=facets.discount_range_v1%5B%5D%3D50%25+or+more&sort=popularity',
             ],
             'bigbasket' => 'https://www.bigbasket.com/offers/',
+            // Myntra: most-discounted first in one fashion category per run, rotating (listing pages, no rendering).
+            'myntra' => [
+                'https://www.myntra.com/men-tshirts?sort=discount',
+                'https://www.myntra.com/women-kurtas-kurtis-suits?sort=discount',
+                'https://www.myntra.com/men-casual-shoes?sort=discount',
+                'https://www.myntra.com/handbags?sort=discount',
+                'https://www.myntra.com/men-jeans?sort=discount',
+                'https://www.myntra.com/women-dresses?sort=discount',
+            ],
         ],
     ],
 
@@ -65,6 +76,7 @@ return [
         'amazon' => [OxylabsAmazonSource::class, OmkarAmazonSource::class, OpenWebNinjaAmazonSource::class],
         'flipkart' => [OxylabsFlipkartSource::class],
         'bigbasket' => [OxylabsBigBasketSource::class],
+        'myntra' => [OxylabsMyntraSource::class],
     ],
 
     'fx_feed_url' => env('FX_FEED_URL'), // optional JSON endpoint returning {"rate": <BDT per INR>}

@@ -1,6 +1,6 @@
 {
  "version": 1,
- "description": "Skydrop Retail unified category tree. Paths are the stable key (seeder upserts by path). sources: amazon {search_alias, query, node|null (filled by retail:import-amazon-nodes)}, flipkart {query, path?}, bigbasket {query, slug?}; a missing store key means the store does not sell it. pricing_group is inherited from the parent when absent.",
+ "description": "Skydrop Retail unified category tree. Paths are the stable key (seeder upserts by path). sources: amazon {search_alias, query, node|null (filled by retail:import-amazon-nodes)}, flipkart {query, path?}, bigbasket {query, slug?}, myntra {query, path?}; a missing store key means the store does not sell it. pricing_group is inherited from the parent when absent.",
  "pricing_groups": [
   "electronics",
   "fashion",
@@ -2692,6 +2692,9 @@
     },
     "flipkart": {
      "query": "fashion"
+    },
+    "myntra": {
+     "query": "fashion"
     }
    },
    "children": [
@@ -2716,6 +2719,9 @@
       },
       "flipkart": {
        "query": "men"
+      },
+      "myntra": {
+       "query": "men"
       }
      },
      "children": [
@@ -2739,6 +2745,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "men clothing"
+        },
+        "myntra": {
          "query": "men clothing"
         }
        },
@@ -2768,6 +2777,9 @@
           },
           "flipkart": {
            "query": "men t-shirts and polos"
+          },
+          "myntra": {
+           "query": "men t-shirts and polos"
           }
          }
         },
@@ -2793,6 +2805,9 @@
           },
           "flipkart": {
            "query": "men shirts"
+          },
+          "myntra": {
+           "query": "men shirts"
           }
          }
         },
@@ -2814,6 +2829,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men jeans"
+          },
+          "myntra": {
            "query": "men jeans"
           }
          }
@@ -2840,6 +2858,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men trousers and chinos"
+          },
+          "myntra": {
            "query": "men trousers and chinos"
           }
          }
@@ -2869,6 +2890,9 @@
           },
           "flipkart": {
            "query": "men kurtas and ethnic wear"
+          },
+          "myntra": {
+           "query": "men kurtas and ethnic wear"
           }
          }
         },
@@ -2893,6 +2917,9 @@
           },
           "flipkart": {
            "query": "men track pants and joggers"
+          },
+          "myntra": {
+           "query": "men track pants and joggers"
           }
          }
         },
@@ -2914,6 +2941,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men shorts"
+          },
+          "myntra": {
            "query": "men shorts"
           }
          }
@@ -2942,6 +2972,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men jackets and sweatshirts"
+          },
+          "myntra": {
            "query": "men jackets and sweatshirts"
           }
          }
@@ -2973,6 +3006,9 @@
           },
           "flipkart": {
            "query": "men innerwear and sleepwear"
+          },
+          "myntra": {
+           "query": "men innerwear and sleepwear"
           }
          }
         },
@@ -2999,6 +3035,9 @@
           },
           "flipkart": {
            "query": "men suits and blazers"
+          },
+          "myntra": {
+           "query": "men suits and blazers"
           }
          }
         }
@@ -3023,6 +3062,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "men footwear"
+        },
+        "myntra": {
          "query": "men footwear"
         }
        },
@@ -3051,6 +3093,9 @@
           },
           "flipkart": {
            "query": "men sports shoes"
+          },
+          "myntra": {
+           "query": "men sports shoes"
           }
          }
         },
@@ -3076,6 +3121,9 @@
           },
           "flipkart": {
            "query": "men casual shoes and sneakers"
+          },
+          "myntra": {
+           "query": "men casual shoes and sneakers"
           }
          }
         },
@@ -3100,6 +3148,9 @@
           },
           "flipkart": {
            "query": "men formal shoes"
+          },
+          "myntra": {
+           "query": "men formal shoes"
           }
          }
         },
@@ -3122,6 +3173,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men sandals and floaters"
+          },
+          "myntra": {
            "query": "men sandals and floaters"
           }
          }
@@ -3148,6 +3202,9 @@
           },
           "flipkart": {
            "query": "men flip-flops and slippers"
+          },
+          "myntra": {
+           "query": "men flip-flops and slippers"
           }
          }
         }
@@ -3171,6 +3228,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "men accessories"
+        },
+        "myntra": {
          "query": "men accessories"
         }
        },
@@ -3196,6 +3256,9 @@
           },
           "flipkart": {
            "query": "men wallets"
+          },
+          "myntra": {
+           "query": "men wallets"
           }
          }
         },
@@ -3218,6 +3281,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men belts"
+          },
+          "myntra": {
            "query": "men belts"
           }
          }
@@ -3245,6 +3311,9 @@
           },
           "flipkart": {
            "query": "men caps and hats"
+          },
+          "myntra": {
+           "query": "men caps and hats"
           }
          }
         },
@@ -3269,6 +3338,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "men ties and cufflinks"
+          },
+          "myntra": {
            "query": "men ties and cufflinks"
           }
          }
@@ -3298,6 +3370,9 @@
       },
       "flipkart": {
        "query": "women"
+      },
+      "myntra": {
+       "query": "women"
       }
      },
      "children": [
@@ -3321,6 +3396,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "women clothing"
+        },
+        "myntra": {
          "query": "women clothing"
         }
        },
@@ -3349,6 +3427,9 @@
           },
           "flipkart": {
            "query": "women kurtas and kurtis"
+          },
+          "myntra": {
+           "query": "women kurtas and kurtis"
           }
          }
         },
@@ -3373,6 +3454,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women sarees"
+          },
+          "myntra": {
            "query": "women sarees"
           }
          }
@@ -3402,6 +3486,9 @@
           },
           "flipkart": {
            "query": "women salwar suits and dress materials"
+          },
+          "myntra": {
+           "query": "women salwar suits and dress materials"
           }
          }
         },
@@ -3424,6 +3511,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women lehengas"
+          },
+          "myntra": {
            "query": "women lehengas"
           }
          }
@@ -3449,6 +3539,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women dresses"
+          },
+          "myntra": {
            "query": "women dresses"
           }
          }
@@ -3478,6 +3571,9 @@
           },
           "flipkart": {
            "query": "women tops and t-shirts"
+          },
+          "myntra": {
+           "query": "women tops and t-shirts"
           }
          }
         },
@@ -3500,6 +3596,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women jeans and jeggings"
+          },
+          "myntra": {
            "query": "women jeans and jeggings"
           }
          }
@@ -3525,6 +3624,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women leggings and palazzos"
+          },
+          "myntra": {
            "query": "women leggings and palazzos"
           }
          }
@@ -3554,6 +3656,9 @@
           },
           "flipkart": {
            "query": "women nightwear and lingerie"
+          },
+          "myntra": {
+           "query": "women nightwear and lingerie"
           }
          }
         },
@@ -3581,6 +3686,9 @@
           },
           "flipkart": {
            "query": "women winter wear"
+          },
+          "myntra": {
+           "query": "women winter wear"
           }
          }
         }
@@ -3606,6 +3714,9 @@
         },
         "flipkart": {
          "query": "women footwear"
+        },
+        "myntra": {
+         "query": "women footwear"
         }
        },
        "children": [
@@ -3629,6 +3740,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women flats"
+          },
+          "myntra": {
            "query": "women flats"
           }
          }
@@ -3654,6 +3768,9 @@
           },
           "flipkart": {
            "query": "women heels"
+          },
+          "myntra": {
+           "query": "women heels"
           }
          }
         },
@@ -3678,6 +3795,9 @@
           },
           "flipkart": {
            "query": "women sports shoes"
+          },
+          "myntra": {
+           "query": "women sports shoes"
           }
          }
         },
@@ -3699,6 +3819,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women casual shoes"
+          },
+          "myntra": {
            "query": "women casual shoes"
           }
          }
@@ -3723,6 +3846,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women slippers and flip-flops"
+          },
+          "myntra": {
            "query": "women slippers and flip-flops"
           }
          }
@@ -3751,6 +3877,9 @@
         },
         "flipkart": {
          "query": "women handbags and wallets"
+        },
+        "myntra": {
+         "query": "women handbags and wallets"
         }
        },
        "children": [
@@ -3773,6 +3902,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women handbags"
+          },
+          "myntra": {
            "query": "women handbags"
           }
          }
@@ -3797,6 +3929,9 @@
           },
           "flipkart": {
            "query": "women sling bags"
+          },
+          "myntra": {
+           "query": "women sling bags"
           }
          }
         },
@@ -3819,6 +3954,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women clutches"
+          },
+          "myntra": {
            "query": "women clutches"
           }
          }
@@ -3843,6 +3981,9 @@
           },
           "flipkart": {
            "query": "women tote bags"
+          },
+          "myntra": {
+           "query": "women tote bags"
           }
          }
         },
@@ -3866,6 +4007,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "women's wallets"
+          },
+          "myntra": {
            "query": "women's wallets"
           }
          }
@@ -3895,6 +4039,9 @@
       },
       "flipkart": {
        "query": "kids"
+      },
+      "myntra": {
+       "query": "kids"
       }
      },
      "children": [
@@ -3916,6 +4063,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "boys' clothing"
+        },
+        "myntra": {
          "query": "boys' clothing"
         }
        },
@@ -3943,6 +4093,9 @@
           },
           "flipkart": {
            "query": "boys t-shirts and shirts"
+          },
+          "myntra": {
+           "query": "boys t-shirts and shirts"
           }
          }
         },
@@ -3966,6 +4119,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "boys jeans and trousers"
+          },
+          "myntra": {
            "query": "boys jeans and trousers"
           }
          }
@@ -3992,6 +4148,9 @@
           },
           "flipkart": {
            "query": "boys ethnic wear"
+          },
+          "myntra": {
+           "query": "boys ethnic wear"
           }
          }
         },
@@ -4016,6 +4175,9 @@
           },
           "flipkart": {
            "query": "boys clothing sets"
+          },
+          "myntra": {
+           "query": "boys clothing sets"
           }
          }
         }
@@ -4039,6 +4201,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "girls' clothing"
+        },
+        "myntra": {
          "query": "girls' clothing"
         }
        },
@@ -4066,6 +4231,9 @@
           },
           "flipkart": {
            "query": "girls dresses and frocks"
+          },
+          "myntra": {
+           "query": "girls dresses and frocks"
           }
          }
         },
@@ -4092,6 +4260,9 @@
           },
           "flipkart": {
            "query": "girls tops and t-shirts"
+          },
+          "myntra": {
+           "query": "girls tops and t-shirts"
           }
          }
         },
@@ -4117,6 +4288,9 @@
           },
           "flipkart": {
            "query": "girls ethnic wear"
+          },
+          "myntra": {
+           "query": "girls ethnic wear"
           }
          }
         },
@@ -4140,6 +4314,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "girls leggings and jeans"
+          },
+          "myntra": {
            "query": "girls leggings and jeans"
           }
          }
@@ -4165,6 +4342,9 @@
         },
         "flipkart": {
          "query": "kids' footwear"
+        },
+        "myntra": {
+         "query": "kids' footwear"
         }
        },
        "children": [
@@ -4185,6 +4365,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "kids school shoes"
+          },
+          "myntra": {
            "query": "kids school shoes"
           }
          }
@@ -4208,6 +4391,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "kids' sports shoes"
+          },
+          "myntra": {
            "query": "kids' sports shoes"
           }
          }
@@ -4233,6 +4419,9 @@
            "node": null
           },
           "flipkart": {
+           "query": "kids' sandals and slippers"
+          },
+          "myntra": {
            "query": "kids' sandals and slippers"
           }
          }
@@ -4260,6 +4449,9 @@
         },
         "flipkart": {
          "query": "kids school bags"
+        },
+        "myntra": {
+         "query": "kids school bags"
         }
        }
       }
@@ -4286,6 +4478,9 @@
       },
       "flipkart": {
        "query": "watches"
+      },
+      "myntra": {
+       "query": "watches"
       }
      },
      "children": [
@@ -4309,6 +4504,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "men's watches"
+        },
+        "myntra": {
          "query": "men's watches"
         }
        }
@@ -4334,6 +4532,9 @@
         },
         "flipkart": {
          "query": "women's watches"
+        },
+        "myntra": {
+         "query": "women's watches"
         }
        }
       },
@@ -4357,6 +4558,9 @@
         },
         "flipkart": {
          "query": "kids' watches"
+        },
+        "myntra": {
+         "query": "kids' watches"
         }
        }
       },
@@ -4379,6 +4583,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "couple watches"
+        },
+        "myntra": {
          "query": "couple watches"
         }
        }
@@ -4404,6 +4611,9 @@
       },
       "flipkart": {
        "query": "jewellery"
+      },
+      "myntra": {
+       "query": "jewellery"
       }
      },
      "children": [
@@ -4428,6 +4638,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "earrings"
+        },
+        "myntra": {
          "query": "earrings"
         }
        }
@@ -4456,6 +4669,9 @@
         },
         "flipkart": {
          "query": "necklaces and sets"
+        },
+        "myntra": {
+         "query": "necklaces and sets"
         }
        }
       },
@@ -4482,6 +4698,9 @@
         },
         "flipkart": {
          "query": "bangles and bracelets"
+        },
+        "myntra": {
+         "query": "bangles and bracelets"
         }
        }
       },
@@ -4504,6 +4723,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "rings"
+        },
+        "myntra": {
          "query": "rings"
         }
        }
@@ -4528,6 +4750,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "silver jewellery"
+        },
+        "myntra": {
          "query": "silver jewellery"
         }
        }
@@ -4555,6 +4780,9 @@
         },
         "flipkart": {
          "query": "fashion jewellery"
+        },
+        "myntra": {
+         "query": "fashion jewellery"
         }
        }
       }
@@ -4581,6 +4809,9 @@
       },
       "flipkart": {
        "query": "bags and luggage"
+      },
+      "myntra": {
+       "query": "bags and luggage"
       }
      },
      "children": [
@@ -4604,6 +4835,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "backpacks"
+        },
+        "myntra": {
          "query": "backpacks"
         }
        }
@@ -4633,6 +4867,9 @@
         },
         "flipkart": {
          "query": "suitcases and trolleys"
+        },
+        "myntra": {
+         "query": "suitcases and trolleys"
         }
        }
       },
@@ -4658,6 +4895,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "duffel and travel bags"
+        },
+        "myntra": {
          "query": "duffel and travel bags"
         }
        }
@@ -4685,6 +4925,9 @@
         },
         "flipkart": {
          "query": "travel accessories"
+        },
+        "myntra": {
+         "query": "travel accessories"
         }
        }
       }
@@ -4709,6 +4952,9 @@
       },
       "flipkart": {
        "query": "eyewear"
+      },
+      "myntra": {
+       "query": "eyewear"
       }
      },
      "children": [
@@ -4731,6 +4977,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "sunglasses"
+        },
+        "myntra": {
          "query": "sunglasses"
         }
        }
@@ -4757,6 +5006,9 @@
         },
         "flipkart": {
          "query": "eyeglass frames"
+        },
+        "myntra": {
+         "query": "eyeglass frames"
         }
        }
       },
@@ -4780,6 +5032,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "blue-light glasses"
+        },
+        "myntra": {
          "query": "blue-light glasses"
         }
        }
@@ -4840,6 +5095,9 @@
     "bigbasket": {
      "query": "beauty and personal care",
      "slug": "beauty-hygiene"
+    },
+    "myntra": {
+     "query": "beauty and personal care"
     }
    },
    "children": [
@@ -4868,6 +5126,9 @@
       "bigbasket": {
        "query": "makeup",
        "slug": "beauty-hygiene"
+      },
+      "myntra": {
+       "query": "makeup"
       }
      },
      "children": [
@@ -4900,6 +5161,9 @@
         "bigbasket": {
          "query": "lip makeup",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "lip makeup"
         }
        }
       },
@@ -4934,6 +5198,9 @@
         "bigbasket": {
          "query": "face makeup",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "face makeup"
         }
        }
       },
@@ -4965,6 +5232,9 @@
         "bigbasket": {
          "query": "eye makeup",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "eye makeup"
         }
        }
       },
@@ -4994,6 +5264,9 @@
         "bigbasket": {
          "query": "nail polish",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "nail polish"
         }
        }
       },
@@ -5025,6 +5298,9 @@
         "bigbasket": {
          "query": "makeup brushes and tools",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "makeup brushes and tools"
         }
        }
       },
@@ -5053,6 +5329,9 @@
         "bigbasket": {
          "query": "makeup removers",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "makeup removers"
         }
        }
       }
@@ -5083,6 +5362,9 @@
       "bigbasket": {
        "query": "skin care",
        "slug": "beauty-hygiene"
+      },
+      "myntra": {
+       "query": "skin care"
       }
      },
      "children": [
@@ -5113,6 +5395,9 @@
         "bigbasket": {
          "query": "face wash and cleansers",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "face wash and cleansers"
         }
        }
       },
@@ -5147,6 +5432,9 @@
         "bigbasket": {
          "query": "moisturisers and creams",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "moisturisers and creams"
         }
        }
       },
@@ -5177,6 +5465,9 @@
         "bigbasket": {
          "query": "serums",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "serums"
         }
        }
       },
@@ -5205,6 +5496,9 @@
         "bigbasket": {
          "query": "sunscreen",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "sunscreen"
         }
        }
       },
@@ -5237,6 +5531,9 @@
         "bigbasket": {
          "query": "face masks and packs",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "face masks and packs"
         }
        }
       },
@@ -5267,6 +5564,9 @@
         "bigbasket": {
          "query": "toners and mists",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "toners and mists"
         }
        }
       },
@@ -5294,6 +5594,9 @@
         "bigbasket": {
          "query": "body lotion",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "body lotion"
         }
        }
       },
@@ -5321,6 +5624,9 @@
         "bigbasket": {
          "query": "lip care",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "lip care"
         }
        }
       }
@@ -5350,6 +5656,9 @@
       "bigbasket": {
        "query": "hair care",
        "slug": "beauty-hygiene"
+      },
+      "myntra": {
+       "query": "hair care"
       }
      },
      "children": [
@@ -5376,6 +5685,9 @@
         "bigbasket": {
          "query": "shampoo",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "shampoo"
         }
        }
       },
@@ -5401,6 +5713,9 @@
         "bigbasket": {
          "query": "conditioner",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "conditioner"
         }
        }
       },
@@ -5429,6 +5744,9 @@
         "bigbasket": {
          "query": "hair oil",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "hair oil"
         }
        }
       },
@@ -5459,6 +5777,9 @@
         "bigbasket": {
          "query": "hair serums and masks",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "hair serums and masks"
         }
        }
       },
@@ -5488,6 +5809,9 @@
         "bigbasket": {
          "query": "hair colour",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "hair colour"
         }
        }
       },
@@ -5517,6 +5841,9 @@
         "bigbasket": {
          "query": "hair styling",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "hair styling"
         }
        }
       }
@@ -5546,6 +5873,9 @@
       "bigbasket": {
        "query": "fragrances",
        "slug": "beauty-hygiene"
+      },
+      "myntra": {
+       "query": "fragrances"
       }
      },
      "children": [
@@ -5576,6 +5906,9 @@
         "bigbasket": {
          "query": "perfumes",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "perfumes"
         }
        }
       },
@@ -5606,6 +5939,9 @@
         "bigbasket": {
          "query": "deodorants",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "deodorants"
         }
        }
       },
@@ -5633,6 +5969,9 @@
         "bigbasket": {
          "query": "attars",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "attars"
         }
        }
       },
@@ -5659,6 +5998,9 @@
         "bigbasket": {
          "query": "body mists",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "body mists"
         }
        }
       }
@@ -5688,6 +6030,9 @@
       "bigbasket": {
        "query": "men's grooming",
        "slug": "beauty-hygiene"
+      },
+      "myntra": {
+       "query": "men's grooming"
       }
      },
      "children": [
@@ -5716,6 +6061,9 @@
         "bigbasket": {
          "query": "trimmers",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "trimmers"
         }
        }
       },
@@ -5747,6 +6095,9 @@
         "bigbasket": {
          "query": "shaving",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "shaving"
         }
        }
       },
@@ -5776,6 +6127,9 @@
         "bigbasket": {
          "query": "beard care",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "beard care"
         }
        }
       },
@@ -5804,6 +6158,9 @@
         "bigbasket": {
          "query": "men's face care",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "men's face care"
         }
        }
       }
@@ -5834,6 +6191,9 @@
       "bigbasket": {
        "query": "bath and body",
        "slug": "beauty-hygiene"
+      },
+      "myntra": {
+       "query": "bath and body"
       }
      },
      "children": [
@@ -5862,6 +6222,9 @@
         "bigbasket": {
          "query": "soaps",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "soaps"
         }
        }
       },
@@ -5889,6 +6252,9 @@
         "bigbasket": {
          "query": "body wash and shower gel",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "body wash and shower gel"
         }
        }
       },
@@ -5919,6 +6285,9 @@
         "bigbasket": {
          "query": "hand wash and sanitisers",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "hand wash and sanitisers"
         }
        }
       },
@@ -5946,6 +6315,9 @@
         "bigbasket": {
          "query": "talc",
          "slug": "beauty-hygiene"
+        },
+        "myntra": {
+         "query": "talc"
         }
        }
       }
@@ -6220,6 +6592,9 @@
       },
       "flipkart": {
        "query": "beauty appliances"
+      },
+      "myntra": {
+       "query": "beauty appliances"
       }
      },
      "children": [
@@ -6241,6 +6616,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "hair dryers"
+        },
+        "myntra": {
          "query": "hair dryers"
         }
        }
@@ -6269,6 +6647,9 @@
         },
         "flipkart": {
          "query": "straighteners and curlers"
+        },
+        "myntra": {
+         "query": "straighteners and curlers"
         }
        }
       },
@@ -6290,6 +6671,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "epilators"
+        },
+        "myntra": {
          "query": "epilators"
         }
        }
@@ -7106,6 +7490,9 @@
     },
     "bigbasket": {
      "query": "home and kitchen"
+    },
+    "myntra": {
+     "query": "home and kitchen"
     }
    },
    "children": [
@@ -7377,6 +7764,9 @@
       },
       "flipkart": {
        "query": "home décor"
+      },
+      "myntra": {
+       "query": "home décor"
       }
      },
      "children": [
@@ -7403,6 +7793,9 @@
         },
         "flipkart": {
          "query": "wall décor"
+        },
+        "myntra": {
+         "query": "wall décor"
         }
        }
       },
@@ -7426,6 +7819,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "clocks"
+        },
+        "myntra": {
          "query": "clocks"
         }
        }
@@ -7454,6 +7850,9 @@
         },
         "flipkart": {
          "query": "showpieces and idols"
+        },
+        "myntra": {
+         "query": "showpieces and idols"
         }
        }
       },
@@ -7481,6 +7880,9 @@
         },
         "flipkart": {
          "query": "candles and diffusers"
+        },
+        "myntra": {
+         "query": "candles and diffusers"
         }
        }
       },
@@ -7507,6 +7909,9 @@
         },
         "flipkart": {
          "query": "pooja needs"
+        },
+        "myntra": {
+         "query": "pooja needs"
         }
        }
       },
@@ -7531,6 +7936,9 @@
         },
         "flipkart": {
          "query": "artificial flowers and plants"
+        },
+        "myntra": {
+         "query": "artificial flowers and plants"
         }
        }
       },
@@ -7553,6 +7961,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "photo frames"
+        },
+        "myntra": {
          "query": "photo frames"
         }
        }
@@ -7579,6 +7990,9 @@
       },
       "flipkart": {
        "query": "home furnishing"
+      },
+      "myntra": {
+       "query": "home furnishing"
       }
      },
      "children": [
@@ -7603,6 +8017,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "bedsheets"
+        },
+        "myntra": {
          "query": "bedsheets"
         }
        }
@@ -7630,6 +8047,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "pillows and cushions"
+        },
+        "myntra": {
          "query": "pillows and cushions"
         }
        }
@@ -7659,6 +8079,9 @@
         },
         "flipkart": {
          "query": "blankets and quilts"
+        },
+        "myntra": {
+         "query": "blankets and quilts"
         }
        }
       },
@@ -7681,6 +8104,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "curtains"
+        },
+        "myntra": {
          "query": "curtains"
         }
        }
@@ -7705,6 +8131,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "towels"
+        },
+        "myntra": {
          "query": "towels"
         }
        }
@@ -7733,6 +8162,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "carpets and mats"
+        },
+        "myntra": {
          "query": "carpets and mats"
         }
        }
@@ -10846,6 +11278,9 @@
     "bigbasket": {
      "query": "baby and kids",
      "slug": "baby-care"
+    },
+    "myntra": {
+     "query": "baby and kids"
     }
    },
    "children": [
@@ -11479,6 +11914,9 @@
       },
       "flipkart": {
        "query": "baby clothing"
+      },
+      "myntra": {
+       "query": "baby clothing"
       }
      },
      "children": [
@@ -11505,6 +11943,9 @@
         },
         "flipkart": {
          "query": "rompers and onesies"
+        },
+        "myntra": {
+         "query": "rompers and onesies"
         }
        }
       },
@@ -11529,6 +11970,9 @@
         },
         "flipkart": {
          "query": "baby clothing sets"
+        },
+        "myntra": {
+         "query": "baby clothing sets"
         }
        }
       },
@@ -11552,6 +11996,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "baby socks and mittens"
+        },
+        "myntra": {
          "query": "baby socks and mittens"
         }
        }
@@ -11582,6 +12029,9 @@
      "node": null
     },
     "flipkart": {
+     "query": "sports and fitness"
+    },
+    "myntra": {
      "query": "sports and fitness"
     }
    },
@@ -12175,6 +12625,9 @@
       },
       "flipkart": {
        "query": "sportswear"
+      },
+      "myntra": {
+       "query": "sportswear"
       }
      },
      "children": [
@@ -12202,6 +12655,9 @@
         },
         "flipkart": {
          "query": "sports t-shirts and jerseys"
+        },
+        "myntra": {
+         "query": "sports t-shirts and jerseys"
         }
        }
       },
@@ -12224,6 +12680,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "track suits"
+        },
+        "myntra": {
          "query": "track suits"
         }
        }
@@ -12251,6 +12710,9 @@
         },
         "flipkart": {
          "query": "sports bras and activewear"
+        },
+        "myntra": {
+         "query": "sports bras and activewear"
         }
        }
       },
@@ -12273,6 +12735,9 @@
          "node": null
         },
         "flipkart": {
+         "query": "sports socks"
+        },
+        "myntra": {
          "query": "sports socks"
         }
        }

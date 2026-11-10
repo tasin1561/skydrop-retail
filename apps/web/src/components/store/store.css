@@ -81,3 +81,4 @@
 .sp-card[data-store="amazon"] { --accent: #ff9900; --accent-soft: color-mix(in srgb, #ff9900 10%, var(--surface)); }
 .sp-card[data-store="flipkart"] { --accent: #2874f0; --accent-soft: color-mix(in srgb, #2874f0 10%, var(--surface)); }
 .sp-card[data-store="bigbasket"] { --accent: #84c225; --accent-soft: color-mix(in srgb, #84c225 10%, var(--surface)); }
+.sp-card[data-store="myntra"] { --accent: #ff3f6c; --accent-soft: color-mix(in srgb, #ff3f6c 10%, var(--surface)); }

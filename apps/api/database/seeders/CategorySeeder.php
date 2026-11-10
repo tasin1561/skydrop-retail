@@ -28,6 +28,12 @@ class CategorySeeder extends Seeder
                 ['home', 'Household', null],
                 ['beauty', 'Personal care', null],
             ],
+            // Myntra: a listing path ("men-tshirts", most popular first) or a search query.
+            'myntra' => [
+                ['fashion', 'Fashion', 'men-tshirts'],
+                ['beauty', 'Beauty', 'makeup'],
+                ['home', 'Home', 'bedsheets'],
+            ],
         ];
         foreach ($markets as $market => $cats) {
             foreach ($cats as [$slug, $name, $node]) {

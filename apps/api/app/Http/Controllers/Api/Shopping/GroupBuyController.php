@@ -50,7 +50,7 @@ class GroupBuyController extends Controller
     public function store(Request $request, GroupBuyService $groups): JsonResponse
     {
         $data = $request->validate($this->rules() + [
-            'market' => ['required', Rule::in(['amazon', 'flipkart', 'bigbasket'])],
+            'market' => ['required', Rule::in(['amazon', 'flipkart', 'bigbasket', 'myntra'])],
             'hours' => ['nullable', 'integer', Rule::in(GroupBuyService::HOURS)],
         ]);
         $g = $groups->create($request->user(), $data['market'], (int) ($data['hours'] ?? 48), $data);

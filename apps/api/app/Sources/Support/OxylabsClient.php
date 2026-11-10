@@ -37,7 +37,7 @@ class OxylabsClient
         if (! $hedge || $hedgeAfter <= 0) {
             $t = microtime(true);
             try {
-                $response = $this->request()->post($this->url(), $payload);
+                $response = $this->request($payload)->post($this->url(), $payload);
             } catch (Throwable $e) {
                 $this->logFailure($payload, $type, $market, $key, $t, $e);
                 throw new SourceException('Oxylabs request failed: '.$e->getMessage(), 0, $e);
@@ -64,7 +64,7 @@ class OxylabsClient
         $t = microtime(true);
         $responses = Http::pool(function (Pool $pool) use ($payloads) {
             foreach ($payloads as $key => $payload) {
-                $this->configure($pool->as((string) $key))->post($this->url(), $payload);
+                $this->configure($pool->as((string) $key), $payload)->post($this->url(), $payload);
             }
         }, $concurrency);
         $out = [];
@@ -89,7 +89,7 @@ class OxylabsClient
     {
         $handler = new CurlMultiHandler;
         $start = microtime(true);
-        $deadline = $start + (int) config('retail.oxylabs.timeout', 25) + $hedgeAfter;
+        $deadline = $start + $this->timeout($payload) + $hedgeAfter;
         /** @var array<int, array{promise: PromiseInterface, t: float, retry: bool}> $inflight */
         $inflight = [['promise' => $this->async($handler, $payload), 't' => $start, 'retry' => false]];
         $fired = 1;
@@ -153,7 +153,7 @@ class OxylabsClient
     /** @param array<string, mixed> $payload */
     private function async(CurlMultiHandler $handler, array $payload): PromiseInterface
     {
-        $promise = $this->request()->setHandler($handler)->async()->post($this->url(), $payload);
+        $promise = $this->request($payload)->setHandler($handler)->async()->post($this->url(), $payload);
         if (method_exists($promise, 'buildPromise')) {
             $promise = $promise->buildPromise();
         }
@@ -204,16 +204,24 @@ class OxylabsClient
         return (string) config('retail.oxylabs.base_url');
     }
 
-    private function request(): PendingRequest
+    /** @param array<string, mixed> $payload */
+    private function request(array $payload = []): PendingRequest
     {
-        return $this->configure(Http::createPendingRequest());
+        return $this->configure(Http::createPendingRequest(), $payload);
     }
 
-    private function configure(PendingRequest $r): PendingRequest
+    /** Seconds Oxylabs gets for one job: rendered jobs (a real browser) take longer (Myntra listings 10-30 s). @param array<string, mixed> $payload */
+    private function timeout(array $payload): int
+    {
+        return $this->rendered($payload) ? (int) config('retail.oxylabs.render_timeout', 60) : (int) config('retail.oxylabs.timeout', 25);
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function configure(PendingRequest $r, array $payload = []): PendingRequest
     {
         $token = config('retail.oxylabs.token');
         $r = $token ? $r->withToken($token) : $r->withBasicAuth((string) config('retail.oxylabs.username'), (string) config('retail.oxylabs.password'));
 
-        return $r->acceptJson()->asJson()->timeout((int) config('retail.oxylabs.timeout', 25) + 5)->connectTimeout(10);
+        return $r->acceptJson()->asJson()->timeout($this->timeout($payload) + 5)->connectTimeout(10);
     }
 }

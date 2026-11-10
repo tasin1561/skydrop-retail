@@ -140,6 +140,7 @@ export function demoBundles(): Bundle[] {
     ["amazon", "electronics", "Everyday tech kit"],
     ["amazon", "grocery", "Pantry refill box"],
     ["flipkart", "fashion", "Weekend outfit set"],
+    ["myntra", "fashion", "Wardrobe refresh"],
     ["bigbasket", "grocery", "Breakfast basket"],
   ];
   const out: Bundle[] = [];

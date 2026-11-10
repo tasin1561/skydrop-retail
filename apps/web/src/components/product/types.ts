@@ -18,4 +18,6 @@ export type BuyInfo = {
   weightKg: number;
   variants: Variant[];
   available: boolean;
+  /** Myntra item shown from search data while its page (with sizes) is still being fetched: wait before buying. */
+  loadingOptions?: boolean;
 };
