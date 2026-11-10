@@ -7,7 +7,7 @@ import { getT } from "@/i18n/server";
 export async function Footer() {
   const { t, digits } = await getT();
   const cols = [
-    { title: t("footer.shop"), links: [[t("footer.allStores"), "/"], ["Amazon", "/store/amazon"], ["Flipkart", "/store/flipkart"], ["Myntra", "/store/myntra"], ["BigBasket", "/store/bigbasket"]] },
+    { title: t("footer.shop"), links: [[t("footer.allStores"), "/"], ["Amazon", "/store/amazon"], ["Flipkart", "/store/flipkart"], ["Myntra", "/store/myntra"]] },
     { title: t("footer.yourAccount"), links: [[t("nav.orders"), "/orders"], [t("footer.wishlist"), "/wishlist"], [t("footer.addresses"), "/account/addresses"], [t("nav.signIn"), "/login"]] },
     { title: t("footer.help"), links: [[t("footer.helpFaq"), "/help"], [t("footer.contact"), "/contact"], [t("footer.howItWorks"), "/how-it-works"], [t("footer.shippingCustoms"), "/legal/shipping"], [t("footer.refunds"), "/legal/refunds"], [t("footer.track"), "https://track.skydrop.online"]] },
   ];

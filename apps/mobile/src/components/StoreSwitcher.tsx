@@ -32,7 +32,6 @@ export function StoreSwitcher({
   const flags: Record<string, boolean> = {
     amazon: useFeature("store.amazon"),
     flipkart: useFeature("store.flipkart"),
-    bigbasket: useFeature("store.bigbasket"),
     myntra: useFeature("store.myntra"),
   };
   const modes = allModes.filter((m) => m === "all" || flags[m] !== false);

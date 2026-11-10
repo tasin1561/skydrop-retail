@@ -55,6 +55,7 @@ class CategoryTreeTest extends TestCase
         $this->assertNotEmpty($tee->name_bn);
         $this->assertNull($tee->sources['amazon']['node']); // never invented
         $this->assertSame('fashion', $tee->sources['amazon']['search_alias']);
+        $this->assertArrayHasKey('myntra', $tee->sources);
         $this->assertArrayNotHasKey('bigbasket', $tee->sources);
         // legacy per-store rows still used by retail:seed-bestsellers
         $this->assertTrue(Category::query()->where('market', 'amazon')->where('slug', 'electronics')->exists());
@@ -75,11 +76,11 @@ class CategoryTreeTest extends TestCase
             ['amazon', 'Campus Men Wells Running Shoes', ['Shoes & Handbags', 'Shoes', "Men's Shoes", 'Sports & Outdoor Shoes', 'Running Shoes'], 'fashion/men/footwear/sports-shoes'],
             ['amazon', 'Real Fruit Power Mixed Fruit 1L', ['Grocery & Gourmet Foods', 'Coffee, Tea & Beverages', 'Juices', 'Fruit Juice'], 'grocery-gourmet/beverages/juices'],
             ['flipkart', 'Roadster Men Solid Round Neck Cotton T-Shirt', ['Home', 'Clothing and Accessories', 'Topwear', 'T-Shirts', "Men's T-Shirts"], 'fashion/men/clothing/t-shirts-polos'],
-            ['bigbasket', 'Surf Excel Easy Wash Detergent Powder 1 kg', ['Cleaning & Household', 'Detergents & Fabric Care', 'Detergent Powder, Bars'], 'home-kitchen/household/detergents-laundry'],
+            ['amazon', 'Surf Excel Easy Wash Detergent Powder 1 kg', ['Cleaning & Household', 'Detergents & Fabric Care', 'Detergent Powder, Bars'], 'home-kitchen/household/detergents-laundry'],
             ['amazon', 'iQOO Z11 Lite 44W 5G (Midnight Blue, 4GB RAM, 64GB Storage)', [], 'mobiles-electronics/mobiles/smartphones'],
             ['amazon', 'MARS Creamy Matte Long Lasting Lipstick for Women | Creamy Lipstick', [], 'beauty-personal-care/makeup/lip-makeup'],
             ['amazon', 'Zapcase Back Case Cover for OnePlus Nord CE 3 5G', [], 'mobiles-electronics/mobile-accessories/cases-covers'],
-            ['bigbasket', 'Dishwash Liquid 750 ml', [], 'home-kitchen/household/dishwash'],
+            ['amazon', 'Dishwash Liquid 750 ml', [], 'home-kitchen/household/dishwash'],
             ['amazon', 'Basmati Rice, Extra Long Grain 5 kg', [], 'grocery-gourmet/staples/rice-rice-products'],
         ];
         foreach ($cases as [$market, $title, $crumbs, $path]) {
@@ -123,16 +124,18 @@ class CategoryTreeTest extends TestCase
         $this->assertCount(13, $all);
         $this->assertSame([], $all[0]['children']);
 
-        $bb = $this->getJson('/api/v1/categories?store=bigbasket')->assertOk()->json('items');
-        $paths = array_column($bb, 'path');
-        $this->assertContains('grocery-gourmet', $paths);
+        $myntra = $this->getJson('/api/v1/categories?store=myntra')->assertOk()->json('items');
+        $paths = array_column($myntra, 'path');
+        $this->assertContains('fashion', $paths);
         $this->assertContains('home-kitchen', $paths);
         $this->assertNotContains('mobiles-electronics', $paths);
-        $home = collect($bb)->firstWhere('path', 'home-kitchen');
-        $this->assertEqualsCanonicalizing(['home-kitchen/household', 'home-kitchen/pet-supplies'], array_column($home['children'], 'path'));
-        foreach ($bb as $n) {
-            $this->assertContains('bigbasket', $n['stores']);
+        $this->assertNotContains('grocery-gourmet', $paths);
+        $home = collect($myntra)->firstWhere('path', 'home-kitchen');
+        $this->assertEqualsCanonicalizing(['home-kitchen/home-decor', 'home-kitchen/furnishing'], array_column($home['children'], 'path'));
+        foreach ($myntra as $n) {
+            $this->assertContains('myntra', $n['stores']);
         }
+        $this->getJson('/api/v1/categories?store=bigbasket')->assertStatus(422);
 
         $grocery = collect($this->getJson('/api/v1/categories?store=amazon')->json('items'))->firstWhere('path', 'grocery-gourmet');
         $this->assertGreaterThan(50, $grocery['count']);

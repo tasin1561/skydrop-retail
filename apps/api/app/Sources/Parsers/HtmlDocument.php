@@ -7,7 +7,7 @@ use DOMDocument;
 use DOMNode;
 use DOMXPath;
 
-/** Tiny DOM wrapper used by the best-effort Flipkart / BigBasket parsers. */
+/** Tiny DOM wrapper used by the best-effort Flipkart parsers. */
 final class HtmlDocument
 {
     public readonly DOMXPath $x;

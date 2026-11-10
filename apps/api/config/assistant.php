@@ -37,8 +37,8 @@ return [
     ],
 
     'greeting' => [
-        'en' => "Hi! I'm Skydrop AI. Tell me what you're looking for and your budget in taka, and I'll find it on amazon.in, Flipkart, BigBasket or Myntra.",
-        'bn' => 'হ্যালো! আমি Skydrop AI। কী খুঁজছেন আর বাজেট কত টাকা বলুন, আমি amazon.in, Flipkart, BigBasket বা Myntra থেকে খুঁজে দেব।',
+        'en' => "Hi! I'm Skydrop AI. Tell me what you're looking for and your budget in taka, and I'll find it on amazon.in, Flipkart or Myntra.",
+        'bn' => 'হ্যালো! আমি Skydrop AI। কী খুঁজছেন আর বাজেট কত টাকা বলুন, আমি amazon.in, Flipkart বা Myntra থেকে খুঁজে দেব।',
     ],
 
     'prompts' => [

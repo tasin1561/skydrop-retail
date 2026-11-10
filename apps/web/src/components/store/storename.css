@@ -1,6 +1,6 @@
 /* StoreName: store names as text only (no logos, no icons). Owner's decision (Nov 2026): the names Amazon,
-   Flipkart and BigBasket are written in each provider's brand colours (Amazon squid ink + orange, Flipkart blue
-   + yellow, BigBasket green, Myntra pink + orange), in our own font. Light-mode stops are the darker brand shades so small text stays
+   Flipkart and Myntra are written in each provider's brand colours (Amazon squid ink + orange, Flipkart blue
+   + yellow, Myntra pink + orange), in our own font. Light-mode stops are the darker brand shades so small text stays
    readable; --sn-fill is the selected fill with white text. Site accents elsewhere stay ours. */
 
 .sn {
@@ -9,7 +9,6 @@
 .sn[data-store="all"] { --sn-a: #5b3df5; --sn-b: #c0301a; --sn-ring: #5b3df5; --sn-fill: linear-gradient(100deg, #5b3df5, #c0301a); }
 .sn[data-store="amazon"] { --sn-a: #232f3e; --sn-b: #c45500; --sn-ring: #ff9900; --sn-fill: #232f3e; }
 .sn[data-store="flipkart"] { --sn-a: #2874f0; --sn-b: #1a56c4; --sn-ring: #2874f0; --sn-fill: #2874f0; }
-.sn[data-store="bigbasket"] { --sn-a: #4e8a16; --sn-b: #5f9e1c; --sn-ring: #84c225; --sn-fill: #4e8a16; }
 .sn[data-store="myntra"] { --sn-a: #d6194f; --sn-b: #c2410c; --sn-ring: #ff3f6c; --sn-fill: #d6194f; }
 
 /* dark theme (and tone="dark" for names sitting on deep store tints in light mode) */
@@ -19,8 +18,6 @@
 .sn[data-tone="dark"][data-store="amazon"] { --sn-a: #ff9900; --sn-b: #ffb84d; --sn-ring: #ff9900; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="flipkart"],
 .sn[data-tone="dark"][data-store="flipkart"] { --sn-a: #5b9bff; --sn-b: #ffe11b; --sn-ring: #2874f0; }
-:where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="bigbasket"],
-.sn[data-tone="dark"][data-store="bigbasket"] { --sn-a: #9bd43a; --sn-b: #c6e86e; --sn-ring: #84c225; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="myntra"],
 .sn[data-tone="dark"][data-store="myntra"] { --sn-a: #ff6b8e; --sn-b: #ffa45c; --sn-ring: #ff3f6c; }
 :root[data-theme="dark"] .sn { --sn-shine: rgb(255 255 255 / 0.95); }

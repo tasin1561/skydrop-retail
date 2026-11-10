@@ -71,7 +71,7 @@ export function parseCoupon(raw: unknown): Coupon | null {
   if (typeof o.code !== "string" || !o.code || !kind) return null;
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
   const str = (v: unknown) => (typeof v === "string" && v ? v : null);
-  const store = o.store === "amazon" || o.store === "flipkart" || o.store === "bigbasket" || o.store === "myntra" ? o.store : "all";
+  const store = o.store === "amazon" || o.store === "flipkart" || o.store === "myntra" ? o.store : "all";
   const promo = o.promoText && typeof o.promoText === "object" ? (o.promoText as Record<string, unknown>) : {};
   return {
     code: o.code,

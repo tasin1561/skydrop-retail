@@ -90,7 +90,7 @@ export function compareProducts(a: Product, b: Product): { method: "model" | "ti
 }
 
 export function deliveryFor(p: Pick<Product, "market" | "prime">) {
-  const base = { amazon: [7, 12], flipkart: [8, 13], bigbasket: [6, 10], myntra: [8, 13] }[p.market] ?? [7, 12];
+  const base = { amazon: [7, 12], flipkart: [8, 13], myntra: [8, 13] }[p.market] ?? [7, 12];
   const fast = p.prime ? 1 : 0;
   return { min: base[0] - fast, max: base[1] - fast };
 }

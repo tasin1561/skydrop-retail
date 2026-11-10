@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * "Paste any link": turns an amazon.in / flipkart.com / bigbasket.com / myntra.com URL (including amzn.in, amzn.to, a.co, myntr.it and
+ * "Paste any link": turns an amazon.in / flipkart.com / myntra.com URL (including amzn.in, amzn.to, a.co, myntr.it and
  * fkrt.it short links, which are followed without fetching the target page) into [market, our product id].
  */
 class UrlResolver
@@ -41,7 +41,7 @@ class UrlResolver
         $host = strtolower((string) parse_url(preg_match('#^https?://#i', $url) ? $url : 'https://'.$url, PHP_URL_HOST));
         $host = preg_replace('/^(www|m|smile)\./', '', $host) ?? $host;
 
-        return in_array($host, ['amazon.in', 'flipkart.com', 'bigbasket.com', 'myntra.com', ...self::SHORT_HOSTS], true);
+        return in_array($host, ['amazon.in', 'flipkart.com', 'myntra.com', ...self::SHORT_HOSTS], true);
     }
 
     /** @return array{market: string, id: string}|null */
@@ -53,9 +53,6 @@ class UrlResolver
         }
         if (in_array($host, ['flipkart.com', 'dl.flipkart.com'], true) && ($id = FlipkartHtmlParser::idFromUrl($url))) { // share links carry the path
             return ['market' => 'flipkart', 'id' => $id]; // keeps ?pid= so the shared variant opens
-        }
-        if ($host === 'bigbasket.com' && preg_match('#/pd/(\d+)#', $path, $m)) {
-            return ['market' => 'bigbasket', 'id' => 'bb'.$m[1]];
         }
         if ($host === 'myntra.com' && ($id = MyntraParser::idFromUrl($url))) {
             return ['market' => 'myntra', 'id' => $id];

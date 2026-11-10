@@ -18,7 +18,6 @@ const EXAMPLES: Record<StoreMode, MsgKey[]> = {
   all: ["search.ex.iphone", "search.ex.amazonLink", "search.ex.rice", "search.ex.kurta", "search.ex.earbuds"],
   amazon: ["search.ex.iphone", "search.ex.amazonLink", "search.ex.earbuds", "search.ex.cooker"],
   flipkart: ["search.ex.kurta", "search.ex.flipkartLink", "search.ex.sneakers", "search.ex.saree"],
-  bigbasket: ["search.ex.rice", "search.ex.haldiram", "search.ex.chai", "search.ex.bigbasketLink"],
   myntra: ["search.ex.kurta", "search.ex.myntraLink", "search.ex.sneakers", "search.ex.saree"],
 };
 

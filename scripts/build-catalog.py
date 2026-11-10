@@ -1,7 +1,7 @@
 """Build the demo catalog for Skydrop Retail.
 
 Amazon products come from real Oxylabs test responses (amazon.in, pincode 700001).
-Flipkart and BigBasket products are original demo items until their providers are wired up.
+Flipkart products are original demo items until their provider is wired up.
 
 Usage: python3 scripts/build-catalog.py <oxylabs_raw_dir> apps/web/src/data/catalog.json
 """
@@ -162,8 +162,6 @@ def demo_offers(market, idx, inr):
         if idx % 3 == 0:
             offers.insert(0, {"type": "special_price", "title": "Special Price", "detail": f"Extra ₹{max(20, round(inr * 0.05))} off (price inclusive of discount)", "savingInr": max(20, round(inr * 0.05)), "appliesToOurPrice": True})
         return offers
-    if market == "bigbasket" and idx % 2 == 0:
-        return [{"type": "combo", "title": "Combo offer", "detail": "Buy 2, save 10% on the second pack", "appliesToOurPrice": False}]
     return []
 
 def sizes(*labels):
@@ -184,29 +182,14 @@ flip = [
     ("beauty", "Matte Liquid Lipstick Set of 4", "Velvetta", 499, 999, 4.0, 8600, 345, "beauty", "60 g"),
     ("fashion", "Women's Tote Handbag", "Carryall", 799, 1999, 4.2, 6100, 15, "bag", "500 g"),
 ]
-bb = [
-    ("grocery", "Basmati Rice, Extra Long Grain 5 kg", "Harvest Gold", 649, 799, 4.4, 15800, 40, "grain", "5 kg"),
-    ("grocery", "Cold Pressed Mustard Oil 1 L", "Pure Press", 189, 230, 4.3, 9700, 50, "oil", "1 kg"),
-    ("grocery", "Assam Tea, Strong Blend 500 g", "Tea Garden", 249, 299, 4.5, 21300, 25, "tea", "550 g"),
-    ("grocery", "Premium Cashews W320, 500 g", "Nutfield", 529, 699, 4.4, 6400, 35, "nut", "520 g"),
-    ("grocery", "Garam Masala Powder 200 g", "Spice Route", 99, 120, 4.3, 11200, 15, "spice", "220 g"),
-    ("grocery", "Instant Noodles, Pack of 12", "Slurp", 168, 180, 4.2, 30400, 45, "noodle", "840 g"),
-    ("grocery", "Dark Chocolate 70%, 4 Bars", "Cocoa Lane", 399, 480, 4.5, 3900, 20, "choco", "400 g"),
-    ("grocery", "Organic Jaggery Powder 1 kg", "Farm Roots", 145, 175, 4.2, 5300, 30, "grain", "1 kg"),
-    ("grocery", "Mixed Fruit Juice 1 L, Pack of 2", "Fresh Squeeze", 210, 250, 4.1, 8800, 10, "juice", "2.1 kg"),
-    ("home", "Dishwash Liquid 750 ml", "Sparkle", 115, 135, 4.3, 19100, 190, "home", "800 g"),
-    ("beauty", "Herbal Neem Face Wash 150 ml", "Leafline", 145, 175, 4.2, 14600, 120, "beauty", "170 g"),
-    ("grocery", "Roasted Makhana, Peri Peri 90 g", "Crunchbox", 129, 149, 4.0, 4200, 5, "nut", "100 g"),
-]
 flipkart = [demo("flipkart", r[0], i, r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9],
                  r[10] if len(r) > 10 else None) for i, r in enumerate(flip)]
-bigbasket = [demo("bigbasket", r[0], i, r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9]) for i, r in enumerate(bb)]
 
 catalog = {
     "generatedFrom": "Oxylabs test, amazon.in, pincode 700001, 7 Nov 2026",
-    "products": amazon + flipkart + bigbasket,
+    "products": amazon + flipkart,
 }
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(json.dumps(catalog, ensure_ascii=False))
 print(f"amazon={len(amazon)} detailed={sum(1 for p in amazon if p.get('detailed'))} "
-      f"flipkart={len(flipkart)} bigbasket={len(bigbasket)} -> {out}")
+      f"flipkart={len(flipkart)} -> {out}")

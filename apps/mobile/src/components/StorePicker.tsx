@@ -26,7 +26,6 @@ export function StorePicker() {
   const flags: Record<MarketId, boolean> = {
     amazon: useFeature("store.amazon"),
     flipkart: useFeature("store.flipkart"),
-    bigbasket: useFeature("store.bigbasket"),
     myntra: useFeature("store.myntra"),
   };
   const stores = enabled.filter((m): m is MarketId => m !== "all" && flags[m]);

@@ -124,7 +124,7 @@ export function CouponField({ error }: { error?: string | null } = {}) {
 }
 
 /** Admin-featured coupons (GET /coupons/featured) for the home screen and cart; renders nothing when none is live. */
-export function CouponPromo({ store = "all", style }: { store?: "all" | "amazon" | "flipkart" | "bigbasket" | "myntra"; style?: StyleProp<ViewStyle> }) {
+export function CouponPromo({ store = "all", style }: { store?: "all" | "amazon" | "flipkart" | "myntra"; style?: StyleProp<ViewStyle> }) {
   const tr = useT();
   const { c } = useTheme();
   const items = useFeaturedCoupons(store).slice(0, 2);

@@ -41,7 +41,6 @@ class CategoryGuesser
         }
 
         return match ($market) {
-            'bigbasket' => 'grocery',
             'flipkart', 'myntra' => 'fashion',
             default => 'electronics',
         };

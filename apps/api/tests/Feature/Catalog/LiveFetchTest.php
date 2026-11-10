@@ -249,7 +249,8 @@ class LiveFetchTest extends TestCase
     {
         Http::fake(['amzn.in/*' => Http::response('', 301, ['Location' => 'https://www.amazon.in/dp/B0FMDLD86P?ref=x'])]);
         $this->assertSame(['market' => 'amazon', 'id' => 'B0FMDLD86P'], app(UrlResolver::class)->resolve('https://amzn.in/d/abc123'));
-        $this->assertSame(['market' => 'bigbasket', 'id' => 'bb40001234'], app(UrlResolver::class)->resolve('https://www.bigbasket.com/pd/40001234/india-gate-rice/'));
+        $this->assertSame(['market' => 'myntra', 'id' => 'my47999156'], app(UrlResolver::class)->resolve('https://www.myntra.com/tshirts/roadster/roadster-men-t-shirt/47999156/buy'));
+        $this->assertNull(app(UrlResolver::class)->resolve('https://www.bigbasket.com/pd/40001234/india-gate-rice/'), 'BigBasket is no longer a store');
     }
 
     public function test_hedged_request_returns_first_success(): void

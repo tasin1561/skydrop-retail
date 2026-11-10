@@ -1,19 +1,19 @@
 # Skydrop Retail
 
-Shop Indian stores from Bangladesh. Shoppers browse products from **amazon.in**, **flipkart.com** and **bigbasket.com**, pay in BDT, and **Skydrop** delivers to their door. Each store can be switched on or off at any time.
+Shop Indian stores from Bangladesh. Shoppers browse products from **amazon.in**, **flipkart.com** and **myntra.com**, pay in BDT, and **Skydrop** delivers to their door. Each store can be switched on or off at any time.
 
 | Store mode | Source | Status |
 | --- | --- | --- |
 | All Stores | every enabled store | combined search and home |
 | Amazon | amazon.in | real product data from the Oxylabs test (255 products, 12 fully detailed) |
-| Flipkart | flipkart.com | demo products until the Flipkart provider is connected |
-| BigBasket | bigbasket.com | demo products until the BigBasket provider is connected |
+| Flipkart | flipkart.com | live through Oxylabs |
+| Myntra | myntra.com | live through Oxylabs |
 
 ## Monorepo
 
 ```
 apps/
-  web/        Next.js 16 storefront (mobile-first, premium motion, four store themes)
+  web/        Next.js 16 storefront (mobile-first, premium motion, store themes)
   api/        Laravel 12 API: Oxylabs providers, parser, queues, Skydrop integration (next phase)
   mobile/     Expo Android app on the same API (later phase)
 packages/     shared types and API client (as the API lands)
@@ -32,7 +32,7 @@ Node 20+ and pnpm 10.
 
 ## What works today (Phase 0)
 
-- Home with store switcher and scene-switching hero; four store fronts with their own themes
+- Home with store switcher and scene-switching hero; store fronts with their own themes
 - Search with store selector, autocomplete, filters (store, category, price, rating, fast delivery), sort and pagination
 - Product page: gallery, videos (HLS), all variants, price breakdown, Skydrop delivery timeline, reviews
 - Cart grouped by source store with per-store Skydrop shipping, coupons
@@ -44,7 +44,7 @@ Cart, account and orders are stored in the browser (localStorage) until the Lara
 
 ## Next phases
 
-1. Laravel API: Oxylabs providers (Amazon raw HTML parser, Flipkart, BigBasket), caching, queues, fallbacks
+1. Laravel API: Oxylabs providers (Amazon raw HTML parser, Flipkart, Myntra), caching, queues, fallbacks
 2. Real checkout: payments, order sync to Skydrop, tracking webhooks
 3. Filament admin: marketplaces, pricing rules, orders, cost dashboard
 4. Expo Android app

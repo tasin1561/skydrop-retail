@@ -1,6 +1,6 @@
 // Builds the offline demo catalog for the app from the web storefront's catalog.
 // Usage (from apps/mobile): node scripts/make-demo-catalog.mjs
-// Keeps every detailed product, every product with offers or a deal, and every flipkart/bigbasket
+// Keeps every detailed product, every product with offers or a deal, and every flipkart/myntra
 // demo item, then fills up to
 // ~80 products with the most-reviewed amazon.in listings, spread across categories.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";

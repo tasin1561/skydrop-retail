@@ -61,20 +61,6 @@ export const STORES: Record<StoreMode, StoreInfo> = {
       { slug: "beauty", label: "Beauty", icon: "beauty" },
     ],
   },
-  bigbasket: {
-    id: "bigbasket",
-    name: "BigBasket",
-    short: "BigBasket",
-    source: "bigbasket.com",
-    tagline: "Indian groceries and kitchen staples, sourced from bigbasket.com",
-    heroTitle: "The Indian pantry you miss, delivered to Bangladesh",
-    heroText: "Rice, tea, spices, snacks and more from bigbasket.com, packed and shipped by Skydrop.",
-    categories: [
-      { slug: "grocery", label: "Staples & Snacks", icon: "grain" },
-      { slug: "home", label: "Household", icon: "home" },
-      { slug: "beauty", label: "Personal care", icon: "beauty" },
-    ],
-  },
   myntra: {
     id: "myntra",
     name: "Myntra",
@@ -97,7 +83,7 @@ const CAT_KEYS: Record<string, MsgKey> = {
   "Staples & Snacks": "store.cat.staples", Household: "store.cat.household", "Personal care": "store.cat.personal",
 };
 
-/** STORES[m] in the shopper's language. Store names (Amazon, Flipkart, BigBasket, Myntra) and source domains stay in English; shown as plain text, never logos. */
+/** STORES[m] in the shopper's language. Store names (Amazon, Flipkart, Myntra) and source domains stay in English; shown as plain text, never logos. */
 export function storeText(m: StoreMode, t: TFn): StoreInfo {
   const s = STORES[m];
   return {
@@ -112,8 +98,8 @@ export function storeText(m: StoreMode, t: TFn): StoreInfo {
   };
 }
 
-export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "myntra", "bigbasket"];
-export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "myntra", "bigbasket"];
+export const MARKET_IDS: MarketId[] = ["amazon", "flipkart", "myntra"];
+export const STORE_MODES: StoreMode[] = ["all", "amazon", "flipkart", "myntra"];
 
 export function isMarket(x: string): x is MarketId {
   return (MARKET_IDS as string[]).includes(x);
@@ -127,6 +113,5 @@ export function isStoreMode(x: string | null | undefined): x is StoreMode {
 export const DEFAULT_ENABLED: Record<MarketId, boolean> = {
   amazon: true,
   flipkart: true,
-  bigbasket: true,
   myntra: true,
 };

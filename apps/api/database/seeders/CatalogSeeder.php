@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Imports the bundled storefront catalog (database/data/catalog.json, copied from apps/web/src/data/catalog.json:
- * real amazon.in data fetched via Oxylabs with pincode 700001, plus demo Flipkart / BigBasket items).
+ * real amazon.in data fetched via Oxylabs with pincode 700001, plus demo Flipkart items).
  */
 class CatalogSeeder extends Seeder
 {

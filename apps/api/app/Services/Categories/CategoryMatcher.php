@@ -4,7 +4,7 @@ namespace App\Services\Categories;
 
 /**
  * Maps a product onto the deepest matching node of the unified tree from store breadcrumbs (Amazon wayfinding,
- * Flipkart/BigBasket/Myntra crumbs) and/or title keywords.
+ * Flipkart/Myntra crumbs) and/or title keywords.
  *
  * Every node scores its own keyword hits (keywords = curated aliases + name parts, with singular/plural variants;
  * a keyword counts once whichever variant hits):

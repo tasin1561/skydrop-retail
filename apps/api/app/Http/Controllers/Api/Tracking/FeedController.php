@@ -9,10 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
-/** GET /feeds/meta.csv and /feeds/google.xml (?store=amazon|flipkart|bigbasket|myntra, ?key= when a feed key is set). */
+/** GET /feeds/meta.csv and /feeds/google.xml (?store=amazon|flipkart|myntra, ?key= when a feed key is set). */
 class FeedController extends Controller
 {
-    public const STORES = ['amazon', 'flipkart', 'bigbasket', 'myntra'];
+    public const STORES = ['amazon', 'flipkart', 'myntra'];
 
     public function meta(Request $request, ProductFeed $feed): Response
     {

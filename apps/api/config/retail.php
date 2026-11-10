@@ -3,7 +3,6 @@
 use App\Sources\OmkarAmazonSource;
 use App\Sources\OpenWebNinjaAmazonSource;
 use App\Sources\OxylabsAmazonSource;
-use App\Sources\OxylabsBigBasketSource;
 use App\Sources\OxylabsFlipkartSource;
 use App\Sources\OxylabsMyntraSource;
 
@@ -17,7 +16,7 @@ return [
         'username' => env('OXYLABS_USERNAME'),    // or basic auth
         'password' => env('OXYLABS_PASSWORD'),
         'timeout' => (int) env('OXYLABS_TIMEOUT', 25),
-        'render_timeout' => (int) env('OXYLABS_RENDER_TIMEOUT', 60), // rendered jobs (BigBasket, Myntra)
+        'render_timeout' => (int) env('OXYLABS_RENDER_TIMEOUT', 60), // rendered jobs (Myntra)
         'hedge_after' => (int) env('OXYLABS_HEDGE_AFTER', 8), // seconds; 0 = off (admin)
         // USD per 1,000 results (Basic plan)
         'rates' => ['amazon' => 0.45, 'other' => 0.90, 'other_js' => 1.40],
@@ -58,9 +57,6 @@ return [
                 'https://www.flipkart.com/televisions/pr?sid=ckf,czl&p[]=facets.discount_range_v1%5B%5D%3D30%25+or+more&sort=popularity',
                 'https://www.flipkart.com/audio-video/headphones-earphones/pr?sid=0pm,fcn&p[]=facets.discount_range_v1%5B%5D%3D50%25+or+more&sort=popularity',
             ],
-            // BigBasket: the offers page has no products any more; one top-level category (mobile page) per run, rotating.
-            'bigbasket' => ['/cl/foodgrains-oil-masala/', '/cl/snacks-branded-foods/', '/cl/beverages/', '/cl/beauty-hygiene/',
-                '/cl/cleaning-household/', '/cl/gourmet-world-food/'],
             // Myntra: most-discounted first in one fashion category per run, rotating (listing pages, no rendering).
             'myntra' => [
                 'https://www.myntra.com/men-tshirts?sort=discount',
@@ -77,7 +73,6 @@ return [
     'sources' => [
         'amazon' => [OxylabsAmazonSource::class, OmkarAmazonSource::class, OpenWebNinjaAmazonSource::class],
         'flipkart' => [OxylabsFlipkartSource::class],
-        'bigbasket' => [OxylabsBigBasketSource::class],
         'myntra' => [OxylabsMyntraSource::class],
     ],
 

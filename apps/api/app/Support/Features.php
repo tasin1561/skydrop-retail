@@ -24,9 +24,8 @@ class Features
         // Stores
         'store.amazon' => ['Amazon (amazon.in)', 'Stores', true, 'Also controlled by the marketplace switch.'],
         'store.flipkart' => ['Flipkart (flipkart.com)', 'Stores', true, 'Also controlled by the marketplace switch.'],
-        'store.bigbasket' => ['BigBasket (bigbasket.com)', 'Stores', true, 'Also controlled by the marketplace switch.'],
         'store.myntra' => ['Myntra (myntra.com)', 'Stores', true, 'Also controlled by the marketplace switch.'],
-        'paste_link' => ['Paste any link', 'Shopping', true, 'Customers paste an amazon.in / Flipkart / BigBasket / Myntra link.'],
+        'paste_link' => ['Paste any link', 'Shopping', true, 'Customers paste an amazon.in / Flipkart / Myntra link.'],
         'live_fetch' => ['Live product fetching', 'Shopping', true, 'Off = only products already in our database.'],
         'offers' => ['Offers & live deals', 'Shopping', true, ''],
         'price_history' => ['Price history chart', 'Shopping', true, ''],

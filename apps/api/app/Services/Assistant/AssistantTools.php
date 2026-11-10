@@ -21,14 +21,14 @@ use Throwable;
  */
 class AssistantTools
 {
-    public const MARKETS = ['amazon' => 'amazon.in', 'flipkart' => 'Flipkart', 'bigbasket' => 'BigBasket', 'myntra' => 'Myntra'];
+    public const MARKETS = ['amazon' => 'amazon.in', 'flipkart' => 'Flipkart', 'myntra' => 'Myntra'];
 
     public function __construct(private CatalogQuery $catalog, private PricingService $pricing) {}
 
     /** Tool definitions for the Messages API (the last one carries cache_control so the whole list is cached). */
     public function definitions(): array
     {
-        $store = ['type' => 'string', 'enum' => ['all', 'amazon', 'flipkart', 'bigbasket', 'myntra'], 'description' => 'amazon = amazon.in, flipkart = Flipkart (fashion), bigbasket = BigBasket (grocery), myntra = Myntra (fashion, footwear, beauty). Default all.'];
+        $store = ['type' => 'string', 'enum' => ['all', 'amazon', 'flipkart', 'myntra'], 'description' => 'amazon = amazon.in, flipkart = Flipkart (fashion), myntra = Myntra (fashion, footwear, beauty). Default all.'];
         $id = ['type' => 'string', 'description' => 'Product id from a previous tool result'];
         $tools = [
             ['name' => 'search_products', 'description' => 'Search the Skydrop Retail catalog (products we can buy in India and deliver to Bangladesh). Returns up to 8 products with BDT prices. Always use this before recommending anything. Use short English keywords even when the shopper writes Bangla.',
@@ -63,7 +63,7 @@ class AssistantTools
             $tools[] = ['name' => 'create_product_request', 'description' => 'Ask our team to source a product that is not in the catalog. Requires sign-in. Use only after search found nothing suitable and the shopper agrees.',
                 'input_schema' => ['type' => 'object', 'properties' => [
                     'title' => ['type' => 'string', 'description' => 'What the shopper wants'],
-                    'url' => ['type' => 'string', 'description' => 'amazon.in / Flipkart / BigBasket / Myntra link if given'],
+                    'url' => ['type' => 'string', 'description' => 'amazon.in / Flipkart / Myntra link if given'],
                     'note' => ['type' => 'string', 'description' => 'Size, colour, budget, quantity'],
                 ], 'required' => ['title']]];
         }
@@ -117,7 +117,7 @@ class AssistantTools
         $store = $in['store'] ?? $ctx->store;
         $res = $this->catalog->search([
             'q' => mb_substr(trim((string) ($in['query'] ?? '')), 0, 80),
-            'store' => in_array($store, ['amazon', 'flipkart', 'bigbasket', 'myntra'], true) ? $store : 'all',
+            'store' => in_array($store, ['amazon', 'flipkart', 'myntra'], true) ? $store : 'all',
             'category' => $in['category'] ?? null,
             'sort' => $in['sort'] ?? 'relevance',
             'max' => isset($in['max_price_bdt']) ? (int) $in['max_price_bdt'] : null,

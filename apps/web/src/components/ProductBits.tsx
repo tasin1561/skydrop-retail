@@ -7,7 +7,6 @@ import { discountPct, mrpBdt, priceBdt } from "@/lib/pricing";
 import { useT } from "@/i18n/client";
 import { Icon } from "./Icon";
 import { WishButton } from "./WishButton";
-import { QuickAdd } from "./QuickAdd";
 import { Countdown } from "./offers/Countdown";
 import { headlineDeal } from "./offers/offerMeta";
 import { CardNotices } from "./cms/CardNotices";
@@ -112,12 +111,10 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const offerCount = p.offers?.length ?? 0;
   const { t, digits, inr } = useT();
   const deal = headlineDeal(p, t);
-  // Each store mode has its own card personality: dense deals (Amazon), editorial fashion
-  // (Flipkart, Myntra), quick-add basket (BigBasket).
+  // Each store mode has its own card personality: dense deals (Amazon), editorial fashion (Flipkart, Myntra).
   const fashion = p.market === "flipkart" || p.market === "myntra";
-  const grocery = p.market === "bigbasket";
   const sizes = fashion ? (p.variants ?? []).map((v) => v.label).filter(Boolean).slice(0, 4) : [];
-  const specs = !fashion && !grocery ? keySpecs(p) : [];
+  const specs = !fashion ? keySpecs(p) : [];
   return (
     <article
       data-store={p.market}
@@ -125,7 +122,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       className="mo-press group relative flex flex-col overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)]"
     >
       <Link href={`/p/${p.id}`} className="flex flex-1 flex-col" prefetch={false}>
-        <div className={"mo-media overflow-hidden bg-white " + (fashion ? "aspect-[4/5] p-2" : grocery ? "aspect-[5/4] p-3" : "aspect-square p-3")}>
+        <div className={"mo-media overflow-hidden bg-white " + (fashion ? "aspect-[4/5] p-2" : "aspect-square p-3")}>
           <ProductImage p={p} className="h-full w-full" />
           {p.images?.[1] && p.images[1] !== p.image && <HoverImage src={p.images[1]} />}
           {discountPct(p) >= 10 && (
@@ -143,7 +140,6 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <OriginTag market={p.market} compact />
           {fashion && p.brand && <p className="text-[11px] font-semibold uppercase tracking-wide text-ink">{p.brand}</p>}
           <h3 className={"line-clamp-2 leading-snug text-ink " + (fashion ? "text-[13px] font-normal" : "text-[13px] font-medium sm:text-sm")}>{p.title}</h3>
-          {grocery && p.weight && <p className="w-fit rounded border border-line px-1.5 py-0.5 text-[11px] font-medium text-ink-2">{p.weight}</p>}
           {specs.length > 0 && <p className="truncate text-[11px] text-ink-2">{specs.join(" · ")}</p>}
           {sizes.length > 0 && (
             <div className="flex flex-wrap gap-1" aria-label={t("card.sizes")}>
@@ -188,11 +184,6 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           </div>
         </div>
       </Link>
-      {grocery && (
-        <div className="px-3 pb-3">
-          <QuickAdd p={p} />
-        </div>
-      )}
       <div className="absolute right-2 top-2">
         <WishButton id={p.id} small />
       </div>

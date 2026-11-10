@@ -33,7 +33,7 @@ export default async function TermsPage() {
                 company, and &quot;you&quot; means the person placing the order.
               </p>
               <p>
-                We are an independent buying and delivery service. We are <strong>not</strong> amazon.in, flipkart.com, bigbasket.com or myntra.com, and we are
+                We are an independent buying and delivery service. We are <strong>not</strong> amazon.in, flipkart.com or myntra.com, and we are
                 not their agent or partner. Product names, photos and brands belong to their owners.
               </p>
             </>
@@ -41,17 +41,17 @@ export default async function TermsPage() {
         },
         {
           id: "not-affiliated",
-          title: "We are not an official partner of Amazon, Flipkart, BigBasket or Myntra",
+          title: "We are not an official partner of Amazon, Flipkart or Myntra",
           body: (
             <>
               <p>
                 Skydrop Retail is <strong>not owned by, affiliated with, authorised by, sponsored by or endorsed by</strong> Amazon (amazon.in),
-                Flipkart (flipkart.com), BigBasket (bigbasket.com), Myntra (myntra.com) or any of their group companies. We are not their official partner, seller,
+                Flipkart (flipkart.com), Myntra (myntra.com) or any of their group companies. We are not their official partner, seller,
                 reseller, agent or representative.
               </p>
               <p>
-                Amazon, Flipkart, BigBasket and Myntra are named on this site, in plain text, only to tell you which Indian store we buy
-                your item from; the store sections and pages on this site are run by us, not by them. Amazon, Flipkart, BigBasket, Myntra and their logos
+                Amazon, Flipkart and Myntra are named on this site, in plain text, only to tell you which Indian store we buy
+                your item from; the store sections and pages on this site are run by us, not by them. Amazon, Flipkart, Myntra and their logos
                 are trademarks of their respective owners, and we do not use their logos.
               </p>
               <p>
@@ -256,7 +256,7 @@ function TermsBn() {
                 অর্ডারদাতাকে বোঝানো হয়েছে।
               </p>
               <p>
-                আমরা একটি স্বাধীন কেনাকাটা ও ডেলিভারি সেবা। আমরা amazon.in, flipkart.com, bigbasket.com বা myntra.com <strong>নই</strong>, তাদের এজেন্ট বা
+                আমরা একটি স্বাধীন কেনাকাটা ও ডেলিভারি সেবা। আমরা amazon.in, flipkart.com বা myntra.com <strong>নই</strong>, তাদের এজেন্ট বা
                 পার্টনারও নই। পণ্যের নাম, ছবি আর ব্র্যান্ড তাদের নিজ নিজ মালিকের।
               </p>
             </>
@@ -264,16 +264,16 @@ function TermsBn() {
         },
         {
           id: "not-affiliated",
-          title: "আমরা Amazon, Flipkart, BigBasket বা Myntra-এর অফিশিয়াল পার্টনার নই",
+          title: "আমরা Amazon, Flipkart বা Myntra-এর অফিশিয়াল পার্টনার নই",
           body: (
             <>
               <p>
-                Skydrop Retail, Amazon (amazon.in), Flipkart (flipkart.com), BigBasket (bigbasket.com), Myntra (myntra.com) বা তাদের কোনো গ্রুপ কোম্পানির <strong>মালিকানাধীন,
+                Skydrop Retail, Amazon (amazon.in), Flipkart (flipkart.com), Myntra (myntra.com) বা তাদের কোনো গ্রুপ কোম্পানির <strong>মালিকানাধীন,
                 সহযোগী, অনুমোদিত, স্পনসরকৃত বা সমর্থিত নয়</strong>। আমরা তাদের অফিশিয়াল পার্টনার, বিক্রেতা, রিসেলার, এজেন্ট বা প্রতিনিধি নই।
               </p>
               <p>
-                আপনার পণ্য কোন ইন্ডিয়ান স্টোর থেকে কিনছি শুধু সেটা জানাতে এই সাইটে Amazon, Flipkart, BigBasket আর Myntra-এর নাম সাধারণ লেখায়
-                উল্লেখ করা হয়; এই সাইটের স্টোর সেকশন ও পেজগুলো আমরা চালাই, তারা নয়। Amazon, Flipkart, BigBasket, Myntra আর তাদের লোগো নিজ নিজ মালিকের
+                আপনার পণ্য কোন ইন্ডিয়ান স্টোর থেকে কিনছি শুধু সেটা জানাতে এই সাইটে Amazon, Flipkart আর Myntra-এর নাম সাধারণ লেখায়
+                উল্লেখ করা হয়; এই সাইটের স্টোর সেকশন ও পেজগুলো আমরা চালাই, তারা নয়। Amazon, Flipkart, Myntra আর তাদের লোগো নিজ নিজ মালিকের
                 ট্রেডমার্ক, আমরা তাদের লোগো ব্যবহার করি না।
               </p>
               <p>

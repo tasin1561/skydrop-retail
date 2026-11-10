@@ -151,7 +151,7 @@ class DataUsageTest extends TestCase
     {
         $this->logCall('amazon', true, times: 2200);
         $this->logCall('flipkart', true, times: 1100);
-        $this->logCall('bigbasket', true, times: 5); // outside the plan
+        $this->logCall('myntra', true, times: 5); // outside the plan
 
         $r = app(DataUsage::class)->report();
         // 1,100 Flipkart calls × (220000 / 110000) = 2,200 Amazon-call units.

@@ -210,19 +210,19 @@ class CouponControlsTest extends TestCase
 
         Livewire::test(CreateCoupon::class)->fillForm([
             'code' => 'eid25', 'type' => 'percent_items', 'value' => 25, 'max_discount_bdt' => 500, 'min_subtotal_bdt' => 2000,
-            'store' => 'bigbasket', 'starts_at' => '2026-12-01 10:00', 'expires_at' => '2026-12-05 23:59',
+            'store' => 'myntra', 'starts_at' => '2026-12-01 10:00', 'expires_at' => '2026-12-05 23:59',
             'max_uses' => 300, 'per_customer_limit' => 2, 'first_order_only' => true,
             'allowed_phones' => ['01712345678', '+8801812345678'],
-            'featured' => true, 'promo_text_en' => 'Eid: 25% off groceries', 'promo_text_bn' => 'ঈদে মুদিতে ২৫% ছাড়',
+            'featured' => true, 'promo_text_en' => 'Eid: 25% off fashion', 'promo_text_bn' => 'ঈদে ফ্যাশনে ২৫% ছাড়',
         ])->call('create')->assertHasNoFormErrors();
 
         $c = Coupon::query()->where('code', 'EID25')->firstOrFail();
-        $this->assertSame('bigbasket', $c->store);
+        $this->assertSame('myntra', $c->store);
         $this->assertSame(2, $c->per_customer_limit);
         $this->assertTrue($c->first_order_only);
         $this->assertTrue($c->featured);
         $this->assertSame(['+8801712345678', '+8801812345678'], $c->allowed_phones);
-        $this->assertSame('ঈদে মুদিতে ২৫% ছাড়', $c->promo_text_bn);
+        $this->assertSame('ঈদে ফ্যাশনে ২৫% ছাড়', $c->promo_text_bn);
         $this->assertSame('2026-12-01 04:00:00', $c->starts_at->utc()->format('Y-m-d H:i:s')); // entered in Dhaka time
 
         // New coupons default to one use per customer; bad phone numbers and an end before the start are rejected.

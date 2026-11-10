@@ -16,7 +16,7 @@ use App\Support\Features;
 // Cart lines, coupons and totals. Same maths as apps/web/src/components/checkout/cart-math.ts.
 class CheckoutService
 {
-    public const MARKETS = ['amazon', 'flipkart', 'bigbasket', 'myntra'];
+    public const MARKETS = ['amazon', 'flipkart', 'myntra'];
 
     public function __construct(private PricingService $pricing, private PointsService $points) {}
 

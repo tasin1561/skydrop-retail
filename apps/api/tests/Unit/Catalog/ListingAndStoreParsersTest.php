@@ -4,7 +4,6 @@ namespace Tests\Unit\Catalog;
 
 use App\Services\Catalog\CategoryGuesser;
 use App\Sources\Parsers\AmazonListingMapper;
-use App\Sources\Parsers\BigBasketParser;
 use App\Sources\Parsers\FlipkartHtmlParser;
 use App\Sources\Support\Offers;
 use Carbon\CarbonImmutable;
@@ -157,30 +156,6 @@ HTML;
 
         $rows = (new FlipkartHtmlParser)->listing('<div><a href="/m35/p/itm94360d23ec184?pid=MOBH2Z8ZTPKMZ9FV" title="Galaxy M35"></a><div>₹29,999</div></div>')->items;
         $this->assertSame('itm94360d23ec184-mobh2z8ztpkmz9fv', $rows[0]['id']);
-    }
-
-    public function test_bigbasket_next_data_with_bogo_tag(): void
-    {
-        $state = ['props' => ['pageProps' => ['productDetails' => ['children' => [[
-            'id' => 40001234, 'desc' => 'Basmati Rice', 'w' => '1 kg', 'brand' => ['name' => 'India Gate'],
-            'pricing' => ['discount' => ['mrp' => '250', 'prim_price' => ['sp' => '199'], 'd_text' => '20% OFF']],
-            'images' => [['l' => 'https://www.bigbasket.com/media/l.jpg']],
-            'tags' => [['header' => 'Buy 1 Get 1 Free']],
-            'rating_info' => ['avg_rating' => 4.3, 'rating_count' => 210],
-        ]]]]]];
-        $html = '<html><body><script id="__NEXT_DATA__" type="application/json">'.json_encode($state).'</script></body></html>';
-        $p = (new BigBasketParser)->product($html, 'bb40001234');
-        $this->assertSame('India Gate Basmati Rice 1 kg', $p['title']);
-        $this->assertSame('India Gate', $p['brand']);
-        $this->assertSame(199.0, $p['price_inr']);
-        $this->assertSame(250.0, $p['mrp_inr']);
-        $this->assertSame('1 kg', $p['weight']);
-        $this->assertSame('20% OFF', $p['deal_badge']);
-        $this->assertSame(['deal', 'combo'], array_column($p['offers'], 'type'));
-        $this->assertFalse($p['offers'][1]['appliesToOurPrice']);
-
-        $list = (new BigBasketParser)->listing($html)->items;
-        $this->assertSame('bb40001234', $list[0]['id']);
     }
 
     public function test_offer_helpers(): void

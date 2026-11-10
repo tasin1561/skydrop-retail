@@ -302,7 +302,6 @@ class DataUsage
         return match ($market) {
             'amazon' => 'Amazon India',
             'flipkart' => 'Flipkart',
-            'bigbasket' => 'BigBasket (outside the plan)',
             'myntra' => 'Myntra (outside the plan)',
             default => 'Other (outside the plan)',
         };

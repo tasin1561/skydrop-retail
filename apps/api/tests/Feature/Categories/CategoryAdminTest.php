@@ -45,7 +45,7 @@ class CategoryAdminTest extends TestCase
 
         $tea = Category::query()->where('path', 'grocery-gourmet/beverages/tea')->firstOrFail();
         Livewire::test(EditCategory::class, ['record' => $tea->id])
-            ->fillForm(['name_bn' => 'চা পাতা', 'sources.bigbasket.query' => '', 'sources.flipkart.query' => 'assam tea'])
+            ->fillForm(['name_bn' => 'চা পাতা', 'sources.myntra.query' => '', 'sources.flipkart.query' => 'assam tea'])
             ->call('save')->assertHasNoFormErrors();
         $tea->refresh();
         $this->assertSame('চা পাতা', $tea->name_bn);

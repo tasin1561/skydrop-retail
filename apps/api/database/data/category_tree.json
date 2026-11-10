@@ -1,6 +1,6 @@
 {
  "version": 1,
- "description": "Skydrop Retail unified category tree. Paths are the stable key (seeder upserts by path). sources: amazon {search_alias, query, node|null (filled by retail:import-amazon-nodes)}, flipkart {query, path?}, bigbasket {query, slug?}, myntra {query, path?}; a missing store key means the store does not sell it. pricing_group is inherited from the parent when absent.",
+ "description": "Skydrop Retail unified category tree. Paths are the stable key (seeder upserts by path). sources: amazon {search_alias, query, node|null (filled by retail:import-amazon-nodes)}, flipkart {query, path?}, myntra {query, path?}; a missing store key means the store does not sell it. pricing_group is inherited from the parent when absent.",
  "pricing_groups": [
   "electronics",
   "fashion",
@@ -5092,10 +5092,6 @@
     "flipkart": {
      "query": "beauty and personal care"
     },
-    "bigbasket": {
-     "query": "beauty and personal care",
-     "slug": "beauty-hygiene"
-    },
     "myntra": {
      "query": "beauty and personal care"
     }
@@ -5122,10 +5118,6 @@
       },
       "flipkart": {
        "query": "makeup"
-      },
-      "bigbasket": {
-       "query": "makeup",
-       "slug": "beauty-hygiene"
       },
       "myntra": {
        "query": "makeup"
@@ -5157,10 +5149,6 @@
         },
         "flipkart": {
          "query": "lip makeup"
-        },
-        "bigbasket": {
-         "query": "lip makeup",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "lip makeup"
@@ -5195,10 +5183,6 @@
         "flipkart": {
          "query": "face makeup"
         },
-        "bigbasket": {
-         "query": "face makeup",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "face makeup"
         }
@@ -5229,10 +5213,6 @@
         "flipkart": {
          "query": "eye makeup"
         },
-        "bigbasket": {
-         "query": "eye makeup",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "eye makeup"
         }
@@ -5260,10 +5240,6 @@
         },
         "flipkart": {
          "query": "nail polish"
-        },
-        "bigbasket": {
-         "query": "nail polish",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "nail polish"
@@ -5295,10 +5271,6 @@
         "flipkart": {
          "query": "makeup brushes and tools"
         },
-        "bigbasket": {
-         "query": "makeup brushes and tools",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "makeup brushes and tools"
         }
@@ -5325,10 +5297,6 @@
         },
         "flipkart": {
          "query": "makeup removers"
-        },
-        "bigbasket": {
-         "query": "makeup removers",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "makeup removers"
@@ -5359,10 +5327,6 @@
       "flipkart": {
        "query": "skin care"
       },
-      "bigbasket": {
-       "query": "skin care",
-       "slug": "beauty-hygiene"
-      },
       "myntra": {
        "query": "skin care"
       }
@@ -5391,10 +5355,6 @@
         },
         "flipkart": {
          "query": "face wash and cleansers"
-        },
-        "bigbasket": {
-         "query": "face wash and cleansers",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "face wash and cleansers"
@@ -5429,10 +5389,6 @@
         "flipkart": {
          "query": "moisturisers and creams"
         },
-        "bigbasket": {
-         "query": "moisturisers and creams",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "moisturisers and creams"
         }
@@ -5462,10 +5418,6 @@
         "flipkart": {
          "query": "serums"
         },
-        "bigbasket": {
-         "query": "serums",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "serums"
         }
@@ -5492,10 +5444,6 @@
         },
         "flipkart": {
          "query": "sunscreen"
-        },
-        "bigbasket": {
-         "query": "sunscreen",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "sunscreen"
@@ -5528,10 +5476,6 @@
         "flipkart": {
          "query": "face masks and packs"
         },
-        "bigbasket": {
-         "query": "face masks and packs",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "face masks and packs"
         }
@@ -5561,10 +5505,6 @@
         "flipkart": {
          "query": "toners and mists"
         },
-        "bigbasket": {
-         "query": "toners and mists",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "toners and mists"
         }
@@ -5591,10 +5531,6 @@
         "flipkart": {
          "query": "body lotion"
         },
-        "bigbasket": {
-         "query": "body lotion",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "body lotion"
         }
@@ -5620,10 +5556,6 @@
         },
         "flipkart": {
          "query": "lip care"
-        },
-        "bigbasket": {
-         "query": "lip care",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "lip care"
@@ -5653,10 +5585,6 @@
       "flipkart": {
        "query": "hair care"
       },
-      "bigbasket": {
-       "query": "hair care",
-       "slug": "beauty-hygiene"
-      },
       "myntra": {
        "query": "hair care"
       }
@@ -5682,10 +5610,6 @@
         "flipkart": {
          "query": "shampoo"
         },
-        "bigbasket": {
-         "query": "shampoo",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "shampoo"
         }
@@ -5709,10 +5633,6 @@
         },
         "flipkart": {
          "query": "conditioner"
-        },
-        "bigbasket": {
-         "query": "conditioner",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "conditioner"
@@ -5740,10 +5660,6 @@
         },
         "flipkart": {
          "query": "hair oil"
-        },
-        "bigbasket": {
-         "query": "hair oil",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "hair oil"
@@ -5774,10 +5690,6 @@
         "flipkart": {
          "query": "hair serums and masks"
         },
-        "bigbasket": {
-         "query": "hair serums and masks",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "hair serums and masks"
         }
@@ -5805,10 +5717,6 @@
         },
         "flipkart": {
          "query": "hair colour"
-        },
-        "bigbasket": {
-         "query": "hair colour",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "hair colour"
@@ -5838,10 +5746,6 @@
         "flipkart": {
          "query": "hair styling"
         },
-        "bigbasket": {
-         "query": "hair styling",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "hair styling"
         }
@@ -5869,10 +5773,6 @@
       },
       "flipkart": {
        "query": "fragrances"
-      },
-      "bigbasket": {
-       "query": "fragrances",
-       "slug": "beauty-hygiene"
       },
       "myntra": {
        "query": "fragrances"
@@ -5903,10 +5803,6 @@
         "flipkart": {
          "query": "perfumes"
         },
-        "bigbasket": {
-         "query": "perfumes",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "perfumes"
         }
@@ -5936,10 +5832,6 @@
         "flipkart": {
          "query": "deodorants"
         },
-        "bigbasket": {
-         "query": "deodorants",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "deodorants"
         }
@@ -5966,10 +5858,6 @@
         "flipkart": {
          "query": "attars"
         },
-        "bigbasket": {
-         "query": "attars",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "attars"
         }
@@ -5994,10 +5882,6 @@
         },
         "flipkart": {
          "query": "body mists"
-        },
-        "bigbasket": {
-         "query": "body mists",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "body mists"
@@ -6027,10 +5911,6 @@
       "flipkart": {
        "query": "men's grooming"
       },
-      "bigbasket": {
-       "query": "men's grooming",
-       "slug": "beauty-hygiene"
-      },
       "myntra": {
        "query": "men's grooming"
       }
@@ -6057,10 +5937,6 @@
         },
         "flipkart": {
          "query": "trimmers"
-        },
-        "bigbasket": {
-         "query": "trimmers",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "trimmers"
@@ -6092,10 +5968,6 @@
         "flipkart": {
          "query": "shaving"
         },
-        "bigbasket": {
-         "query": "shaving",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "shaving"
         }
@@ -6124,10 +5996,6 @@
         "flipkart": {
          "query": "beard care"
         },
-        "bigbasket": {
-         "query": "beard care",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "beard care"
         }
@@ -6154,10 +6022,6 @@
         },
         "flipkart": {
          "query": "men's face care"
-        },
-        "bigbasket": {
-         "query": "men's face care",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "men's face care"
@@ -6188,10 +6052,6 @@
       "flipkart": {
        "query": "bath and body"
       },
-      "bigbasket": {
-       "query": "bath and body",
-       "slug": "beauty-hygiene"
-      },
       "myntra": {
        "query": "bath and body"
       }
@@ -6219,10 +6079,6 @@
         "flipkart": {
          "query": "soaps"
         },
-        "bigbasket": {
-         "query": "soaps",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "soaps"
         }
@@ -6248,10 +6104,6 @@
         },
         "flipkart": {
          "query": "body wash and shower gel"
-        },
-        "bigbasket": {
-         "query": "body wash and shower gel",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "body wash and shower gel"
@@ -6282,10 +6134,6 @@
         "flipkart": {
          "query": "hand wash and sanitisers"
         },
-        "bigbasket": {
-         "query": "hand wash and sanitisers",
-         "slug": "beauty-hygiene"
-        },
         "myntra": {
          "query": "hand wash and sanitisers"
         }
@@ -6311,10 +6159,6 @@
         },
         "flipkart": {
          "query": "talc"
-        },
-        "bigbasket": {
-         "query": "talc",
-         "slug": "beauty-hygiene"
         },
         "myntra": {
          "query": "talc"
@@ -6342,10 +6186,6 @@
       },
       "flipkart": {
        "query": "oral care"
-      },
-      "bigbasket": {
-       "query": "oral care",
-       "slug": "beauty-hygiene"
       }
      },
      "children": [
@@ -6368,10 +6208,6 @@
         },
         "flipkart": {
          "query": "toothpaste"
-        },
-        "bigbasket": {
-         "query": "toothpaste",
-         "slug": "beauty-hygiene"
         }
        }
       },
@@ -6395,10 +6231,6 @@
         },
         "flipkart": {
          "query": "toothbrushes"
-        },
-        "bigbasket": {
-         "query": "toothbrushes",
-         "slug": "beauty-hygiene"
         }
        }
       },
@@ -6422,10 +6254,6 @@
         },
         "flipkart": {
          "query": "mouthwash"
-        },
-        "bigbasket": {
-         "query": "mouthwash",
-         "slug": "beauty-hygiene"
         }
        }
       }
@@ -6450,10 +6278,6 @@
       },
       "flipkart": {
        "query": "feminine hygiene"
-      },
-      "bigbasket": {
-       "query": "feminine hygiene",
-       "slug": "beauty-hygiene"
       }
      },
      "children": [
@@ -6480,10 +6304,6 @@
         },
         "flipkart": {
          "query": "sanitary pads"
-        },
-        "bigbasket": {
-         "query": "sanitary pads",
-         "slug": "beauty-hygiene"
         }
        }
       },
@@ -6509,10 +6329,6 @@
         },
         "flipkart": {
          "query": "menstrual cups and tampons"
-        },
-        "bigbasket": {
-         "query": "menstrual cups and tampons",
-         "slug": "beauty-hygiene"
         }
        }
       },
@@ -6536,10 +6352,6 @@
         },
         "flipkart": {
          "query": "intimate care"
-        },
-        "bigbasket": {
-         "query": "intimate care",
-         "slug": "beauty-hygiene"
         }
        }
       },
@@ -6564,10 +6376,6 @@
         },
         "flipkart": {
          "query": "hair removal"
-        },
-        "bigbasket": {
-         "query": "hair removal",
-         "slug": "beauty-hygiene"
         }
        }
       }
@@ -7486,9 +7294,6 @@
      "node": null
     },
     "flipkart": {
-     "query": "home and kitchen"
-    },
-    "bigbasket": {
      "query": "home and kitchen"
     },
     "myntra": {
@@ -8474,10 +8279,6 @@
       },
       "flipkart": {
        "query": "household supplies"
-      },
-      "bigbasket": {
-       "query": "household supplies",
-       "slug": "cleaning-household"
       }
      },
      "children": [
@@ -8507,10 +8308,6 @@
         },
         "flipkart": {
          "query": "detergents and laundry"
-        },
-        "bigbasket": {
-         "query": "detergents and laundry",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8538,10 +8335,6 @@
         },
         "flipkart": {
          "query": "dishwash"
-        },
-        "bigbasket": {
-         "query": "dishwash",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8571,10 +8364,6 @@
         },
         "flipkart": {
          "query": "floor and surface cleaners"
-        },
-        "bigbasket": {
-         "query": "floor and surface cleaners",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8599,10 +8388,6 @@
         },
         "flipkart": {
          "query": "toilet cleaners"
-        },
-        "bigbasket": {
-         "query": "toilet cleaners",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8632,10 +8417,6 @@
         },
         "flipkart": {
          "query": "mops, brushes and brooms"
-        },
-        "bigbasket": {
-         "query": "mops, brushes and brooms",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8663,10 +8444,6 @@
         },
         "flipkart": {
          "query": "repellents"
-        },
-        "bigbasket": {
-         "query": "repellents",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8697,10 +8474,6 @@
         },
         "flipkart": {
          "query": "paper and disposables"
-        },
-        "bigbasket": {
-         "query": "paper and disposables",
-         "slug": "cleaning-household"
         }
        }
       },
@@ -8725,10 +8498,6 @@
         },
         "flipkart": {
          "query": "air fresheners"
-        },
-        "bigbasket": {
-         "query": "air fresheners",
-         "slug": "cleaning-household"
         }
        }
       }
@@ -8959,10 +8728,6 @@
       },
       "flipkart": {
        "query": "pet supplies"
-      },
-      "bigbasket": {
-       "query": "pet supplies",
-       "slug": "kitchen-garden-pets"
       }
      },
      "children": [
@@ -8987,10 +8752,6 @@
         },
         "flipkart": {
          "query": "dog food"
-        },
-        "bigbasket": {
-         "query": "dog food",
-         "slug": "kitchen-garden-pets"
         }
        }
       },
@@ -9015,10 +8776,6 @@
         },
         "flipkart": {
          "query": "cat food"
-        },
-        "bigbasket": {
-         "query": "cat food",
-         "slug": "kitchen-garden-pets"
         }
        }
       },
@@ -9044,10 +8801,6 @@
         },
         "flipkart": {
          "query": "pet grooming"
-        },
-        "bigbasket": {
-         "query": "pet grooming",
-         "slug": "kitchen-garden-pets"
         }
        }
       },
@@ -9075,10 +8828,6 @@
         },
         "flipkart": {
          "query": "pet accessories"
-        },
-        "bigbasket": {
-         "query": "pet accessories",
-         "slug": "kitchen-garden-pets"
         }
        }
       }
@@ -9908,9 +9657,6 @@
     },
     "flipkart": {
      "query": "grocery and gourmet"
-    },
-    "bigbasket": {
-     "query": "grocery and gourmet"
     }
    },
    "children": [
@@ -9936,10 +9682,6 @@
       },
       "flipkart": {
        "query": "staples"
-      },
-      "bigbasket": {
-       "query": "staples",
-       "slug": "foodgrains-oil-masala"
       }
      },
      "children": [
@@ -9967,10 +9709,6 @@
         },
         "flipkart": {
          "query": "rice and rice products"
-        },
-        "bigbasket": {
-         "query": "rice and rice products",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -9999,10 +9737,6 @@
         },
         "flipkart": {
          "query": "atta and flours"
-        },
-        "bigbasket": {
-         "query": "atta and flours",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10033,10 +9767,6 @@
         },
         "flipkart": {
          "query": "dals and pulses"
-        },
-        "bigbasket": {
-         "query": "dals and pulses",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10067,10 +9797,6 @@
         },
         "flipkart": {
          "query": "cooking oils and ghee"
-        },
-        "bigbasket": {
-         "query": "cooking oils and ghee",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10098,10 +9824,6 @@
         },
         "flipkart": {
          "query": "sugar, salt and jaggery"
-        },
-        "bigbasket": {
-         "query": "sugar, salt and jaggery",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10135,10 +9857,6 @@
         },
         "flipkart": {
          "query": "dry fruits and nuts"
-        },
-        "bigbasket": {
-         "query": "dry fruits and nuts",
-         "slug": "foodgrains-oil-masala"
         }
        }
       }
@@ -10166,10 +9884,6 @@
       },
       "flipkart": {
        "query": "masalas and spices"
-      },
-      "bigbasket": {
-       "query": "masalas and spices",
-       "slug": "foodgrains-oil-masala"
       }
      },
      "children": [
@@ -10198,10 +9912,6 @@
         },
         "flipkart": {
          "query": "whole spices"
-        },
-        "bigbasket": {
-         "query": "whole spices",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10228,10 +9938,6 @@
         },
         "flipkart": {
          "query": "powdered spices"
-        },
-        "bigbasket": {
-         "query": "powdered spices",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10260,10 +9966,6 @@
         },
         "flipkart": {
          "query": "blended masalas"
-        },
-        "bigbasket": {
-         "query": "blended masalas",
-         "slug": "foodgrains-oil-masala"
         }
        }
       },
@@ -10291,10 +9993,6 @@
         },
         "flipkart": {
          "query": "herbs and seasonings"
-        },
-        "bigbasket": {
-         "query": "herbs and seasonings",
-         "slug": "foodgrains-oil-masala"
         }
        }
       }
@@ -10321,10 +10019,6 @@
       },
       "flipkart": {
        "query": "beverages"
-      },
-      "bigbasket": {
-       "query": "beverages",
-       "slug": "beverages"
       }
      },
      "children": [
@@ -10351,10 +10045,6 @@
         },
         "flipkart": {
          "query": "tea"
-        },
-        "bigbasket": {
-         "query": "tea",
-         "slug": "beverages"
         }
        }
       },
@@ -10379,10 +10069,6 @@
         },
         "flipkart": {
          "query": "coffee"
-        },
-        "bigbasket": {
-         "query": "coffee",
-         "slug": "beverages"
         }
        }
       },
@@ -10424,10 +10110,6 @@
         },
         "flipkart": {
          "query": "juices"
-        },
-        "bigbasket": {
-         "query": "juices",
-         "slug": "beverages"
         }
        }
       },
@@ -10454,10 +10136,6 @@
         },
         "flipkart": {
          "query": "soft drinks"
-        },
-        "bigbasket": {
-         "query": "soft drinks",
-         "slug": "beverages"
         }
        }
       },
@@ -10490,10 +10168,6 @@
         },
         "flipkart": {
          "query": "energy and health drinks"
-        },
-        "bigbasket": {
-         "query": "energy and health drinks",
-         "slug": "beverages"
         }
        }
       },
@@ -10516,10 +10190,6 @@
         },
         "flipkart": {
          "query": "coconut water"
-        },
-        "bigbasket": {
-         "query": "coconut water",
-         "slug": "beverages"
         }
        }
       },
@@ -10551,10 +10221,6 @@
         },
         "flipkart": {
          "query": "syrups and concentrates"
-        },
-        "bigbasket": {
-         "query": "syrups and concentrates",
-         "slug": "beverages"
         }
        }
       }
@@ -10583,10 +10249,6 @@
       },
       "flipkart": {
        "query": "snacks and packaged foods"
-      },
-      "bigbasket": {
-       "query": "snacks and packaged foods",
-       "slug": "snacks-branded-foods"
       }
      },
      "children": [
@@ -10612,10 +10274,6 @@
         },
         "flipkart": {
          "query": "biscuits and cookies"
-        },
-        "bigbasket": {
-         "query": "biscuits and cookies",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10643,10 +10301,6 @@
         },
         "flipkart": {
          "query": "chips and namkeen"
-        },
-        "bigbasket": {
-         "query": "chips and namkeen",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10673,10 +10327,6 @@
         },
         "flipkart": {
          "query": "noodles and pasta"
-        },
-        "bigbasket": {
-         "query": "noodles and pasta",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10703,10 +10353,6 @@
         },
         "flipkart": {
          "query": "breakfast cereals"
-        },
-        "bigbasket": {
-         "query": "breakfast cereals",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10734,10 +10380,6 @@
         },
         "flipkart": {
          "query": "ready to cook and eat"
-        },
-        "bigbasket": {
-         "query": "ready to cook and eat",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10767,10 +10409,6 @@
         },
         "flipkart": {
          "query": "sauces and spreads"
-        },
-        "bigbasket": {
-         "query": "sauces and spreads",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10797,10 +10435,6 @@
         },
         "flipkart": {
          "query": "pickles and chutneys"
-        },
-        "bigbasket": {
-         "query": "pickles and chutneys",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10822,10 +10456,6 @@
         },
         "flipkart": {
          "query": "honey"
-        },
-        "bigbasket": {
-         "query": "honey",
-         "slug": "snacks-branded-foods"
         }
        }
       }
@@ -10852,10 +10482,6 @@
       },
       "flipkart": {
        "query": "chocolates and sweets"
-      },
-      "bigbasket": {
-       "query": "chocolates and sweets",
-       "slug": "snacks-branded-foods"
       }
      },
      "children": [
@@ -10880,10 +10506,6 @@
         },
         "flipkart": {
          "query": "chocolates"
-        },
-        "bigbasket": {
-         "query": "chocolates",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10911,10 +10533,6 @@
         },
         "flipkart": {
          "query": "indian sweets"
-        },
-        "bigbasket": {
-         "query": "indian sweets",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10941,10 +10559,6 @@
         },
         "flipkart": {
          "query": "candies and mints"
-        },
-        "bigbasket": {
-         "query": "candies and mints",
-         "slug": "snacks-branded-foods"
         }
        }
       },
@@ -10969,10 +10583,6 @@
         },
         "flipkart": {
          "query": "gift hampers"
-        },
-        "bigbasket": {
-         "query": "gift hampers",
-         "slug": "snacks-branded-foods"
         }
        }
       }
@@ -10999,10 +10609,6 @@
       },
       "flipkart": {
        "query": "dairy and bakery"
-      },
-      "bigbasket": {
-       "query": "dairy and bakery",
-       "slug": "bakery-cakes-dairy"
       }
      },
      "children": [
@@ -11028,10 +10634,6 @@
         },
         "flipkart": {
          "query": "milk and milk powder"
-        },
-        "bigbasket": {
-         "query": "milk and milk powder",
-         "slug": "bakery-cakes-dairy"
         }
        }
       },
@@ -11056,10 +10658,6 @@
         },
         "flipkart": {
          "query": "cheese and butter"
-        },
-        "bigbasket": {
-         "query": "cheese and butter",
-         "slug": "bakery-cakes-dairy"
         }
        }
       },
@@ -11086,10 +10684,6 @@
         },
         "flipkart": {
          "query": "bakery snacks"
-        },
-        "bigbasket": {
-         "query": "bakery snacks",
-         "slug": "bakery-cakes-dairy"
         }
        }
       }
@@ -11118,10 +10712,6 @@
       },
       "flipkart": {
        "query": "gourmet and health foods"
-      },
-      "bigbasket": {
-       "query": "gourmet and health foods",
-       "slug": "gourmet-world-food"
       }
      },
      "children": [
@@ -11148,10 +10738,6 @@
         },
         "flipkart": {
          "query": "international foods"
-        },
-        "bigbasket": {
-         "query": "international foods",
-         "slug": "gourmet-world-food"
         }
        }
       },
@@ -11180,10 +10766,6 @@
         },
         "flipkart": {
          "query": "health foods"
-        },
-        "bigbasket": {
-         "query": "health foods",
-         "slug": "gourmet-world-food"
         }
        }
       },
@@ -11208,10 +10790,6 @@
         },
         "flipkart": {
          "query": "sugar substitutes"
-        },
-        "bigbasket": {
-         "query": "sugar substitutes",
-         "slug": "gourmet-world-food"
         }
        }
       },
@@ -11238,10 +10816,6 @@
         },
         "flipkart": {
          "query": "baking supplies"
-        },
-        "bigbasket": {
-         "query": "baking supplies",
-         "slug": "gourmet-world-food"
         }
        }
       }
@@ -11275,10 +10849,6 @@
     "flipkart": {
      "query": "baby and kids"
     },
-    "bigbasket": {
-     "query": "baby and kids",
-     "slug": "baby-care"
-    },
     "myntra": {
      "query": "baby and kids"
     }
@@ -11305,10 +10875,6 @@
       },
       "flipkart": {
        "query": "diapering"
-      },
-      "bigbasket": {
-       "query": "diapering",
-       "slug": "baby-care"
       }
      },
      "children": [
@@ -11335,10 +10901,6 @@
         },
         "flipkart": {
          "query": "diapers"
-        },
-        "bigbasket": {
-         "query": "diapers",
-         "slug": "baby-care"
         }
        }
       },
@@ -11362,10 +10924,6 @@
         },
         "flipkart": {
          "query": "baby wipes"
-        },
-        "bigbasket": {
-         "query": "baby wipes",
-         "slug": "baby-care"
         }
        }
       },
@@ -11389,10 +10947,6 @@
         },
         "flipkart": {
          "query": "diaper rash cream"
-        },
-        "bigbasket": {
-         "query": "diaper rash cream",
-         "slug": "baby-care"
         }
        }
       }
@@ -11420,10 +10974,6 @@
       },
       "flipkart": {
        "query": "baby food and formula"
-      },
-      "bigbasket": {
-       "query": "baby food and formula",
-       "slug": "baby-care"
       }
      },
      "children": [
@@ -11448,10 +10998,6 @@
         },
         "flipkart": {
          "query": "infant formula"
-        },
-        "bigbasket": {
-         "query": "infant formula",
-         "slug": "baby-care"
         }
        }
       },
@@ -11474,10 +11020,6 @@
         },
         "flipkart": {
          "query": "baby cereal"
-        },
-        "bigbasket": {
-         "query": "baby cereal",
-         "slug": "baby-care"
         }
        }
       },
@@ -11501,10 +11043,6 @@
         },
         "flipkart": {
          "query": "baby snacks"
-        },
-        "bigbasket": {
-         "query": "baby snacks",
-         "slug": "baby-care"
         }
        }
       }
@@ -11533,10 +11071,6 @@
       },
       "flipkart": {
        "query": "baby bath and skin care"
-      },
-      "bigbasket": {
-       "query": "baby bath and skin care",
-       "slug": "baby-care"
       }
      },
      "children": [
@@ -11563,10 +11097,6 @@
         },
         "flipkart": {
          "query": "baby lotion and oil"
-        },
-        "bigbasket": {
-         "query": "baby lotion and oil",
-         "slug": "baby-care"
         }
        }
       },
@@ -11592,10 +11122,6 @@
         },
         "flipkart": {
          "query": "baby shampoo and wash"
-        },
-        "bigbasket": {
-         "query": "baby shampoo and wash",
-         "slug": "baby-care"
         }
        }
       },
@@ -11617,10 +11143,6 @@
         },
         "flipkart": {
          "query": "baby powder"
-        },
-        "bigbasket": {
-         "query": "baby powder",
-         "slug": "baby-care"
         }
        }
       }
@@ -11647,10 +11169,6 @@
       },
       "flipkart": {
        "query": "feeding and nursing"
-      },
-      "bigbasket": {
-       "query": "feeding and nursing",
-       "slug": "baby-care"
       }
      },
      "children": [
@@ -11675,10 +11193,6 @@
         },
         "flipkart": {
          "query": "feeding bottles"
-        },
-        "bigbasket": {
-         "query": "feeding bottles",
-         "slug": "baby-care"
         }
        }
       },
@@ -11705,10 +11219,6 @@
         },
         "flipkart": {
          "query": "sippers and cups"
-        },
-        "bigbasket": {
-         "query": "sippers and cups",
-         "slug": "baby-care"
         }
        }
       },
@@ -11731,10 +11241,6 @@
         },
         "flipkart": {
          "query": "breast pumps"
-        },
-        "bigbasket": {
-         "query": "breast pumps",
-         "slug": "baby-care"
         }
        }
       },
@@ -11761,10 +11267,6 @@
         },
         "flipkart": {
          "query": "bibs and teethers"
-        },
-        "bigbasket": {
-         "query": "bibs and teethers",
-         "slug": "baby-care"
         }
        }
       }

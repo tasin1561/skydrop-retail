@@ -75,12 +75,6 @@
   --hero-a: #1a0b14;
   --hero-b: #e11d74;
 }
-[data-store="bigbasket"] {
-  --accent: #0e9f6e;
-  --accent-2: #6ee7b7;
-  --hero-a: #06281e;
-  --hero-b: #0e9f6e;
-}
 [data-store="myntra"] {
   --accent: #ea580c;
   --accent-2: #fdba74;
@@ -90,7 +84,6 @@
 
 [data-theme="dark"][data-store="amazon"], [data-theme="dark"] [data-store="amazon"] { --accent: #7c6cff; }
 [data-theme="dark"][data-store="flipkart"], [data-theme="dark"] [data-store="flipkart"] { --accent: #f0468f; }
-[data-theme="dark"][data-store="bigbasket"], [data-theme="dark"] [data-store="bigbasket"] { --accent: #22c08a; }
 [data-theme="dark"][data-store="myntra"], [data-theme="dark"] [data-store="myntra"] { --accent: #fb7d3c; }
 
 @theme inline {

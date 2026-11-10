@@ -30,7 +30,7 @@ class CompareStoresTest extends TestCase
         $this->product('CP2', 22000, 'flipkart', 'electronics', ['brand' => 'Samsung', 'title' => 'SAMSUNG Galaxy A15 5G SM-A156E 256GB']);
         // Barcodes win over titles.
         $g1 = $this->product('CG1', 300, 'amazon', 'grocery', ['brand' => 'Dabur', 'title' => 'Dabur Honey 500g']);
-        $g2 = $this->product('CG2', 280, 'bigbasket', 'grocery', ['brand' => 'Dabur', 'title' => 'Honey - 100% Pure, 500 g Bottle']);
+        $g2 = $this->product('CG2', 280, 'flipkart', 'grocery', ['brand' => 'Dabur', 'title' => 'Honey - 100% Pure, 500 g Bottle']);
         ProductDetail::query()->create(['product_id' => 'CG1', 'specs' => ['EAN' => '08901207001234']]);
         ProductDetail::query()->create(['product_id' => 'CG2', 'specs' => ['GTIN' => '8901207001234']]);
 

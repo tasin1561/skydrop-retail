@@ -8,7 +8,6 @@ Shoppers in Bangladesh buy from Indian stores. The app names the source of every
 | Amazon | amazon.in |
 | Flipkart | flipkart.com |
 | Myntra | myntra.com |
-| BigBasket | bigbasket.com |
 | All Stores | every enabled store |
 
 We buy in India and Skydrop delivers to the shopper's door. Prices are in BDT. The app uses no third-party logos, colours or trade dress.
@@ -110,7 +109,7 @@ scripts/make-demo-catalog.mjs
   - Android: `softwareKeyboardLayoutMode: resize` and SMS OTP autofill hints.
   - Both: haptics via `expo-haptics`.
 - **Icon.** Original artwork (Midnight Luxe: ink background, violet-gradient parachute, coral parcel), generated from `assets/icon-src/*.svg` by `scripts/make-icons.sh` (needs `rsvg-convert`). The adaptive icon has separate foreground, background and monochrome layers.
-- **Theme.** `src/theme/index.tsx` mirrors the web "Midnight Luxe" tokens in `apps/web/src/app/globals.css`: light and dark palettes, violet primary (`brand`), coral signal (`coral`), and per-store accents (Amazon violet, Flipkart pink, BigBasket green).
+- **Theme.** `src/theme/index.tsx` mirrors the web "Midnight Luxe" tokens in `apps/web/src/app/globals.css`: light and dark palettes, violet primary (`brand`), coral signal (`coral`), and per-store accents (Amazon violet, Flipkart pink, Myntra orange).
 - **Font.** The brand font is Plus Jakarta Sans. The app uses the system font until the Google font package is added:
   1. `npx expo install @expo-google-fonts/plus-jakarta-sans` (`expo-font` is already installed).
   2. Load the weights with `useFonts` in `src/app/_layout.tsx` (keep the splash up until they load) and set `fontFamily` in the `T` text component in `src/components/ui.tsx`.

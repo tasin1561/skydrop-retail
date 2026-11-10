@@ -14,7 +14,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = resolve(here, "../../api/database/data/category_tree.json");
 const doc = JSON.parse(readFileSync(src, "utf8"));
 
-const STORES = ["amazon", "flipkart", "bigbasket"];
+const STORES = ["amazon", "flipkart", "myntra"];
 function convert(n, depth, group) {
   const g = n.pricing_group ?? group;
   return {

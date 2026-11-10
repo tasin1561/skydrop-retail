@@ -18,7 +18,6 @@ export const ACCENTS: Record<StoreMode, Accent> = {
   all: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
   amazon: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
   flipkart: { accent: "#e11d74", accent2: "#fb7185", accentDark: "#f0468f", heroA: "#1a0b14", heroB: "#e11d74", heroADark: "#1a0b14" },
-  bigbasket: { accent: "#0e9f6e", accent2: "#6ee7b7", accentDark: "#22c08a", heroA: "#06281e", heroB: "#0e9f6e", heroADark: "#06281e" },
   myntra: { accent: "#ea580c", accent2: "#fdba74", accentDark: "#fb7d3c", heroA: "#1f0c04", heroB: "#ea580c", heroADark: "#1f0c04" },
 };
 
@@ -30,10 +29,9 @@ export const ACCENTS: Record<StoreMode, Accent> = {
 export type StoreTextTokens = { a: string; b: string; ring: string };
 export const STORE_TEXT: Record<StoreMode, { light: StoreTextTokens; dark: StoreTextTokens; fill: [string, string] }> = {
   all: { light: { a: "#5b3df5", b: "#c0301a", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#ff7a5c", ring: "#7c6cff" }, fill: ["#5b3df5", "#c0301a"] },
-  // Store names in each provider's brand colours (owner's decision): Amazon ink + orange, Flipkart blue + yellow, BigBasket green, Myntra pink + orange.
+  // Store names in each provider's brand colours (owner's decision): Amazon ink + orange, Flipkart blue + yellow, Myntra pink + orange.
   amazon: { light: { a: "#232f3e", b: "#c45500", ring: "#ff9900" }, dark: { a: "#ff9900", b: "#ffb84d", ring: "#ff9900" }, fill: ["#232f3e", "#232f3e"] },
   flipkart: { light: { a: "#2874f0", b: "#1a56c4", ring: "#2874f0" }, dark: { a: "#5b9bff", b: "#ffe11b", ring: "#2874f0" }, fill: ["#2874f0", "#2874f0"] },
-  bigbasket: { light: { a: "#4e8a16", b: "#5f9e1c", ring: "#84c225" }, dark: { a: "#9bd43a", b: "#c6e86e", ring: "#84c225" }, fill: ["#4e8a16", "#4e8a16"] },
   myntra: { light: { a: "#d6194f", b: "#c2410c", ring: "#ff3f6c" }, dark: { a: "#ff6b8e", b: "#ffa45c", ring: "#ff3f6c" }, fill: ["#d6194f", "#d6194f"] },
 };
 

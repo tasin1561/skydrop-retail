@@ -32,7 +32,7 @@ Field names in JSON responses are **camelCase** so the web and app types (`apps/
 
 ## Marketplaces
 
-`GET /marketplaces` → `{ items: [{ id: "amazon"|"flipkart"|"bigbasket"|"myntra", name, source, enabled, liveFetch }] }`
+`GET /marketplaces` → `{ items: [{ id: "amazon"|"flipkart"|"myntra", name, source, enabled, liveFetch }] }`
 - `liveFetch:false` (the default in dev) means the store is served from the local catalog only and never calls a provider.
 
 ## Catalog
@@ -40,7 +40,7 @@ Field names in JSON responses are **camelCase** so the web and app types (`apps/
 All catalog reads detect crawlers by User-Agent (the storefront may forward the shopper's agent as `X-Client-UA`);
 crawler requests never trigger provider fetches. Callers must be the Next.js server or a signed app (see "Client authentication").
 
-`GET /search?q=&store=all|amazon|flipkart|bigbasket|myntra&category=&brand=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
+`GET /search?q=&store=all|amazon|flipkart|myntra&category=&brand=&sort=relevance|price_asc|price_desc|rating|discount&min=&max=&rating=&fast=1&page=1`
 → `{ status: "ready"|"pending", jobId?: string, total, page, pages, items: Product[], facets }` (24 per page; `category` may be a
 tree path including descendants, see "Categories")
 - Scoring, filters (`min`/`max` are BDT) and sorts match `apps/web/src/lib/catalog.ts`.
@@ -73,7 +73,7 @@ tree path including descendants, see "Categories")
 `POST /products/{id}/cancel-variants` → `{ ok, pending }` — shopper bounced: drops the queued size-variant phase.
 
 `POST /products/resolve { url }` — "paste any link". Accepts amazon.in (`/dp/ASIN`, `/gp/product/ASIN`, `amzn.in`/`amzn.to`/`a.co`
-short links, followed via redirect), flipkart.com (`/p/itm…`, `fkrt.it`/`dl.flipkart.com` short links) bigbasket.com (`/pd/{id}/`) and myntra.com (`/{slug…}/{styleId}/buy`, `/{styleId}`, `myntr.it` short links; our id `my{styleId}`).
+short links, followed via redirect), flipkart.com (`/p/itm…`, `fkrt.it`/`dl.flipkart.com` short links) and myntra.com (`/{slug…}/{styleId}/buy`, `/{styleId}`, `myntr.it` short links; our id `my{styleId}`).
 → `200 { status: "ready"|"pending", jobId?, productId, market, product }` when known, or
 `202 { status: "pending", jobId, productId, market }` (fetch queued; poll the job, then `GET /products/{productId}`).
 Other domains, links without a product id, or a store that is not live → `422 { errors: { url: [friendly message] } }`.
@@ -103,12 +103,12 @@ categoryPath?, fetchedAt?, pincodeVerified, offers[], dealBadge, couponInr, effe
 ## Categories (unified tree)
 One Skydrop Retail taxonomy (13 departments, 83 subcategories, 380 level-3 and 50 level-4 nodes, 421 leaves) mapped to
 each store, seeded from `apps/api/database/data/category_tree.json` (`CategoryTreeSeeder`, idempotent by `path`).
-Rows live in `categories` with `market = "all"`; the older per-store rows (`market = amazon|flipkart|bigbasket|myntra`, used by
+Rows live in `categories` with `market = "all"`; the older per-store rows (`market = amazon|flipkart|myntra`, used by
 `retail:seed-bestsellers`) are unchanged. Tree responses are cached and busted on every admin edit.
 
-`GET /categories?store=all|amazon|flipkart|bigbasket|myntra&depth=1..4` → `{ store, items: CategoryNode[] }`, filtered to
-nodes the store sells (a node is sold when its `sources` has that store; BigBasket only has grocery, household,
-personal care, baby care and pet).
+`GET /categories?store=all|amazon|flipkart|myntra&depth=1..4` → `{ store, items: CategoryNode[] }`, filtered to
+nodes the store sells (a node is sold when its `sources` has that store; Myntra has fashion, beauty, home furnishing and
+decor, baby clothing and sportswear).
 - `CategoryNode`: `{ id, slug, path, name, nameBn, icon, image, depth, featured, pricingGroup, stores: MarketId[], count, children: CategoryNode[] }`.
   `path` is the stable key (`fashion/men/clothing/t-shirts-polos`), `slug` its last segment, `icon` a web `Icon` key,
   `count` the visible products in the subtree for that store, `pricingGroup` the `products.category` pricing rule.
@@ -124,7 +124,7 @@ node with the same path, e.g. `fashion`). Every search response also has
 result under each child of the requested node (top-level nodes when no path was given); brands as described under "Search". `GET /products/popular?category=` accepts a path too.
 
 Products carry `category_id` (deepest matching node, normally a leaf) and `category_source` (`auto|hint|manual`). The
-`CategoryMatcher` maps store breadcrumbs (Amazon wayfinding, Flipkart/BigBasket/Myntra crumbs) and title keywords to a node on
+`CategoryMatcher` maps store breadcrumbs (Amazon wayfinding, Flipkart/Myntra crumbs) and title keywords to a node on
 every upsert (Product / ProductDetail observers) and keeps `products.category` equal to the node's pricing group.
 Manual (admin) assignments are never overwritten.
 
@@ -217,7 +217,7 @@ items: [{ productId, variant, qty, unitBdt, weightKg, market, changed, flashSale
 
 ### Coupons
 
-`Coupon = { code, label, kind: "percent"|"freeship"|"fixed", value, maxDiscountBdt, minSubtotalBdt, store: "all"|"amazon"|"flipkart"|"bigbasket"|"myntra",
+`Coupon = { code, label, kind: "percent"|"freeship"|"fixed", value, maxDiscountBdt, minSubtotalBdt, store: "all"|"amazon"|"flipkart"|"myntra",
 firstOrderOnly, promoText: { en, bn }, startsAt, endsAt }` (ISO-8601; `label` is English). Never includes usage, limits or the phone list.
 
 `GET /coupons/featured?store=` → `{ items: Coupon[] }` — coupons with **Show as promo** on that are active, inside their schedule, have
@@ -350,7 +350,7 @@ Always re-validated with the gateway (bKash execute/query, Nagad verify, SSLComm
 
 ## CMS: banners, flash sales, shipping restrictions
 
-`GET /cms/home?store=all|amazon|flipkart|bigbasket|myntra` → `{ store, enabled: { banners, flashSales }, banners: Banner[], flashSales: FlashSale[], serverTime }`
+`GET /cms/home?store=all|amazon|flipkart|myntra` → `{ store, enabled: { banners, flashSales }, banners: Banner[], flashSales: FlashSale[], serverTime }`
 (cache 60 s). `store=all` returns everything; a marketplace returns its own items plus `store:"all"` ones.
 - `Banner`: `{ id, title, subtitle, image, link, cta, store, placement: "hero"|"strip"|"category", startsAt, endsAt, sort }` — active and inside
   its schedule only. `image` is the uploaded file (public disk) or the image URL.
@@ -409,7 +409,7 @@ fbp?, fbc?, ttp?, ttclid?, gclid?, gaClientId?, user?: { phone?, email? } }` →
 `POST /orders` also takes an optional `attribution: { first?, last?: { utm_source, utm_medium, utm_campaign, utm_term, utm_content, fbclid, gclid, ttclid,
 landing, referrer, at }, fbp?, fbc?, ttp?, gaClientId?, consent?: "all"|"essential" }`. The fields are whitelisted and stored in `orders.attribution` with the client ip and user agent.
 
-`GET /feeds/meta.csv` · `GET /feeds/google.xml`: `?store=amazon|flipkart|bigbasket|myntra`, and `?key=` (setting `tracking.feed_key` / `FEED_KEY`; wrong key 403, no key configured 404). Cached for 1 h.
+`GET /feeds/meta.csv` · `GET /feeds/google.xml`: `?store=amazon|flipkart|myntra`, and `?key=` (setting `tracking.feed_key` / `FEED_KEY`; wrong key 403, no key configured 404). Cached for 1 h.
 - Skips hidden and unpriced products. Price comes from `PricingService::productBdt`; `price` is the MRP when higher, with `sale_price` set.
 - Other fields: `link` is `{WEB_URL}/p/{id}`, `custom_label_0` is the store.
 
@@ -622,7 +622,7 @@ empty when there is no other listing). `savingBdt` = this listing's price minus 
 - Pairs come from `product_matches` (filled daily at 03:40 by `MatchProducts` and from the admin): same normalised brand, then
   GTIN/EAN/UPC from specs (different barcodes never match), else a model number from specs/title (sizes such as 128GB/256GB must not
   conflict), else same category + title trigram similarity ≥ 0.62. Shown: admin-confirmed pairs and pending pairs with score ≥ 0.82;
-  rejected pairs never. Admin decisions survive re-runs. Delivery estimate: Amazon 7-12, Flipkart 8-13, Myntra 8-13, BigBasket 6-10 days (−1 for Prime).
+  rejected pairs never. Admin decisions survive re-runs. Delivery estimate: Amazon 7-12, Flipkart 8-13, Myntra 8-13 days (−1 for Prime).
 - `POST /checkout/alternatives { items }` (same item rules as quote) → `{ items: [{ productId, variant, qty, title, market, unitBdt,
   alternativeId, alternativeMarket, alternativeBdt, savingBdt (× qty), delivery, alternative: Product }] }` — cheaper identical in-stock
   listings not already in the cart, saving ≥ ৳20.
@@ -667,7 +667,7 @@ deposit default 30%, ETA days) + feature `preorders`. "Notify me when back" is t
 
 **Product requests.** `POST /product-requests { url? | description? (one required), photoUrl?, qty?, budgetBdt?, name?, phone (required
 when signed out), query?, source?: "web"|"search"|"header"|"app" }` (token optional, 10/min) → `201 { request }`.
-A supported store link (amazon.in / flipkart.com / bigbasket.com / myntra.com) is resolved with the catalog `UrlResolver` (same as `POST /products/resolve`)
+A supported store link (amazon.in / flipkart.com / myntra.com) is resolved with the catalog `UrlResolver` (same as `POST /products/resolve`)
 to `market` + `productId`, otherwise just stored. `GET /product-requests` (auth) → `{ items: ProductRequest[] }`.
 `ProductRequest`: `{ id, status: "new"|"sourcing"|"quoted"|"ordered"|"declined", url, description, photoUrl, qty, budgetBdt, market, productId,
 quoteBdt, quoteNote, orderId, payUrl ("/orders/{id}?pay=1" while unpaid), quotedAt, createdAt }`.

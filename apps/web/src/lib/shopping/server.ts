@@ -141,7 +141,6 @@ export function demoBundles(): Bundle[] {
     ["amazon", "grocery", "Pantry refill box"],
     ["flipkart", "fashion", "Weekend outfit set"],
     ["myntra", "fashion", "Wardrobe refresh"],
-    ["bigbasket", "grocery", "Breakfast basket"],
   ];
   const out: Bundle[] = [];
   for (const [market, category, title] of seeds) {

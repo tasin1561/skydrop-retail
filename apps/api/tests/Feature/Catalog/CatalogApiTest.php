@@ -29,14 +29,14 @@ class CatalogApiTest extends TestCase
     {
         $this->getJson('/api/v1/marketplaces')->assertOk()
             ->assertJsonPath('items.0', ['id' => 'amazon', 'name' => 'Amazon', 'source' => 'amazon.in', 'enabled' => true, 'liveFetch' => false])
-            ->assertJsonCount(4, 'items');
+            ->assertJsonCount(3, 'items');
     }
 
     public function test_search_scores_filters_and_sorts_like_the_web_catalog(): void
     {
         $r = $this->getJson('/api/v1/search?q=juice&sort=price_asc')->assertOk()->assertJsonPath('status', 'ready');
         $items = $r->json('items');
-        $this->assertSame(58, $r->json('total'));
+        $this->assertSame(57, $r->json('total'));
         $this->assertSame(3, $r->json('pages'));
         $this->assertCount(24, $items);
         $prices = array_column($items, 'priceInr');
@@ -180,7 +180,7 @@ class CatalogApiTest extends TestCase
         $this->postJson('/api/v1/products/resolve', ['url' => 'https://www.amazon.in/OnePlus-Buds/dp/B0FMDLD86P/ref=sr_1_1?th=1'])
             ->assertOk()->assertJsonPath('status', 'ready')->assertJsonPath('productId', 'B0FMDLD86P')->assertJsonPath('product.id', 'B0FMDLD86P');
         $this->postJson('/api/v1/products/resolve', ['url' => 'https://www.ebay.com/itm/123'])
-            ->assertStatus(422)->assertJsonPath('errors.url.0', 'Paste a product link from amazon.in, flipkart.com, bigbasket.com or myntra.com.');
+            ->assertStatus(422)->assertJsonPath('errors.url.0', 'Paste a product link from amazon.in, flipkart.com or myntra.com.');
         $this->postJson('/api/v1/products/resolve', ['url' => 'https://www.amazon.in/s?k=earbuds'])->assertStatus(422);
         // Not in the DB and the store is offline: friendly 422, no provider call.
         $this->postJson('/api/v1/products/resolve', ['url' => 'https://www.flipkart.com/x/p/itm61400c2ed6802?pid=SHT'])->assertStatus(422);
@@ -188,9 +188,9 @@ class CatalogApiTest extends TestCase
 
     public function test_seeders_import_the_bundled_catalog(): void
     {
-        $this->assertSame(279, Product::query()->count());
-        $this->assertSame(4, Marketplace::query()->count());
+        $this->assertSame(267, Product::query()->count());
+        $this->assertSame(3, Marketplace::query()->count());
         $this->assertSame(6, PricingRule::query()->count());
-        $this->assertTrue(Product::query()->find('BIGRO011')->demo);
+        $this->assertSame(0, Product::query()->where('market', 'bigbasket')->count());
     }
 }

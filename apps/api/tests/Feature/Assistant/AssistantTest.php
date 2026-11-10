@@ -25,7 +25,7 @@ class AssistantTest extends TestCase
     {
         parent::setUp();
         $this->setUpCommerce();
-        foreach (['amazon', 'flipkart', 'bigbasket'] as $m) {
+        foreach (['amazon', 'flipkart', 'myntra'] as $m) {
             Marketplace::query()->updateOrCreate(['id' => $m], ['name' => ucfirst($m), 'source' => $m, 'enabled' => true]);
         }
         Features::set('ai_assistant', true);

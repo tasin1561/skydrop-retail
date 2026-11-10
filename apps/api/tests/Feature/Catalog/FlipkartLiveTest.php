@@ -160,6 +160,5 @@ class FlipkartLiveTest extends TestCase
     {
         $this->assertSame('https://www.flipkart.com/-/p/itm9e64270628c7b?pid=SHOHAHU3YXJTAHYF', Admin::sourceUrl('flipkart', self::SHOE));
         $this->assertSame('https://www.flipkart.com/-/p/itm9e64270628c7b', Admin::sourceUrl('flipkart', 'itm9e64270628c7b'));
-        $this->assertSame('https://www.bigbasket.com/pd/40001234/', Admin::sourceUrl('bigbasket', 'bb40001234'));
     }
 }

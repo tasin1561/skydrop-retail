@@ -1,4 +1,4 @@
-export type MarketId = "amazon" | "flipkart" | "bigbasket" | "myntra";
+export type MarketId = "amazon" | "flipkart" | "myntra";
 export type StoreMode = MarketId | "all";
 
 export type Variant = {

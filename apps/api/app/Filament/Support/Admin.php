@@ -19,7 +19,7 @@ class Admin
     /** Legacy users.role values (fallback when a staff member has no roles assigned). */
     public const ROLES = ['admin' => 'Admin', 'manager' => 'Manager', 'support' => 'Support', 'hub' => 'Hub staff'];
 
-    public const MARKETS = ['amazon' => 'Amazon (amazon.in)', 'flipkart' => 'Flipkart (flipkart.com)', 'bigbasket' => 'BigBasket (bigbasket.com)', 'myntra' => 'Myntra (myntra.com)'];
+    public const MARKETS = ['amazon' => 'Amazon (amazon.in)', 'flipkart' => 'Flipkart (flipkart.com)', 'myntra' => 'Myntra (myntra.com)'];
 
     public const ORDER_STATUS_LABELS = [
         'placed' => 'Placed', 'verified' => 'Verified', 'purchased' => 'Bought in India', 'india_hub' => 'At Kolkata hub',
@@ -146,7 +146,6 @@ class Admin
             'amazon' => "https://www.amazon.in/dp/{$id}",
             // The exact variant: /p/itm…?pid=… (our id "itm…-pid").
             'flipkart' => FlipkartHtmlParser::productUrl($productId),
-            'bigbasket' => 'https://www.bigbasket.com/pd/'.rawurlencode((string) preg_replace('/^bb/i', '', $productId)).'/',
             'myntra' => MyntraParser::productUrl($productId),
             default => '#',
         };

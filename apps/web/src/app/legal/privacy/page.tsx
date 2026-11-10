@@ -32,7 +32,7 @@ export default async function PrivacyPage() {
               <li>Your details go to Skydrop (for delivery) and to payment providers (for payment). The Indian stores only see our hub address.</li>
               <li>We use advertising and analytics pixels to measure our ads. You can say no to them.</li>
               <li>
-                We are <strong>not</strong> an official partner of Amazon, Flipkart, BigBasket or Myntra, and we do not share your personal details with them.
+                We are <strong>not</strong> an official partner of Amazon, Flipkart or Myntra, and we do not share your personal details with them.
               </li>
             </ul>
           ),
@@ -105,7 +105,7 @@ export default async function PrivacyPage() {
                   <td>Your phone number or email and the message text.</td>
                 </tr>
                 <tr>
-                  <td>Indian stores (amazon.in, flipkart.com, bigbasket.com, myntra.com)</td>
+                  <td>Indian stores (amazon.in, flipkart.com, myntra.com)</td>
                   <td>Nothing about you. We order with our own account and our Kolkata hub address.</td>
                 </tr>
                 <tr>
@@ -122,12 +122,12 @@ export default async function PrivacyPage() {
         },
         {
           id: "indian-stores",
-          title: "Amazon, Flipkart, BigBasket and Myntra",
+          title: "Amazon, Flipkart and Myntra",
           body: (
             <>
               <p>
                 Skydrop Retail is an independent service. We are <strong>not</strong> owned by, affiliated with or an official partner of Amazon,
-                Flipkart, BigBasket or Myntra, and this policy is ours alone.
+                Flipkart or Myntra, and this policy is ours alone.
               </p>
               <p>
                 We buy your items from those stores using our own accounts and our Kolkata hub address. We do not give them your name, phone number,
@@ -260,7 +260,7 @@ function PrivacyBn() {
               <li>আপনার তথ্য যায় Skydrop-এর কাছে (ডেলিভারির জন্য) আর পেমেন্ট প্রোভাইডারের কাছে (পেমেন্টের জন্য)। ইন্ডিয়ান স্টোর শুধু আমাদের হাবের ঠিকানা দেখে।</li>
               <li>বিজ্ঞাপন মাপতে আমরা বিজ্ঞাপন ও অ্যানালিটিক্স পিক্সেল ব্যবহার করি। আপনি না বলতে পারেন।</li>
               <li>
-                আমরা Amazon, Flipkart, BigBasket বা Myntra-এর অফিশিয়াল পার্টনার <strong>নই</strong>, আর আপনার ব্যক্তিগত তথ্য তাদের সাথে শেয়ার করি না।
+                আমরা Amazon, Flipkart বা Myntra-এর অফিশিয়াল পার্টনার <strong>নই</strong>, আর আপনার ব্যক্তিগত তথ্য তাদের সাথে শেয়ার করি না।
               </li>
             </ul>
           ),
@@ -333,7 +333,7 @@ function PrivacyBn() {
                   <td>আপনার ফোন নম্বর বা ইমেইল আর মেসেজের লেখা।</td>
                 </tr>
                 <tr>
-                  <td>ইন্ডিয়ান স্টোর (amazon.in, flipkart.com, bigbasket.com, myntra.com)</td>
+                  <td>ইন্ডিয়ান স্টোর (amazon.in, flipkart.com, myntra.com)</td>
                   <td>আপনার সম্পর্কে কিছুই না। আমরা নিজেদের অ্যাকাউন্ট আর কলকাতা হাবের ঠিকানা দিয়ে অর্ডার করি।</td>
                 </tr>
                 <tr>
@@ -350,11 +350,11 @@ function PrivacyBn() {
         },
         {
           id: "indian-stores",
-          title: "Amazon, Flipkart, BigBasket ও Myntra",
+          title: "Amazon, Flipkart ও Myntra",
           body: (
             <>
               <p>
-                Skydrop Retail একটি স্বাধীন সেবা। আমরা Amazon, Flipkart, BigBasket বা Myntra-এর মালিকানাধীন, সহযোগী বা অফিশিয়াল পার্টনার <strong>নই</strong>,
+                Skydrop Retail একটি স্বাধীন সেবা। আমরা Amazon, Flipkart বা Myntra-এর মালিকানাধীন, সহযোগী বা অফিশিয়াল পার্টনার <strong>নই</strong>,
                 আর এই নীতিমালা শুধুই আমাদের।
               </p>
               <p>

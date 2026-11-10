@@ -98,13 +98,13 @@ final class Events
                 'sample' => ['name' => 'Rahim', 'points' => 100, 'link' => 'https://retail.skydrop.online'],
                 't' => [
                     'en' => [
-                        'sms' => ['Welcome to Skydrop Retail, {{name}}! Shop Amazon, Flipkart, BigBasket & Myntra India, delivered to your door. {{#points}}You have {{points}} bonus points.{{/points}}', 'off' => true],
-                        'email' => ["Hi {{name}},\n\nWelcome to Skydrop Retail. We buy from Amazon India, Flipkart, BigBasket and Myntra for you, and Skydrop delivers to your door anywhere in Bangladesh.\n\n{{#points}}Your account starts with {{points}} Skydrop Points. Use them on your first order.{{/points}}\n\nPrices are shown in taka and include shipping estimates, so there are no surprises at the door.", 'Welcome to Skydrop Retail'],
+                        'sms' => ['Welcome to Skydrop Retail, {{name}}! Shop Amazon, Flipkart & Myntra India, delivered to your door. {{#points}}You have {{points}} bonus points.{{/points}}', 'off' => true],
+                        'email' => ["Hi {{name}},\n\nWelcome to Skydrop Retail. We buy from Amazon India, Flipkart and Myntra for you, and Skydrop delivers to your door anywhere in Bangladesh.\n\n{{#points}}Your account starts with {{points}} Skydrop Points. Use them on your first order.{{/points}}\n\nPrices are shown in taka and include shipping estimates, so there are no surprises at the door.", 'Welcome to Skydrop Retail'],
                         'push' => ['{{#points}}{{points}} bonus points are waiting. {{/points}}Start shopping Indian stores in taka.', 'Welcome, {{name}}!'],
                     ],
                     'bn' => [
-                        'sms' => ['Skydrop Retail-এ স্বাগতম, {{name}}! ভারতের Amazon, Flipkart, BigBasket ও Myntra থেকে কিনুন, বাসায় ডেলিভারি। {{#points}}আপনার {{points}} বোনাস পয়েন্ট আছে।{{/points}}', 'off' => true],
-                        'email' => ["প্রিয় {{name}},\n\nSkydrop Retail-এ স্বাগতম। আমরা আপনার হয়ে Amazon India, Flipkart, BigBasket ও Myntra থেকে কিনি, আর Skydrop বাংলাদেশের যেকোনো জায়গায় আপনার দরজায় পৌঁছে দেয়।\n\n{{#points}}আপনার অ্যাকাউন্টে {{points}} Skydrop পয়েন্ট যোগ হয়েছে। প্রথম অর্ডারে ব্যবহার করুন।{{/points}}\n\nসব দাম টাকায় দেখানো হয়, শিপিং খরচসহ।", 'Skydrop Retail-এ স্বাগতম'],
+                        'sms' => ['Skydrop Retail-এ স্বাগতম, {{name}}! ভারতের Amazon, Flipkart ও Myntra থেকে কিনুন, বাসায় ডেলিভারি। {{#points}}আপনার {{points}} বোনাস পয়েন্ট আছে।{{/points}}', 'off' => true],
+                        'email' => ["প্রিয় {{name}},\n\nSkydrop Retail-এ স্বাগতম। আমরা আপনার হয়ে Amazon India, Flipkart ও Myntra থেকে কিনি, আর Skydrop বাংলাদেশের যেকোনো জায়গায় আপনার দরজায় পৌঁছে দেয়।\n\n{{#points}}আপনার অ্যাকাউন্টে {{points}} Skydrop পয়েন্ট যোগ হয়েছে। প্রথম অর্ডারে ব্যবহার করুন।{{/points}}\n\nসব দাম টাকায় দেখানো হয়, শিপিং খরচসহ।", 'Skydrop Retail-এ স্বাগতম'],
                         'push' => ['{{#points}}{{points}} বোনাস পয়েন্ট অপেক্ষা করছে। {{/points}}টাকায় ভারতের স্টোর থেকে কেনাকাটা শুরু করুন।', 'স্বাগতম, {{name}}!'],
                     ],
                 ],

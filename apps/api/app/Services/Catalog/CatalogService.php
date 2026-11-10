@@ -279,9 +279,8 @@ class CatalogService
     public function variantPlan(Product $p): array
     {
         // Myntra: sizes are on the product's own page, and every colour is a separate rendered page that Myntra often
-        // blocks on the first try. BigBasket: every pack size is a separate product page, which BigBasket often refuses
-        // (one page can take 30-50 s of retries). Both load when the shopper taps one instead of being prefetched.
-        if (in_array($p->market, ['myntra', 'bigbasket'], true)) {
+        // blocks on the first try. Colours load when the shopper taps one instead of being prefetched.
+        if ($p->market === 'myntra') {
             return ['colours' => [], 'sizes' => []];
         }
         // Skip siblings the store page already marks out of stock (Flipkart): nothing to buy, so no data call.
