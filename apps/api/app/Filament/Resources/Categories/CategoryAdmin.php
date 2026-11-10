@@ -14,12 +14,13 @@ class CategoryAdmin
     public const AMAZON_ALIASES = ['aps', 'electronics', 'computers', 'fashion', 'shoes', 'beauty', 'hpc', 'grocery', 'kitchen', 'appliances',
         'baby', 'sporting', 'stripbooks', 'toys', 'automotive', 'luggage', 'jewelry', 'watches', 'office-products', 'pets'];
 
-    /** Icon keys from apps/web/src/components/Icon.tsx usable for categories. */
+    /** Icon keys usable for categories (apps/web/src/lib/categoryIcons.ts, shared with the app). */
     public const ICONS = ['phone', 'charger', 'audio', 'watch', 'tv', 'camera', 'game', 'wifi', 'laptop', 'tablet', 'storage', 'mouse',
         'printer', 'bag', 'shirt', 'dress', 'shoe', 'wallet', 'gem', 'luggage', 'glasses', 'backpack', 'beauty', 'smile', 'hair', 'perfume',
         'scissors', 'spray', 'tooth', 'heart', 'heartbeat', 'pill', 'leaf', 'dumbbell', 'home', 'pot', 'frame', 'bed', 'sofa', 'lamp',
         'package', 'paw', 'tool', 'plug', 'fan', 'fridge', 'basket', 'grain', 'spice', 'juice', 'tea', 'noodle', 'choco', 'milk', 'star',
-        'oil', 'nut', 'baby', 'ball', 'cycle', 'tent', 'book', 'pen', 'music', 'blocks', 'car', 'bike', 'gift', 'grid', 'globe', 'bolt', 'spark'];
+        'oil', 'nut', 'baby', 'ball', 'cycle', 'tent', 'book', 'pen', 'music', 'blocks', 'car', 'bike', 'gift', 'grid', 'globe', 'bolt', 'spark',
+        'kurta', 'saree', 'lehenga', 'salwar', 'top', 'jeans', 'leggings', 'jacket', 'collar', 'shorts', 'innerwear', 'blazer', 'moon', 'heels', 'flats', 'slipper', 'handbag', 'sling', 'clutch', 'tote', 'earrings', 'necklace', 'ring', 'bangles', 'lipstick', 'nailpolish', 'brush', 'eye', 'compact', 'jar', 'dropper', 'tube', 'facemask', 'lips', 'shampoo', 'dryer', 'razor', 'flower', 'soap', 'bottle', 'mug', 'cutlery', 'plate', 'stove', 'candle', 'plant', 'clock', 'vase', 'diya', 'pillow', 'curtain', 'towel', 'rug', 'bucket', 'broom', 'stroller', 'diaper', 'feeder', 'romper', 'teddy', 'doll', 'cap', 'belt', 'tie', 'sneaker'];
 
     /** @return array<string, string> markets for the market select/filter */
     public static function markets(): array

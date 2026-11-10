@@ -6,9 +6,11 @@ import type { MsgKey } from "@/i18n/core";
 import type { StoreMode } from "@/lib/types";
 import { useT } from "@/i18n";
 import { haptic } from "@/lib/haptics";
-import { radius, shadow, useTheme } from "@/theme";
-import { Icon } from "../Icon";
-import { ProductImage, SectionTitle, T, Tap } from "../ui";
+import { shadow, useTheme } from "@/theme";
+import { SectionTitle, T, Tap } from "../ui";
+import { CatThumb } from "../CatThumb";
+import { useCategoryTree } from "../CategoryRows";
+import type { CatNode } from "@/lib/categories";
 import { useAsync } from "../Shop";
 import { listEnter } from "@/lib/motion";
 
@@ -18,19 +20,27 @@ import { listEnter } from "@/lib/motion";
  * product of that category (an empty-query search reads our database and never triggers a live store fetch).
  */
 export const HOME_TILES: { path: string; label: MsgKey; icon: string }[] = [
-  { path: "fashion/women/clothing/kurtas-kurtis", label: "tile.kurtas", icon: "dress" },
-  { path: "fashion/women/clothing/sarees", label: "tile.sarees", icon: "dress" },
+  { path: "fashion/women/clothing/kurtas-kurtis", label: "tile.kurtas", icon: "kurta" },
+  { path: "fashion/women/clothing/sarees", label: "tile.sarees", icon: "saree" },
   { path: "fashion/women/clothing/dresses", label: "tile.dresses", icon: "dress" },
-  { path: "fashion/women/clothing/tops-t-shirts", label: "tile.tops", icon: "dress" },
-  { path: "fashion/women/bags", label: "tile.bags", icon: "bag" },
-  { path: "fashion/jewellery", label: "tile.jewellery", icon: "gem" },
-  { path: "beauty-personal-care/makeup", label: "tile.makeup", icon: "beauty" },
-  { path: "beauty-personal-care/skin-care", label: "tile.skincare", icon: "smile" },
-  { path: "fashion/women/footwear", label: "tile.footwear", icon: "shoe" },
-  { path: "fashion/kids/girls-clothing", label: "tile.kids", icon: "baby" },
+  { path: "fashion/women/clothing/tops-t-shirts", label: "tile.tops", icon: "top" },
+  { path: "fashion/women/bags", label: "tile.bags", icon: "handbag" },
+  { path: "fashion/jewellery", label: "tile.jewellery", icon: "necklace" },
+  { path: "beauty-personal-care/makeup", label: "tile.makeup", icon: "lipstick" },
+  { path: "beauty-personal-care/skin-care", label: "tile.skincare", icon: "jar" },
+  { path: "fashion/women/footwear", label: "tile.footwear", icon: "heels" },
+  { path: "fashion/kids/girls-clothing", label: "tile.kids", icon: "romper" },
   { path: "fashion/watches", label: "tile.watches", icon: "watch" },
-  { path: "home-kitchen/home-decor", label: "tile.decor", icon: "frame" },
+  { path: "home-kitchen/home-decor", label: "tile.decor", icon: "vase" },
 ];
+
+function findNode(nodes: CatNode[], path: string): CatNode | null {
+  for (const n of nodes) {
+    if (n.path === path) return n;
+    if (path.startsWith(n.path + "/")) return findNode(n.children, path);
+  }
+  return null;
+}
 
 export function CategoryTiles({ mode }: { mode: StoreMode }) {
   const { t } = useT();
@@ -39,17 +49,24 @@ export function CategoryTiles({ mode }: { mode: StoreMode }) {
   const cols = width >= 700 ? 6 : 4;
   const gap = 10;
   const size = Math.floor((Math.min(width, 900) - 32 - gap * (cols - 1)) / cols);
-  const images = useAsync(
+  // Cover photos come with the category tree (one request, cached); only tiles without one search our database.
+  const tree = useCategoryTree(mode);
+  const covers = HOME_TILES.map((x) => {
+    const n = tree ? findNode(tree, x.path) : null;
+    return n?.images?.[0] ?? n?.image ?? null;
+  });
+  const missing = tree ? HOME_TILES.filter((_, i) => !covers[i]).map((x) => x.path) : [];
+  const fallback = useAsync(
     () =>
       Promise.all(
-        HOME_TILES.map((x) =>
+        missing.map((path) =>
           api
-            .search({ q: "", store: mode, category: x.path, sort: "rating" })
-            .then((r) => r.items.find((p) => p.image)?.image ?? null)
-            .catch(() => null),
+            .search({ q: "", store: mode, category: path, sort: "rating" })
+            .then((r) => [path, r.items.find((p) => p.image)?.image ?? null] as const)
+            .catch(() => [path, null] as const),
         ),
-      ),
-    [mode],
+      ).then((pairs) => Object.fromEntries(pairs) as Record<string, string | null>),
+    [mode, missing.join(",")],
   );
 
   return (
@@ -57,7 +74,7 @@ export function CategoryTiles({ mode }: { mode: StoreMode }) {
       <SectionTitle title={t("home.shopByCategory")} action={t("cat.seeAll")} onAction={() => router.navigate("/categories")} />
       <View style={[styles.grid, { gap, paddingHorizontal: 16 }]}>
         {HOME_TILES.map((x, i) => {
-          const img = images.data?.[i];
+          const img = covers[i] ?? fallback.data?.[x.path] ?? null;
           return (
             <Animated.View key={x.path} entering={listEnter(i)} style={{ width: size }}>
               <Tap
@@ -69,13 +86,7 @@ export function CategoryTiles({ mode }: { mode: StoreMode }) {
                 accessibilityLabel={t(x.label)}
                 style={{ alignItems: "center", gap: 6 }}
               >
-                <View style={[styles.tile, { width: size, height: size, backgroundColor: img ? "#fff" : c.surface2, borderColor: c.line }, shadow(c)]}>
-                  {img ? (
-                    <ProductImage uri={img} contentFit="cover" style={{ width: size, height: size }} />
-                  ) : (
-                    <Icon name={x.icon} size={24} color={c.brand} />
-                  )}
-                </View>
+                <CatThumb node={{ icon: x.icon, image: img }} mode={mode} size={size} style={shadow(c)} />
                 <T v="tiny" numberOfLines={2} style={{ fontWeight: "700", textAlign: "center" }}>
                   {t(x.label)}
                 </T>
@@ -90,5 +101,4 @@ export function CategoryTiles({ mode }: { mode: StoreMode }) {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap" },
-  tile: { borderRadius: radius.lg, overflow: "hidden", alignItems: "center", justifyContent: "center", borderWidth: StyleSheet.hairlineWidth },
 });

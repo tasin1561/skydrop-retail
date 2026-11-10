@@ -105,3 +105,40 @@
 .cm-hide {
   display: none !important;
 }
+
+/* ---------- category pictures (CatThumb) ---------- */
+.cat-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  color: var(--accent);
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    linear-gradient(150deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 45%, var(--surface)));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+  transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
+}
+.cat-thumb[data-photo="true"] {
+  background: #fff;
+}
+.cat-thumb img,
+.cat-thumb svg {
+  transition: transform var(--dur-3) var(--ease);
+}
+:is(a, button):hover .cat-thumb img,
+:is(a, button):focus-visible .cat-thumb img {
+  transform: scale(1.07);
+}
+:is(a, button):hover .cat-thumb svg,
+:is(a, button):focus-visible .cat-thumb svg {
+  transform: translateY(-2px) rotate(-6deg) scale(1.08);
+}
+:is(a, button):hover .cat-thumb,
+:is(a, button):focus-visible .cat-thumb {
+  box-shadow: inset 0 0 0 1.5px var(--accent), var(--shadow-1);
+}
+:is(a, button):active .cat-thumb {
+  transform: scale(0.96);
+}

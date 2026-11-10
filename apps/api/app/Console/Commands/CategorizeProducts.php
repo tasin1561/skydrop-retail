@@ -21,6 +21,7 @@ class CategorizeProducts extends Command
             $this->info("Matched $matched products, $unmatched left unmatched (see Admin → Categories → Unmatched products).");
         }
         $this->info('Updated product counts on '.$writer->recount().' categories.');
+        $this->call('retail:category-covers');
 
         return self::SUCCESS;
     }

@@ -29,7 +29,7 @@ class Category extends Model
     protected function casts(): array
     {
         return [
-            'active' => 'boolean', 'featured' => 'boolean', 'sources' => 'array', 'keywords' => 'array',
+            'active' => 'boolean', 'featured' => 'boolean', 'sources' => 'array', 'keywords' => 'array', 'covers' => 'array',
             'depth' => 'integer', 'sort' => 'integer', 'product_count' => 'integer',
         ];
     }

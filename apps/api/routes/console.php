@@ -34,6 +34,7 @@ Schedule::job(new CheckProductWatches)->hourly()->name('commerce:check-watches')
 
 // ---- Catalog module schedule ----
 Schedule::job(new CleanupJob)->dailyAt('03:10')->name('catalog:cleanup')->onOneServer();
+Schedule::command('retail:category-covers')->dailyAt('03:25')->name('catalog:category-covers')->onOneServer();
 Schedule::job(new UpdateFxRateJob)->everySixHours()->name('catalog:fx')->onOneServer();
 Schedule::call(fn () => app(BudgetGuard::class)->check())->hourly()->name('catalog:budget')->onOneServer();
 // Product data plan: one admin alert per billing cycle at the alert percent and again at 100% (System → Limits).

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  */
 class CategoryTree
 {
-    private const CACHE = 'categories:tree:v1';
+    private const CACHE = 'categories:tree:v2';
 
     private const COUNTS = 'categories:counts:v1';
 
@@ -37,7 +37,7 @@ class CategoryTree
     }
 
     /**
-     * Active tree nodes in tree order, keyed by id. Each: id, parent_id, path, slug, name, name_bn, icon, image, depth,
+     * Active tree nodes in tree order, keyed by id. Each: id, parent_id, path, slug, name, name_bn, icon, image, covers, depth,
      * sort, pricing_group (resolved), sources, keywords, featured, stores, children (ids).
      *
      * @return array<int, array<string, mixed>>
@@ -51,7 +51,7 @@ class CategoryTree
                 $nodes[(int) $c->id] = [
                     'id' => (int) $c->id, 'parent_id' => $c->parent_id ? (int) $c->parent_id : null, 'path' => (string) $c->path,
                     'slug' => (string) $c->slug, 'name' => (string) $c->name, 'name_bn' => $c->name_bn, 'icon' => $c->icon ?: 'package',
-                    'image' => $c->image, 'depth' => (int) $c->depth, 'sort' => (int) $c->sort, 'pricing_group' => $c->pricing_group,
+                    'image' => $c->image, 'covers' => array_values(array_filter((array) $c->covers, 'is_string')), 'depth' => (int) $c->depth, 'sort' => (int) $c->sort, 'pricing_group' => $c->pricing_group,
                     'sources' => (array) $c->sources, 'keywords' => array_values((array) $c->keywords), 'featured' => (bool) $c->featured,
                     'stores' => $c->stores(), 'children' => [],
                 ];
@@ -184,12 +184,18 @@ class CategoryTree
         return $this->counts()[$id][$store && $store !== 'all' ? $store : 'all'] ?? 0;
     }
 
-    /** API shape of one node (no children). */
+    /**
+     * API shape of one node (no children). `image` is the admin's photo, else the best product photo of the node
+     * (CategoryCovers); `images` holds up to 4 (admin photo first) for collage tiles. Both are empty only for a node
+     * with no products yet: the apps then show the node's icon.
+     */
     public function present(array $n, ?string $store = null): array
     {
+        $images = array_slice(array_values(array_unique(array_filter([$n['image'] ?? null, ...($n['covers'] ?? [])]))), 0, CategoryCovers::PER_NODE);
+
         return [
             'id' => $n['id'], 'slug' => $n['slug'], 'path' => $n['path'], 'name' => $n['name'], 'nameBn' => $n['name_bn'],
-            'icon' => $n['icon'], 'image' => $n['image'], 'depth' => $n['depth'], 'featured' => $n['featured'],
+            'icon' => $n['icon'], 'image' => $images[0] ?? null, 'images' => $images, 'depth' => $n['depth'], 'featured' => $n['featured'],
             'pricingGroup' => $n['pricing_group'], 'stores' => $n['stores'], 'count' => $this->count($n['id'], $store),
         ];
     }

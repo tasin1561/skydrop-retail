@@ -41,7 +41,8 @@ class CategoryForm
                         ->placeholder('Top level'),
                     TextInput::make('path')->disabled()->dehydrated(false)->visible($tree)->placeholder('set on save'),
                     Select::make('icon')->options(array_combine(CategoryAdmin::ICONS, CategoryAdmin::ICONS))->searchable()->visible($tree),
-                    TextInput::make('image')->label('Image URL')->url()->maxLength(1000)->visible($tree),
+                    TextInput::make('image')->label('Image URL')->url()->maxLength(1000)->visible($tree)
+                        ->helperText('Optional. Empty = the best product photos of this category are used automatically (refreshed daily).'),
                     Select::make('pricing_group')->options(array_combine(Category::PRICING_GROUPS, array_map('ucfirst', Category::PRICING_GROUPS)))
                         ->placeholder('Inherit from parent')->visible($tree)
                         ->helperText('Products in this node use this pricing rule (products.category).'),

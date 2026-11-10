@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { STORES } from "@/lib/markets";
 import type { CatNode } from "@/lib/categories";
 import { Icon } from "../Icon";
+import { CatThumb } from "./CatThumb";
 import { useCurrentMode } from "../StoreTheme";
 import { catHref, catLabel, useCategoryMenu, useIsBn } from "./useCategoryMenu";
 import { useT } from "@/i18n/client";
@@ -132,9 +133,7 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
           {current && (
             <li>
               <Link href={catHref(current.path, mode)} onClick={onClose} className="cm-row flex min-h-[52px] items-center gap-3 rounded-2xl px-3 font-bold text-accent">
-                <span className="chip-icon is-active">
-                  <Icon name={current.icon} size={18} />
-                </span>
+                <CatThumb node={current} className="h-11 w-11 rounded-xl" iconSize={20} />
                 <span className="flex-1">{t("cat.shopAll", { name: catLabel(current, bn) })}</span>
                 <Icon name="arrow" size={16} />
               </Link>
@@ -144,17 +143,13 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
             <li key={n.path}>
               {n.children.length ? (
                 <button type="button" onClick={() => push(n)} className="cm-row flex min-h-[52px] w-full items-center gap-3 rounded-2xl px-3 text-left">
-                  <span className="chip-icon">
-                    <Icon name={n.icon} size={18} />
-                  </span>
+                  <CatThumb node={n} className="h-11 w-11 rounded-xl" iconSize={20} />
                   <Name n={n} bn={bn} />
                   <Icon name="right" size={16} className="text-ink-3" />
                 </button>
               ) : (
                 <Link href={catHref(n.path, mode)} onClick={onClose} className="cm-row flex min-h-[52px] items-center gap-3 rounded-2xl px-3">
-                  <span className="chip-icon">
-                    <Icon name={n.icon} size={18} />
-                  </span>
+                  <CatThumb node={n} className="h-11 w-11 rounded-xl" iconSize={20} />
                   <Name n={n} bn={bn} />
                 </Link>
               )}

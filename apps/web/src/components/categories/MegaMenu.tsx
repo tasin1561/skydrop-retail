@@ -7,6 +7,7 @@ import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } f
 import { STORES } from "@/lib/markets";
 import type { CatNode } from "@/lib/categories";
 import { Icon } from "../Icon";
+import { CatThumb } from "./CatThumb";
 import { useCurrentMode } from "../StoreTheme";
 import { catHref, catLabel, useCategoryMenu, useIsBn } from "./useCategoryMenu";
 import { useT } from "@/i18n/client";
@@ -154,7 +155,7 @@ export function MegaMenu() {
                   className={"relative z-10 flex items-center gap-3 rounded-xl px-3 text-sm font-semibold outline-offset-[-2px] " + (i === active ? "text-accent" : "text-ink-2")}
                   style={{ height: ROW }}
                 >
-                  <Icon name={n.icon} size={18} />
+                  <CatThumb node={n} className="h-8 w-8 rounded-lg" iconSize={17} />
                   <span className="min-w-0 flex-1 truncate">{catLabel(n, bn)}</span>
                   <Icon name="right" size={14} className={i === active ? "opacity-100" : "opacity-0"} />
                 </Link>
@@ -180,9 +181,7 @@ export function MegaMenu() {
                 {top.children.map((l2, i) => (
                   <div key={l2.path} className="cm-col mb-4 break-inside-avoid" style={{ ["--i" as string]: i }}>
                     <Link data-cm-link href={catHref(l2.path, mode)} className="cm-link flex min-h-9 items-center gap-2 text-sm font-bold text-ink">
-                      <span className="chip-icon h-7 w-7 rounded-lg">
-                        <Icon name={l2.icon} size={15} />
-                      </span>
+                      <CatThumb node={l2} className="h-9 w-9 rounded-xl" iconSize={17} />
                       {catLabel(l2, bn)}
                     </Link>
                     <ul className="mt-0.5 space-y-0.5 pl-9">
@@ -215,9 +214,7 @@ export function MegaMenu() {
                 className="cm-swap cm-tile relative hidden self-start overflow-hidden rounded-[var(--radius)] bg-[var(--hero-a)] p-5 text-white lg:block"
               >
                 <span className="text-[11px] font-bold uppercase tracking-wider opacity-85">{t("cat.featured")}</span>
-                <span className="mt-2 grid h-14 w-14 place-items-center rounded-2xl bg-white/15">
-                  <Icon name={featured.icon} size={30} stroke={1.6} />
-                </span>
+                <CatThumb node={featured} collage className="mt-2 h-28 w-full rounded-2xl" iconSize={34} />
                 <p className="mt-3 text-lg font-extrabold leading-tight">{catLabel(featured, bn)}</p>
                 <p className="mt-1 text-xs opacity-90">
                   {mode === "all" ? t("cat.fromEvery") : t("cat.fromStore", { source: STORES[mode].source })}

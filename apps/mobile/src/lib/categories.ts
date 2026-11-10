@@ -8,6 +8,10 @@ export type CatNode = {
   name: string;
   nameBn?: string | null;
   icon: string;
+  /** cover photo: the admin's image or the category's best product (API); null = show the icon */
+  image?: string | null;
+  /** up to 4 cover photos */
+  images?: string[] | null;
   depth: number;
   featured?: boolean;
   stores: MarketId[];

@@ -8,6 +8,7 @@ import type { CatNode } from "@/lib/categories";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
+import { CatThumb } from "./CatThumb";
 import { catHref, catLabel, filterTree, useIsBn } from "./useCategoryMenu";
 import { useT } from "@/i18n/client";
 import { StoreName } from "@/components/store/StoreName";
@@ -95,9 +96,9 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
           {shown.map((top, i) => (
             <section key={top.path} className="card rise p-4" style={{ ["--i" as string]: Math.min(i, 8) }} aria-labelledby={`cat-${top.path}`}>
               <div className="flex items-start gap-3">
-                <span className="chip-icon is-active h-11 w-11 shrink-0 rounded-2xl">
-                  <Icon name={top.icon} size={22} />
-                </span>
+                <Link href={catHref(top.path, store)} tabIndex={-1} aria-hidden className="shrink-0">
+                  <CatThumb node={top} className="h-16 w-16 rounded-2xl" iconSize={28} eager={i < 4} />
+                </Link>
                 <div className="min-w-0 flex-1">
                   <h2 id={`cat-${top.path}`} className="text-base font-extrabold leading-tight">
                     <Link href={catHref(top.path, store)} className="-my-2.5 inline-flex min-h-11 items-center hover:text-accent">
@@ -113,19 +114,16 @@ export function CategoryExplorer({ tree, initialStore = "all" }: { tree: CatNode
                 </div>
                 <span className="shrink-0 text-xs font-semibold text-ink-3">{t("cat.items", { count: num(countFor(top)) })}</span>
               </div>
-              <ul className="mt-3 divide-y divide-line">
+              {/* Sub-categories as photo tiles (MoveOn/Myntra style). While searching, the matching deeper levels show as chips. */}
+              <ul className="mt-4 grid grid-cols-4 gap-x-2.5 gap-y-3.5 sm:grid-cols-6">
                 {top.children.map((l2) => (
-                  <li key={l2.path} className="py-2">
-                    <div className="flex items-center gap-2">
-                      <Link href={catHref(l2.path, store)} className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-sm font-bold">
-                        <Icon name={l2.icon} size={16} className="shrink-0 text-accent" />
-                        <span className="truncate">{catLabel(l2, bn)}</span>
-                        {!!countFor(l2) && <span className="text-xs font-normal text-ink-3">{num(countFor(l2))}</span>}
-                      </Link>
-                      <StoreChips stores={l2.stores} compact />
-                    </div>
-                    {l2.children.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pl-6">
+                  <li key={l2.path} className={q && l2.children.length ? "col-span-full" : undefined}>
+                    <Link href={catHref(l2.path, store)} className={"flex items-center text-center " + (q && l2.children.length ? "gap-3 text-left" : "flex-col gap-1.5")}>
+                      <CatThumb node={l2} className={q && l2.children.length ? "h-12 w-12 rounded-xl" : "aspect-square w-full max-w-[84px] rounded-2xl"} iconSize={26} />
+                      <span className="line-clamp-2 text-[12px] font-semibold leading-tight text-ink">{catLabel(l2, bn)}</span>
+                    </Link>
+                    {q && l2.children.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
                         {l2.children.map((l3) => (
                           <Link
                             key={l3.path}

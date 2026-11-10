@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import Animated from "react-native-reanimated";
 import { api } from "@/api/client";
 import type { CatNode } from "@/lib/categories";
 import type { StoreMode } from "@/lib/types";
 import { useTheme } from "@/theme";
-import { IconChip, T, Tap } from "./ui";
+import { T, Tap } from "./ui";
+import { CatThumb } from "./CatThumb";
 import { Icon } from "./Icon";
 import { useT } from "@/i18n";
 import { listEnter } from "@/lib/motion";
@@ -35,7 +36,7 @@ export function openCategory(path: string, store: StoreMode) {
   router.push({ pathname: "/category/[...path]", params: { path: path.split("/"), store } });
 }
 
-/** Drill-down rows: icon, English + Bangla name, product count, chevron. */
+/** Drill-down rows: photo (or icon), English + Bangla name, product count, chevron. */
 export function CategoryRows({ nodes, store }: { nodes: CatNode[]; store: StoreMode }) {
   const { c } = useTheme();
   const { t, lang, digits } = useT();
@@ -50,7 +51,7 @@ export function CategoryRows({ nodes, store }: { nodes: CatNode[]; store: StoreM
             style={[styles.row, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line }]}
             scaleTo={0.985}
           >
-            <IconChip icon={n.icon} mode={store} size={36} />
+            <CatThumb node={n} mode={store} size={48} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <T v="body" style={{ fontWeight: "700" }} numberOfLines={1}>
                 {bn && n.nameBn ? n.nameBn : n.name}
@@ -74,7 +75,37 @@ export function CategoryRows({ nodes, store }: { nodes: CatNode[]; store: StoreM
   );
 }
 
+/**
+ * Sub-categories as photo tiles, 4 to a row (MoveOn / Myntra style): a picture says "saree" faster than a word.
+ * Each tile is a real product photo of that category, or its own icon while it has no products.
+ */
+export function CategoryGrid({ nodes, store }: { nodes: CatNode[]; store: StoreMode }) {
+  const { lang } = useT();
+  const { width } = useWindowDimensions();
+  const cols = width >= 700 ? 6 : 4;
+  const gap = 10;
+  const size = Math.floor((Math.min(width, 900) - 32 - gap * (cols - 1)) / cols);
+  return (
+    <View style={[styles.grid, { gap }]}>
+      {nodes.map((n, i) => {
+        const name = lang === "bn" && n.nameBn ? n.nameBn : n.name;
+        return (
+          <Animated.View key={n.path} entering={listEnter(i)} style={{ width: size }}>
+            <Tap onPress={() => openCategory(n.path, store)} accessibilityRole="link" accessibilityLabel={name} style={{ alignItems: "center", gap: 6 }}>
+              <CatThumb node={n} mode={store} size={size} />
+              <T v="tiny" numberOfLines={2} style={{ fontWeight: "700", textAlign: "center" }}>
+                {name}
+              </T>
+            </Tap>
+          </Animated.View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  grid: { flexDirection: "row", flexWrap: "wrap" },
   list: { borderRadius: 20, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingHorizontal: 14, paddingVertical: 8 },
 });

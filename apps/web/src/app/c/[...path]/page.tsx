@@ -17,6 +17,7 @@ import { catLabel } from "@/lib/categories";
 import { parseBrands } from "@/lib/brands";
 import { ActiveFilters } from "@/components/search/ActiveFilters";
 import { StoreName } from "@/components/store/StoreName";
+import { CatThumb } from "@/components/categories/CatThumb";
 
 type SP = Record<string, string | string[] | undefined>;
 type Params = { path: string[] };
@@ -135,9 +136,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       </nav>
 
       <header className="mt-2 flex items-start gap-3">
-        <span className="chip-icon is-active h-12 w-12 shrink-0 rounded-2xl">
-          <Icon name={node.icon} size={24} />
-        </span>
+        <CatThumb node={node} className="h-14 w-14 rounded-2xl" eager />
         <div className="min-w-0">
           <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">{catLabel(node, bn)}</h1>
           <p className="text-sm text-ink-2">
@@ -182,23 +181,21 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         })}
       </nav>
 
-      {/* child category rail (siblings on a leaf) */}
+      {/* sub-categories as photo tiles (siblings on a leaf), like Myntra and MoveOn: a picture says "saree" faster than a word */}
       {rail.length > 0 && (
-        <nav aria-label={children.length ? t("c.sub") : t("c.related")} className="no-scrollbar snap-x-rail -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <nav aria-label={children.length ? t("c.sub") : t("c.related")} className="no-scrollbar snap-x-rail -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1">
           {rail.map((c, i) => {
             const n = children.length ? (childCount.get(c.path) ?? c.count) : c.count;
             return (
               <Link
                 key={c.path}
                 href={href(c.path, store)}
-                className="cm-chip rise flex min-h-11 shrink-0 items-center gap-2 rounded-2xl bg-surface py-1.5 pl-1.5 pr-3 shadow-[var(--shadow-1)]"
-                style={{ ["--i" as string]: i }}
+                className="rise group flex w-[76px] shrink-0 flex-col items-center gap-1.5 text-center sm:w-[88px]"
+                style={{ ["--i" as string]: Math.min(i, 10) }}
               >
-                <span className="chip-icon h-8 w-8 rounded-xl">
-                  <Icon name={c.icon} size={16} />
-                </span>
-                <span className="text-sm font-semibold">{catLabel(c, bn)}</span>
-                {!!n && <span className="text-xs text-ink-3">{num(n)}</span>}
+                <CatThumb node={c} className="h-[72px] w-[72px] rounded-2xl sm:h-[84px] sm:w-[84px]" eager={i < 6} />
+                <span className="line-clamp-2 text-[12px] font-semibold leading-tight text-ink">{catLabel(c, bn)}</span>
+                {!!n && <span className="-mt-1 text-[11px] text-ink-3">{num(n)}</span>}
               </Link>
             );
           })}
@@ -240,9 +237,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
             <EnabledGrid items={res.items} />
           ) : (
             <div className="card mx-auto max-w-md p-8 text-center">
-              <span className="chip-icon mx-auto h-14 w-14">
-                <Icon name={node.icon} size={26} />
-              </span>
+              <CatThumb node={{ icon: node.icon }} className="mx-auto h-16 w-16 rounded-2xl" iconSize={30} />
               <h2 className="mt-4 text-lg font-extrabold">{t("c.nothing", { name: catLabel(node, bn) })}</h2>
               <p className="mt-1 text-sm text-ink-2">
                 {store === "all" ? t("c.notYet") : t("c.storeNothing", { store: STORES[store].name })}{t("c.tellUs")}

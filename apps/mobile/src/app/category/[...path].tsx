@@ -6,9 +6,10 @@ import { findTrail } from "@/lib/categories";
 import { isStoreMode, STORES } from "@/lib/markets";
 import { useStore } from "@/state/store";
 import { useAccent, useTheme } from "@/theme";
-import { IconButton, IconChip, Skeleton, T, Tap } from "@/components/ui";
+import { IconButton, Skeleton, T, Tap } from "@/components/ui";
 import { ProductGrid } from "@/components/ProductGrid";
-import { CategoryRows, openCategory, useCategoryTree } from "@/components/CategoryRows";
+import { CategoryGrid, openCategory, useCategoryTree } from "@/components/CategoryRows";
+import { CatThumb } from "@/components/CatThumb";
 import { useT } from "@/i18n";
 import { Icon } from "@/components/Icon";
 import { BrandSheet, MAX_BRANDS, toggleBrand } from "@/components/Filters";
@@ -53,7 +54,7 @@ export default function CategoryScreen() {
       </View>
       {node ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <IconChip icon={node.icon} mode={store} size={48} />
+          <CatThumb node={node} mode={store} size={56} />
           <View style={{ flex: 1 }}>
             <T v="h1" accessibilityRole="header" numberOfLines={2}>
               {nm(node)}
@@ -70,7 +71,7 @@ export default function CategoryScreen() {
       ) : (
         <Skeleton h={48} />
       )}
-      {!!node?.children.length && <CategoryRows nodes={node.children} store={store} />}
+      {!!node?.children.length && <CategoryGrid nodes={node.children} store={store} />}
       {node && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
           <T v="label" tone="ink3" style={{ flex: 1 }}>

@@ -2788,7 +2788,7 @@
          "path": "fashion/men/clothing/shirts",
          "name": "Shirts",
          "name_bn": "শার্ট",
-         "icon": "shirt",
+         "icon": "collar",
          "sort": 2,
          "keywords": [
           "shirts",
@@ -2816,7 +2816,7 @@
          "path": "fashion/men/clothing/jeans",
          "name": "Jeans",
          "name_bn": "জিন্স",
-         "icon": "shirt",
+         "icon": "jeans",
          "sort": 3,
          "keywords": [
           "jeans",
@@ -2841,7 +2841,7 @@
          "path": "fashion/men/clothing/trousers-chinos",
          "name": "Trousers & Chinos",
          "name_bn": "ট্রাউজার ও চিনো",
-         "icon": "shirt",
+         "icon": "jeans",
          "sort": 4,
          "keywords": [
           "trousers chinos",
@@ -2870,7 +2870,7 @@
          "path": "fashion/men/clothing/kurtas-ethnic-wear",
          "name": "Kurtas & Ethnic Wear",
          "name_bn": "কুর্তা ও এথনিক পোশাক",
-         "icon": "shirt",
+         "icon": "kurta",
          "sort": 5,
          "keywords": [
           "kurtas ethnic wear",
@@ -2901,7 +2901,7 @@
          "path": "fashion/men/clothing/track-pants-joggers",
          "name": "Track Pants & Joggers",
          "name_bn": "ট্র্যাক প্যান্ট ও জগার",
-         "icon": "shirt",
+         "icon": "leggings",
          "sort": 6,
          "keywords": [
           "track pants joggers",
@@ -2928,7 +2928,7 @@
          "path": "fashion/men/clothing/shorts",
          "name": "Shorts",
          "name_bn": "শর্টস",
-         "icon": "shirt",
+         "icon": "shorts",
          "sort": 7,
          "keywords": [
           "shorts",
@@ -2953,7 +2953,7 @@
          "path": "fashion/men/clothing/jackets-sweatshirts",
          "name": "Jackets & Sweatshirts",
          "name_bn": "জ্যাকেট ও সোয়েটশার্ট",
-         "icon": "shirt",
+         "icon": "jacket",
          "sort": 8,
          "keywords": [
           "jackets sweatshirts",
@@ -2984,7 +2984,7 @@
          "path": "fashion/men/clothing/innerwear-sleepwear",
          "name": "Innerwear & Sleepwear",
          "name_bn": "অন্তর্বাস ও স্লিপওয়্যার",
-         "icon": "shirt",
+         "icon": "innerwear",
          "sort": 9,
          "keywords": [
           "innerwear sleepwear",
@@ -3017,7 +3017,7 @@
          "path": "fashion/men/clothing/suits-blazers",
          "name": "Suits & Blazers",
          "name_bn": "স্যুট ও ব্লেজার",
-         "icon": "shirt",
+         "icon": "blazer",
          "sort": 10,
          "keywords": [
           "suits blazers",
@@ -3074,7 +3074,7 @@
          "path": "fashion/men/footwear/sports-shoes",
          "name": "Sports Shoes",
          "name_bn": "স্পোর্টস জুতা",
-         "icon": "shoe",
+         "icon": "sneaker",
          "sort": 1,
          "keywords": [
           "sports shoes",
@@ -3104,7 +3104,7 @@
          "path": "fashion/men/footwear/casual-shoes-sneakers",
          "name": "Casual Shoes & Sneakers",
          "name_bn": "ক্যাজুয়াল জুতা ও স্নিকার্স",
-         "icon": "shoe",
+         "icon": "sneaker",
          "sort": 2,
          "keywords": [
           "casual shoes sneakers",
@@ -3159,7 +3159,7 @@
          "path": "fashion/men/footwear/sandals-floaters",
          "name": "Sandals & Floaters",
          "name_bn": "স্যান্ডেল ও ফ্লোটার",
-         "icon": "shoe",
+         "icon": "slipper",
          "sort": 4,
          "keywords": [
           "sandals floaters",
@@ -3185,7 +3185,7 @@
          "path": "fashion/men/footwear/flip-flops-slippers",
          "name": "Flip-Flops & Slippers",
          "name_bn": "ফ্লিপ-ফ্লপ ও স্লিপার",
-         "icon": "shoe",
+         "icon": "slipper",
          "sort": 5,
          "keywords": [
           "flip flops slippers",
@@ -3267,7 +3267,7 @@
          "path": "fashion/men/accessories/belts",
          "name": "Belts",
          "name_bn": "বেল্ট",
-         "icon": "wallet",
+         "icon": "belt",
          "sort": 2,
          "keywords": [
           "belts",
@@ -3293,7 +3293,7 @@
          "path": "fashion/men/accessories/caps-hats",
          "name": "Caps & Hats",
          "name_bn": "ক্যাপ ও হ্যাট",
-         "icon": "wallet",
+         "icon": "cap",
          "sort": 3,
          "keywords": [
           "caps hats",
@@ -3322,7 +3322,7 @@
          "path": "fashion/men/accessories/ties-cufflinks",
          "name": "Ties & Cufflinks",
          "name_bn": "টাই ও কাফলিঙ্ক",
-         "icon": "wallet",
+         "icon": "tie",
          "sort": 4,
          "keywords": [
           "ties cufflinks",
@@ -3408,7 +3408,7 @@
          "path": "fashion/women/clothing/kurtas-kurtis",
          "name": "Kurtas & Kurtis",
          "name_bn": "কুর্তা ও কুর্তি",
-         "icon": "dress",
+         "icon": "kurta",
          "sort": 1,
          "keywords": [
           "kurtas kurtis",
@@ -3438,7 +3438,7 @@
          "path": "fashion/women/clothing/sarees",
          "name": "Sarees",
          "name_bn": "শাড়ি",
-         "icon": "dress",
+         "icon": "saree",
          "sort": 2,
          "keywords": [
           "sarees",
@@ -3466,7 +3466,7 @@
          "path": "fashion/women/clothing/salwar-suits-dress-materials",
          "name": "Salwar Suits & Dress Materials",
          "name_bn": "সালোয়ার কামিজ ও ড্রেস মেটেরিয়াল",
-         "icon": "dress",
+         "icon": "salwar",
          "sort": 3,
          "keywords": [
           "salwar suits dress materials",
@@ -3497,7 +3497,7 @@
          "path": "fashion/women/clothing/lehengas",
          "name": "Lehengas",
          "name_bn": "লেহেঙ্গা",
-         "icon": "dress",
+         "icon": "lehenga",
          "sort": 4,
          "keywords": [
           "lehengas",
@@ -3551,7 +3551,7 @@
          "path": "fashion/women/clothing/tops-t-shirts",
          "name": "Tops & T-shirts",
          "name_bn": "টপস ও টি-শার্ট",
-         "icon": "dress",
+         "icon": "top",
          "sort": 6,
          "keywords": [
           "tops t shirts",
@@ -3582,7 +3582,7 @@
          "path": "fashion/women/clothing/jeans-jeggings",
          "name": "Jeans & Jeggings",
          "name_bn": "জিন্স ও জেগিংস",
-         "icon": "dress",
+         "icon": "jeans",
          "sort": 7,
          "keywords": [
           "jeans jeggings",
@@ -3608,7 +3608,7 @@
          "path": "fashion/women/clothing/leggings-palazzos",
          "name": "Leggings & Palazzos",
          "name_bn": "লেগিংস ও পালাজো",
-         "icon": "dress",
+         "icon": "leggings",
          "sort": 8,
          "keywords": [
           "leggings palazzos",
@@ -3636,7 +3636,7 @@
          "path": "fashion/women/clothing/nightwear-lingerie",
          "name": "Nightwear & Lingerie",
          "name_bn": "নাইটওয়্যার ও লঞ্জারি",
-         "icon": "dress",
+         "icon": "moon",
          "sort": 9,
          "keywords": [
           "nightwear lingerie",
@@ -3667,7 +3667,7 @@
          "path": "fashion/women/clothing/winter-wear",
          "name": "Winter Wear",
          "name_bn": "শীতের পোশাক",
-         "icon": "dress",
+         "icon": "jacket",
          "sort": 10,
          "keywords": [
           "winter wear",
@@ -3699,7 +3699,7 @@
        "path": "fashion/women/footwear",
        "name": "Footwear",
        "name_bn": "জুতা",
-       "icon": "shoe",
+       "icon": "heels",
        "sort": 2,
        "keywords": [
         "footwear",
@@ -3725,7 +3725,7 @@
          "path": "fashion/women/footwear/flats",
          "name": "Flats",
          "name_bn": "ফ্ল্যাট",
-         "icon": "shoe",
+         "icon": "flats",
          "sort": 1,
          "keywords": [
           "flats",
@@ -3752,7 +3752,7 @@
          "path": "fashion/women/footwear/heels",
          "name": "Heels",
          "name_bn": "হিল",
-         "icon": "shoe",
+         "icon": "heels",
          "sort": 2,
          "keywords": [
           "heels",
@@ -3779,7 +3779,7 @@
          "path": "fashion/women/footwear/sports-shoes",
          "name": "Sports Shoes",
          "name_bn": "স্পোর্টস জুতা",
-         "icon": "shoe",
+         "icon": "sneaker",
          "sort": 3,
          "keywords": [
           "sports shoes",
@@ -3806,7 +3806,7 @@
          "path": "fashion/women/footwear/casual-shoes",
          "name": "Casual Shoes",
          "name_bn": "ক্যাজুয়াল জুতা",
-         "icon": "shoe",
+         "icon": "sneaker",
          "sort": 4,
          "keywords": [
           "casual shoes",
@@ -3831,7 +3831,7 @@
          "path": "fashion/women/footwear/slippers-flip-flops",
          "name": "Slippers & Flip-Flops",
          "name_bn": "স্লিপার ও ফ্লিপ-ফ্লপ",
-         "icon": "shoe",
+         "icon": "slipper",
          "sort": 5,
          "keywords": [
           "slippers flip flops",
@@ -3860,7 +3860,7 @@
        "path": "fashion/women/bags",
        "name": "Handbags & Wallets",
        "name_bn": "হ্যান্ডব্যাগ ও ওয়ালেট",
-       "icon": "bag",
+       "icon": "handbag",
        "sort": 3,
        "keywords": [
         "handbags wallets",
@@ -3888,7 +3888,7 @@
          "path": "fashion/women/bags/handbags",
          "name": "Handbags",
          "name_bn": "হ্যান্ডব্যাগ",
-         "icon": "bag",
+         "icon": "handbag",
          "sort": 1,
          "keywords": [
           "handbags",
@@ -3914,7 +3914,7 @@
          "path": "fashion/women/bags/sling-bags",
          "name": "Sling Bags",
          "name_bn": "স্লিং ব্যাগ",
-         "icon": "bag",
+         "icon": "sling",
          "sort": 2,
          "keywords": [
           "sling bags",
@@ -3940,7 +3940,7 @@
          "path": "fashion/women/bags/clutches",
          "name": "Clutches",
          "name_bn": "ক্লাচ",
-         "icon": "bag",
+         "icon": "clutch",
          "sort": 3,
          "keywords": [
           "clutches",
@@ -3966,7 +3966,7 @@
          "path": "fashion/women/bags/tote-bags",
          "name": "Tote Bags",
          "name_bn": "টোট ব্যাগ",
-         "icon": "bag",
+         "icon": "tote",
          "sort": 4,
          "keywords": [
           "tote bags",
@@ -3992,7 +3992,7 @@
          "path": "fashion/women/bags/womens-wallets",
          "name": "Women's Wallets",
          "name_bn": "নারীদের ওয়ালেট",
-         "icon": "bag",
+         "icon": "wallet",
          "sort": 5,
          "keywords": [
           "womens wallets",
@@ -4104,7 +4104,7 @@
          "path": "fashion/kids/boys-clothing/jeans-trousers",
          "name": "Jeans & Trousers",
          "name_bn": "জিন্স ও ট্রাউজার",
-         "icon": "shirt",
+         "icon": "jeans",
          "sort": 2,
          "keywords": [
           "jeans trousers",
@@ -4131,7 +4131,7 @@
          "path": "fashion/kids/boys-clothing/ethnic-wear",
          "name": "Ethnic Wear",
          "name_bn": "এথনিক পোশাক",
-         "icon": "shirt",
+         "icon": "kurta",
          "sort": 3,
          "keywords": [
           "ethnic wear",
@@ -4242,7 +4242,7 @@
          "path": "fashion/kids/girls-clothing/tops-t-shirts",
          "name": "Tops & T-shirts",
          "name_bn": "টপস ও টি-শার্ট",
-         "icon": "dress",
+         "icon": "top",
          "sort": 2,
          "keywords": [
           "tops t shirts",
@@ -4271,7 +4271,7 @@
          "path": "fashion/kids/girls-clothing/ethnic-wear",
          "name": "Ethnic Wear",
          "name_bn": "এথনিক পোশাক",
-         "icon": "dress",
+         "icon": "lehenga",
          "sort": 3,
          "keywords": [
           "ethnic wear",
@@ -4299,7 +4299,7 @@
          "path": "fashion/kids/girls-clothing/leggings-jeans",
          "name": "Leggings & Jeans",
          "name_bn": "লেগিংস ও জিন্স",
-         "icon": "dress",
+         "icon": "leggings",
          "sort": 4,
          "keywords": [
           "leggings jeans",
@@ -4328,7 +4328,7 @@
        "path": "fashion/kids/kids-footwear",
        "name": "Kids' Footwear",
        "name_bn": "শিশুদের জুতা",
-       "icon": "shoe",
+       "icon": "sneaker",
        "sort": 3,
        "keywords": [
         "kids footwear",
@@ -4377,7 +4377,7 @@
          "path": "fashion/kids/kids-footwear/kids-sports-shoes",
          "name": "Kids' Sports Shoes",
          "name_bn": "শিশুদের স্পোর্টস জুতা",
-         "icon": "shoe",
+         "icon": "sneaker",
          "sort": 2,
          "keywords": [
           "kids sports shoes",
@@ -4403,7 +4403,7 @@
          "path": "fashion/kids/kids-footwear/kids-sandals-slippers",
          "name": "Kids' Sandals & Slippers",
          "name_bn": "শিশুদের স্যান্ডেল ও স্লিপার",
-         "icon": "shoe",
+         "icon": "slipper",
          "sort": 3,
          "keywords": [
           "kids sandals slippers",
@@ -4597,7 +4597,7 @@
      "path": "fashion/jewellery",
      "name": "Jewellery",
      "name_bn": "গহনা",
-     "icon": "gem",
+     "icon": "necklace",
      "sort": 5,
      "keywords": [
       "jewellery",
@@ -4622,7 +4622,7 @@
        "path": "fashion/jewellery/earrings",
        "name": "Earrings",
        "name_bn": "কানের দুল",
-       "icon": "gem",
+       "icon": "earrings",
        "sort": 1,
        "keywords": [
         "earrings",
@@ -4650,7 +4650,7 @@
        "path": "fashion/jewellery/necklaces-sets",
        "name": "Necklaces & Sets",
        "name_bn": "নেকলেস ও সেট",
-       "icon": "gem",
+       "icon": "necklace",
        "sort": 2,
        "keywords": [
         "necklaces",
@@ -4680,7 +4680,7 @@
        "path": "fashion/jewellery/bangles-bracelets",
        "name": "Bangles & Bracelets",
        "name_bn": "চুড়ি ও ব্রেসলেট",
-       "icon": "gem",
+       "icon": "bangles",
        "sort": 3,
        "keywords": [
         "bangles bracelets",
@@ -4709,7 +4709,7 @@
        "path": "fashion/jewellery/rings",
        "name": "Rings",
        "name_bn": "আংটি",
-       "icon": "gem",
+       "icon": "ring",
        "sort": 4,
        "keywords": [
         "ring",
@@ -4735,7 +4735,7 @@
        "path": "fashion/jewellery/silver-jewellery",
        "name": "Silver Jewellery",
        "name_bn": "রুপার গহনা",
-       "icon": "gem",
+       "icon": "ring",
        "sort": 5,
        "keywords": [
         "silver jewellery",
@@ -4762,7 +4762,7 @@
        "path": "fashion/jewellery/fashion-jewellery",
        "name": "Fashion Jewellery",
        "name_bn": "ফ্যাশন জুয়েলারি",
-       "icon": "gem",
+       "icon": "earrings",
        "sort": 6,
        "keywords": [
         "fashion jewellery",
@@ -5071,7 +5071,7 @@
    "path": "beauty-personal-care",
    "name": "Beauty & Personal Care",
    "name_bn": "সৌন্দর্য ও ব্যক্তিগত যত্ন",
-   "icon": "beauty",
+   "icon": "lipstick",
    "sort": 4,
    "pricing_group": "beauty",
    "featured": true,
@@ -5102,7 +5102,7 @@
      "path": "beauty-personal-care/makeup",
      "name": "Makeup",
      "name_bn": "মেকআপ",
-     "icon": "beauty",
+     "icon": "lipstick",
      "sort": 1,
      "featured": true,
      "keywords": [
@@ -5129,7 +5129,7 @@
        "path": "beauty-personal-care/makeup/lip-makeup",
        "name": "Lip Makeup",
        "name_bn": "লিপ মেকআপ",
-       "icon": "beauty",
+       "icon": "lipstick",
        "sort": 1,
        "keywords": [
         "lip makeup",
@@ -5160,7 +5160,7 @@
        "path": "beauty-personal-care/makeup/face-makeup",
        "name": "Face Makeup",
        "name_bn": "ফেস মেকআপ",
-       "icon": "beauty",
+       "icon": "compact",
        "sort": 2,
        "keywords": [
         "face makeup",
@@ -5193,7 +5193,7 @@
        "path": "beauty-personal-care/makeup/eye-makeup",
        "name": "Eye Makeup",
        "name_bn": "আই মেকআপ",
-       "icon": "beauty",
+       "icon": "eye",
        "sort": 3,
        "keywords": [
         "eye makeup",
@@ -5223,7 +5223,7 @@
        "path": "beauty-personal-care/makeup/nail-polish",
        "name": "Nail Polish",
        "name_bn": "নেইল পলিশ",
-       "icon": "beauty",
+       "icon": "nailpolish",
        "sort": 4,
        "keywords": [
         "nail polish",
@@ -5251,7 +5251,7 @@
        "path": "beauty-personal-care/makeup/makeup-brushes-tools",
        "name": "Makeup Brushes & Tools",
        "name_bn": "মেকআপ ব্রাশ ও টুলস",
-       "icon": "beauty",
+       "icon": "brush",
        "sort": 5,
        "keywords": [
         "makeup brushes tools",
@@ -5281,7 +5281,7 @@
        "path": "beauty-personal-care/makeup/makeup-removers",
        "name": "Makeup Removers",
        "name_bn": "মেকআপ রিমুভার",
-       "icon": "beauty",
+       "icon": "bottle",
        "sort": 6,
        "keywords": [
         "makeup removers",
@@ -5310,7 +5310,7 @@
      "path": "beauty-personal-care/skin-care",
      "name": "Skin Care",
      "name_bn": "ত্বকের যত্ন",
-     "icon": "smile",
+     "icon": "jar",
      "sort": 2,
      "featured": true,
      "keywords": [
@@ -5337,7 +5337,7 @@
        "path": "beauty-personal-care/skin-care/face-wash-cleansers",
        "name": "Face Wash & Cleansers",
        "name_bn": "ফেসওয়াশ ও ক্লেনজার",
-       "icon": "smile",
+       "icon": "tube",
        "sort": 1,
        "keywords": [
         "face wash cleansers",
@@ -5366,7 +5366,7 @@
        "path": "beauty-personal-care/skin-care/moisturisers-creams",
        "name": "Moisturisers & Creams",
        "name_bn": "ময়েশ্চারাইজার ও ক্রিম",
-       "icon": "smile",
+       "icon": "jar",
        "sort": 2,
        "keywords": [
         "moisturisers creams",
@@ -5399,7 +5399,7 @@
        "path": "beauty-personal-care/skin-care/serums",
        "name": "Serums",
        "name_bn": "সিরাম",
-       "icon": "smile",
+       "icon": "dropper",
        "sort": 3,
        "keywords": [
         "serums",
@@ -5428,7 +5428,7 @@
        "path": "beauty-personal-care/skin-care/sunscreen",
        "name": "Sunscreen",
        "name_bn": "সানস্ক্রিন",
-       "icon": "smile",
+       "icon": "tube",
        "sort": 4,
        "keywords": [
         "sunscreen",
@@ -5455,7 +5455,7 @@
        "path": "beauty-personal-care/skin-care/face-masks-packs",
        "name": "Face Masks & Packs",
        "name_bn": "ফেস মাস্ক ও প্যাক",
-       "icon": "smile",
+       "icon": "facemask",
        "sort": 5,
        "keywords": [
         "face masks packs",
@@ -5486,7 +5486,7 @@
        "path": "beauty-personal-care/skin-care/toners-mists",
        "name": "Toners & Mists",
        "name_bn": "টোনার ও মিস্ট",
-       "icon": "smile",
+       "icon": "spray",
        "sort": 6,
        "keywords": [
         "toners mists",
@@ -5515,7 +5515,7 @@
        "path": "beauty-personal-care/skin-care/body-lotion",
        "name": "Body Lotion",
        "name_bn": "বডি লোশন",
-       "icon": "smile",
+       "icon": "shampoo",
        "sort": 7,
        "keywords": [
         "body lotion",
@@ -5541,7 +5541,7 @@
        "path": "beauty-personal-care/skin-care/lip-care",
        "name": "Lip Care",
        "name_bn": "ঠোঁটের যত্ন",
-       "icon": "smile",
+       "icon": "lips",
        "sort": 8,
        "keywords": [
         "lip care",
@@ -5595,7 +5595,7 @@
        "path": "beauty-personal-care/hair-care/shampoo",
        "name": "Shampoo",
        "name_bn": "শ্যাম্পু",
-       "icon": "hair",
+       "icon": "shampoo",
        "sort": 1,
        "keywords": [
         "shampoo",
@@ -5620,7 +5620,7 @@
        "path": "beauty-personal-care/hair-care/conditioner",
        "name": "Conditioner",
        "name_bn": "কন্ডিশনার",
-       "icon": "hair",
+       "icon": "shampoo",
        "sort": 2,
        "keywords": [
         "conditioner"
@@ -5644,7 +5644,7 @@
        "path": "beauty-personal-care/hair-care/hair-oil",
        "name": "Hair Oil",
        "name_bn": "চুলের তেল",
-       "icon": "hair",
+       "icon": "dropper",
        "sort": 3,
        "keywords": [
         "hair oil",
@@ -5671,7 +5671,7 @@
        "path": "beauty-personal-care/hair-care/hair-serums-masks",
        "name": "Hair Serums & Masks",
        "name_bn": "হেয়ার সিরাম ও মাস্ক",
-       "icon": "hair",
+       "icon": "dropper",
        "sort": 4,
        "keywords": [
         "hair serums masks",
@@ -5700,7 +5700,7 @@
        "path": "beauty-personal-care/hair-care/hair-colour",
        "name": "Hair Colour",
        "name_bn": "চুলের রং",
-       "icon": "hair",
+       "icon": "brush",
        "sort": 5,
        "keywords": [
         "hair colour",
@@ -5728,7 +5728,7 @@
        "path": "beauty-personal-care/hair-care/hair-styling",
        "name": "Hair Styling",
        "name_bn": "হেয়ার স্টাইলিং",
-       "icon": "hair",
+       "icon": "dryer",
        "sort": 6,
        "keywords": [
         "hair styling",
@@ -5895,7 +5895,7 @@
      "path": "beauty-personal-care/mens-grooming",
      "name": "Men's Grooming",
      "name_bn": "পুরুষদের গ্রুমিং",
-     "icon": "scissors",
+     "icon": "razor",
      "sort": 5,
      "keywords": [
       "mens grooming",
@@ -5921,7 +5921,7 @@
        "path": "beauty-personal-care/mens-grooming/trimmers",
        "name": "Trimmers",
        "name_bn": "ট্রিমার",
-       "icon": "scissors",
+       "icon": "razor",
        "sort": 1,
        "keywords": [
         "trimmers",
@@ -5948,7 +5948,7 @@
        "path": "beauty-personal-care/mens-grooming/shaving",
        "name": "Shaving",
        "name_bn": "শেভিং",
-       "icon": "scissors",
+       "icon": "razor",
        "sort": 2,
        "keywords": [
         "shaving",
@@ -6006,7 +6006,7 @@
        "path": "beauty-personal-care/mens-grooming/mens-face-care",
        "name": "Men's Face Care",
        "name_bn": "পুরুষদের ফেস কেয়ার",
-       "icon": "scissors",
+       "icon": "tube",
        "sort": 4,
        "keywords": [
         "mens face care",
@@ -6035,7 +6035,7 @@
      "path": "beauty-personal-care/bath-body",
      "name": "Bath & Body",
      "name_bn": "গোসল ও শরীরের যত্ন",
-     "icon": "spray",
+     "icon": "soap",
      "sort": 6,
      "keywords": [
       "bath body",
@@ -6062,7 +6062,7 @@
        "path": "beauty-personal-care/bath-body/soaps",
        "name": "Soaps",
        "name_bn": "সাবান",
-       "icon": "spray",
+       "icon": "soap",
        "sort": 1,
        "keywords": [
         "soaps",
@@ -6089,7 +6089,7 @@
        "path": "beauty-personal-care/bath-body/body-wash-shower-gel",
        "name": "Body Wash & Shower Gel",
        "name_bn": "বডি ওয়াশ ও শাওয়ার জেল",
-       "icon": "spray",
+       "icon": "shampoo",
        "sort": 2,
        "keywords": [
         "body wash shower gel",
@@ -6144,7 +6144,7 @@
        "path": "beauty-personal-care/bath-body/talc",
        "name": "Talc",
        "name_bn": "ট্যালকম পাউডার",
-       "icon": "spray",
+       "icon": "bottle",
        "sort": 4,
        "keywords": [
         "talc",
@@ -6264,7 +6264,7 @@
      "path": "beauty-personal-care/feminine-hygiene",
      "name": "Feminine Hygiene",
      "name_bn": "নারীদের স্বাস্থ্যবিধি",
-     "icon": "heart",
+     "icon": "flower",
      "sort": 8,
      "keywords": [
       "feminine hygiene",
@@ -6286,7 +6286,7 @@
        "path": "beauty-personal-care/feminine-hygiene/sanitary-pads",
        "name": "Sanitary Pads",
        "name_bn": "স্যানিটারি প্যাড",
-       "icon": "heart",
+       "icon": "flower",
        "sort": 1,
        "keywords": [
         "sanitary pads",
@@ -6312,7 +6312,7 @@
        "path": "beauty-personal-care/feminine-hygiene/menstrual-cups-tampons",
        "name": "Menstrual Cups & Tampons",
        "name_bn": "মেনস্ট্রুয়াল কাপ ও ট্যাম্পন",
-       "icon": "heart",
+       "icon": "flower",
        "sort": 2,
        "keywords": [
         "menstrual cups tampons",
@@ -6337,7 +6337,7 @@
        "path": "beauty-personal-care/feminine-hygiene/intimate-care",
        "name": "Intimate Care",
        "name_bn": "ইন্টিমেট কেয়ার",
-       "icon": "heart",
+       "icon": "flower",
        "sort": 3,
        "keywords": [
         "intimate care",
@@ -6360,7 +6360,7 @@
        "path": "beauty-personal-care/feminine-hygiene/hair-removal",
        "name": "Hair Removal",
        "name_bn": "লোম অপসারণ",
-       "icon": "heart",
+       "icon": "razor",
        "sort": 4,
        "keywords": [
         "hair removal",
@@ -6386,7 +6386,7 @@
      "path": "beauty-personal-care/beauty-appliances",
      "name": "Beauty Appliances",
      "name_bn": "বিউটি অ্যাপ্লায়েন্স",
-     "icon": "plug",
+     "icon": "dryer",
      "sort": 9,
      "keywords": [
       "beauty appliances",
@@ -6411,7 +6411,7 @@
        "path": "beauty-personal-care/beauty-appliances/hair-dryers",
        "name": "Hair Dryers",
        "name_bn": "হেয়ার ড্রায়ার",
-       "icon": "plug",
+       "icon": "dryer",
        "sort": 1,
        "keywords": [
         "hair dryers",
@@ -7361,7 +7361,7 @@
        "path": "home-kitchen/kitchen-dining/kitchen-tools",
        "name": "Kitchen Tools",
        "name_bn": "রান্নাঘরের সরঞ্জাম",
-       "icon": "pot",
+       "icon": "cutlery",
        "sort": 2,
        "keywords": [
         "kitchen tools",
@@ -7389,7 +7389,7 @@
        "path": "home-kitchen/kitchen-dining/kitchen-storage",
        "name": "Kitchen Storage",
        "name_bn": "রান্নাঘরের স্টোরেজ",
-       "icon": "pot",
+       "icon": "jar",
        "sort": 3,
        "keywords": [
         "kitchen storage",
@@ -7418,7 +7418,7 @@
        "path": "home-kitchen/kitchen-dining/water-bottles-flasks",
        "name": "Water Bottles & Flasks",
        "name_bn": "পানির বোতল ও ফ্লাস্ক",
-       "icon": "pot",
+       "icon": "bottle",
        "sort": 4,
        "keywords": [
         "water bottles flasks",
@@ -7447,7 +7447,7 @@
        "path": "home-kitchen/kitchen-dining/dinnerware",
        "name": "Dinnerware",
        "name_bn": "ডিনারওয়্যার",
-       "icon": "pot",
+       "icon": "plate",
        "sort": 5,
        "keywords": [
         "dinnerware",
@@ -7473,7 +7473,7 @@
        "path": "home-kitchen/kitchen-dining/drinkware",
        "name": "Drinkware",
        "name_bn": "ড্রিংকওয়্যার",
-       "icon": "pot",
+       "icon": "mug",
        "sort": 6,
        "keywords": [
         "drinkware",
@@ -7526,7 +7526,7 @@
        "path": "home-kitchen/kitchen-dining/gas-stoves",
        "name": "Gas Stoves",
        "name_bn": "গ্যাস স্টোভ",
-       "icon": "pot",
+       "icon": "stove",
        "sort": 8,
        "keywords": [
         "gas stoves",
@@ -7553,7 +7553,7 @@
      "path": "home-kitchen/home-decor",
      "name": "Home Décor",
      "name_bn": "ঘর সাজানো",
-     "icon": "frame",
+     "icon": "vase",
      "sort": 2,
      "featured": true,
      "keywords": [
@@ -7609,7 +7609,7 @@
        "path": "home-kitchen/home-decor/clocks",
        "name": "Clocks",
        "name_bn": "দেয়াল ও টেবিল ঘড়ি",
-       "icon": "frame",
+       "icon": "clock",
        "sort": 2,
        "keywords": [
         "clocks",
@@ -7636,7 +7636,7 @@
        "path": "home-kitchen/home-decor/showpieces-idols",
        "name": "Showpieces & Idols",
        "name_bn": "শোপিস ও মূর্তি",
-       "icon": "frame",
+       "icon": "vase",
        "sort": 3,
        "keywords": [
         "showpieces idols",
@@ -7666,7 +7666,7 @@
        "path": "home-kitchen/home-decor/candles-diffusers",
        "name": "Candles & Diffusers",
        "name_bn": "মোমবাতি ও ডিফিউজার",
-       "icon": "frame",
+       "icon": "candle",
        "sort": 4,
        "keywords": [
         "candles diffusers",
@@ -7696,7 +7696,7 @@
        "path": "home-kitchen/home-decor/pooja-needs",
        "name": "Pooja Needs",
        "name_bn": "পূজার সামগ্রী",
-       "icon": "frame",
+       "icon": "diya",
        "sort": 5,
        "keywords": [
         "pooja needs",
@@ -7725,7 +7725,7 @@
        "path": "home-kitchen/home-decor/artificial-flowers-plants",
        "name": "Artificial Flowers & Plants",
        "name_bn": "কৃত্রিম ফুল ও গাছ",
-       "icon": "frame",
+       "icon": "plant",
        "sort": 6,
        "keywords": [
         "artificial flowers plants",
@@ -7834,7 +7834,7 @@
        "path": "home-kitchen/furnishing/pillows-cushions",
        "name": "Pillows & Cushions",
        "name_bn": "বালিশ ও কুশন",
-       "icon": "bed",
+       "icon": "pillow",
        "sort": 2,
        "keywords": [
         "pillows cushions",
@@ -7895,7 +7895,7 @@
        "path": "home-kitchen/furnishing/curtains",
        "name": "Curtains",
        "name_bn": "পর্দা",
-       "icon": "bed",
+       "icon": "curtain",
        "sort": 4,
        "keywords": [
         "curtains",
@@ -7921,7 +7921,7 @@
        "path": "home-kitchen/furnishing/towels",
        "name": "Towels",
        "name_bn": "তোয়ালে",
-       "icon": "bed",
+       "icon": "towel",
        "sort": 5,
        "keywords": [
         "towels",
@@ -7948,7 +7948,7 @@
        "path": "home-kitchen/furnishing/carpets-mats",
        "name": "Carpets & Mats",
        "name_bn": "কার্পেট ও ম্যাট",
-       "icon": "bed",
+       "icon": "rug",
        "sort": 6,
        "keywords": [
         "carpets mats",
@@ -8396,7 +8396,7 @@
        "path": "home-kitchen/household/mops-brushes-brooms",
        "name": "Mops, Brushes & Brooms",
        "name_bn": "মপ, ব্রাশ ও ঝাড়ু",
-       "icon": "spray",
+       "icon": "broom",
        "sort": 5,
        "keywords": [
         "mops brushes brooms",
@@ -8508,7 +8508,7 @@
      "path": "home-kitchen/bathroom",
      "name": "Bathroom",
      "name_bn": "বাথরুম",
-     "icon": "spray",
+     "icon": "bucket",
      "sort": 7,
      "keywords": [
       "bathroom",
@@ -8531,7 +8531,7 @@
        "path": "home-kitchen/bathroom/bath-fittings",
        "name": "Bath Fittings",
        "name_bn": "বাথ ফিটিংস",
-       "icon": "spray",
+       "icon": "tool",
        "sort": 1,
        "keywords": [
         "bath fittings",
@@ -8582,7 +8582,7 @@
        "path": "home-kitchen/bathroom/buckets-mugs",
        "name": "Buckets & Mugs",
        "name_bn": "বালতি ও মগ",
-       "icon": "spray",
+       "icon": "bucket",
        "sort": 3,
        "keywords": [
         "buckets mugs",
@@ -8864,7 +8864,7 @@
        "path": "home-kitchen/garden-tools/gardening",
        "name": "Gardening",
        "name_bn": "বাগান করা",
-       "icon": "tool",
+       "icon": "plant",
        "sort": 1,
        "keywords": [
         "gardening",
@@ -10828,7 +10828,7 @@
    "path": "baby-kids",
    "name": "Baby & Kids",
    "name_bn": "শিশু ও বাচ্চাদের পণ্য",
-   "icon": "baby",
+   "icon": "teddy",
    "sort": 9,
    "pricing_group": "home",
    "featured": true,
@@ -10859,7 +10859,7 @@
      "path": "baby-kids/diapering",
      "name": "Diapering",
      "name_bn": "ডায়াপার",
-     "icon": "baby",
+     "icon": "diaper",
      "sort": 1,
      "featured": true,
      "keywords": [
@@ -10883,7 +10883,7 @@
        "path": "baby-kids/diapering/diapers",
        "name": "Diapers",
        "name_bn": "ডায়াপার",
-       "icon": "baby",
+       "icon": "diaper",
        "sort": 1,
        "keywords": [
         "diapers",
@@ -10909,7 +10909,7 @@
        "path": "baby-kids/diapering/baby-wipes",
        "name": "Baby Wipes",
        "name_bn": "বেবি ওয়াইপস",
-       "icon": "baby",
+       "icon": "soap",
        "sort": 2,
        "keywords": [
         "baby wipes",
@@ -10932,7 +10932,7 @@
        "path": "baby-kids/diapering/diaper-rash-cream",
        "name": "Diaper Rash Cream",
        "name_bn": "ডায়াপার র‍্যাশ ক্রিম",
-       "icon": "baby",
+       "icon": "tube",
        "sort": 3,
        "keywords": [
         "diaper rash cream",
@@ -10957,7 +10957,7 @@
      "path": "baby-kids/baby-food",
      "name": "Baby Food & Formula",
      "name_bn": "শিশুখাদ্য ও ফর্মুলা",
-     "icon": "milk",
+     "icon": "feeder",
      "sort": 2,
      "pricing_group": "grocery",
      "keywords": [
@@ -11006,7 +11006,7 @@
        "path": "baby-kids/baby-food/baby-cereal",
        "name": "Baby Cereal",
        "name_bn": "শিশুর সিরিয়াল",
-       "icon": "milk",
+       "icon": "plate",
        "sort": 2,
        "keywords": [
         "baby cereal",
@@ -11028,7 +11028,7 @@
        "path": "baby-kids/baby-food/baby-snacks",
        "name": "Baby Snacks",
        "name_bn": "শিশুর স্ন্যাকস",
-       "icon": "milk",
+       "icon": "plate",
        "sort": 3,
        "keywords": [
         "baby snacks",
@@ -11053,7 +11053,7 @@
      "path": "baby-kids/baby-bath-skin",
      "name": "Baby Bath & Skin Care",
      "name_bn": "শিশুর গোসল ও ত্বকের যত্ন",
-     "icon": "smile",
+     "icon": "shampoo",
      "sort": 3,
      "pricing_group": "beauty",
      "keywords": [
@@ -11079,7 +11079,7 @@
        "path": "baby-kids/baby-bath-skin/baby-lotion-oil",
        "name": "Baby Lotion & Oil",
        "name_bn": "বেবি লোশন ও তেল",
-       "icon": "smile",
+       "icon": "bottle",
        "sort": 1,
        "keywords": [
         "baby lotion oil",
@@ -11105,7 +11105,7 @@
        "path": "baby-kids/baby-bath-skin/baby-shampoo-wash",
        "name": "Baby Shampoo & Wash",
        "name_bn": "বেবি শ্যাম্পু ও ওয়াশ",
-       "icon": "smile",
+       "icon": "shampoo",
        "sort": 2,
        "keywords": [
         "baby shampoo wash",
@@ -11130,7 +11130,7 @@
        "path": "baby-kids/baby-bath-skin/baby-powder",
        "name": "Baby Powder",
        "name_bn": "বেবি পাউডার",
-       "icon": "smile",
+       "icon": "bottle",
        "sort": 3,
        "keywords": [
         "baby powder"
@@ -11153,7 +11153,7 @@
      "path": "baby-kids/feeding",
      "name": "Feeding & Nursing",
      "name_bn": "খাওয়ানো ও নার্সিং",
-     "icon": "milk",
+     "icon": "feeder",
      "sort": 4,
      "keywords": [
       "feeding nursing",
@@ -11177,7 +11177,7 @@
        "path": "baby-kids/feeding/feeding-bottles",
        "name": "Feeding Bottles",
        "name_bn": "ফিডিং বোতল",
-       "icon": "milk",
+       "icon": "feeder",
        "sort": 1,
        "keywords": [
         "feeding bottles",
@@ -11201,7 +11201,7 @@
        "path": "baby-kids/feeding/sippers-cups",
        "name": "Sippers & Cups",
        "name_bn": "সিপার ও কাপ",
-       "icon": "milk",
+       "icon": "mug",
        "sort": 2,
        "keywords": [
         "sippers cups",
@@ -11249,7 +11249,7 @@
        "path": "baby-kids/feeding/bibs-teethers",
        "name": "Bibs & Teethers",
        "name_bn": "বিব ও টিথার",
-       "icon": "milk",
+       "icon": "romper",
        "sort": 4,
        "keywords": [
         "bibs teethers",
@@ -11277,7 +11277,7 @@
      "path": "baby-kids/baby-gear",
      "name": "Baby Gear",
      "name_bn": "শিশুর সরঞ্জাম",
-     "icon": "baby",
+     "icon": "stroller",
      "sort": 5,
      "keywords": [
       "baby gear",
@@ -11300,7 +11300,7 @@
        "path": "baby-kids/baby-gear/strollers-prams",
        "name": "Strollers & Prams",
        "name_bn": "স্ট্রলার ও প্র্যাম",
-       "icon": "baby",
+       "icon": "stroller",
        "sort": 1,
        "keywords": [
         "strollers prams",
@@ -11347,7 +11347,7 @@
        "path": "baby-kids/baby-gear/car-seats",
        "name": "Car Seats",
        "name_bn": "কার সিট",
-       "icon": "baby",
+       "icon": "car",
        "sort": 3,
        "keywords": [
         "car seats",
@@ -11370,7 +11370,7 @@
        "path": "baby-kids/baby-gear/cribs-bedding",
        "name": "Cribs & Bedding",
        "name_bn": "খাট ও বিছানা",
-       "icon": "baby",
+       "icon": "bed",
        "sort": 4,
        "keywords": [
         "cribs bedding",
@@ -11400,7 +11400,7 @@
      "path": "baby-kids/baby-clothing",
      "name": "Baby Clothing",
      "name_bn": "শিশুর পোশাক",
-     "icon": "shirt",
+     "icon": "romper",
      "sort": 6,
      "pricing_group": "fashion",
      "keywords": [
@@ -11427,7 +11427,7 @@
        "path": "baby-kids/baby-clothing/rompers-onesies",
        "name": "Rompers & Onesies",
        "name_bn": "রম্পার ও ওয়ানসি",
-       "icon": "shirt",
+       "icon": "romper",
        "sort": 1,
        "keywords": [
         "rompers onesies",
@@ -11456,7 +11456,7 @@
        "path": "baby-kids/baby-clothing/baby-clothing-sets",
        "name": "Baby Clothing Sets",
        "name_bn": "শিশুর পোশাক সেট",
-       "icon": "shirt",
+       "icon": "romper",
        "sort": 2,
        "keywords": [
         "baby clothing sets",
@@ -13058,7 +13058,7 @@
      "path": "toys-games/dolls-soft-toys",
      "name": "Dolls & Soft Toys",
      "name_bn": "পুতুল ও সফট টয়",
-     "icon": "heart",
+     "icon": "teddy",
      "sort": 3,
      "featured": true,
      "keywords": [
@@ -13083,7 +13083,7 @@
        "path": "toys-games/dolls-soft-toys/dolls-dollhouses",
        "name": "Dolls & Dollhouses",
        "name_bn": "পুতুল ও পুতুলের ঘর",
-       "icon": "heart",
+       "icon": "doll",
        "sort": 1,
        "keywords": [
         "dolls dollhouses",
@@ -13109,7 +13109,7 @@
        "path": "toys-games/dolls-soft-toys/soft-toys",
        "name": "Soft Toys",
        "name_bn": "সফট টয়",
-       "icon": "heart",
+       "icon": "teddy",
        "sort": 2,
        "keywords": [
         "soft toys",
@@ -13134,7 +13134,7 @@
        "path": "toys-games/dolls-soft-toys/pretend-play",
        "name": "Pretend Play",
        "name_bn": "খেলাঘর সেট",
-       "icon": "heart",
+       "icon": "doll",
        "sort": 3,
        "keywords": [
         "pretend play",
@@ -13314,7 +13314,7 @@
        "path": "toys-games/outdoor-play/baby-toddler-toys",
        "name": "Baby & Toddler Toys",
        "name_bn": "শিশু ও টডলার খেলনা",
-       "icon": "cycle",
+       "icon": "teddy",
        "sort": 3,
        "keywords": [
         "baby toddler toys",

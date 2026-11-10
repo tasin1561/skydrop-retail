@@ -5,7 +5,8 @@ import Animated from "react-native-reanimated";
 import { useStore } from "@/state/store";
 import { STORES , storeText } from "@/lib/markets";
 import { STORE_TEXT, radius, useTheme, withAlpha } from "@/theme";
-import { Card, IconChip, Skeleton, T, Tap } from "@/components/ui";
+import { Card, Skeleton, T, Tap } from "@/components/ui";
+import { CatThumb } from "@/components/CatThumb";
 import { CategoryRows, useCategoryTree } from "@/components/CategoryRows";
 import { Icon } from "@/components/Icon";
 import type { MarketId } from "@/lib/types";
@@ -40,7 +41,7 @@ export default function Categories() {
             <Animated.View key={cat.slug} entering={listEnter(i)} style={{ width: "48%" }}>
               <Tap onPress={() => router.push({ pathname: "/search", params: { store: "all", category: cat.slug } })} accessibilityLabel={t("m.catFromEvery", { name: cat.label })}>
                 <Card pad={14} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <IconChip icon={cat.icon} size={40} />
+                  <CatThumb node={{ icon: cat.icon }} size={40} />
                   <T v="h3" style={{ fontSize: 15, flex: 1 }} numberOfLines={1}>
                     {cat.label}
                   </T>
@@ -76,7 +77,7 @@ export default function Categories() {
                   accessibilityLabel={t("m.catIn", { cat: cat.label, store: s.name })}
                 >
                   <Card pad={12} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <IconChip icon={cat.icon} mode={m} size={36} />
+                    <CatThumb node={{ icon: cat.icon }} mode={m} size={36} />
                     <T v="small" style={{ fontWeight: "700", flex: 1 }} numberOfLines={2}>
                       {cat.label}
                     </T>

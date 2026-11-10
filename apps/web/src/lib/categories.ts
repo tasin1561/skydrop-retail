@@ -17,6 +17,8 @@ export type CatNode = {
   nameBn?: string | null;
   icon: string;
   image?: string | null;
+  /** up to 4 photos (admin image first, then the category's best products); empty = show the icon */
+  images?: string[] | null;
   depth: number;
   featured?: boolean;
   stores: MarketId[];

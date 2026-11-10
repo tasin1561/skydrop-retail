@@ -80,6 +80,7 @@ function Nav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="store/[market]" options={{ headerShown: false }} />
+        <Stack.Screen name="category/[...path]" options={{ headerShown: false }} />
         <Stack.Screen name="search" options={{ headerShown: false, animation: "fade" }} />
         <Stack.Screen name="checkout/index" options={{ title: t("checkout.meta") }} />
         <Stack.Screen name="checkout/success" options={{ headerShown: false, gestureEnabled: false, animation: "fade" }} />
