@@ -15,7 +15,7 @@ class MarketResolver
         }
 
         return match (true) {
-            (bool) preg_match('/^itm[a-z0-9]{6,}$/i', $id) => 'flipkart',
+            (bool) preg_match('/^itm[a-z0-9]{6,}(-[a-z0-9]{8,20})?$/i', $id) => 'flipkart',
             (bool) preg_match('/^bb\d+$/i', $id) => 'bigbasket',
             (bool) preg_match('/^[A-Z0-9]{10}$/', $id) => 'amazon',
             default => null,

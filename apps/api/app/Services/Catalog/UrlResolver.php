@@ -2,6 +2,7 @@
 
 namespace App\Services\Catalog;
 
+use App\Sources\Parsers\FlipkartHtmlParser;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -49,8 +50,8 @@ class UrlResolver
         if ($host === 'amazon.in' && preg_match('#/(?:dp|gp/product|gp/aw/d|product|exec/obidos/asin|o/ASIN)/([A-Z0-9]{10})(?:[/?]|$)#i', $path.'/', $m)) {
             return ['market' => 'amazon', 'id' => strtoupper($m[1])];
         }
-        if ($host === 'flipkart.com' && preg_match('#/p/(itm[a-z0-9]+)#i', $path, $m)) {
-            return ['market' => 'flipkart', 'id' => strtolower($m[1])];
+        if ($host === 'flipkart.com' && ($id = FlipkartHtmlParser::idFromUrl($url))) {
+            return ['market' => 'flipkart', 'id' => $id]; // keeps ?pid= so the shared variant opens
         }
         if ($host === 'bigbasket.com' && preg_match('#/pd/(\d+)#', $path, $m)) {
             return ['market' => 'bigbasket', 'id' => 'bb'.$m[1]];

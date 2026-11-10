@@ -48,8 +48,12 @@ class OxylabsFlipkartSource extends AbstractSource
 
     public function product(string $id): SourceProduct
     {
-        $r = $this->client->query(['source' => 'flipkart_product', 'product_id' => preg_replace('/^itm/i', '', $id), 'render' => 'html'],
-            'product', 'flipkart', $id, $this->hedge);
+        // "itm…-pid" opens that exact variant (colour/storage); a bare "itm…" opens Flipkart's default variant.
+        [$itm, $pid] = FlipkartHtmlParser::splitId($id);
+        $payload = $pid
+            ? ['source' => 'flipkart', 'url' => FlipkartHtmlParser::productUrl($id), 'render' => 'html']
+            : ['source' => 'flipkart_product', 'product_id' => preg_replace('/^itm/i', '', $itm), 'render' => 'html'];
+        $r = $this->client->query($payload, 'product', 'flipkart', $id, $this->hedge);
         $html = (string) $r['content'];
         $data = $this->parser->product($html, $id);
         if ($data['title'] === '') {

@@ -103,7 +103,7 @@ class ProductResource extends JsonResource
                 'dimensions' => (object) ($v['dimensions'] ?? []),
                 'swatch' => $v['swatch'] ?? null,
                 'selected' => (bool) ($v['selected'] ?? ($v['id'] ?? null) === $p->id),
-                'available' => $s ? ($s->in_stock && ! $s->hidden) : true,
+                'available' => $s ? ($s->in_stock && ! $s->hidden) : (bool) ($v['in_stock'] ?? true), // stored row first, else the page's own stock flag
             ];
         }, $variants);
     }
