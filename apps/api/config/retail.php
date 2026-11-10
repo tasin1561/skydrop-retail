@@ -58,7 +58,9 @@ return [
                 'https://www.flipkart.com/televisions/pr?sid=ckf,czl&p[]=facets.discount_range_v1%5B%5D%3D30%25+or+more&sort=popularity',
                 'https://www.flipkart.com/audio-video/headphones-earphones/pr?sid=0pm,fcn&p[]=facets.discount_range_v1%5B%5D%3D50%25+or+more&sort=popularity',
             ],
-            'bigbasket' => 'https://www.bigbasket.com/offers/',
+            // BigBasket: the offers page has no products any more; one top-level category (mobile page) per run, rotating.
+            'bigbasket' => ['/cl/foodgrains-oil-masala/', '/cl/snacks-branded-foods/', '/cl/beverages/', '/cl/beauty-hygiene/',
+                '/cl/cleaning-household/', '/cl/gourmet-world-food/'],
             // Myntra: most-discounted first in one fashion category per run, rotating (listing pages, no rendering).
             'myntra' => [
                 'https://www.myntra.com/men-tshirts?sort=discount',

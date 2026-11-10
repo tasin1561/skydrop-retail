@@ -162,3 +162,23 @@ the migration `2026_11_10_000001_add_myntra_marketplace` adds the store (catalog
 - Sizes are options of the product page (no extra calls); other colours are separate Myntra styles and are fetched only when a
   shopper taps one (no variant prefetch for Myntra). Checkout requires an in-stock size for Myntra items that have sizes.
 - Myntra calls are outside the Amazon/Flipkart data plan (System → Product data usage → "Other stores").
+
+## BigBasket (bigbasket.com), re-checked Nov 2026
+
+BigBasket blocks most automated requests and its desktop search, category and offers pages no longer carry products
+(they load in the browser after a delivery location is chosen). What works, all unrendered ($0.90 per 1,000):
+
+- Listings come from the MOBILE site (`user_agent_type: mobile`), which still builds category (`/pc/…`, `/cl/…`) and brand
+  (`/pb/…`) pages on the server (4-8 s). There is no search page with products, so a search tries, in order:
+  `/pc/{words}/`, `/pb/{words}/`, up to 3 BigBasket category/brand pages Google lists for "bigbasket {words}" (one
+  google_search call), then the top-level category our tree maps the words to. Broader pages are filtered to products whose
+  names match. A search can take 10-60 s and some words find nothing (pages Google lists are sometimes retired, and
+  BigBasket refuses some requests with 613).
+- Deals: one top-level category per run (`retail.offers.deal_urls.bigbasket`), at least 10% below MRP.
+- Product pages: requested as a tablet first (the full desktop page about half the time: price, MRP, stock, pack sizes,
+  breadcrumb), then mobile (title price only: the stored photos, MRP and packs are kept with that price, stock is
+  confirmed when we buy). Some products come back with neither; the last listing price then applies (checkout accepts a
+  price checked within `CHECKOUT_VERIFY_GRACE_HOURS`).
+- Pack sizes are separate products and are not prefetched (they load when tapped). Listings with a placeholder ₹1 price
+  are dropped.
+- Needs a queue worker: searches and product pages are background jobs (the site polls them).

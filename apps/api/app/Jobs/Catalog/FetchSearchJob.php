@@ -25,8 +25,13 @@ class FetchSearchJob implements ShouldQueue
         public string $sort = 'relevance',
         public ?string $category = null,
         public ?string $fetchJobId = null,
-        public ?string $usagePurpose = null,
-    ) {}
+        ?string $usagePurpose = null,
+    ) {
+        $this->usagePurpose = $usagePurpose;
+    }
+
+    /** Plain property with a default: jobs queued before it existed still run (see FetchProductJob). */
+    public ?string $usagePurpose = null;
 
     public function handle(CatalogService $catalog, JobTracker $jobs): void
     {

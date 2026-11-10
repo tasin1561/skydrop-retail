@@ -170,7 +170,7 @@ HTML;
         ]]]]]];
         $html = '<html><body><script id="__NEXT_DATA__" type="application/json">'.json_encode($state).'</script></body></html>';
         $p = (new BigBasketParser)->product($html, 'bb40001234');
-        $this->assertSame('Basmati Rice 1 kg', $p['title']);
+        $this->assertSame('India Gate Basmati Rice 1 kg', $p['title']);
         $this->assertSame('India Gate', $p['brand']);
         $this->assertSame(199.0, $p['price_inr']);
         $this->assertSame(250.0, $p['mrp_inr']);

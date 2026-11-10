@@ -18,9 +18,18 @@ class FetchProductJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    /** @param  ?string  $usagePurpose  UsageContext purpose (refresh, watch, paste-link); null = product page */
+    /**
+     * UsageContext purpose (refresh, watch, paste-link); null = product page. A plain property with a default, not a
+     * constructor one: jobs queued before it existed are unserialized without it (the constructor doesn't run) and
+     * would fail with "must not be accessed before initialization".
+     */
+    public ?string $usagePurpose = null;
+
     public function __construct(public string $productId, public ?string $fetchJobId = null, public bool $withVariants = true,
-        public ?string $usagePurpose = null) {}
+        ?string $usagePurpose = null)
+    {
+        $this->usagePurpose = $usagePurpose;
+    }
 
     public function handle(CatalogService $catalog, JobTracker $jobs): void
     {

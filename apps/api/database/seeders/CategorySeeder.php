@@ -24,9 +24,10 @@ class CategorySeeder extends Seeder
                 ['beauty', 'Beauty', null],
             ],
             'bigbasket' => [
-                ['grocery', 'Staples & Snacks', null],
-                ['home', 'Household', null],
-                ['beauty', 'Personal care', null],
+                // BigBasket mobile category pages (the store has no search page with products any more).
+                ['grocery', 'Staples & Snacks', '/cl/foodgrains-oil-masala/'],
+                ['home', 'Household', '/cl/cleaning-household/'],
+                ['beauty', 'Personal care', '/cl/beauty-hygiene/'],
             ],
             // Myntra: a listing path ("men-tshirts", most popular first) or a search query.
             'myntra' => [
