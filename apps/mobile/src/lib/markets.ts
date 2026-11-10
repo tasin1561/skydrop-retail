@@ -42,7 +42,7 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     categories: [
       { slug: "electronics", label: "Electronics", icon: "phone" },
       { slug: "beauty", label: "Beauty", icon: "beauty" },
-      { slug: "fashion", label: "Shoes", icon: "shoe" },
+      { slug: "fashion", label: "Fashion", icon: "shirt" },
       { slug: "grocery", label: "Drinks & Grocery", icon: "juice" },
     ],
   },
@@ -56,7 +56,7 @@ export const STORES: Record<StoreMode, StoreInfo> = {
     heroText: "Big brands and big offers from flipkart.com, with Skydrop delivery to your district.",
     categories: [
       { slug: "fashion", label: "Fashion", icon: "shirt" },
-      { slug: "electronics", label: "Gadgets", icon: "phone" },
+      { slug: "electronics", label: "Electronics", icon: "phone" },
       { slug: "home", label: "Home", icon: "home" },
       { slug: "beauty", label: "Beauty", icon: "beauty" },
     ],

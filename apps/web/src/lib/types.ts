@@ -74,6 +74,8 @@ export type Product = {
   starBreakdown?: { rating: number; percentage: number }[];
   deliveryKolkata?: string | null;
   categoryPath?: string[];
+  /** Our category node and its parents (API), for the breadcrumb. */
+  categoryTrail?: { path: string; name: string; nameBn?: string | null }[];
   offers?: Offer[];
   dealBadge?: string | null;
   couponInr?: number | null;

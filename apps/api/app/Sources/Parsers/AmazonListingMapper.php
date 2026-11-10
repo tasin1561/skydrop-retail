@@ -73,11 +73,18 @@ class AmazonListingMapper
             $offers[] = Offers::make(Offers::classify($label) === 'lightning' ? 'lightning' : 'deal', $label ?: 'Limited time deal', null, $mrp > $price ? $mrp - $price : null);
         }
 
+        // Fashion and grocery results show the brand on its own line, so the title lacks it ("Men First Running Shoes" by Campus).
+        $brand = Text::clean((string) ($r['brand'] ?? '')) ?: (Text::clean((string) ($r['manufacturer'] ?? '')) ?: null);
+        $title = Text::clean((string) $r['title']);
+        if ($brand && stripos($title, $brand) !== 0 && stripos($title, strtok($brand, ' ').' ') !== 0) {
+            $title = $brand.' '.$title;
+        }
+
         return [
             'id' => (string) $r['asin'],
             'market' => 'amazon',
-            'title' => Text::clean((string) $r['title']),
-            'brand' => Text::clean((string) ($r['manufacturer'] ?? '')) ?: null,
+            'title' => $title,
+            'brand' => $brand,
             'price_inr' => $price,
             'mrp_inr' => max($mrp, $price),
             'rating' => (float) ($r['rating'] ?? 0),

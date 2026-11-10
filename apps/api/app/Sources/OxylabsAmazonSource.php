@@ -16,7 +16,9 @@ use Throwable;
  */
 class OxylabsAmazonSource extends AbstractSource
 {
-    private const SORTS = ['price_asc' => 'price-asc-rank', 'price_desc' => 'price-desc-rank', 'rating' => 'review-rank', 'relevance' => null, 'discount' => null];
+    /** Our sort keys → Oxylabs amazon_search context sort_by (Oxylabs rejects Amazon's own "price-asc-rank" names with HTTP 400). */
+    private const SORTS = ['price_asc' => 'price_low_to_high', 'price_desc' => 'price_high_to_low', 'rating' => 'average_review',
+        'newest' => 'most_recent', 'relevance' => null, 'discount' => null];
 
     public function __construct(private OxylabsClient $client, private AmazonHtmlParser $parser, private AmazonListingMapper $mapper) {}
 
@@ -92,12 +94,16 @@ class OxylabsAmazonSource extends AbstractSource
         return $this->mapper->bestsellers((array) $r['content'])->withProvider($this->name(), true);
     }
 
-    /** Today's Deals: the deals page is JS-built, so render it and collect ASINs; details come from product fetches. */
+    /**
+     * Today's Deals: collect ASINs from the deals page (or the sale event it redirects to); details come from product
+     * fetches. Fetched with the "amazon" source: Oxylabs refuses amazon.in URLs on "universal", and the ASINs are in
+     * the HTML without rendering.
+     */
     public function deals(int $page = 1): SearchPage
     {
         $r = $this->client->query([
-            'source' => 'universal', 'url' => (string) config('retail.offers.deal_urls.amazon', 'https://www.amazon.in/deals'),
-            'geo_location' => $this->pincode(), 'render' => 'html',
+            'source' => 'amazon', 'url' => (string) config('retail.offers.deal_urls.amazon', 'https://www.amazon.in/deals'),
+            'geo_location' => $this->pincode(),
         ], 'deals', 'amazon', 'deals#'.$page);
         preg_match_all('#/dp/([A-Z0-9]{10})|data-asin="([A-Z0-9]{10})"#', (string) $r['content'], $m);
         $ids = array_values(array_unique(array_filter(array_merge($m[1], $m[2]))));

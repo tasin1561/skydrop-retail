@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Models\Setting;
+use App\Sources\Parsers\FlipkartHtmlParser;
 use App\Support\Rbac\PermissionResolver;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -143,7 +144,7 @@ class Admin
         return match ($market) {
             'amazon' => "https://www.amazon.in/dp/{$id}",
             // The exact variant: /p/itm…?pid=… (our id "itm…-pid").
-            'flipkart' => \App\Sources\Parsers\FlipkartHtmlParser::productUrl($productId),
+            'flipkart' => FlipkartHtmlParser::productUrl($productId),
             'bigbasket' => 'https://www.bigbasket.com/pd/'.rawurlencode((string) preg_replace('/^bb/i', '', $productId)).'/',
             default => '#',
         };

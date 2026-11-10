@@ -80,7 +80,8 @@ final class Offers
      */
     public static function effectivePrice(float $price, ?float $coupon): ?float
     {
-        if ($price <= 0 || ! $coupon) {
+        // A coupon worth most of the price is a misread, not a deal: never price from it.
+        if ($price <= 0 || ! $coupon || $coupon > 0.6 * $price) {
             return null;
         }
 

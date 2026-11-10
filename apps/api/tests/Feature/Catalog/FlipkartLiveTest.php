@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Catalog;
 
+use App\Filament\Support\Admin;
 use App\Models\ApiLog;
 use App\Models\Product;
 use App\Services\Catalog\CatalogService;
 use App\Services\Catalog\UrlResolver;
+use App\Services\Categories\CategoryTree;
 use App\Sources\OxylabsFlipkartSource;
+use Database\Seeders\CategoryTreeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -23,6 +26,8 @@ class FlipkartLiveTest extends TestCase
     {
         parent::setUp();
         $this->seedCatalog();
+        $this->seed(CategoryTreeSeeder::class);
+        CategoryTree::flush();
         $this->goLive('flipkart');
         config(['retail.variants.mode' => 'manual']);
     }
@@ -62,6 +67,9 @@ class FlipkartLiveTest extends TestCase
 
         $this->assertSame(5199.0, (float) $r->json('product.priceInr'));
         $this->assertSame('Asics', $r->json('product.brand'));
+        $trail = $r->json('product.categoryTrail');
+        $this->assertNotEmpty($trail, 'breadcrumb uses our category tree');
+        $this->assertMatchesRegularExpression('/shoe|footwear/i', end($trail)['name']);
         $this->assertNotEmpty($r->json('product.videos'));
         // Out-of-stock sizes come straight from the page (no extra call needed to know).
         $variants = collect($r->json('product.variants'))->keyBy('id');
@@ -150,8 +158,8 @@ class FlipkartLiveTest extends TestCase
 
     public function test_admin_purchase_links_open_the_exact_store_page(): void
     {
-        $this->assertSame('https://www.flipkart.com/-/p/itm9e64270628c7b?pid=SHOHAHU3YXJTAHYF', \App\Filament\Support\Admin::sourceUrl('flipkart', self::SHOE));
-        $this->assertSame('https://www.flipkart.com/-/p/itm9e64270628c7b', \App\Filament\Support\Admin::sourceUrl('flipkart', 'itm9e64270628c7b'));
-        $this->assertSame('https://www.bigbasket.com/pd/40001234/', \App\Filament\Support\Admin::sourceUrl('bigbasket', 'bb40001234'));
+        $this->assertSame('https://www.flipkart.com/-/p/itm9e64270628c7b?pid=SHOHAHU3YXJTAHYF', Admin::sourceUrl('flipkart', self::SHOE));
+        $this->assertSame('https://www.flipkart.com/-/p/itm9e64270628c7b', Admin::sourceUrl('flipkart', 'itm9e64270628c7b'));
+        $this->assertSame('https://www.bigbasket.com/pd/40001234/', Admin::sourceUrl('bigbasket', 'bb40001234'));
     }
 }

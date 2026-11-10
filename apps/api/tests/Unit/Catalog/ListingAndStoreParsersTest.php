@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Catalog;
 
+use App\Services\Catalog\CategoryGuesser;
 use App\Sources\Parsers\AmazonListingMapper;
 use App\Sources\Parsers\BigBasketParser;
 use App\Sources\Parsers\FlipkartHtmlParser;
@@ -29,7 +30,8 @@ class ListingAndStoreParsersTest extends TestCase
         $coupon = collect($page->items)->firstWhere('id', 'B0HHNTFNGR');
         $this->assertSame(281.3, $coupon['coupon_inr']);
         $this->assertSame('coupon', $coupon['offers'][0]['type']);
-        $this->assertSame(round($coupon['price_inr'] - 281.3, 2), $coupon['effective_price_inr']);
+        // ₹281.30 off a ₹290 item would price it at ₹8.70: a coupon over 60% of the price is never priced from.
+        $this->assertNull($coupon['effective_price_inr']);
         $this->assertNull(collect($page->items)->firstWhere('id', 'B0GKY99P56'), 'sponsored rows are skipped');
     }
 
@@ -195,7 +197,7 @@ HTML;
 
     public function test_category_guess_uses_store_breadcrumbs_and_common_titles(): void
     {
-        $g = new \App\Services\Catalog\CategoryGuesser;
+        $g = new CategoryGuesser;
         $this->assertSame('electronics', $g->guess('flipkart', 'PHILIPS Frameless 108 cm (43 inch) Full HD LED Smart Google TV'));
         $this->assertSame('electronics', $g->guess('flipkart', 'PHILIPS Frameless', ['Home Entertainment', 'Televisions']));
         $this->assertSame('home', $g->guess('flipkart', 'Atomic Habits', ['Books', 'Self-Help Books']));

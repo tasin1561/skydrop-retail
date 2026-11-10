@@ -46,8 +46,8 @@ class AmazonHtmlParser
         return [
             'id' => $asin,
             'market' => 'amazon',
-            'title' => $this->text('//*[@id="productTitle"]'),
-            'brand' => $this->brand($specs),
+            'title' => $title = self::withBrand($this->text('//*[@id="productTitle"]'), $brand = $this->brand($specs), $this->text('//*[@id="bylineInfo"]')),
+            'brand' => $brand,
             'price_inr' => $price,
             'mrp_inr' => max($mrp, $price),
             'discount_pct' => $this->discount(),
@@ -167,10 +167,25 @@ class AmazonHtmlParser
     }
 
     /** @param array<string, string> $specs */
+    /** Fashion titles often leave the brand out ("New Cotton Leaf Printed Kurta" by GLAMALUE): put it in front. Not for books (author). */
+    private static function withBrand(string $title, string $brand, string $byline): string
+    {
+        if ($title === '' || $brand === '' || preg_match('/^by\s/i', $byline) || preg_match('/^(generic|unbranded|na|n\/a)$/i', $brand)
+            || mb_strlen($brand) > 30 || stripos($title, $brand) !== false || stripos($title, (string) strtok($brand, ' ')) === 0) {
+            return $title;
+        }
+
+        return $brand.' '.$title;
+    }
+
     private function brand(array $specs): string
     {
         $t = $this->text('//*[@id="bylineInfo"]');
-        $t = preg_replace(['/^Visit the\s+/i', '/\s+Store$/i', '/^Brand:\s*/i'], '', $t) ?? $t;
+        // Books: "by James Clear (Author) Format: Paperback" → "James Clear" (first contributor).
+        if (preg_match('/^by\s+(.+?)(?:\s*\((?:Author|Editor|Illustrator)[^)]*\)|,|\s+and\s+|\s+Format:|$)/i', $t, $m)) {
+            $t = trim($m[1]);
+        }
+        $t = preg_replace(['/^Visit the\s+/i', '/\s+Store$/i', '/^Brand:\s*/i', '/\s*Format:.*$/i'], '', $t) ?? $t;
 
         return $t !== '' ? $t : ($specs['Brand'] ?? $specs['Brand name'] ?? $specs['Manufacturer'] ?? '');
     }
@@ -512,16 +527,19 @@ class AmazonHtmlParser
                 $mrp > $price ? $mrp - $price : null, $endsAt, $claimed);
         }
 
-        // Clippable coupon: "Apply ₹500 coupon" / "Save 10% with coupon" / couponBadge.
-        $couponText = $this->text('//*[@id="promoPriceBlockMessage_feature_div"]//*[contains(@id,"couponText") or contains(@class,"couponLabelText") or contains(@class,"promoPriceBlockMessage")]')
-            ?: $this->text('//*[contains(@id,"couponBadge") or contains(@class,"couponBadge") or contains(@id,"vpcButton")]');
-        if ($couponText === '' && preg_match('/(Apply\s+(?:₹\s*[\d,.]+|\d+%)\s+coupon|Save\s+(?:₹\s*[\d,.]+|\d+%)\s+with coupon)/u', $this->text('//*[@id="promoPriceBlockMessage_feature_div"]'), $m)) {
-            $couponText = $m[1];
+        // Clippable coupon of THIS product: only the price block / buy box, never carousels of other products
+        // (those say "You pay ₹38,999.00 with coupon" for a different item).
+        $own = '[not(ancestor::*[contains(@class,"a-carousel") or contains(@id,"sims") or contains(@id,"sp_detail") or contains(@id,"similarities") or contains(@id,"session-sims") or contains(@data-cel-widget,"sp_")])]';
+        $texts = [$this->text('//*[@id="promoPriceBlockMessage_feature_div"]')];
+        foreach ($this->texts('//*[contains(@id,"couponText") or contains(@class,"couponLabelText") or contains(@id,"couponBadge") or contains(@class,"couponBadge") or contains(@id,"vpcButton")]'.$own) as $t) {
+            $texts[] = $t;
         }
-        if ($couponText !== '' && stripos($couponText, 'coupon') !== false && $price > 0) {
-            $coupon = Offers::couponValue($couponText, $price);
-            if ($coupon) {
-                $offers[] = Offers::make('coupon', preg_match('/(Apply[^.|]*coupon|Save[^.|]*coupon)/i', $couponText, $m) ? $m[1] : $couponText, null, $coupon);
+        foreach ($texts as $t) {
+            [$value, $label] = self::couponFrom($t, $price);
+            if ($value !== null) {
+                $coupon = $value;
+                $offers[] = Offers::make('coupon', $label, null, $coupon);
+                break;
             }
         }
 
@@ -554,6 +572,36 @@ class AmazonHtmlParser
             $offers[] = Offers::make('subscribe', 'Subscribe & Save', $sns, null);
         }
 
+        // The offers carousel is rendered twice on some pages (desktop + accessibility copy).
+        $offers = array_values(collect($offers)->unique(fn ($o) => $o['type'].'|'.$o['title'].'|'.($o['detail'] ?? ''))->all());
+
         return [$offers, $badge, $endsAt, $coupon];
+    }
+
+    /**
+     * The coupon value in INR from a coupon phrase only (never another % on the line, like "80% Savings"):
+     * "Apply ₹500 coupon", "Apply 2% coupon", "Save ₹50 with coupon", "Save 10% on coupon", "You pay ₹1,299 with coupon".
+     * Values above 60% of the price are treated as a misread and ignored.
+     *
+     * @return array{0: ?float, 1: string}
+     */
+    public static function couponFrom(string $text, float $price): array
+    {
+        $t = Text::clean($text);
+        $money = fn (string $v) => (float) str_replace(',', '', $v);
+        $value = null;
+        $label = '';
+        if (preg_match('/(Apply\s+₹\s*([\d,]+(?:\.\d+)?)\s+coupon)/iu', $t, $m) || preg_match('/(Save\s+₹\s*([\d,]+(?:\.\d+)?)\s+(?:with|on)\s+coupon)/iu', $t, $m)) {
+            [$label, $value] = [$m[1], $money($m[2])];
+        } elseif (preg_match('/(Apply\s+(\d+(?:\.\d+)?)\s*%\s+coupon)/iu', $t, $m) || preg_match('/(Save\s+(\d+(?:\.\d+)?)\s*%\s+(?:with|on)\s+coupon)/iu', $t, $m)) {
+            [$label, $value] = [$m[1], round($price * (float) $m[2] / 100, 2)];
+        } elseif (preg_match('/(You pay\s+₹\s*([\d,]+(?:\.\d+)?)\s+with coupon)/iu', $t, $m) && $money($m[2]) < $price) {
+            [$label, $value] = [$m[1], round($price - $money($m[2]), 2)];
+        }
+        if ($value === null || $value <= 0 || $price <= 0 || $value > 0.6 * $price) {
+            return [null, ''];
+        }
+
+        return [$value, $label];
     }
 }

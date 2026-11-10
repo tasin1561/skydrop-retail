@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Product;
+use App\Services\Categories\CategoryTree;
 use App\Services\PricingService;
 use App\Support\ProductJson;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class ProductResource extends JsonResource
             'id' => $p->id,
             'market' => $p->market,
             'category' => $p->category,
+            'categoryTrail' => $this->trail($p), // the product's own category node and its parents (breadcrumb)
             'title' => $p->title,
             'brand' => (string) $p->brand,
             'priceInr' => (float) $p->price_inr,
@@ -89,6 +91,17 @@ class ProductResource extends JsonResource
      * @param  list<array<string, mixed>>  $variants
      * @return list<array<string, mixed>>
      */
+    /** @return list<array{path: string, name: string, nameBn: ?string}> */
+    private function trail(Product $p): array
+    {
+        if (! $p->category_id) {
+            return [];
+        }
+
+        return array_map(fn (array $n) => ['path' => $n['path'], 'name' => $n['name'], 'nameBn' => $n['name_bn'] ?? null],
+            app(CategoryTree::class)->ancestry((int) $p->category_id));
+    }
+
     private function variants(Product $p, array $variants): array
     {
         $ids = array_values(array_filter(array_column($variants, 'id')));

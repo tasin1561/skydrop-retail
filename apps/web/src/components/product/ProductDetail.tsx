@@ -2,7 +2,7 @@ import "./product.css";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { storeText } from "@/lib/markets";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 import { FollowProductStore } from "@/components/StoreTheme";
 import { discountPct, mrpBdt, priceBdt, weightKg } from "@/lib/pricing";
 import { Icon } from "@/components/Icon";
@@ -43,6 +43,9 @@ export async function ProductDetail({
   const source = store.source;
   const cat = store.categories.find((c) => c.slug === p.category) ?? storeText("all", t).categories.find((c) => c.slug === p.category);
   const catLabel = cat?.label ?? p.category;
+  // The product's own category (e.g. Fashion › Women › Kurtas & Kurtis); the store-level label is only a fallback.
+  const bn = (await getLang()) === "bn";
+  const trail = (p.categoryTrail ?? []).slice(-2);
 
   const images = p.images?.length ? p.images : p.image ? [p.image] : [];
   const media: Media[] = images.map((src) => ({ kind: "image", src }));
@@ -107,15 +110,33 @@ export async function ProductDetail({
           <li aria-hidden>
             <Icon name="right" size={14} className="text-ink-3" />
           </li>
-          <li>
-            <Link
-              href={`/search?q=&store=${p.market}&category=${p.category}`}
-              aria-current="page"
-              className="inline-flex min-h-[32px] items-center rounded-full px-1.5 font-semibold text-ink hover:text-accent"
-            >
-              {catLabel}
-            </Link>
-          </li>
+          {trail.length ? (
+            trail.map((c, i) => (
+              <li key={c.path} className="flex items-center gap-1">
+                {i > 0 && <Icon name="right" size={14} className="text-ink-3" aria-hidden />}
+                <Link
+                  href={`/c/${c.path}?store=${p.market}`}
+                  aria-current={i === trail.length - 1 ? "page" : undefined}
+                  className={
+                    "inline-flex min-h-[32px] items-center rounded-full px-1.5 hover:text-accent" +
+                    (i === trail.length - 1 ? " font-semibold text-ink" : "")
+                  }
+                >
+                  {(bn && c.nameBn) || c.name}
+                </Link>
+              </li>
+            ))
+          ) : (
+            <li>
+              <Link
+                href={`/search?q=&store=${p.market}&category=${p.category}`}
+                aria-current="page"
+                className="inline-flex min-h-[32px] items-center rounded-full px-1.5 font-semibold text-ink hover:text-accent"
+              >
+                {catLabel}
+              </Link>
+            </li>
+          )}
         </ol>
       </nav>
 

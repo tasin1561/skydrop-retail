@@ -25,10 +25,12 @@ class CategoryGuesser
     public function guess(string $market, string $title, array $path = []): string
     {
         if ($path) {
-            $root = implode(' ', array_slice($path, 0, 2));
-            foreach (self::PATH as $cat => $re) {
-                if (preg_match($re, $root)) {
-                    return $cat;
+            // The top level decides first ("Books > Health, Family & …" is a book, not beauty), then the first two.
+            foreach ([(string) $path[0], implode(' ', array_slice($path, 0, 2))] as $root) {
+                foreach (self::PATH as $cat => $re) {
+                    if (preg_match($re, $root)) {
+                        return $cat;
+                    }
                 }
             }
         }
