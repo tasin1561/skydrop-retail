@@ -50,7 +50,7 @@ class UrlResolver
         if ($host === 'amazon.in' && preg_match('#/(?:dp|gp/product|gp/aw/d|product|exec/obidos/asin|o/ASIN)/([A-Z0-9]{10})(?:[/?]|$)#i', $path.'/', $m)) {
             return ['market' => 'amazon', 'id' => strtoupper($m[1])];
         }
-        if ($host === 'flipkart.com' && ($id = FlipkartHtmlParser::idFromUrl($url))) {
+        if (in_array($host, ['flipkart.com', 'dl.flipkart.com'], true) && ($id = FlipkartHtmlParser::idFromUrl($url))) { // share links carry the path
             return ['market' => 'flipkart', 'id' => $id]; // keeps ?pid= so the shared variant opens
         }
         if ($host === 'bigbasket.com' && preg_match('#/pd/(\d+)#', $path, $m)) {

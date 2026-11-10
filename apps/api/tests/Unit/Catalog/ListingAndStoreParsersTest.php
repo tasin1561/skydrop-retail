@@ -113,6 +113,7 @@ HTML;
                 'rpd_grid_0' => ['value' => ['gridData_0' => ['value' => [
                     ['value' => ['label_0' => ['value' => ['text' => 'Battery Capacity']], 'label_1' => ['value' => ['text' => ['6000 mAh']]]]],
                     ['value' => ['label_0' => ['value' => ['text' => 'In The Box']], 'label_1' => ['value' => ['text' => ['?SIM Ejector Pin, Smartphone']]]]],
+                    ['value' => ['label_0' => ['value' => ['text' => 'Weight (without stand)']], 'label_1' => ['value' => ['text' => ['7.4 kg']]]]],
                 ]]]],
             ]]]]]], 'rpd_description_item_0' => ['value' => ['label_0' => ['value' => ['text' => 'Monster Battery: 6000mAh.']]]]]]]]],
         ]]]];
@@ -129,7 +130,9 @@ HTML;
         $this->assertSame(27499.0, $p['mrp_inr']);
         $this->assertSame(6058, $p['reviews']);
         $this->assertSame('Special Price', $p['deal_badge']);
-        $this->assertSame(['Battery capacity' => '6000 mAh', 'In the box' => 'SIM Ejector Pin, Smartphone'], $p['specs']);
+        $this->assertSame('6000 mAh', $p['specs']['Battery capacity']);
+        $this->assertSame('SIM Ejector Pin, Smartphone', $p['specs']['In the box']);
+        $this->assertSame('7.4 kg', $p['weight'], 'shipping is charged by weight');
         $this->assertSame(['Monster Battery: 6000mAh.'], $p['bullets']);
 
         $v = collect($p['variants'])->keyBy('id');
@@ -188,5 +191,15 @@ HTML;
         $this->assertSame('combo', Offers::classify('Buy 1 Get 1'));
         $this->assertSame(500.0, Offers::couponValue('Apply ₹500 coupon', 2000));
         $this->assertSame(200.0, Offers::couponValue('Save 10% with coupon', 2000));
+    }
+
+    public function test_category_guess_uses_store_breadcrumbs_and_common_titles(): void
+    {
+        $g = new \App\Services\Catalog\CategoryGuesser;
+        $this->assertSame('electronics', $g->guess('flipkart', 'PHILIPS Frameless 108 cm (43 inch) Full HD LED Smart Google TV'));
+        $this->assertSame('electronics', $g->guess('flipkart', 'PHILIPS Frameless', ['Home Entertainment', 'Televisions']));
+        $this->assertSame('home', $g->guess('flipkart', 'Atomic Habits', ['Books', 'Self-Help Books']));
+        $this->assertSame('home', $g->guess('flipkart', 'LG 242 L Frost Free Double Door Refrigerator'));
+        $this->assertSame('fashion', $g->guess('flipkart', 'Asics GT-2000 13', ['Footwear', "Men's Footwear"]));
     }
 }

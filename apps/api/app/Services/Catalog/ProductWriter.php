@@ -81,7 +81,10 @@ class ProductWriter
             $p->fill([
                 'market' => $d['market'],
                 'parent_id' => $d['parent_id'] ?? $p->parent_id,
-                'category' => $category ?: ($p->category ?: $this->guesser->guess($d['market'], (string) $d['title'], (array) ($d['category_path'] ?? []))),
+                // A listing-only row's category was guessed from its title: the first product page brings the store's
+                // breadcrumb, which is better (a TV titled "…Smart Google TV" is electronics, not the store default).
+                'category' => $category ?: (($p->category && ($p->detailed || empty($d['category_path']) || $p->category_source === 'manual'))
+                    ? $p->category : $this->guesser->guess($d['market'], (string) $d['title'], (array) ($d['category_path'] ?? []))),
                 'title' => mb_substr((string) $d['title'], 0, 500),
                 'brand' => ($d['brand'] ?? '') ?: $p->brand,
                 // An unavailable page has no price: keep the last known one for display and history.

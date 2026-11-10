@@ -47,7 +47,15 @@ return [
         'ingest_max_products' => (int) env('DEALS_MAX_PRODUCTS', 40), // detail fetches per deals run per market
         'deal_urls' => [
             'amazon' => 'https://www.amazon.in/deals',
-            'flipkart' => 'https://www.flipkart.com/offers-store',
+            // Flipkart's offers store is only banners now: one discounted category per run, rotating.
+            'flipkart' => [
+                'https://www.flipkart.com/mobiles/pr?sid=tyy,4io&p[]=facets.discount_range_v1%5B%5D%3D30%25+or+more&sort=popularity',
+                'https://www.flipkart.com/mens-footwear/pr?sid=osp,cil&p[]=facets.discount_range_v1%5B%5D%3D50%25+or+more&sort=popularity',
+                'https://www.flipkart.com/laptops/pr?sid=6bo,b5g&p[]=facets.discount_range_v1%5B%5D%3D30%25+or+more&sort=popularity',
+                'https://www.flipkart.com/women/kurtas-kurtis/pr?sid=2oq,c1r,3pj,ua6&p[]=facets.discount_range_v1%5B%5D%3D50%25+or+more&sort=popularity',
+                'https://www.flipkart.com/televisions/pr?sid=ckf,czl&p[]=facets.discount_range_v1%5B%5D%3D30%25+or+more&sort=popularity',
+                'https://www.flipkart.com/audio-video/headphones-earphones/pr?sid=0pm,fcn&p[]=facets.discount_range_v1%5B%5D%3D50%25+or+more&sort=popularity',
+            ],
             'bigbasket' => 'https://www.bigbasket.com/offers/',
         ],
     ],

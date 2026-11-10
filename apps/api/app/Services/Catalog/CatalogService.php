@@ -278,7 +278,8 @@ class CatalogService
      */
     public function variantPlan(Product $p): array
     {
-        $variants = collect($p->details?->variants ?? [])->filter(fn ($v) => ! empty($v['id']) && $v['id'] !== $p->id);
+        // Skip siblings the store page already marks out of stock (Flipkart): nothing to buy, so no data call.
+        $variants = collect($p->details?->variants ?? [])->filter(fn ($v) => ! empty($v['id']) && $v['id'] !== $p->id && ($v['in_stock'] ?? true) !== false);
         $colourDim = collect($p->details?->variants[0]['dimensions'] ?? [])->keys()
             ->first(fn ($k) => (bool) preg_match('/colou?r|style|pattern|flavou?r|design/i', (string) $k));
         $selected = collect($p->details?->variants ?? [])->firstWhere('selected', true)['dimensions'] ?? [];

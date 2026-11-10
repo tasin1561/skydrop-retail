@@ -6,19 +6,19 @@ namespace App\Services\Catalog;
 class CategoryGuesser
 {
     private const PATH = [
-        'electronics' => '/electronic|computer|mobile|phone|camera|headphone|audio|video game|wearable|smart/i',
+        'electronics' => '/electronic|computer|laptop|tablet|mobile|phone|camera|headphone|audio|video game|gaming|wearable|smart|television|\\btvs?\\b|home entertainment|monitor|projector|speaker/i',
         'fashion' => '/cloth|fashion|shoe|footwear|jewel|watch|bag|luggage|apparel|eyewear/i',
         'beauty' => '/beauty|personal care|make.?up|skin|hair|fragrance|health/i',
         'grocery' => '/grocery|gourmet|food|beverage|snack|tea|coffee|staples|fruits|drinks/i',
-        'home' => '/home|kitchen|furniture|garden|tool|appliance|household|cleaning|decor|baby|toy|pet/i',
+        'home' => '/home|kitchen|furniture|garden|tool|appliance|household|cleaning|decor|baby|toy|pet|books?|stationery|sports|musical/i',
     ];
 
     private const TITLE = [
-        'electronics' => '/\b(earbuds?|headphones?|earphones?|speaker|charger|cable|power ?bank|smart ?watch|phone|mobile|laptop|tablet|mouse|keyboard|tws|bluetooth|usb|ssd|camera)\b/i',
+        'electronics' => '/\b(earbuds?|headphones?|earphones?|speaker|soundbar|charger|cable|power ?bank|smart ?watch|phone|smartphone|mobile|laptop|notebook|chromebook|tablet|mouse|keyboard|tws|bluetooth|usb|ssd|camera|tv|television|monitor|projector|router|printer)\b/i',
         'fashion' => '/\b(shirt|t-shirt|jeans|kurta|saree|dress|shoes?|sneakers?|sandals?|slippers?|trousers?|jacket|watch|wallet|handbag|socks)\b/i',
         'beauty' => '/\b(lipstick|serum|cream|lotion|shampoo|conditioner|face ?wash|sunscreen|perfume|deo|moisturi[sz]er|kajal|foundation|nail)\b/i',
         'grocery' => '/\b(juice|tea|coffee|rice|atta|dal|masala|spice|oil|ghee|biscuits?|chips|snacks?|chocolate|honey|noodles|makhana|nuts)\b/i',
-        'home' => '/\b(bottle|cookware|pan|kadai|bedsheet|pillow|curtain|lamp|storage|container|mop|detergent|cleaner)\b/i',
+        'home' => '/\b(bottle|cookware|pan|kadai|bedsheet|pillow|curtain|lamp|storage|container|mop|detergent|cleaner|refrigerator|fridge|washing machine|air conditioner|air cooler|mixer|grinder|kettle|geyser|purifier|sofa|mattress|paperback|hardcover)\b/i',
     ];
 
     /** @param list<string> $path */

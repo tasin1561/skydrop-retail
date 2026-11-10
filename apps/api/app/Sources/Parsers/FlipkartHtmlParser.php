@@ -58,20 +58,28 @@ class FlipkartHtmlParser
 
         $price = Text::money($ppd['finalPrice'] ?? $ppd['fsp'] ?? null) ?? Text::money($offer['price'] ?? null) ?? $this->firstRupee($doc) ?? 0.0;
         $mrp = Text::money($ppd['mrp'] ?? null) ?? $this->mrp($html, $price);
-        $images = array_values(array_filter(array_map(fn ($u) => is_string($u) ? $u : ($u['url'] ?? null), (array) ($ld['image'] ?? []))));
-        $stock = (string) ($offer['availability'] ?? '');
-        $inStock = $price > 0 && ! str_contains(strtolower($stock), 'outofstock') && ! preg_match('/sold out|currently unavailable/i', $doc->text('//body'));
-        $offers = $this->availableOffers($doc, $price);
+        [$gallery, $videos] = $this->media($state);
+        $images = self::uniqueImages([
+            ...array_filter(array_map(fn ($u) => is_string($u) ? $u : ($u['url'] ?? null), (array) ($ld['image'] ?? []))),
+            ...$gallery,
+        ]);
+        // Stock: the product's own schema.org offer when present (page text also mentions other variants' stock).
+        $stock = strtolower((string) ($offer['availability'] ?? ''));
+        $inStock = $price > 0 && ($stock !== ''
+            ? ! str_contains($stock, 'outofstock') && ! str_contains($stock, 'soldout') && ! str_contains($stock, 'discontinued')
+            : ! preg_match('/sold out|currently unavailable/i', $doc->text('//h1/ancestor::*[3]')));
+        $offers = [...$this->availableOffers($doc, $price), ...$this->stateOffers($state)];
         $special = collect($offers)->firstWhere('type', 'special_price');
         $currentPid = strtoupper((string) ($ld['sku'] ?? '')) ?: (self::splitId($id)[1] ?? '');
         $bullets = $this->highlights($doc) ?: $this->stateDescriptions($state);
         $specs = $this->stateSpecs($state) ?: $this->specs($doc);
+        $reviews = $this->stateReviews($state) ?: $this->ldReviews($ld);
 
         return [
             'id' => $id,
             'market' => 'flipkart',
             'title' => Text::clean((string) ($ld['name'] ?? $doc->text('//h1'))),
-            'brand' => Text::clean(is_array($ld['brand'] ?? null) ? (string) ($ld['brand']['name'] ?? '') : (string) ($ld['brand'] ?? '')),
+            'brand' => self::brandCase(Text::clean(is_array($ld['brand'] ?? null) ? (string) ($ld['brand']['name'] ?? '') : (string) ($ld['brand'] ?? '')), (string) ($ld['name'] ?? '')),
             'price_inr' => $price,
             'mrp_inr' => max($mrp, $price),
             'rating' => (float) ($ld['aggregateRating']['ratingValue'] ?? 0),
@@ -83,19 +91,21 @@ class FlipkartHtmlParser
             'amazons_choice' => false,
             'sales_volume' => '',
             'in_stock' => $inStock,
-            'deliverable' => ! preg_match('/not deliverable|does not deliver|cannot be delivered/i', $html),
+            // Fetched without a delivery location, so every page says "Not deliverable at your location".
+            // Delivery to the Kolkata hub is confirmed when we buy, as with any store without pincode support.
+            'deliverable' => true,
             'stock_text' => $inStock ? 'In stock' : 'Currently unavailable',
             'delivery_text' => null,
             'bullets' => $bullets,
             'specs' => $specs,
-            'weight' => null,
+            'weight' => $this->weight($specs), // shipping is charged by weight
             'variants' => $this->variants($state, $currentPid),
-            'videos' => [],
-            'has_videos' => false,
+            'videos' => $videos,
+            'has_videos' => $videos !== [],
             'aplus' => [],
-            'review_list' => [],
+            'review_list' => $reviews,
             'star_breakdown' => [],
-            'category_path' => [],
+            'category_path' => $this->breadcrumbs($state),
             'offers' => $offers,
             'deal_badge' => $special || ($ppd['isSpecialPrice'] ?? false) ? 'Special Price' : null,
             'deal_ends_at' => null,
@@ -104,10 +114,129 @@ class FlipkartHtmlParser
         ];
     }
 
-    /** Listing cards from a search or offers-store page. */
+    /**
+     * Listing cards from a search or category (/pr?sid=…) page. Every product card carries data-id="<pid>";
+     * list (phones, laptops), grid (fashion) and book layouts differ only in which parts are present.
+     */
     public function listing(string $html): SearchPage
     {
         $doc = new HtmlDocument($html);
+        $rows = [];
+        foreach ($doc->x->query('//*[@data-id][.//a[contains(@href,"/p/itm")]][not(.//*[@data-id])]') ?: [] as $card) {
+            /** @var \DOMElement $card */
+            $link = $doc->x->query('.//a[contains(@href,"/p/itm")]', $card)?->item(0);
+            $id = $link instanceof \DOMElement ? self::idFromUrl($link->getAttribute('href')) : null;
+            if ($id === null || isset($rows[$id])) {
+                continue;
+            }
+            $row = $this->card($doc, $card, $id);
+            if ($row !== null) {
+                $rows[$id] = $row;
+            }
+        }
+        if (! $rows) {
+            $rows = $this->linkCards($doc); // older markup without data-id cards
+        }
+
+        return new SearchPage(array_values($rows), count($rows), 1);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function card(HtmlDocument $doc, \DOMElement $card, string $id): ?array
+    {
+        $parts = [];
+        foreach ($doc->x->query('.//text()[not(ancestor::*[local-name()="svg" or local-name()="script" or local-name()="style"])]', $card) ?: [] as $t) {
+            $v = trim($t->textContent);
+            if ($v !== '') {
+                $parts[] = $v;
+            }
+        }
+        $text = implode(' ', $parts);
+        $prices = self::rupeeAmounts($text);
+        if (! $prices) {
+            return null;
+        }
+        $price = $prices[0];
+
+        $titleLink = $doc->x->query('.//a[@title][contains(@href,"/p/itm")]', $card)?->item(0);
+        $title = $titleLink instanceof \DOMElement ? $titleLink->getAttribute('title') : '';
+        $brand = null;
+        if ($titleLink instanceof \DOMElement) {
+            $prev = $titleLink->previousSibling;
+            while ($prev && ! $prev instanceof \DOMElement) {
+                $prev = $prev->previousSibling;
+            }
+            $b = $prev ? Text::clean($prev->textContent) : '';
+            if ($b !== '' && mb_strlen($b) <= 40 && ! str_contains($b, '₹') && ! preg_match('/^\d/', $b)) {
+                $brand = $b; // grid cards show the brand above the title
+            }
+        }
+        if ($title === '') {
+            $img = $doc->x->query('.//img[@alt!=""]', $card)?->item(0);
+            $title = $img instanceof \DOMElement ? $img->getAttribute('alt') : '';
+        }
+        if ($title === '') {
+            // List layout: the longest text that is not a price, rating or spec line.
+            $title = (string) collect($parts)->reject(fn ($p) => str_contains($p, '₹') || mb_strlen($p) < 12)->sortByDesc(fn ($p) => mb_strlen($p))->first();
+        }
+        $title = Text::clean(preg_replace('/\.{3}$|…$/u', '', $title) ?? $title);
+        if ($title === '') {
+            return null;
+        }
+        if ($brand && stripos($title, $brand) !== 0) {
+            $title = $brand.' '.$title;
+        }
+
+        // MRP: the struck price; when "% off" is shown, the amount that matches that discount (ignores "Upto ₹4,150 off on exchange").
+        $mrp = $price;
+        $later = array_values(array_filter(array_slice($prices, 1), fn ($p) => $p > $price));
+        if (preg_match('/(\d{1,2})%\s*off/i', $text, $pm) && $later) {
+            $expect = $price / (1 - (int) $pm[1] / 100);
+            usort($later, fn ($a, $b) => abs($a - $expect) <=> abs($b - $expect));
+            $mrp = abs($later[0] - $expect) / $expect < 0.05 ? $later[0] : $mrp;
+        } elseif ($later && ! preg_match('/exchange|upto|bank offer/i', $text)) {
+            $mrp = $later[0]; // a struck price without a "% off" label
+        }
+
+        $rating = 0.0;
+        foreach ($parts as $p) {
+            if (preg_match('/^([1-5](?:\.\d)?)$/', $p, $rm)) {
+                $rating = (float) $rm[1];
+                break;
+            }
+        }
+        $reviews = preg_match('/([\d,]+)\s*Ratings/i', $text, $cm) ? Text::count($cm[1])
+            : (preg_match('/(?:^|\s)\(([\d,]+)\)(?:\s|$)/', $text, $cm) ? Text::count($cm[1]) : 0);
+
+        $image = null;
+        foreach ($doc->x->query('.//img', $card) ?: [] as $img) {
+            /** @var \DOMElement $img */
+            foreach ([$img->getAttribute('src'), $img->getAttribute('data-src'), explode(' ', trim($img->getAttribute('srcset')))[0] ?? ''] as $u) {
+                if ($u !== '' && preg_match('#flixcart\.com/image/#', $u)) {
+                    $image = $u;
+                    break 2;
+                }
+            }
+        }
+
+        return [
+            'id' => $id,
+            'market' => 'flipkart',
+            'title' => $title,
+            'brand' => $brand,
+            'price_inr' => $price,
+            'mrp_inr' => max($mrp, $price),
+            'rating' => $rating,
+            'reviews' => $reviews,
+            'image' => $image,
+            'prime' => false, 'best_seller' => false, 'amazons_choice' => false, 'sales_volume' => '',
+            'offers' => [],
+        ];
+    }
+
+    /** Older markup: walk up from each product link to the closest block with a price. @return array<string, array<string, mixed>> */
+    private function linkCards(HtmlDocument $doc): array
+    {
         $rows = [];
         foreach ($doc->x->query('//a[contains(@href,"/p/itm")]') ?: [] as $a) {
             /** @var \DOMElement $a */
@@ -115,36 +244,24 @@ class FlipkartHtmlParser
             if ($id === null || isset($rows[$id])) {
                 continue;
             }
-            // Walk up to the card (the closest ancestor carrying a price).
             $card = $a;
             for ($i = 0; $i < 6 && $card->parentNode instanceof \DOMElement && ! str_contains($card->textContent, '₹'); $i++) {
                 $card = $card->parentNode;
             }
-            $text = implode(' ', array_map(fn ($n) => trim($n->textContent), iterator_to_array($doc->x->query('.//text()', $card) ?: [])));
-            preg_match_all('/₹\s*([\d,]+)/u', $text, $pm);
-            $prices = array_map(fn ($p) => (float) str_replace(',', '', $p), $pm[1]);
-            $title = $a->getAttribute('title') ?: $doc->text('.//img/@alt', $a) ?: Text::clean($a->textContent);
-            if (! $prices || $title === '') {
-                continue;
+            if ($card instanceof \DOMElement && ($row = $this->card($doc, $card, $id))) {
+                $rows[$id] = $row;
             }
-            $img = $doc->x->query('.//img', $card)?->item(0);
-            $rating = preg_match('/(?<![\d,.])([1-5]\.\d)(?![\d,])/', $text, $rm) ? (float) $rm[1] : 0.0;
-            $rows[$id] = [
-                'id' => $id,
-                'market' => 'flipkart',
-                'title' => Text::clean($title),
-                'brand' => null,
-                'price_inr' => $prices[0],
-                'mrp_inr' => max($prices[1] ?? $prices[0], $prices[0]),
-                'rating' => $rating,
-                'reviews' => preg_match('/([\d,]+)\s*Ratings/i', $text, $cm) ? Text::count($cm[1]) : 0,
-                'image' => $img instanceof \DOMElement ? ($img->getAttribute('src') ?: null) : null,
-                'prime' => false, 'best_seller' => false, 'amazons_choice' => false, 'sales_volume' => '',
-                'offers' => [],
-            ];
         }
 
-        return new SearchPage(array_values($rows), count($rows), 1);
+        return $rows;
+    }
+
+    /** "₹5,199 ₹ 12,999" → [5199, 12999] @return list<float> */
+    private static function rupeeAmounts(string $text): array
+    {
+        preg_match_all('/₹\s*([\d,]+(?:\.\d+)?)/u', $text, $pm);
+
+        return array_values(array_filter(array_map(fn ($p) => (float) str_replace(',', '', $p), $pm[1]), fn ($v) => $v > 0));
     }
 
     /** @return list<array<string, mixed>> */
@@ -209,12 +326,12 @@ class FlipkartHtmlParser
     {
         $groups = [];
         $this->walk($state, function (string $key, mixed $node) use (&$groups) {
-            if (! str_starts_with($key, 'variant-selector-') || ! is_array($node)) {
+            if (! is_array($node) || ! (str_starts_with($key, 'variant-selector-') || str_starts_with($key, 'size-selector-'))) {
                 return;
             }
             $v = (array) ($node['value'] ?? $node);
             $header = (array) ($v['selector-header_0']['value'] ?? []);
-            $name = trim(preg_replace('/^Selected\s+/i', '', rtrim(self::text($header['label_0'] ?? null), ': ')) ?? '');
+            $name = trim(preg_replace('/^(?:Selected|Select|Choose)\s+(?:a\s+|your\s+)?/i', '', rtrim(self::text($header['label_0'] ?? null), ': ')) ?? '');
             $list = $v['horizontalListData_0']['value'] ?? $v['scrollToListData_0']['value'] ?? [];
             $options = [];
             foreach ((array) $list as $row) {
@@ -223,7 +340,11 @@ class FlipkartHtmlParser
                 $title = null;
                 $image = null;
                 $texts = [];
-                $this->walk($item, function (string $k, mixed $n) use (&$url, &$title, &$image, &$texts) {
+                $oos = false;
+                $this->walk($item, function (string $k, mixed $n) use (&$url, &$title, &$image, &$texts, &$oos) {
+                    if ($k === 'contentType' && is_string($n) && str_starts_with(strtolower($n), 'outofstock')) {
+                        $oos = true;
+                    }
                     if ($k === 'url' && is_string($n) && $url === null && str_contains($n, '/p/itm')) {
                         $url = $n;
                     } elseif ($k === 'contentTitle' && is_string($n) && $title === null) {
@@ -245,9 +366,12 @@ class FlipkartHtmlParser
                 $options[] = [
                     'id' => $id,
                     'value' => Text::clean($label),
-                    'oos' => in_array('out of stock', array_map(fn ($t) => strtolower(trim($t)), $texts), true),
+                    'oos' => $oos || in_array('out of stock', array_map(fn ($t) => strtolower(trim($t)), $texts), true),
                     'swatch' => $image ? str_replace(['{@width}', '{@height}', '{@quality}'], ['128', '128', '70'], $image) : null,
                 ];
+            }
+            if ($name === '' || preg_match('/choose|view your/i', $name)) {
+                $name = str_starts_with($key, 'size-selector-') ? 'Size' : '';
             }
             if ($options) {
                 $groups[] = ['name' => $name !== '' ? Text::label($name) : 'Option '.(count($groups) + 1), 'current' => trim(self::text($header['label_1'] ?? null)), 'options' => $options];
@@ -307,6 +431,241 @@ class FlipkartHtmlParser
         }
 
         return array_values($out);
+    }
+
+    /**
+     * Gallery images and videos from the media carousel ("multiMediaViewData").
+     *
+     * @return array{0: list<string>, 1: list<array{hls: string, thumb: ?string}>}
+     */
+    private function media(array $state): array
+    {
+        $images = [];
+        $videos = [];
+        $this->walk($state, function (string $key, mixed $node) use (&$images, &$videos) {
+            if ($key !== 'multiMediaViewData_0' || ! is_array($node)) {
+                return;
+            }
+            foreach ((array) ($node['value'] ?? []) as $item) {
+                $item = (array) ($item['value'] ?? $item);
+                $video = null;
+                $thumb = null;
+                $this->walk($item['video_0'] ?? [], function (string $k, mixed $n) use (&$video, &$thumb) {
+                    if ($k === 'videoUrl' && is_string($n) && str_contains($n, '.m3u8')) {
+                        $video ??= $n;
+                    } elseif ($k === 'dynamicImageUrl' && is_string($n)) {
+                        $thumb ??= self::sized($n, 640);
+                    }
+                });
+                if ($video) {
+                    $videos[$video] = ['hls' => $video, 'thumb' => $thumb];
+                }
+                $this->walk($item['image_0'] ?? [], function (string $k, mixed $n) use (&$images) {
+                    if ($k === 'dynamicImageUrl' && is_string($n) && str_contains($n, '/image/')) {
+                        $images[] = self::sized($n, 1500);
+                    }
+                });
+            }
+        });
+
+        return [self::uniqueImages($images), array_values(array_slice($videos, 0, 6))];
+    }
+
+    /** Item weight from the specs ("Weight (without stand)": "7.4 kg"; books list grams without a unit). */
+    private function weight(array $specs): ?string
+    {
+        foreach ($specs as $k => $v) {
+            if (! preg_match('/weight/i', (string) $k) || preg_match('/capacity|load|max/i', (string) $k)) {
+                continue;
+            }
+            if (preg_match('/(\d+(?:\.\d+)?)\s*(kg|kilograms?|g|grams?|gm)\b/i', (string) $v, $m)) {
+                return $m[1].' '.(preg_match('/^k/i', $m[2]) ? 'kg' : 'g');
+            }
+            if (preg_match('/^\s*(\d+(?:\.\d+)?)\s*$/', (string) $v, $m)) {
+                return $m[1].((float) $m[1] >= 20 ? ' g' : ' kg'); // unitless: Flipkart uses grams (books) or kg
+            }
+        }
+        foreach ($specs as $k => $v) {
+            if (preg_match('/net quantity/i', (string) $k) && preg_match('/(\d+(?:\.\d+)?)\s*(kg|g)\b/i', (string) $v, $m)) {
+                return $m[1].' '.strtolower($m[2]);
+            }
+        }
+
+        return null;
+    }
+
+    /** "asics" → "Asics" when the title spells it that way; otherwise the brand as given. */
+    private static function brandCase(string $brand, string $title): string
+    {
+        if ($brand !== '' && stripos($title, $brand) === 0) {
+            return mb_substr(Text::clean($title), 0, mb_strlen($brand));
+        }
+
+        return $brand !== '' && $brand === mb_strtolower($brand) ? mb_convert_case($brand, MB_CASE_TITLE) : $brand;
+    }
+
+    /** Flipkart image templates: {@width}/{@height}/{@quality}. */
+    private static function sized(string $url, int $px): string
+    {
+        return str_replace(['{@width}', '{@height}', '{@quality}'], [(string) $px, (string) $px, '70'], $url);
+    }
+
+    /** Same picture at different sizes or hosts counts once (keyed by the file name). @param list<string> $urls @return list<string> */
+    private static function uniqueImages(array $urls): array
+    {
+        $out = [];
+        foreach ($urls as $u) {
+            if (! is_string($u) || $u === '' || str_contains($u, '{@')) {
+                continue;
+            }
+            $key = strtolower(basename((string) parse_url($u, PHP_URL_PATH)));
+            $out[$key] ??= $u;
+        }
+
+        return array_values(array_slice($out, 0, 20));
+    }
+
+    /**
+     * Offers from the "Apply offers for maximum savings" block: bank cards, Flipkart coupons, exchange, No Cost EMI.
+     * Bank/EMI/exchange need the buyer's own card or old item, and "#OnlyForYou" coupons belong to one Flipkart
+     * account, so none of them lower the price we pay (shown as "on Flipkart" only).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function stateOffers(array $state): array
+    {
+        $out = [];
+        $seen = [];
+        $this->walk($state, function (string $key, mixed $node) use (&$out, &$seen) {
+            if ($key !== 'offerSummariesRC' || ! is_array($node)) {
+                return;
+            }
+            foreach ($node as $summary) {
+                $v = (array) ($summary['value'] ?? $summary);
+                $type = strtoupper((string) ($v['offerType'] ?? ''));
+                $amount = Text::clean((string) ($v['discountedPriceText'] ?? ''));
+                $sub = Text::clean(self::contentList($v['offerSubTitleRC'] ?? null));
+                if ($type === 'PBO' && ! isset($seen['bank'])) {
+                    $seen['bank'] = true;
+                    // Group payment options with the same saving ("Google Pay, PhonePe and 9 more: ₹182 off").
+                    $byAmount = [];
+                    foreach ((array) ($v['bankOfferGrid'] ?? []) as $b) {
+                        $b = (array) ($b['value'] ?? $b);
+                        $bank = Text::clean((string) ($b['offerTitle'] ?? ''));
+                        $off = Text::clean((string) ($b['discountedPriceText'] ?? ''));
+                        if ($bank !== '' && $off !== '') {
+                            $byAmount[$off][$bank] = true;
+                        }
+                    }
+                    uksort($byAmount, fn ($a, $b) => (Offers::rupees($b) ?? 0) <=> (Offers::rupees($a) ?? 0));
+                    foreach (array_slice($byAmount, 0, 6, true) as $off => $banks) {
+                        $names = array_keys($banks);
+                        $who = count($names) > 3 ? implode(', ', array_slice($names, 0, 2)).' and '.(count($names) - 2).' more' : implode(', ', $names);
+                        $out[] = Offers::make('bank', 'Bank Offer', "$who: $off", Offers::rupees((string) $off));
+                    }
+                } elseif ($type === 'USER_COUPON_SELECTION' && ! isset($seen['coupon'])) {
+                    $seen['coupon'] = true;
+                    $out[] = Offers::make('coupon', 'Flipkart coupon', trim(($sub ?: 'Coupon').': '.$amount.' (for the Flipkart account it is shown to)'),
+                        Offers::rupees($amount), applies: false);
+                } elseif ($type === 'EXCHANGE' && ! isset($seen['exchange'])) {
+                    $seen['exchange'] = true;
+                    $out[] = Offers::make('exchange', 'Exchange offer', "$amount off on exchange", Offers::rupees($amount));
+                }
+            }
+        });
+        // No Cost EMI is stated on the EMI tab subtitle ("Pay ₹54,310 • No Cost EMI").
+        $this->walk($state, function (string $key, mixed $node) use (&$out, &$seen) {
+            if ($key === 'subtitle' && is_string($node) && stripos($node, 'no cost emi') !== false && ! isset($seen['emi'])) {
+                $seen['emi'] = true;
+                $out[] = Offers::make('emi', 'No Cost EMI', Text::clean($node));
+            }
+        });
+
+        return $out;
+    }
+
+    /** Text of a {"value":{"contentList":[{"contentValue":"…"}]}} block. */
+    private static function contentList(mixed $rc): string
+    {
+        $list = is_array($rc) ? ($rc['value']['contentList'] ?? []) : [];
+
+        return implode(' ', array_filter(array_map(fn ($c) => is_array($c) && is_string($c['contentValue'] ?? null) ? $c['contentValue'] : '', (array) $list)));
+    }
+
+    /** Review cards in the "Ratings and reviews" block. @return list<array<string, mixed>> */
+    private function stateReviews(array $state, int $max = 8): array
+    {
+        $out = [];
+        $this->walk($state, function (string $key, mixed $node) use (&$out, $max) {
+            if (! is_array($node) || ! isset($node['ratingData_0'], $node['customEllipsisData_0'], $node['label_3']) || count($out) >= $max) {
+                return;
+            }
+            $body = (array) ($node['customEllipsisData_0']['value'] ?? []);
+            $content = Text::clean((string) ($body['prependingText'] ?? '').(string) ($body['appendingText'] ?? ''));
+            $author = Text::clean(self::text($node['label_3']));
+            $k = $author.'|'.mb_substr($content, 0, 40);
+            if ($content === '' || isset($out[$k])) {
+                return;
+            }
+            $out[$k] = [
+                'author' => $author,
+                'rating' => (int) round((float) ($node['ratingData_0']['value']['rating'] ?? 0)),
+                'title' => Text::clean(self::text($node['label_0'] ?? null)),
+                'content' => Text::truncate($content, 600),
+                'date' => Text::clean(self::text($node['label_1'] ?? null)),
+            ];
+        });
+
+        return array_values($out);
+    }
+
+    /** schema.org reviews (older pages). @return list<array<string, mixed>> */
+    private function ldReviews(array $ld): array
+    {
+        $out = [];
+        foreach (array_slice((array) ($ld['review'] ?? []), 0, 8) as $r) {
+            if (! is_array($r) || trim((string) ($r['reviewBody'] ?? '')) === '') {
+                continue;
+            }
+            $out[] = [
+                'author' => Text::clean((string) ($r['author']['name'] ?? '')),
+                'rating' => (int) round((float) ($r['reviewRating']['ratingValue'] ?? 0)),
+                'title' => Text::clean((string) ($r['name'] ?? '')),
+                'content' => Text::truncate(Text::clean((string) $r['reviewBody']), 600),
+                'date' => (string) ($r['datePublished'] ?? ''),
+            ];
+        }
+
+        return $out;
+    }
+
+    /** Breadcrumb trail (Home › Footwear › Men's Footwear › …), without "Home" and the brand-filtered last step. @return list<string> */
+    private function breadcrumbs(array $state): array
+    {
+        $out = [];
+        $this->walk($state, function (string $key, mixed $node) use (&$out) {
+            if ($out || $key !== 'horizontalListData_0' || ! is_array($node)) {
+                return;
+            }
+            $trail = [];
+            foreach ((array) ($node['value'] ?? []) as $item) {
+                $label = (array) (($item['value'] ?? $item)['label_4'] ?? []);
+                $url = (string) ($label['action']['url'] ?? '');
+                $text = Text::clean(self::text($label));
+                if ($text === '' || ($url !== '/' && ! str_contains($url, '/pr?'))) {
+                    continue;
+                }
+                if ($url === '/' || str_contains($url, '~brand')) {
+                    continue;
+                }
+                $trail[] = str_replace('’', "'", $text);
+            }
+            if (count($trail) >= 1) {
+                $out = $trail;
+            }
+        });
+
+        return array_values(array_unique($out));
     }
 
     /** Specification grid (label_0 = name, label_1 = value) under the "rpd_specifications…" widgets. @return array<string, string> */

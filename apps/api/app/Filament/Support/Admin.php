@@ -142,8 +142,9 @@ class Admin
 
         return match ($market) {
             'amazon' => "https://www.amazon.in/dp/{$id}",
-            'flipkart' => "https://www.flipkart.com/product/p/itm?pid={$id}",
-            'bigbasket' => "https://www.bigbasket.com/pd/{$id}/",
+            // The exact variant: /p/itm…?pid=… (our id "itm…-pid").
+            'flipkart' => \App\Sources\Parsers\FlipkartHtmlParser::productUrl($productId),
+            'bigbasket' => 'https://www.bigbasket.com/pd/'.rawurlencode((string) preg_replace('/^bb/i', '', $productId)).'/',
             default => '#',
         };
     }
