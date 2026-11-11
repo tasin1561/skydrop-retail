@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-# Regenerate app icons from assets/icon-src/*.svg (Midnight Luxe: ink background,
-# violet-gradient parachute, coral parcel). Needs rsvg-convert (librsvg).
+# Regenerate app icons from assets/icon-src/*.svg (Lagoon: ink background,
+# teal-gradient parachute, coral parcel). Needs rsvg-convert (librsvg).
 set -e
 cd "$(dirname "$0")/../assets"
 rsvg-convert -w 1024 -h 1024 icon-src/icon.svg   -o images/icon.png

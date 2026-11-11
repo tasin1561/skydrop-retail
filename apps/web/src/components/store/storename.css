@@ -6,14 +6,14 @@
 .sn {
   --sn-shine: rgb(255 255 255 / 0.9);
 }
-.sn[data-store="all"] { --sn-a: #5b3df5; --sn-b: #c0301a; --sn-ring: #5b3df5; --sn-fill: linear-gradient(100deg, #5b3df5, #c0301a); }
-.sn[data-store="amazon"] { --sn-a: #232f3e; --sn-b: #c45500; --sn-ring: #ff9900; --sn-fill: #232f3e; }
-.sn[data-store="flipkart"] { --sn-a: #2874f0; --sn-b: #1a56c4; --sn-ring: #2874f0; --sn-fill: #2874f0; }
-.sn[data-store="myntra"] { --sn-a: #d6194f; --sn-b: #c2410c; --sn-ring: #ff3f6c; --sn-fill: #d6194f; }
+.sn[data-store="all"] { --sn-a: #0f766e; --sn-b: #0f766e; --sn-ring: #0f766e; --sn-fill: var(--accent); }
+.sn[data-store="amazon"] { --sn-a: #232f3e; --sn-b: #c45500; --sn-ring: #ff9900; --sn-fill: var(--accent); }
+.sn[data-store="flipkart"] { --sn-a: #2874f0; --sn-b: #1a56c4; --sn-ring: #2874f0; --sn-fill: var(--accent); }
+.sn[data-store="myntra"] { --sn-a: #d6194f; --sn-b: #c2410c; --sn-ring: #ff3f6c; --sn-fill: var(--accent); }
 
 /* dark theme (and tone="dark" for names sitting on deep store tints in light mode) */
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="all"],
-.sn[data-tone="dark"][data-store="all"] { --sn-a: #9a8cff; --sn-b: #ff7a5c; --sn-ring: #7c6cff; }
+.sn[data-tone="dark"][data-store="all"] { --sn-a: #5eead4; --sn-b: #5eead4; --sn-ring: #0e8a7f; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="amazon"],
 .sn[data-tone="dark"][data-store="amazon"] { --sn-a: #ff9900; --sn-b: #ffb84d; --sn-ring: #ff9900; }
 :where(:root[data-theme="dark"]) .sn:not([data-tone="light"])[data-store="flipkart"],

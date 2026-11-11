@@ -17,7 +17,7 @@ export default function GlobalError({ retry }: { error: unknown; retry: () => vo
           <button
             type="button"
             onClick={() => retry()}
-            style={{ marginTop: 20, minHeight: 44, padding: "0 20px", borderRadius: 12, border: 0, background: "#5b3df5", color: "#fff", fontWeight: 700 }}
+            style={{ marginTop: 20, minHeight: 44, padding: "0 20px", borderRadius: 12, border: 0, background: "#0f766e", color: "#fff", fontWeight: 700 }}
           >
             {t("common.tryAgain")}
           </button>

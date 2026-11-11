@@ -18,7 +18,7 @@
     body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
     table,td{mso-table-lspace:0;mso-table-rspace:0}
     img{border:0;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
-    a{color:#5b3df5}
+    a{color:#0f766e}
     @media only screen and (max-width:620px){
         .container{width:100%!important}
         .px{padding-left:20px!important;padding-right:20px!important}
@@ -34,10 +34,10 @@
         .line{border-color:#26262f!important}
         .soft{background:#1b1b22!important}
         .foot{color:#8a8a96!important}
-        .lnk{color:#a78bfa!important}
+        .lnk{color:#5eead4!important}
         .hdr{background:#131318!important}
     }
-    [data-ogsc] .lnk{color:#a78bfa!important}
+    [data-ogsc] .lnk{color:#5eead4!important}
     [data-ogsc] .ink{color:#f4f4f6!important}
     [data-ogsc] .ink2{color:#a8a8b3!important}
 </style>
@@ -54,7 +54,7 @@
                 <td valign="middle">
                     <a href="{{ $webUrl }}" style="text-decoration:none">
                         <img src="{{ $logo }}" width="36" height="36" alt="" style="vertical-align:middle;border-radius:8px">
-                        <span style="font-size:18px;font-weight:800;color:#ffffff;vertical-align:middle;margin-left:8px;letter-spacing:-.2px">Skydrop <span style="color:#ff4d2e">Retail</span></span>
+                        <span style="font-size:18px;font-weight:800;color:#ffffff;vertical-align:middle;margin-left:8px;letter-spacing:-.2px">Skydrop <span style="color:#e8552f">Retail</span></span>
                     </a>
                 </td>
                 @if($admin)
@@ -67,7 +67,7 @@
         {{-- Card --}}
         <tr><td>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="background:#ffffff;border:1px solid #e7e5de;border-radius:20px;overflow:hidden">
-                <tr><td style="height:4px;background:#5b3df5;background-image:linear-gradient(90deg,#5b3df5,#a78bfa 70%,#ff4d2e);font-size:0;line-height:0">&nbsp;</td></tr>
+                <tr><td style="height:4px;background:#0f766e;background-image:linear-gradient(90deg,#0f766e,#5eead4 70%,#e8552f);font-size:0;line-height:0">&nbsp;</td></tr>
                 <tr><td class="px" style="padding:28px 32px 8px">
                     <h1 class="h1 ink" style="margin:0 0 14px;font-size:24px;line-height:32px;font-weight:800;color:#0b0b0f;letter-spacing:-.3px">{{ $subject }}</h1>
                     @foreach($paragraphs as $p)
@@ -139,7 +139,7 @@
                         @case('links')
                             <tr><td class="px" style="padding:6px 32px 2px;font-size:13px">
                                 @foreach($block['links'] ?? [] as $l)
-                                    <a class="lnk" href="{{ $l['url'] }}" style="color:#5b3df5;font-weight:600;text-decoration:none;margin-right:16px">{{ $l['label'] }} &rarr;</a>
+                                    <a class="lnk" href="{{ $l['url'] }}" style="color:#0f766e;font-weight:600;text-decoration:none;margin-right:16px">{{ $l['label'] }} &rarr;</a>
                                 @endforeach
                             </td></tr>
                             @break
@@ -149,7 +149,7 @@
                 @if($cta)
                     <tr><td class="px btn" style="padding:18px 32px 30px">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                            <td style="border-radius:999px;background:#5b3df5">
+                            <td style="border-radius:999px;background:#0f766e">
                                 <a href="{{ $cta['url'] }}" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;text-align:center">{{ $cta['label'] }}</a>
                             </td>
                         </tr></table>
@@ -163,7 +163,7 @@
         {{-- Footer --}}
         <tr><td class="px foot" style="padding:22px 32px 8px;font-size:12px;line-height:19px;color:#7a7a85;text-align:center">
             @unless($admin)
-                <p style="margin:0 0 6px"><strong>{{ $t['help'] }}</strong> {{ $t['reply'] }} <a class="lnk" href="mailto:{{ $supportEmail }}" style="color:#5b3df5;text-decoration:none">{{ $supportEmail }}</a>@if($supportPhone) · {{ $supportPhone }}@endif</p>
+                <p style="margin:0 0 6px"><strong>{{ $t['help'] }}</strong> {{ $t['reply'] }} <a class="lnk" href="mailto:{{ $supportEmail }}" style="color:#0f766e;text-decoration:none">{{ $supportEmail }}</a>@if($supportPhone) · {{ $supportPhone }}@endif</p>
             @endunless
             <p style="margin:0 0 6px">{{ $address }}</p>
             @if($marketing && $unsubscribe)

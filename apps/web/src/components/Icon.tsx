@@ -104,13 +104,13 @@ export function Logo({ className }: { className?: string }) {
       <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
         <defs>
           <linearGradient id="lg-sr" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#5b3df5" />
-            <stop offset="1" stopColor="#a78bfa" />
+            <stop offset="0" stopColor="#0f766e" />
+            <stop offset="1" stopColor="#5eead4" />
           </linearGradient>
         </defs>
         <path d="M4 13a12 9 0 0 1 24 0z" fill="url(#lg-sr)" />
-        <path d="M5 13l8.5 8M27 13l-8.5 8M16 13v8" stroke="#5b3df5" strokeWidth="1.3" />
-        <rect x="11" y="20" width="10" height="9" rx="2.2" fill="#ff4d2e" />
+        <path d="M5 13l8.5 8M27 13l-8.5 8M16 13v8" stroke="#0f766e" strokeWidth="1.3" />
+        <rect x="11" y="20" width="10" height="9" rx="2.2" fill="#e8552f" />
         <path d="M11 23.5h10" stroke="#fff" strokeOpacity=".6" />
       </svg>
       <span className="leading-none">

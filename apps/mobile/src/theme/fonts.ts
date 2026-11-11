@@ -1,4 +1,4 @@
-// Plus Jakarta Sans (Midnight Luxe brand font). React Native picks a font file per weight via fontFamily,
+// Plus Jakarta Sans (brand font). React Native picks a font file per weight via fontFamily,
 // so map the requested fontWeight to the matching loaded family. Falls back to the system font until loaded.
 import {
   PlusJakartaSans_400Regular,

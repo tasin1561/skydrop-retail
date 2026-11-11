@@ -54,14 +54,13 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(fn () => new HtmlString(
                 '<span style="display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:1.05rem">'
                 .'<img src="'.asset('images/skydrop-retail-logo.svg').'" alt="" style="height:2rem;width:2rem">'
-                .'<span>Skydrop Retail <span style="color:#ff4d2e">Admin</span></span></span>'
+                .'<span>Skydrop Retail <span style="color:#e8552f">Admin</span></span></span>'
             ))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/skydrop-retail-logo.svg'))
             ->colors([
-                // Midnight Luxe violet. The generated 600 shade was too light for white text, so Filament fell back to pale
-                // lavender buttons that looked disabled; pin 500-700 to the brand violet (5.6:1 on white).
-                'primary' => array_replace(Color::hex('#5b3df5'), [500 => '#7357f7', 600 => '#5b3df5', 700 => '#4a2fd6']),
+                // Lagoon teal, same as the storefront. Pin 500-700 so buttons keep white text readable (600 = 5.5:1 on white).
+                'primary' => array_replace(Color::hex('#0f766e'), [500 => '#14897f', 600 => '#0f766e', 700 => '#0b5d57']),
                 'danger' => Color::Rose,
                 'warning' => Color::Amber,
                 'success' => Color::Emerald,

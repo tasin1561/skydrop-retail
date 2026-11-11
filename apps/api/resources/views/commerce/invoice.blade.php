@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Invoice {{ $order->id }} · Skydrop Retail</title>
 <style>
-  :root { --ink:#0b0b0f; --ink2:#55555f; --line:#e7e5de; --accent:#5b3df5; --coral:#ff4d2e; --bg:#ffffff; --soft:#f7f7f4; }
+  :root { --ink:#0b0b0f; --ink2:#55555f; --line:#e7e5de; --accent:#0f766e; --coral:#e8552f; --bg:#ffffff; --soft:#f7f7f4; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--soft); color:var(--ink); font:14px/1.5 "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif; }
   .page { max-width:820px; margin:24px auto; background:var(--bg); padding:40px; border-radius:20px; box-shadow:0 1px 1px rgba(0,0,0,.04), 0 6px 20px rgba(20,16,60,.06); }

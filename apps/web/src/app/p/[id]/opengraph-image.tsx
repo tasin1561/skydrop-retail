@@ -5,7 +5,7 @@ import { priceBdt } from "@/lib/pricing";
 
 // Store chip in our own per-store gradient (same text-safe stops as StoreName); no third-party colours.
 const OG_FILL: Record<string, string> = {
-  amazon: "linear-gradient(100deg, #5b3df5, #9426c4)",
+  amazon: "linear-gradient(100deg, #0f766e, #9426c4)",
   flipkart: "linear-gradient(100deg, #c8185f, #b8361a)",
   myntra: "linear-gradient(100deg, #c2410c, #b4235a)",
 };
@@ -45,11 +45,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const p = await getProduct(decodeURIComponent(id));
   const brand = (
     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: "#ff4d2e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 800 }}>
+      <div style={{ width: 46, height: 46, borderRadius: 14, background: "#e8552f", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 800 }}>
         S
       </div>
       <div style={{ display: "flex", fontSize: 30, fontWeight: 800, color: "#0b0b0f" }}>
-        Skydrop<span style={{ color: "#ff4d2e", marginLeft: 8 }}>Retail</span>
+        Skydrop<span style={{ color: "#e8552f", marginLeft: 8 }}>Retail</span>
       </div>
     </div>
   );
@@ -109,7 +109,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 22, color: "#55555f", fontWeight: 600 }}>Delivered to Bangladesh</div>
-              <div style={{ fontSize: 64, fontWeight: 800, color: "#5b3df5" }}>{bdt(price)}</div>
+              <div style={{ fontSize: 64, fontWeight: 800, color: "#0f766e" }}>{bdt(price)}</div>
             </div>
             <div style={{ display: "flex", fontSize: 20, color: "#55555f", fontWeight: 600 }}>Price verified at checkout</div>
           </div>

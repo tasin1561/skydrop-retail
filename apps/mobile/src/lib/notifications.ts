@@ -96,11 +96,11 @@ export function timeAgo(iso: string, lang: Lang = "en", now = Date.now()) {
 
 /** Feather-friendly icon + color per notification type. */
 export const CHIP: Record<string, [string, string]> = {
-  order_placed: ["receipt", "#5b3df5"], payment_received: ["wallet", "#0e9f6e"], payment_failed: ["card", "#e5363d"],
-  payment_pending: ["clock", "#d97706"], order_verified: ["shield", "#5b3df5"], order_purchased: ["bag", "#5b3df5"],
+  order_placed: ["receipt", "#0f766e"], payment_received: ["wallet", "#0e9f6e"], payment_failed: ["card", "#e5363d"],
+  payment_pending: ["clock", "#d97706"], order_verified: ["shield", "#0f766e"], order_purchased: ["bag", "#0f766e"],
   order_india_hub: ["package", "#0891b2"], order_in_transit: ["plane", "#0891b2"], order_dhaka_hub: ["pin", "#0891b2"],
   order_out_for_delivery: ["truck", "#d97706"], order_delivered: ["check", "#0e9f6e"], order_cancelled: ["x", "#e5363d"],
   review_request: ["star", "#eab308"], points_expiring: ["tag", "#9333ea"], price_drop: ["tag", "#0e9f6e"],
-  back_in_stock: ["bolt", "#5b3df5"], cart_reminder_1h: ["cart", "#9333ea"], welcome: ["spark", "#5b3df5"],
+  back_in_stock: ["bolt", "#0f766e"], cart_reminder_1h: ["cart", "#9333ea"], welcome: ["spark", "#0f766e"],
   broadcast: ["volume-2", "#9333ea"], custom: ["info", "#55555f"],
 };

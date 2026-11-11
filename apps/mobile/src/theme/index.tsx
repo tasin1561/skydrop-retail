@@ -4,22 +4,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SystemUI from "expo-system-ui";
 import type { StoreMode } from "@/lib/types";
 
-// Brand tokens mirror apps/web/src/app/globals.css ("Midnight Luxe").
-// BRAND is the primary interactive colour (electric violet); BRAND_INK is the
-// near-black brand ink; CORAL is the signal colour (discount badges, parcel, highlights).
-export const BRAND = "#5b3df5";
-export const BRAND_2 = "#a78bfa";
+// Brand tokens mirror apps/web/src/app/globals.css ("Lagoon").
+// BRAND is the primary interactive colour (deep teal); BRAND_INK is the near-black brand ink;
+// CORAL is the signal colour (deals, parcel, highlights). One accent for every store.
+export const BRAND = "#0f766e";
+export const BRAND_2 = "#5eead4";
+export const BRAND_DARK = "#0e8a7f";
 export const BRAND_INK = "#111114";
-export const CORAL = "#ff4d2e";
+export const CORAL = "#e8552f";
 
 type Accent = { accent: string; accent2: string; accentDark: string; heroA: string; heroB: string; heroADark: string };
 
-export const ACCENTS: Record<StoreMode, Accent> = {
-  all: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
-  amazon: { accent: BRAND, accent2: BRAND_2, accentDark: "#7c6cff", heroA: "#0b0b0f", heroB: BRAND, heroADark: "#16132b" },
-  flipkart: { accent: "#e11d74", accent2: "#fb7185", accentDark: "#f0468f", heroA: "#1a0b14", heroB: "#e11d74", heroADark: "#1a0b14" },
-  myntra: { accent: "#ea580c", accent2: "#fdba74", accentDark: "#fb7d3c", heroA: "#1f0c04", heroB: "#ea580c", heroADark: "#1f0c04" },
-};
+const LAGOON: Accent = { accent: BRAND, accent2: BRAND_2, accentDark: BRAND_DARK, heroA: "#0b2e2c", heroB: BRAND, heroADark: "#0a2321" };
+
+/** Same accent in every store mode: stores are told apart by their name, not by a colour change. */
+export const ACCENTS: Record<StoreMode, Accent> = { all: LAGOON, amazon: LAGOON, flipkart: LAGOON, myntra: LAGOON };
 
 /**
  * Store-name text tokens (StoreName): text-safe shades of each store's own accent. Both gradient stops pass
@@ -28,30 +27,30 @@ export const ACCENTS: Record<StoreMode, Accent> = {
  */
 export type StoreTextTokens = { a: string; b: string; ring: string };
 export const STORE_TEXT: Record<StoreMode, { light: StoreTextTokens; dark: StoreTextTokens; fill: [string, string] }> = {
-  all: { light: { a: "#5b3df5", b: "#c0301a", ring: "#5b3df5" }, dark: { a: "#9a8cff", b: "#ff7a5c", ring: "#7c6cff" }, fill: ["#5b3df5", "#c0301a"] },
+  all: { light: { a: BRAND, b: BRAND, ring: BRAND }, dark: { a: BRAND_2, b: BRAND_2, ring: BRAND_DARK }, fill: [BRAND, BRAND] },
   // Store names in each provider's brand colours (owner's decision): Amazon ink + orange, Flipkart blue + yellow, Myntra pink + orange.
-  amazon: { light: { a: "#232f3e", b: "#c45500", ring: "#ff9900" }, dark: { a: "#ff9900", b: "#ffb84d", ring: "#ff9900" }, fill: ["#232f3e", "#232f3e"] },
-  flipkart: { light: { a: "#2874f0", b: "#1a56c4", ring: "#2874f0" }, dark: { a: "#5b9bff", b: "#ffe11b", ring: "#2874f0" }, fill: ["#2874f0", "#2874f0"] },
-  myntra: { light: { a: "#d6194f", b: "#c2410c", ring: "#ff3f6c" }, dark: { a: "#ff6b8e", b: "#ffa45c", ring: "#ff3f6c" }, fill: ["#d6194f", "#d6194f"] },
+  amazon: { light: { a: "#232f3e", b: "#c45500", ring: "#ff9900" }, dark: { a: "#ff9900", b: "#ffb84d", ring: "#ff9900" }, fill: [BRAND, BRAND] },
+  flipkart: { light: { a: "#2874f0", b: "#1a56c4", ring: "#2874f0" }, dark: { a: "#5b9bff", b: "#ffe11b", ring: "#2874f0" }, fill: [BRAND, BRAND] },
+  myntra: { light: { a: "#d6194f", b: "#c2410c", ring: "#ff3f6c" }, dark: { a: "#ff6b8e", b: "#ffa45c", ring: "#ff3f6c" }, fill: [BRAND, BRAND] },
 };
 
 const light = {
   dark: false,
-  bg: "#f7f7f4",
+  bg: "#f6f7f5",
   surface: "#ffffff",
-  surface2: "#f0efe9",
+  surface2: "#eef1ee",
   ink: "#0b0b0f",
   ink2: "#55555f",
   ink3: "#9a9aa3",
-  line: "#e7e5de",
+  line: "#e3e7e3",
   good: "#0e9f6e",
   warn: "#d97706",
   bad: "#e5363d",
   brand: BRAND,
   brandInk: BRAND_INK,
   coral: CORAL,
-  shadow: "#14103c",
-  skeleton: "#ebe9e2",
+  shadow: "#0b2e2c",
+  skeleton: "#e7ebe7",
   overlay: "rgba(11,11,15,0.45)",
 };
 
@@ -69,7 +68,7 @@ const dark: Palette = {
   good: "#22c08a",
   warn: "#f59e0b",
   bad: "#f87171",
-  brand: "#7c6cff",
+  brand: BRAND_DARK,
   brandInk: "#f4f4f6",
   coral: CORAL,
   shadow: "#000000",
@@ -135,7 +134,7 @@ export function withAlpha(hex: string, alpha: number) {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
-export const radius = { sm: 12, md: 16, lg: 20, pill: 999 }; // lg = 20px card radius (Midnight Luxe)
+export const radius = { sm: 12, md: 16, lg: 20, pill: 999 }; // lg = 20px card radius
 
 /** Soft card shadow that works on both platforms. */
 export function shadow(c: Palette, level: 1 | 2 = 1) {

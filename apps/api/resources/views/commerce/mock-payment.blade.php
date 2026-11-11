@@ -12,7 +12,7 @@
   .muted { color:#55555f; }
   form { margin-top:16px; }
   button { width:100%; min-height:48px; border:0; border-radius:14px; font-weight:800; font-size:16px; cursor:pointer; }
-  .ok { background:#5b3df5; color:#fff; }
+  .ok { background:#0f766e; color:#fff; }
   .bad { background:#fde8e9; color:#b4232a; margin-top:10px; }
 </style>
 </head>

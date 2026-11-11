@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <title>Invoices · Skydrop Retail</title>
 <style>
-  :root { --accent:#5b3df5; --coral:#ff4d2e; --ink:#0b0b0f; --muted:#55555f; --line:#e7e5de; }
+  :root { --accent:#0f766e; --coral:#e8552f; --ink:#0b0b0f; --muted:#55555f; --line:#e7e5de; }
   * { box-sizing:border-box; }
   body { font:14px/1.45 "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink); margin:0; background:#f7f7f4; }
   .inv { background:#fff; max-width:800px; margin:24px auto; padding:40px; border-radius:20px; page-break-after:always; }
