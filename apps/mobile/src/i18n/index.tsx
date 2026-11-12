@@ -9,12 +9,16 @@ import { useFeature } from "@/lib/features";
 import { setFontLang } from "@/theme/fonts";
 import { DEFAULT_LANG, isLang, hasKey as coreHasKey, localDigits, makeT as coreMakeT, type Lang, type MsgKey as CoreKey, type Translator as CoreTranslator, type Vars } from "./core";
 import { mxBn, mxEn, type MxKey } from "./mobile";
+import { registerDict } from "./core";
+import { bn } from "./bn";
+
+// The app ships both languages (the website loads Bangla on demand): register Bangla once at start-up.
+registerDict("bn", bn);
 
 // Everything from ./core except the names this file extends (hasKey, makeT, MsgKey, TFn, Translator).
 export {
   BANGLA_DIGITS,
   DEFAULT_LANG,
-  DICTS,
   LANGS,
   LANG_COOKIE,
   fmtBdt,

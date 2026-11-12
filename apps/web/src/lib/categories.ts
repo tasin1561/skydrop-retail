@@ -7,39 +7,11 @@ import { buildIndex, matchCategory, type MatchNode } from "./categoryMatch";
 import { priceBdt } from "./pricing";
 import type { MarketId, Product, StoreMode } from "./types";
 
-export const PRICING_GROUPS = ["electronics", "fashion", "beauty", "grocery", "home"] as const;
+export { PRICING_GROUPS, catLabel } from "./catNode";
+export type { CatNode, CatCrumb, CategoryPageData } from "./catNode";
+import { PRICING_GROUPS } from "./catNode";
+import type { CatCrumb, CatNode, CategoryPageData } from "./catNode";
 
-/** One node as the API returns it (GET /categories); `count` is the visible product count of the subtree. */
-export type CatNode = {
-  path: string;
-  slug?: string;
-  name: string;
-  nameBn?: string | null;
-  icon: string;
-  image?: string | null;
-  /** up to 4 photos (admin image first, then the category's best products); empty = show the icon */
-  images?: string[] | null;
-  depth: number;
-  featured?: boolean;
-  stores: MarketId[];
-  count?: number;
-  children: CatNode[];
-};
-
-/** Category name in the shopper's language (nameBn in Bangla mode). Shared by server and client. */
-export const catLabel = (n: { name: string; nameBn?: string | null }, bn: boolean) => (bn && n.nameBn ? n.nameBn : n.name);
-
-export type CatCrumb = { path: string; name: string; nameBn?: string | null };
-
-export type CategoryPageData = {
-  node: CatNode;
-  breadcrumbs: CatCrumb[];
-  children: CatNode[];
-  siblings: CatNode[];
-  brands: { name: string; count: number }[];
-  priceRange: { minBdt: number; maxBdt: number } | null;
-  available: boolean;
-};
 
 type RawNode = Omit<CatNode, "children" | "stores"> & { stores: string[]; keywords: string[]; group: string; children: RawNode[] };
 

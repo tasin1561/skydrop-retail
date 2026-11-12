@@ -5,6 +5,7 @@ import { Icon } from "@/components/Icon";
 import { progressOf, statusIcon, statusText } from "@/lib/orderStatus";
 import { useT } from "@/i18n/client";
 import { fmtDate, type Lang } from "@/i18n/core";
+import { sizedImg } from "@/lib/img";
 
 export function StatusChip({ status }: { status: OrderStatus }) {
   const tr = useT();
@@ -49,7 +50,7 @@ export function Thumb({ item, size = 44 }: { item: Pick<CartItem, "image" | "tit
     >
       {item.image ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
+        <img src={sizedImg(item.image, 160)} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
       ) : (
         <span
           className="grid h-full w-full place-items-center"

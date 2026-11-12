@@ -21,6 +21,8 @@ import { useToast } from "@/components/Toast";
 import { AskAiButton } from "@/components/AskAiButton";
 import { Gallery, type Media } from "@/components/product/Gallery";
 import { VariantGroup } from "@/components/product/Variants";
+import { SizeGuide } from "@/components/product/SizeGuide";
+import { sizeGuideFor } from "@/lib/sizeGuide";
 import { DeliveryRoute, PriceBreakdown, Reviews, Specs } from "@/components/product/Details";
 import { FetchingLive, ProductExtras } from "@/components/product/Extras";
 import { OffersSection, Countdown, headlineDeal } from "@/components/offers/offers";
@@ -326,6 +328,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
                   !variants.filter((x) => x.dimensions[g.key] === v).every((x) => x.id === null && x.available === false)
                 }
                 onPick={(v) => pick(g.key, v)}
+                aside={sizeGuideFor(g, p.title) ? <SizeGuide initial={sizeGuideFor(g, p.title)!} mode={p.market} /> : undefined}
               />
             ))}
             {swapping && (
@@ -404,7 +407,7 @@ function ProductView({ p, pending, onSwap }: { p: Product; pending: boolean; onS
           <Animated.View key={add} entering={FadeIn.duration(160)} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             {add === "busy" ? <ActivityIndicator size="small" color={a.ink} /> : <Icon name={add === "done" ? "check" : "shopping-cart"} size={18} color={a.ink} />}
             <T v="h3" style={{ color: a.ink, fontSize: 15 }}>
-              {add === "busy" ? t("buy.adding") : add === "done" ? t("buy.addedShort") : t("buy.addToCart")}
+              {add === "busy" ? t("buy.adding") : add === "done" ? t("buy.addedShort") : t(width < 340 ? "buy.addShort" : "buy.addToCart")}
             </T>
           </Animated.View>
         </Tap>

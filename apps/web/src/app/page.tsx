@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { byMarket, offersFeed, searchProducts } from "@/lib/data";
 import { MARKET_IDS, STORES } from "@/lib/markets";
 import type { Product, StoreMode } from "@/lib/types";
@@ -102,6 +104,20 @@ export default async function Home() {
       ))}
       <EnabledRail title={t("home.phonesAudio")} href="/search?q=&store=all&category=electronics" items={electronics} />
       <PromoStrip />
+      {/* cost calculator: the "what will it really cost me?" question, answered before the shopper has to ask */}
+      <Link
+        href="/calculator"
+        className="card mx-4 mt-8 flex items-center gap-3 p-4 transition-transform active:scale-[0.99] sm:mx-0 sm:p-5"
+      >
+        <span className="chip-icon h-12 w-12 shrink-0 rounded-2xl">
+          <Icon name="calc" size={22} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-extrabold tracking-tight">{t("calc.title")}</span>
+          <span className="line-clamp-2 text-sm text-ink-2">{t("calc.sub")}</span>
+        </span>
+        <Icon name="right" size={18} className="shrink-0 text-accent" />
+      </Link>
       <HowItWorks />
     </div>
   );

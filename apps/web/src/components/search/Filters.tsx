@@ -171,7 +171,7 @@ export function SortAndFilterBar({ total, hideCategory, brands = [] }: FilterPro
   }, [open]);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 max-[340px]:flex-wrap">
       <button type="button" onClick={() => setOpen("all")} className="btn btn-ghost min-h-11 shrink-0 px-4 text-sm lg:hidden">
         <Icon name="filter" size={16} /> {t("f.filters")}
         {active > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] text-white">{digits(active)}</span>}
@@ -188,7 +188,7 @@ export function SortAndFilterBar({ total, hideCategory, brands = [] }: FilterPro
           <Icon name="chevron" size={14} />
         </button>
       )}
-      <label className="relative ml-auto min-w-0">
+      <label className="relative ml-auto min-w-0 max-w-[48vw] shrink max-[340px]:max-w-full">
         <span className="sr-only">{t("f.sortBy")}</span>
         <select
           value={sort}

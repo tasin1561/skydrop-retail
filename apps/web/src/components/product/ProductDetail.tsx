@@ -252,8 +252,9 @@ export async function ProductDetail({
       </div>
 
       {/* details */}
-      <div className="mt-8 grid gap-6 px-4 sm:px-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10">
-        <div className="flex flex-col gap-4">
+      <div className="mt-8 grid grid-cols-1 gap-6 px-4 sm:px-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10">
+        {/* min-w-0 + anywhere-wrap: a long unbroken word from the store must never push the page sideways on a narrow phone */}
+        <div className="flex min-w-0 flex-col gap-4 [overflow-wrap:anywhere]">
           {bullets.length > 0 && (
             <section className="card p-4 sm:p-5" aria-labelledby="pd-about">
               <h2 id="pd-about" className="mb-3 flex items-center gap-3 text-lg font-extrabold tracking-tight">

@@ -8,6 +8,7 @@ import type { Media } from "./types";
 import { sized } from "./media";
 import { flipOpen } from "@/components/motion/flipOpen";
 import { useT } from "@/i18n/client";
+import { imgWidths, sizedImg } from "@/lib/img";
 
 // Viewer (and with it the video player) is only loaded once someone opens it.
 const Viewer = dynamic(() => import("./Viewer").then((m) => m.Viewer), { ssr: false });
@@ -95,7 +96,7 @@ export function Gallery({
                 >
                   {src ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
+                    <img src={sizedImg(src, 160)} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
                   ) : (
                     <span className="grid h-full w-full place-items-center bg-surface-2 text-ink-2">
                       <Icon name="play" size={18} />
@@ -137,7 +138,9 @@ export function Gallery({
                 {m.kind === "image" ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={m.src}
+                    src={sizedImg(m.src, 1080)}
+                    srcSet={imgWidths(m.src)}
+                    sizes="(max-width: 1023px) 65vw, 480px"
                     alt={i === 0 ? p.title : ""}
                     loading={i === 0 ? "eager" : "lazy"}
                     fetchPriority={i === 0 ? "high" : "auto"}
@@ -164,7 +167,7 @@ export function Gallery({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={current.src}
-                  src={current.src}
+                  src={sizedImg(current.src, 1080)}
                   alt={p.title}
                   decoding="async"
                   className="pd-fade h-full w-full object-contain transition-transform duration-200 group-hover:scale-100"
@@ -231,7 +234,7 @@ function VideoThumb({ thumb, size }: { thumb: string | null; size: "lg" | "sm" }
     <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-2xl bg-surface-2">
       {thumb && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={thumb} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={sizedImg(thumb, 720)} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
       )}
       <span className="pd-play relative h-16 w-16">
         <Icon name="play" size={size === "lg" ? 26 : 14} fill="currentColor" stroke={1} className="translate-x-0.5" />

@@ -8,6 +8,7 @@ import { FeaturesProvider } from "@/components/features/FeaturesProvider";
 import { getFeaturesResponse, NO_MAINTENANCE } from "@/lib/features";
 import { getLang, getT } from "@/i18n/server";
 import { LangProvider } from "@/i18n/client";
+import { bn } from "@/i18n/bn";
 import { LangSync } from "@/components/LangSwitch";
 import { MaintenanceGate } from "@/components/system/MaintenanceGate";
 import { ToastProvider } from "@/components/Toast";
@@ -43,7 +44,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f7f4" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f5" },
     { media: "(prefers-color-scheme: dark)", color: "#09090c" },
   ],
 };
@@ -69,7 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </linearGradient>
           </defs>
         </svg>
-        <LangProvider initial={lang}>
+        <LangProvider initial={lang} dict={lang === "bn" ? bn : undefined}>
         <MaintenanceGate maintenance={maintenance ?? NO_MAINTENANCE}>
         <FeaturesProvider value={features}>
         <StoreProvider>

@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "skydropretail",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#f7f7f4",
+    "backgroundColor": "#f6f7f5",
     "ios": {
       "bundleIdentifier": "online.skydrop.retail",
       "supportsTablet": false,
@@ -41,7 +41,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#f7f7f4",
+          "backgroundColor": "#f6f7f5",
           "dark": {
             "image": "./assets/images/splash-icon.png",
             "backgroundColor": "#09090c"
@@ -58,7 +58,10 @@
           "color": "#0f766e",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": false

@@ -104,6 +104,7 @@ function Nav() {
         <Stack.Screen name="bundles/[slug]" options={{ title: t("bundles.title") }} />
         <Stack.Screen name="unboxing/[id]" options={{ title: t("ur.title") }} />
         <Stack.Screen name="invite" options={{ title: t("acc.invite") }} />
+        <Stack.Screen name="calculator" options={{ title: t("calc.title") }} />
       </Stack>
       <StorePicker />
       <MaintenanceOverlay />

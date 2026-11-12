@@ -34,7 +34,7 @@ export function CatThumb({
     return (
       <span aria-hidden className={"cat-thumb grid grid-cols-2 gap-px " + className} data-photo="true">
         {images.slice(0, 4).map((src) => (
-          <FxImg key={src} src={src} alt="" loading={loading} decoding="async" className={fit(src)} />
+          <FxImg key={src} src={src} w={96} alt="" loading={loading} decoding="async" className={fit(src)} />
         ))}
       </span>
     );
@@ -42,7 +42,7 @@ export function CatThumb({
   return (
     <span aria-hidden className={"cat-thumb " + className} data-photo={images.length ? "true" : undefined}>
       {images.length ? (
-        <FxImg src={images[0]} alt="" loading={loading} decoding="async" className={fit(images[0])} />
+        <FxImg src={images[0]} w={96} alt="" loading={loading} decoding="async" className={fit(images[0])} />
       ) : (
         <Icon name={node.icon} size={iconSize} stroke={1.6} />
       )}

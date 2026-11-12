@@ -15,7 +15,12 @@ import { Icon } from "@/components/Icon";
 import { StoreSwitcher } from "@/components/StoreSwitcher";
 import { ProductGrid } from "@/components/ProductGrid";
 import { BrandSheet, FilterSheet, MAX_BRANDS, SORTS, SortSheet, activeFilterCount, toggleBrand, type Filters } from "@/components/Filters";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useT } from "@/i18n";
+
+// Same one-tap starters as the website: the shopper's own last searches (this device only) and popular ones.
+const POPULAR = ["Kurta set", "Saree", "Lipstick", "Handbag", "Earrings", "Sneakers", "Smart watch", "Earbuds"];
+const RECENT_KEY = "sr:recent-q";
 
 export default function Search() {
   const { t, digits } = useT();
@@ -55,10 +60,27 @@ export default function Search() {
     return () => clearTimeout(timer);
   }, [text, mode, q]);
 
+  const [recentQ, setRecentQ] = useState<string[]>([]);
+  useEffect(() => {
+    AsyncStorage.getItem(RECENT_KEY)
+      .then((v) => {
+        const list: unknown = v ? JSON.parse(v) : [];
+        if (Array.isArray(list)) setRecentQ(list.filter((x): x is string => typeof x === "string").slice(0, 6));
+      })
+      .catch(() => {});
+  }, []);
+  const saveRecent = (list: string[]) => {
+    setRecentQ(list);
+    AsyncStorage.setItem(RECENT_KEY, JSON.stringify(list)).catch(() => {});
+  };
+
   const submit = (term = text) => {
     Keyboard.dismiss();
-    setQ(term.trim());
-    setText(term.trim());
+    const clean = term.trim();
+    setQ(clean);
+    setText(clean);
+    // product links are not searches worth offering again
+    if (clean && !/^https?:\/\//i.test(clean)) saveRecent([clean, ...recentQ.filter((x) => x.toLowerCase() !== clean.toLowerCase())].slice(0, 6));
   };
 
   const term = text.trim();
@@ -87,7 +109,7 @@ export default function Search() {
             onBlur={() => setFocused(false)}
             autoCorrect={false}
             accessibilityLabel={t("cat.searchProducts")}
-            style={{ flex: 1, color: c.ink, fontSize: 16, minHeight: 46 }}
+            style={{ flex: 1, minWidth: 0, color: c.ink, fontSize: 16, minHeight: 46 }}
           />
           {!!text && (
             <Pressable
@@ -135,9 +157,8 @@ export default function Search() {
             {t(SORTS.find((s) => s.id === (f.sort ?? "relevance"))?.label ?? "m.relevance")}
           </T>
         </Tap>
-        <View style={{ flex: 1 }} />
         {total !== null && (
-          <T v="tiny" tone="ink3">
+          <T v="tiny" tone="ink3" style={{ marginLeft: "auto" }}>
             {t("m.results", { count: total })}
           </T>
         )}
@@ -164,6 +185,64 @@ export default function Search() {
       )}
 
       <ProductGrid params={searchParams} onTotal={setTotal} onBrands={setBrands} />
+
+      {focused && term.length < 2 && (
+        <Animated.View entering={FadeIn.duration(140)} exiting={FadeOut.duration(120)} style={[styles.sugs, { top: insets.top + 64, backgroundColor: c.surface, padding: 12 }, shadow(c, 2)]}>
+          {recentQ.length > 0 && (
+            <View style={{ marginBottom: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <T v="label" tone="ink3">
+                  {t("search.recent")}
+                </T>
+                <Pressable onPress={() => saveRecent([])} accessibilityRole="button" hitSlop={10} style={{ minHeight: 36, justifyContent: "center", paddingHorizontal: 6 }}>
+                  <T v="small" style={{ color: a.ink, fontWeight: "700" }}>
+                    {t("search.clearRecent")}
+                  </T>
+                </Pressable>
+              </View>
+              {recentQ.map((r) => (
+                <Pressable
+                  key={r}
+                  onPress={() => {
+                    haptic.tap();
+                    submit(r);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("m.searchFor", { text: r })}
+                  style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 46, borderRadius: 12, paddingHorizontal: 4 }, pressed && { backgroundColor: c.surface2 }]}
+                >
+                  <Icon name="clock" size={16} color={c.ink3} />
+                  <T v="small" numberOfLines={1} style={{ flex: 1 }}>
+                    {r}
+                  </T>
+                  <Icon name="chevron-right" size={15} color={c.ink3} />
+                </Pressable>
+              ))}
+            </View>
+          )}
+          <T v="label" tone="ink3" style={{ marginBottom: 8 }}>
+            {t("search.popular")}
+          </T>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {POPULAR.map((p) => (
+              <Tap
+                key={p}
+                onPress={() => {
+                  haptic.tap();
+                  submit(p);
+                }}
+                accessibilityLabel={t("m.searchFor", { text: p })}
+                style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 42, paddingHorizontal: 14, borderRadius: 999, backgroundColor: c.surface2 }}
+              >
+                <Icon name="trending-up" size={14} color={a.ink} />
+                <T v="small" style={{ fontWeight: "600" }}>
+                  {p}
+                </T>
+              </Tap>
+            ))}
+          </View>
+        </Animated.View>
+      )}
 
       {sugs.length > 0 && focused && (
         <Animated.View entering={FadeIn.duration(140)} exiting={FadeOut.duration(120)} style={[styles.sugs, { top: insets.top + 64, backgroundColor: c.surface }, shadow(c, 2)]}>
@@ -207,7 +286,8 @@ export default function Search() {
 const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 10 },
   field: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 1.5 },
-  tools: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, marginBottom: 10 },
+  // wraps on narrow phones (a folded phone is 280 px wide): the row must never be wider than the screen
+  tools: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, paddingHorizontal: 16, marginBottom: 10 },
   tool: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, paddingHorizontal: 12, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth, maxWidth: 200 },
   tag: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, paddingHorizontal: 12, borderRadius: 999, maxWidth: 220 },
   sugs: { position: "absolute", left: 16, right: 16, borderRadius: radius.md, paddingVertical: 6, zIndex: 50 },

@@ -2,6 +2,7 @@ import { View, type StyleProp, type ViewStyle } from "react-native";
 import { Image } from "expo-image";
 import type { StoreMode } from "@/lib/types";
 import { useAccent, useTheme, withAlpha } from "@/theme";
+import { sizedImg } from "@/lib/img";
 import { CategoryIcon } from "./CategoryIcon";
 
 type Thumb = { icon: string; image?: string | null; images?: string[] | null };
@@ -24,7 +25,7 @@ export function CatThumb({ node, size = 56, radius, mode = "all", style }: { nod
     return (
       <View style={[{ width: size, height: size, borderRadius: r, overflow: "hidden", backgroundColor: "#fff", borderWidth: 1, borderColor: c.line }, style]}>
         <Image
-          source={{ uri: src }}
+          source={{ uri: sizedImg(src, size * 2) }}
           contentFit={contain ? "contain" : "cover"}
           contentPosition="top"
           transition={180}

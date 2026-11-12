@@ -13,6 +13,27 @@ import type { MsgKey } from "@/i18n/core";
 
 type Sug = { id: string; title: string; market: string };
 
+// What shoppers look for most (women's fashion and beauty first): shown as one-tap chips when the box is empty.
+const POPULAR = ["Kurta set", "Saree", "Lipstick", "Handbag", "Earrings", "Sneakers", "Smart watch", "Earbuds"];
+
+// The shopper's own last searches, kept on this device only.
+const RECENT_KEY = "sr-recent-searches";
+function readRecent(): string[] {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, 6) : [];
+  } catch {
+    return [];
+  }
+}
+function saveRecent(list: string[]) {
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 6)));
+  } catch {
+    /* private mode: recent searches just do not persist */
+  }
+}
+
 // Example searches that cycle in the empty field (stops while focused or typed in).
 const EXAMPLES: Record<StoreMode, MsgKey[]> = {
   all: ["search.ex.iphone", "search.ex.amazonLink", "search.ex.rice", "search.ex.kurta", "search.ex.earbuds"],
@@ -53,6 +74,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [focused, setFocused] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
   const listId = useId();
   const ref = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -81,6 +103,13 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
 
   function go(query: string) {
     if (!query.trim()) return;
+    const term = query.trim();
+    // product links are not searches worth offering again
+    if (!/^https?:\/\//i.test(term)) {
+      const next = [term, ...readRecent().filter((x) => x.toLowerCase() !== term.toLowerCase())];
+      saveRecent(next);
+      setRecent(next.slice(0, 6));
+    }
     setOpen(false);
     onDone?.();
     const href = `/search?q=${encodeURIComponent(query.trim())}&store=${store}`;
@@ -137,6 +166,7 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
         onFocus={() => {
           setOpen(true);
           setFocused(true);
+          setRecent(readRecent());
         }}
         onBlur={() => {
           setFocused(false);
@@ -168,6 +198,67 @@ export function SearchBox({ autoFocus, onDone }: { autoFocus?: boolean; onDone?:
       <button type="submit" className="btn btn-primary m-1 min-h-0 rounded-xl px-3 sm:px-4" aria-label={t("search.submit")}>
         <Icon name="search" size={18} stroke={2.2} />
       </button>
+
+      {/* empty box: the shopper's recent searches and popular ones, one tap each (like Amazon, Flipkart and Myntra) */}
+      {open && q.trim().length < 2 && (
+        <div className="sb-pop absolute left-0 right-0 top-full z-50 mt-2 rounded-2xl bg-surface p-3 shadow-[var(--shadow-2)] ring-1 ring-line">
+          {recent.length > 0 && (
+            <div className="mb-3">
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-ink-3">{t("search.recent")}</p>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    saveRecent([]);
+                    setRecent([]);
+                  }}
+                  className="-my-2 -mr-1 min-h-9 px-2 text-xs font-semibold text-accent"
+                >
+                  {t("search.clearRecent")}
+                </button>
+              </div>
+              <ul>
+                {recent.map((r) => (
+                  <li key={r}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setQ(r);
+                        go(r);
+                      }}
+                      className="flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-sm hover:bg-surface-2"
+                    >
+                      <Icon name="clock" size={16} className="shrink-0 text-ink-3" />
+                      <span className="line-clamp-1 flex-1">{r}</span>
+                      <Icon name="right" size={14} className="shrink-0 text-ink-3" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink-3">{t("search.popular")}</p>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setQ(term);
+                  go(term);
+                }}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-sm font-medium text-ink transition-transform active:scale-[0.97]"
+              >
+                <Icon name="trend" size={14} className="text-accent" />
+                {term}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {open && q.trim().length >= 2 && items.length > 0 && (
         <ul

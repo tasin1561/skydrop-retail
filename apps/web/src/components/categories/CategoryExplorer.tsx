@@ -4,7 +4,7 @@ import "./categories.css";
 import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
 import { STORES, STORE_MODES } from "@/lib/markets";
-import type { CatNode } from "@/lib/categories";
+import type { CatNode } from "@/lib/catNode";
 import type { MarketId, StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";

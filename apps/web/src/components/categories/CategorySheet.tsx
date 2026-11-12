@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { STORES } from "@/lib/markets";
-import type { CatNode } from "@/lib/categories";
+import type { CatNode } from "@/lib/catNode";
 import { Icon } from "../Icon";
 import { CatThumb } from "./CatThumb";
 import { useCurrentMode } from "../StoreTheme";
@@ -139,6 +139,13 @@ export function CategorySheet({ onClose }: { onClose: () => void }) {
               </Link>
             </li>
           )}
+          {!tree.length &&
+            Array.from({ length: 8 }, (_, i) => (
+              <li key={i} aria-hidden className="flex min-h-[52px] items-center gap-3 px-3">
+                <span className="skeleton h-11 w-11 rounded-xl" />
+                <span className="skeleton h-4 rounded-md" style={{ width: `${46 + ((i * 17) % 34)}%` }} />
+              </li>
+            ))}
           {list.map((n) => (
             <li key={n.path}>
               {n.children.length ? (

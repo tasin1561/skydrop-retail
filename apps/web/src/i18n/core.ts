@@ -1,6 +1,5 @@
 // Shared i18n core: no React, no Next. The mobile app gets a copy (apps/mobile/scripts/sync-i18n.mjs).
 import { en, type MsgKey, type Messages } from "./en";
-import { bn } from "./bn";
 
 export type Lang = "en" | "bn";
 export type { MsgKey, Messages };
@@ -17,7 +16,15 @@ export const LANG_COOKIE = "sr-lang";
  */
 export const BANGLA_DIGITS = true;
 
-export const DICTS: Record<Lang, Messages> = { en, bn };
+// English ships with the page. Bangla (the larger dictionary) is registered only where it is needed: on the server
+// (i18n/server.ts), from the layout for a Bangla page (LangProvider's `dict` prop), and by a lazy import when the
+// shopper switches language. English shoppers never download it.
+const DICTS: Partial<Record<Lang, Messages>> = { en };
+
+export function registerDict(lang: Lang, dict: Messages) {
+  DICTS[lang] ??= dict;
+}
+export const hasDict = (lang: Lang) => !!DICTS[lang];
 
 /** True when the dictionary has this key (for keys built from API values, e.g. statuses). */
 export function hasKey(k: string): k is MsgKey {
@@ -91,7 +98,7 @@ export function fmtRelative(d: DateIn, lang: Lang, now = Date.now()): string {
  * forms as "one|other"; the form is picked from vars.count.
  */
 export function translate(lang: Lang, key: MsgKey, vars?: Vars): string {
-  let s: string = DICTS[lang][key] ?? en[key] ?? key;
+  let s: string = DICTS[lang]?.[key] ?? en[key] ?? key;
   if (s.includes("|") && vars && typeof vars.count === "number") {
     const forms = s.split("|");
     s = (vars.count === 1 ? forms[0] : forms[forms.length - 1]) ?? s;

@@ -9,7 +9,7 @@ export async function Footer() {
   const cols = [
     { title: t("footer.shop"), links: [[t("footer.allStores"), "/"], ["Amazon", "/store/amazon"], ["Flipkart", "/store/flipkart"], ["Myntra", "/store/myntra"]] },
     { title: t("footer.yourAccount"), links: [[t("nav.orders"), "/orders"], [t("footer.wishlist"), "/wishlist"], [t("footer.addresses"), "/account/addresses"], [t("nav.signIn"), "/login"]] },
-    { title: t("footer.help"), links: [[t("footer.helpFaq"), "/help"], [t("footer.contact"), "/contact"], [t("footer.howItWorks"), "/how-it-works"], [t("footer.shippingCustoms"), "/legal/shipping"], [t("footer.refunds"), "/legal/refunds"], [t("footer.track"), "https://track.skydrop.online"]] },
+    { title: t("footer.help"), links: [[t("footer.helpFaq"), "/help"], [t("footer.contact"), "/contact"], [t("footer.howItWorks"), "/how-it-works"], [t("nav.calculator"), "/calculator"], [t("footer.shippingCustoms"), "/legal/shipping"], [t("footer.refunds"), "/legal/refunds"], [t("footer.track"), "https://track.skydrop.online"]] },
   ];
   return (
     <footer className="mt-16 border-t border-line bg-surface pb-24 md:pb-0">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCategoryTree, searchProducts } from "@/lib/data";
-import type { CatNode } from "@/lib/categories";
+import type { CatNode } from "@/lib/catNode";
 import { getT } from "@/i18n/server";
 import type { MsgKey } from "@/i18n/core";
 import { Icon } from "../Icon";

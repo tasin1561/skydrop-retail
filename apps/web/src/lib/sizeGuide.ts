@@ -1,0 +1,72 @@
+// Size charts and the rule for when to offer them. Shared with the app: apps/mobile/scripts/sync-i18n.mjs copies this
+// file to apps/mobile/src/lib/sizeGuide.ts.
+import type { MsgKey } from "@/i18n/core";
+
+export type SizeChartId = "women" | "men" | "shoes";
+export type SizeChart = { id: SizeChartId; label: MsgKey; cols: MsgKey[]; rows: (string | number)[][]; body: boolean[] };
+
+// General Indian sizes (body measurements in inches; `body` marks the columns that convert to cm). Brands differ a
+// little, so the sheet says so and tells the shopper what to do when between two sizes.
+export const SIZE_CHARTS: SizeChart[] = [
+  {
+    id: "women",
+    label: "sg.women",
+    cols: ["sg.size", "sg.bust", "sg.waist", "sg.hip"],
+    body: [false, true, true, true],
+    rows: [
+      ["XS", 32, 26, 35],
+      ["S", 34, 28, 37],
+      ["M", 36, 30, 39],
+      ["L", 38, 32, 41],
+      ["XL", 40, 34, 43],
+      ["XXL", 42, 36, 45],
+      ["3XL", 44, 38, 47],
+    ],
+  },
+  {
+    id: "men",
+    label: "sg.men",
+    cols: ["sg.size", "sg.chest", "sg.waist"],
+    body: [false, true, true],
+    rows: [
+      ["S", 38, 30],
+      ["M", 40, 32],
+      ["L", 42, 34],
+      ["XL", 44, 36],
+      ["XXL", 46, 38],
+      ["3XL", 48, 40],
+    ],
+  },
+  {
+    id: "shoes",
+    label: "sg.shoes",
+    cols: ["sg.ukIndia", "sg.eu", "sg.footLength"],
+    body: [false, false, true],
+    rows: [
+      [3, 36, 8.9],
+      [4, 37, 9.2],
+      [5, 38, 9.5],
+      [6, 39, 9.8],
+      [7, 41, 10.2],
+      [8, 42, 10.5],
+      [9, 43, 10.8],
+      [10, 44, 11.2],
+      [11, 45, 11.5],
+    ],
+  },
+];
+
+
+/** Which size chart fits this option group (null: not clothing or shoe sizes, e.g. "128 GB" or "500 ml"). */
+export function sizeGuideFor(g: { key: string; values: { value: string }[] }, title: string): SizeChartId | null {
+  if (!/size/i.test(g.key)) return null;
+  const sized = g.values.filter((v) => /^(\d?x{0,3}[sml]|\d?xl|free size|(uk|ind|eu)?\s?\d{1,2}(\.5)?(\s?(uk|ind|eu))?)$/i.test(v.value.trim())).length;
+  if (sized < Math.max(1, g.values.length / 2)) return null;
+  if (/shoe|sneaker|sandal|heel|slipper|flip.?flop|loafer|boot|flats?\b|juttis?|mojaris?/i.test(title)) return "shoes";
+  return /\b(men|mens|men's|boys?)\b/i.test(title) && !/\bwomen/i.test(title) ? "men" : "women";
+}
+
+/** A chart value as shown: body measurements switch between inches and centimetres. */
+export function sizeValue(v: string | number, body: boolean, cm: boolean): string {
+  return typeof v === "number" ? (body && cm ? (v * 2.54).toFixed(1).replace(/\.0$/, "") : String(v)) : v;
+}

@@ -8,6 +8,7 @@ import type { Media } from "./types";
 import { VideoPlayer } from "./VideoPlayer";
 import { sized } from "./media";
 import { useT } from "@/i18n/client";
+import { sizedImg } from "@/lib/img";
 
 type P = { title: string; placeholder?: { hue: number; icon: string }; image: string | null };
 
@@ -158,7 +159,7 @@ export function Viewer({
                 {m.kind === "image" ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={m.src}
+                    src={sizedImg(m.src, 1500)}
                     alt={t("view.imageAlt", { title: p.title, n: i + 1 })}
                     loading={Math.abs(i - start) <= 1 ? "eager" : "lazy"}
                     decoding="async"
@@ -232,7 +233,7 @@ export function Viewer({
                 >
                   {src ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt="" loading="lazy" className="h-full w-full object-contain" />
+                    <img src={sizedImg(src, 160)} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
                   ) : (
                     <span className="grid h-full w-full place-items-center bg-surface-2 text-ink-2">
                       <Icon name="play" size={16} />

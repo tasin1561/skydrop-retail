@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { STORES } from "@/lib/markets";
-import type { CatNode } from "@/lib/categories";
+import type { CatNode } from "@/lib/catNode";
 import { Icon } from "../Icon";
 import { CatThumb } from "./CatThumb";
 import { useCurrentMode } from "../StoreTheme";

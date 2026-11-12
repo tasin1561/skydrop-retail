@@ -4,14 +4,19 @@
 // so the first client render matches the server HTML.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { LANG_COOKIE, makeT, type Lang, type Translator } from "./core";
+import { LANG_COOKIE, hasDict, makeT, registerDict, type Lang, type Messages, type Translator } from "./core";
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; switching: boolean };
 const LangCtx = createContext<Ctx>({ lang: "en", setLang: () => {}, switching: false });
 
 const reduceMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function LangProvider({ initial, children }: { initial: Lang; children: ReactNode }) {
+/**
+ * `dict` is the Bangla dictionary, passed by the server layout only when the page is in Bangla, so the first render
+ * (server HTML and hydration) already has the words. English pages never carry it.
+ */
+export function LangProvider({ initial, dict, children }: { initial: Lang; dict?: Messages; children: ReactNode }) {
+  if (dict) registerDict(initial, dict);
   const [lang, setLangState] = useState<Lang>(initial);
   const [pending, startTransition] = useTransition();
   const [fading, setFading] = useState(false);
@@ -38,13 +43,16 @@ export function LangProvider({ initial, children }: { initial: Lang; children: R
       } catch {
         /* cookies blocked: the switch still works for this page view */
       }
-      const swap = () => {
-        document.documentElement.lang = l;
-        startTransition(() => {
-          setLangState(l);
-          router.refresh(); // server components read the cookie again
+      // Switching to Bangla fetches its dictionary first (its own cached file), so no English flashes in between.
+      const ready: Promise<unknown> = hasDict(l) ? Promise.resolve() : import("./bn").then((m) => registerDict("bn", m.bn)).catch(() => {});
+      const swap = () =>
+        void ready.then(() => {
+          document.documentElement.lang = l;
+          startTransition(() => {
+            setLangState(l);
+            router.refresh(); // server components read the cookie again
+          });
         });
-      };
       if (reduceMotion()) return swap();
       // Crossfade: fade out (opacity only), swap the words, fade back in when the refresh lands.
       setFading(true);

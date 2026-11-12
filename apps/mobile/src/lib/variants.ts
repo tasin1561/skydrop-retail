@@ -1,5 +1,6 @@
 // Variant grouping by dimension, same rules as apps/web/src/components/product/Variants.tsx.
 import type { Variant } from "./types";
+import { sizedImg } from "./img";
 
 export type DimGroup = { key: string; values: { value: string; swatch: string | null }[] };
 
@@ -56,9 +57,12 @@ export function comboExists(variants: Variant[], sel: Record<string, string>, ke
   return variants.some((v) => v.dimensions[key] === value && matches(v, sel, key));
 }
 
-/** Amazon CDN images accept a size token before the extension; fetch small versions for thumbs. */
+/**
+ * A product photo at about the size it is shown. The token is the old Amazon one ("SL400", "SS112"): its number is
+ * the wanted width in pixels, and every store's image server is asked for that size (lib/img.ts), so a card never
+ * downloads a 1500 px photo.
+ */
 export function sized(url: string | null | undefined, token: string) {
   if (!url) return url ?? null;
-  if (!/m\.media-amazon\.com\/images\/I\//.test(url)) return url;
-  return url.replace(/(\._[^/]*_)?\.(jpg|jpeg|png|webp)$/i, `._${token}_.$2`);
+  return sizedImg(url, Number(token.replace(/\D/g, "")) || 480);
 }

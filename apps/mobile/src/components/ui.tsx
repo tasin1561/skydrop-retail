@@ -20,6 +20,7 @@ import { Icon } from "./Icon";
 import type { StoreMode } from "@/lib/types";
 import { useLang, useT } from "@/i18n";
 import { DUR, EASE, timing } from "@/lib/motion";
+import { CategoryIcon } from "./CategoryIcon";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -265,7 +266,7 @@ export function ProductImage({
           style,
         ]}
       >
-        <Icon name={placeholder?.icon ?? "package"} size={size ? size * 0.38 : 40} color={c.dark ? `hsl(${hue}, 70%, 75%)` : `hsl(${hue}, 55%, 42%)`} />
+        <CategoryIcon name={placeholder?.icon ?? "package"} size={size ? size * 0.38 : 40} color={c.dark ? `hsl(${hue}, 70%, 75%)` : `hsl(${hue}, 55%, 42%)`} stroke={1.5} />
       </View>
     );
   }

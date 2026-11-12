@@ -3,7 +3,10 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { getFeatures, isOn } from "@/lib/features";
-import { DEFAULT_LANG, LANG_COOKIE, isLang, makeT, type Lang, type Translator } from "./core";
+import { DEFAULT_LANG, LANG_COOKIE, isLang, makeT, registerDict, type Lang, type Translator } from "./core";
+import { bn } from "./bn";
+
+registerDict("bn", bn);
 
 export const getLang = cache(async (): Promise<Lang> => {
   const [jar, features] = await Promise.all([cookies(), getFeatures()]);

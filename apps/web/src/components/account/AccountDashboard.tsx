@@ -143,6 +143,7 @@ export function AccountDashboard() {
         </Feature>
         <Row icon="card" label={tr("acc.payment")} sub={tr("acc.paymentSub")} soon />
         <Row icon="info" label={tr("acc.notif")} sub={tr("acc.notifSub")} soon />
+        <Row href="/calculator" icon="calc" label={tr("nav.calculator")} sub={tr("calc.empty")} />
         <Row href="/how-it-works" icon="help" label={tr("acc.help")} sub={tr("acc.helpSub")} />
       </section>
 

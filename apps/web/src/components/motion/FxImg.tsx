@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { imgSet, sizedImg } from "@/lib/img";
 
 /**
  * <img> that fades and settles in once decoded (the blur-up stand-in: opacity + scale, no filters).
  * Images already loaded before hydration are left alone, so server HTML never hides a picture.
+ * Product photos from the stores are requested at the size they are shown (`w`), never at full size.
  */
-export function FxImg(props: React.ImgHTMLAttributes<HTMLImageElement>) {
+export function FxImg({ w = 240, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { /** shown width in CSS px (default 240: a card) */ w?: number }) {
+  // Store photos are asked for at the size they are shown (lib/img.ts), with a 2x candidate for sharp screens.
+  if (typeof props.src === "string" && !props.srcSet) props = { ...props, ...imgSet(props.src, w) };
   const ref = useRef<HTMLImageElement>(null);
   useEffect(() => {
     const img = ref.current;
@@ -43,7 +47,7 @@ export function HoverImage({ src }: { src: string }) {
       img.alt = "";
       img.decoding = "async";
       img.onload = () => (img.dataset.ready = "true");
-      img.src = src;
+      img.src = sizedImg(src, 480);
       anchor.appendChild(img);
     };
     card.addEventListener("pointerenter", enter, { once: true });

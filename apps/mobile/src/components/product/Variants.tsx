@@ -1,5 +1,5 @@
 // All variants as swatches (when images exist) or chips, grouped by dimension.
-import { memo, useState } from "react";
+import { memo, useState, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { Image } from "expo-image";
@@ -19,7 +19,10 @@ export const VariantGroup = memo(function VariantGroup({
   isAvailable,
   onPick,
   market,
+  aside,
 }: {
+  /** shown at the end of the label row (the size guide link) */
+  aside?: ReactNode;
   group: DimGroup;
   selected: string | undefined;
   isAvailable: (value: string) => boolean;
@@ -37,14 +40,17 @@ export const VariantGroup = memo(function VariantGroup({
 
   return (
     <View style={{ gap: 8 }}>
-      <T v="small">
-        <T v="small" tone="ink2" style={{ fontWeight: "600" }}>
-          {group.key}:{" "}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <T v="small" style={{ flexShrink: 1 }}>
+          <T v="small" tone="ink2" style={{ fontWeight: "600" }}>
+            {group.key}:{" "}
+          </T>
+          <T v="small" style={{ fontWeight: "800" }}>
+            {selected ?? t("var.choose")}
+          </T>
         </T>
-        <T v="small" style={{ fontWeight: "800" }}>
-          {selected ?? t("var.choose")}
-        </T>
-      </T>
+        {aside}
+      </View>
       <View style={styles.wrap} accessibilityRole="radiogroup" accessibilityLabel={group.key}>
         {shown.map((v) => {
           const on = v.value === selected;

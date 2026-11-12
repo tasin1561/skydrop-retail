@@ -122,10 +122,10 @@ export async function searchProducts(sp: SearchParams): Promise<SearchResult> {
     `/search?${qs({ q: sp.q, store: sp.store, category: sp.category, brand: sp.brand?.join(",") || undefined, sort: sp.sort, min: sp.min, max: sp.max, rating: sp.rating, fast: sp.fast, page: sp.page })}`,
     30,
   );
-  if (r) return r;
+  if (r) return { ...r, items: r.items.map(forCard) };
   // Demo mode, or the API is down with nothing cached: answer from the bundled catalog (marked stale in API mode).
   const res = local.searchProducts(sp);
-  return { ...res, items: res.items.map(demoDecorate), ...(API ? { stale: true } : {}) };
+  return { ...res, items: res.items.map((p) => forCard(demoDecorate(p))), ...(API ? { stale: true } : {}) };
 }
 
 /**
@@ -187,20 +187,40 @@ export async function jobStatus(id: string): Promise<{ status: "queued" | "runni
   };
 }
 
+/**
+ * A product as a card needs it. Lists (rails, grids, search) go to client components, so everything on the object is
+ * written into the page's HTML: without this, one detailed product drags its reviews, specs, every photo and every
+ * colour/size along (the home page was 620 KB). The product page loads the full record itself (loadProduct).
+ */
+export function forCard(p: Product): Product {
+  const sizes: Product["variants"] = [];
+  const seen = new Set<string>();
+  for (const v of p.variants ?? []) {
+    const size = v.dimensions?.Size ?? v.label;
+    if (!size || seen.has(size) || sizes.length >= 6) continue;
+    seen.add(size);
+    sizes.push({ id: null, label: size, dimensions: { Size: size }, swatch: null, selected: false });
+  }
+  const { bullets, specs, aplus, videos, reviewList, starBreakdown, categoryTrail, categoryPath, ...rest } = p;
+  void bullets, void specs, void aplus, void videos, void reviewList, void starBreakdown, void categoryTrail, void categoryPath;
+  return { ...rest, images: (p.images ?? []).slice(0, 2), variants: sizes.length ? sizes : undefined };
+}
+const cards = (items: Product[]) => items.map(forCard);
+
 export async function byMarket(m: StoreMode, limit = 12, category?: string, brands: string[] = []): Promise<Product[]> {
   const brand = brands.join(",") || undefined;
   const r = await api<{ items: Product[] }>(`/products/popular?${qs({ store: m, limit, category, brand })}`, 300);
-  return r?.items ?? local.byMarket(m, limit, category, brands).map(demoDecorate);
+  return cards(r?.items ?? local.byMarket(m, limit, category, brands).map(demoDecorate));
 }
 
 export async function deals(m: StoreMode, limit = 12): Promise<Product[]> {
   const r = await api<{ items: Product[] }>(`/products/deals?${qs({ store: m, limit })}`, 300);
-  return r?.items ?? local.deals(m, limit).map(demoDecorate);
+  return cards(r?.items ?? local.deals(m, limit).map(demoDecorate));
 }
 
 export async function related(p: Product, limit = 8): Promise<Product[]> {
   const r = await api<{ items: Product[] }>(`/products/${pathSeg(p.id)}/related?${qs({ limit })}`, 300);
-  return r?.items ?? local.related(p, limit).map(demoDecorate);
+  return cards(r?.items ?? local.related(p, limit).map(demoDecorate));
 }
 
 export async function suggestions(q: string, store: StoreMode, limit = 6) {
@@ -235,12 +255,12 @@ export async function verifyItems(items: { productId: string; unitBdt: number; q
 
 export async function offersFeed(store: StoreMode, limit = 40): Promise<Product[]> {
   const r = await api<{ items: Product[] }>(`/offers?${qs({ store, limit })}`, 120);
-  if (r?.items) return r.items;
+  if (r?.items) return cards(r.items);
   // demo: products with any offer, then the deepest discounts
   const withOffers = local.searchProducts({ store, perPage: 400 }).items.filter((p) => (p.offers?.length ?? 0) > 0);
   const discounted = local.deals(store, limit);
   const seen = new Set<string>();
-  return [...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit).map(demoDecorate);
+  return cards([...withOffers, ...discounted].filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, limit).map(demoDecorate));
 }
 
 // ---------- category tree (GET /categories, GET /categories/{path}); demo / API-down fallback: the bundled tree ----------

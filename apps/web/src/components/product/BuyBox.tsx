@@ -13,6 +13,8 @@ import type { BuyInfo } from "./types";
 import { QtyStepper } from "./QtyStepper";
 import { groupVariants, Spinner, VariantGroup } from "./Variants";
 import { flyToCart } from "@/components/motion/flyToCart";
+import { SizeGuide } from "./SizeGuide";
+import { sizeGuideFor } from "@/lib/sizeGuide";
 
 type Phase = "idle" | "busy" | "done";
 
@@ -170,6 +172,7 @@ export function BuyBox({
               isUnavailable={(v) => isUnavailable(g.key, v)}
               onPick={(v) => pick(g.key, v)}
               pending={pending?.key === g.key ? pending.value : null}
+              aside={sizeGuideFor(g, info.title) ? <SizeGuide initial={sizeGuideFor(g, info.title)!} /> : undefined}
             />
           ))}
           {!current?.id && info.variants.length > 0 && (
@@ -213,9 +216,10 @@ export function BuyBox({
         inert={!showBar}
         className="pd-sticky fixed inset-x-0 bottom-16 z-40 px-3 pb-2 md:hidden"
       >
-        <div className="flex items-center gap-2 rounded-[12px] bg-surface/95 p-2 pl-3.5 shadow-[0_-4px_24px_rgb(15_23_42/0.12),var(--shadow-2)] backdrop-blur-md">
-          <div className="min-w-0 flex-1">
-            <p className="text-[17px] font-extrabold leading-tight tracking-tight">{bdt(info.unitBdt)}</p>
+        <div className="flex items-center gap-2 rounded-[12px] bg-surface/95 p-2 pl-3.5 max-[340px]:gap-1.5 max-[340px]:pl-2.5 shadow-[0_-4px_24px_rgb(15_23_42/0.12),var(--shadow-2)] backdrop-blur-md">
+          {/* a folded phone (under 320 px) has room for the two buttons only: the price is right above on the page */}
+          <div className="min-w-0 flex-1 max-[319px]:hidden">
+            <p className="truncate text-[17px] font-extrabold leading-tight tracking-tight max-[340px]:text-[15px]">{bdt(info.unitBdt)}</p>
             <p className="truncate text-[11px] text-ink-2">
               {info.discount > 0 ? (
                 <>
@@ -226,8 +230,8 @@ export function BuyBox({
               )}
             </p>
           </div>
-          <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!canBuy} compact className="h-11 px-4 text-sm" />
-          <BuyButton phase={buy} onClick={onBuy} disabled={!canBuy} compact className="h-11 px-4 text-sm" />
+          <AddButton phase={add} onClick={(e) => onAdd(e.currentTarget)} disabled={!canBuy} compact className="h-11 shrink-0 px-4 text-sm max-[340px]:min-w-0 max-[340px]:flex-1 max-[340px]:px-2 max-[340px]:text-[13px]" />
+          <BuyButton phase={buy} onClick={onBuy} disabled={!canBuy} compact className="h-11 shrink-0 px-4 text-sm max-[340px]:min-w-0 max-[340px]:flex-1 max-[340px]:px-2 max-[340px]:text-[13px]" />
         </div>
       </div>
     </div>

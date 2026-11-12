@@ -8,6 +8,7 @@ import type { MarketId, StoreMode } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { Icon } from "../Icon";
 import { StoreName } from "../store/StoreName";
+import { sizedImg } from "@/lib/img";
 
 type Scene = { mode: StoreMode; images: (string | null)[] };
 
@@ -69,7 +70,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
                   className="grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-[10px] bg-white p-2 ring-1 ring-white/15"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="max-h-full max-w-full object-contain" />
+                  <img src={sizedImg(src, 360)} alt="" decoding="async" className="max-h-full max-w-full object-contain" />
                 </span>
               ) : null,
             )}
@@ -99,7 +100,7 @@ export function StoreHero({ scenes, fixed }: { scenes: Scene[]; fixed?: boolean 
             >
               {src ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={src} alt="" className="h-full w-full object-contain" />
+                <img src={sizedImg(src, 240)} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" />
               ) : (
                 <Icon name={["basket", "package", "tag"][i]} size={64} className="text-[color:var(--hero-a)]" stroke={1.3} />
               )}

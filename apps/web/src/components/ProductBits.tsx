@@ -19,16 +19,19 @@ export function ProductImage({
   src,
   className,
   sizes,
+  w,
 }: {
   p: Pick<Product, "title" | "placeholder" | "image">;
   src?: string | null;
   className?: string;
   sizes?: "sm" | "lg";
+  /** shown width in CSS px, so the photo is fetched at that size (default: a product card) */
+  w?: number;
 }) {
   const url = src ?? p.image;
   if (url) {
     // Amazon CDN images are already sized; FxImg fades them in once decoded (blur-up stand-in).
-    return <FxImg src={url} alt={p.title} loading="lazy" decoding="async" className={"object-contain " + (className ?? "")} />;
+    return <FxImg src={url} alt={p.title} w={w ?? (sizes === "lg" ? 480 : 240)} loading="lazy" decoding="async" className={"object-contain " + (className ?? "")} />;
   }
   const hue = p.placeholder?.hue ?? 210;
   return (
@@ -215,8 +218,9 @@ export function ProductGrid({ items }: { items: Product[] }) {
 export function Rail({ title, href, items, note }: { title: string; href?: string; items: Product[]; note?: string }) {
   const { t } = useT();
   if (!items.length) return null;
+  // cv-auto: rows below the screen are not laid out or painted until the shopper scrolls near them (globals.css)
   return (
-    <section className="mt-8">
+    <section className="cv-auto mt-8">
       <div className="mb-3 flex items-end justify-between gap-3 px-4 sm:px-0">
         <div>
           <h2 className="text-lg font-bold tracking-tight sm:text-xl">{title}</h2>

@@ -177,8 +177,25 @@ async function either<T>(live: () => Promise<T>, local: () => T | Promise<T>): P
   return live();
 }
 
+/** Cost calculator answer (GET /pricing/quote). */
+export type Quote = {
+  qty: number;
+  weightKg: number;
+  weightAssumed: boolean;
+  unit: { storeBdt: number; importBdt: number; serviceBdt: number; totalBdt: number };
+  itemsBdt: number;
+  shippingBdt: number;
+  totalBdt: number;
+};
+
 // ---------- endpoints ----------
 export const api = {
+  /** Rejects in demo mode and when the server cannot be reached: the calculator then uses the bundled rates. */
+  priceQuote: async (q: { inr: number; category: string; qty: number; weightKg: number | null }) => {
+    if ((await resolveMode()) === "demo") throw new Error("demo");
+    return http<Quote>("GET", "/pricing/quote", { query: { inr: q.inr, category: q.category, qty: q.qty, weight_kg: q.weightKg ?? undefined } });
+  },
+
   marketplaces: () =>
     either(
       () => http<{ items: Marketplace[] }>("GET", "/marketplaces").then((r) => r.items),

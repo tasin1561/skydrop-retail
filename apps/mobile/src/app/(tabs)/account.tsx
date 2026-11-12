@@ -152,6 +152,8 @@ export default function Account() {
       </Card>
       )}
 
+      <Card pad={6}>{row("percent", t("calc.title"), t("calc.empty"), () => router.push("/calculator"))}</Card>
+
       <Card pad={6}>
         <T v="label" tone="ink2" style={{ paddingHorizontal: 10, paddingTop: 10, paddingBottom: 4 }}>{t("mx.helpLinks")}</T>
         {HELP.map((h, i) => (

@@ -5,9 +5,12 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { OPEN_EVENT, type OpenAssistantDetail } from "@/lib/assistant/client";
 import { useFeature } from "@/components/features/FeaturesProvider";
-import { AssistantPanel } from "./AssistantPanel";
+import dynamic from "next/dynamic";
 import { AiGlyph } from "./AiGlyph";
 import { useT } from "@/i18n/client";
+
+// The chat panel (and its code) is fetched the first time the shopper opens the assistant, not with every page.
+const AssistantPanel = dynamic(() => import("./AssistantPanel").then((m) => m.AssistantPanel), { ssr: false });
 
 /**
  * Floating "Ask Skydrop AI" launcher + chat panel (feature switch "ai_assistant").

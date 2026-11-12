@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/categories`, priority: 0.6 },
     ...allCategoryPaths().map((path) => ({ url: `${BASE}/c/${path}`, changeFrequency: "daily" as const, priority: path.includes("/") ? 0.6 : 0.8 })),
     { url: `${BASE}/how-it-works`, priority: 0.5 },
+    { url: `${BASE}/calculator`, priority: 0.5 },
     ...["/help", "/contact", "/legal/terms", "/legal/privacy", "/legal/refunds", "/legal/shipping"].map((path) => ({
       url: `${BASE}${path}`,
       changeFrequency: "monthly" as const,

@@ -3,8 +3,8 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Variant } from "@/lib/types";
 import { Icon } from "@/components/Icon";
-import { sized } from "./media";
 import { useT } from "@/i18n/client";
+import { sizedImg } from "@/lib/img";
 
 export type DimGroup = {
   key: string;
@@ -47,7 +47,10 @@ export function VariantGroup({
   isUnavailable,
   onPick,
   pending,
+  aside,
 }: {
+  /** shown at the end of the label row (the size guide link) */
+  aside?: React.ReactNode;
   group: DimGroup;
   selected: string | undefined;
   isAvailable: (value: string) => boolean; // exists in combination with the other selected values
@@ -105,6 +108,7 @@ export function VariantGroup({
             <Spinner /> {t("var.opening", { value: pending })}
           </span>
         )}
+        {aside}
       </p>
       <div
         ref={wrap}
@@ -154,7 +158,7 @@ export function VariantGroup({
                   <span className="relative grid h-14 w-14 place-items-center overflow-hidden rounded-[11px] bg-white shadow-[var(--shadow-1)]">
                     {v.swatch ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sized(v.swatch, "SS112") ?? v.swatch} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                      <img src={sizedImg(v.swatch, 160)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-xs font-bold text-ink-2">{v.value.slice(0, 2)}</span>
                     )}
